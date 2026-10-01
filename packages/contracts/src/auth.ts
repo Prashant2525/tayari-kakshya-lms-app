@@ -27,10 +27,14 @@ export const RegisterInput = z.object({
 });
 export type RegisterInput = z.infer<typeof RegisterInput>;
 
+/** When the device limit is reached, the client may retry naming one of its sessions to sign out (D-028). */
+const ReplaceSession = { replaceSessionId: z.uuid().optional() };
+
 export const LoginInput = z.object({
   email: Email,
   password: z.string().min(1).max(128),
   device: DeviceInfo,
+  ...ReplaceSession,
 });
 export type LoginInput = z.infer<typeof LoginInput>;
 
@@ -38,7 +42,14 @@ export const GoogleLoginInput = z.object({
   idToken: z.string().min(10).max(4096),
   locale: Locale.default('en'),
   device: DeviceInfo,
+  ...ReplaceSession,
 });
+
+export const StaffLoginInput = z.object({
+  email: Email,
+  password: z.string().min(1).max(128),
+});
+export type StaffLoginInput = z.infer<typeof StaffLoginInput>;
 export type GoogleLoginInput = z.infer<typeof GoogleLoginInput>;
 
 export const RefreshInput = z.object({ refreshToken: z.string().min(20).max(512) });

@@ -25,6 +25,12 @@ export const SETTINGS = {
     default: { channels: { email: true, phone: false }, requiredForLearning: false },
     public: true,
   },
+  /** D-032: days between a self-service deletion request and erasure (owner chose 7). */
+  'account.deletionGraceDays': {
+    schema: z.object({ days: z.number().int().min(1).max(60) }),
+    default: { days: 7 },
+    public: false,
+  },
   /** S24. */
   'app.maintenance': {
     schema: z.object({ enabled: z.boolean(), message: LocalizedText.nullable() }),
