@@ -4,6 +4,23 @@ All notable changes to this project. Format based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Added — 2026-10-02 (Phase 4: monorepo + backend foundation)
+- pnpm 12 + Turborepo monorepo, shared TS/ESLint/Prettier config, GitHub Actions CI, UTF-8 README.
+- Local infrastructure via Docker Compose: PostgreSQL 17 (+ test DB, citext, pg_trgm), Redis 7.4, Mailpit.
+- `@tk/domain`: Bikram Sambat conversion/validation/formatting, Nepal fiscal year, Kathmandu day keys, integer-paisa
+  money with VAT and discount math.
+- `@tk/contracts`: error codes, localized text, auth and admin schemas, settings registry, permission catalog.
+- `@tk/api` (NestJS 12 / Fastify / Prisma 7): first migration (identity, sessions, OTP, deletion, RBAC, settings, audit);
+  student auth (email/password, Google, OTP verification, password reset, refresh rotation with reuse detection,
+  sessions, device limit, self-service deletion); staff auth with HttpOnly cookie refresh; RBAC with escalation
+  protection; Super Admin CLI; student administration; typed settings; audit log; maintenance mode; Redis rate limiting;
+  health checks; OpenAPI; BullMQ worker (account erasure, auth cleanup).
+- 75 automated tests (unit + integration against real PostgreSQL/Redis).
+
+### Changed
+- `.env.example` synced with the variables the API actually reads.
+- `ARCHITECTURE.md` §4: admin CSRF defence uses a required custom header (T-018).
+
 ### Added — 2026-10-02 (Phase 2/3: decisions + architecture)
 - Owner decisions recorded (`DECISIONS.md` D-001…D-042, T-001…T-015); follow-up clarifications in `OPEN_QUESTIONS.md`.
 - `ARCHITECTURE.md`, `DATABASE_ARCHITECTURE.md`, `API_DOCUMENTATION.md`, `DESIGN_SYSTEM.md`.

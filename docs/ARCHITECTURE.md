@@ -88,8 +88,9 @@ OpenAPI generation, health (`/health/live`, `/health/ready`).
 - **Device limit (D-028)**: on login, count active sessions for the user; if at the limit, return `DEVICE_LIMIT_REACHED`
   with the device list so the user can sign one out (policy configurable: block vs. replace oldest).
 - **Mobile storage**: refresh token in `expo-secure-store`; access token in memory only.
-- **Admin CMS**: separate `staff` audience, refresh token in an `HttpOnly; Secure; SameSite=Strict` cookie scoped to the API,
-  CSRF protection via double-submit header; optional TOTP 2FA (required for Super Admin).
+- **Admin CMS**: separate `staff` audience, refresh token in an `HttpOnly; Secure; SameSite=Strict` cookie scoped to
+  `/api/v1/admin/auth`; CSRF defence = required `X-TK-Client: admin` header + CORS allow-list (T-018); optional TOTP 2FA
+  (required for Super Admin — Phase 5, KI-014).
 - **OTP**: 6 digits, hashed, 10-min expiry, 5 attempts, resend cooldown; purposes `verify_email`, `verify_phone`, `reset_password`.
 - **Google**: verify ID token server-side (audience = our client IDs); link to existing account by verified email.
 - **RBAC (D-036)**: permissions are code-defined strings `resource:action` (e.g. `course:update`, `course:publish`,

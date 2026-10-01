@@ -15,6 +15,40 @@ endpoint ✅ when implemented and tested.
 - Locked content: list items include `access: { locked: boolean, reason?: "premium" | "not_published" }`; bodies/URLs omitted when locked.
 - Rate limits returned via `RateLimit-*` headers; `429` with `RATE_LIMITED`.
 
+## 1a. Implemented endpoints (Phase 4) ✅
+
+Authoritative shapes: OpenAPI at `/api/docs` (local) and `packages/contracts`. Where these differ from the plan below,
+**this table wins**.
+
+| Method | Path | Auth | Notes |
+|---|---|---|---|
+| GET | `/health/live`, `/health/ready` | public | ready checks PostgreSQL + Redis |
+| GET | `/app/config` | public | maintenance, min versions, purchase channels, verification channels |
+| POST | `/auth/register` | public | → tokens; sends email verification code if enabled |
+| POST | `/auth/login` | public | optional `replaceSessionId` when `DEVICE_LIMIT_REACHED` |
+| POST | `/auth/google` | public | ID token verified server-side |
+| POST | `/auth/refresh` | public | rotation; reuse ⇒ session revoked (`REFRESH_TOKEN_REUSED`) |
+| POST | `/auth/logout` | student | revokes current session |
+| POST | `/auth/password/forgot` | public | always 202 |
+| POST | `/auth/password/reset` | public | `{ email, code, newPassword }`; revokes all sessions; also used by invited staff to set a password |
+| GET / PATCH | `/me` | any | profile + `permissions` (staff) + `deletionScheduledFor` |
+| GET | `/me/sessions` · DELETE `/me/sessions/:id` | any | |
+| POST | `/me/password` | any | change password (replaces planned `/auth/password/change`) |
+| POST | `/me/verification/send` · `/me/verification/verify` | student | `channel: email | phone` (phone requires setting + SMS provider) |
+| POST / DELETE | `/me/deletion` | student | request / cancel self-service deletion |
+| POST | `/admin/auth/login` · `/admin/auth/refresh` · `/admin/auth/logout` | public/staff | requires header `X-TK-Client: admin`; refresh token in HttpOnly cookie `tk_admin_rt` |
+| GET | `/admin/permissions` | `roles:manage` | catalog |
+| GET / POST | `/admin/roles` · PUT / DELETE `/admin/roles/:id` | `roles:manage` | cannot grant permissions you lack; Super Admin role protected |
+| GET | `/admin/staff` | `staff:read` | |
+| POST | `/admin/staff` | `staff:manage` | creates staff without password + emails setup code |
+| PUT | `/admin/staff/:id/roles` | `staff:manage` | last Super Admin protected |
+| PATCH | `/admin/staff/:id/suspend` · `/admin/staff/:id/reactivate` | `staff:manage` | |
+| GET | `/admin/users` · `/admin/users/:id` | `users:read` | search `q`, `status`, cursor pagination |
+| PATCH | `/admin/users/:id` | `users:update` | `deviceLimitOverride` |
+| POST | `/admin/users/:id/suspend` · `/reactivate` · `/revoke-sessions` | `users:suspend` | |
+| GET | `/admin/settings` · PUT `/admin/settings/:key` | `settings:read` / `settings:update` | validated per key, audited |
+| GET | `/admin/audit-logs` | `audit:read` | filters + cursor |
+
 ## 2. Public / app bootstrap
 | Method | Path | Notes |
 |---|---|---|

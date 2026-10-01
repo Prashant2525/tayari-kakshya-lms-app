@@ -68,4 +68,11 @@ Hosting: Nepal VPS with Docker Compose. Architecture: `docs/ARCHITECTURE.md`, `d
 
 ## Environment notes
 
-Windows 11; PowerShell + Git Bash. Node 24, npm 11. Docker Desktop pending owner install; pnpm via corepack (see `docs/ENVIRONMENT_STATUS.md`).
+Windows 11; PowerShell + Git Bash. Node 24, pnpm 12.8.1, Docker Desktop (WSL2). See `docs/ENVIRONMENT_STATUS.md`.
+
+- Start infra: `pnpm infra:up` (Postgres :5432 with `tayari_kakshya` + `tayari_kakshya_test`, Redis :6379, Mailpit UI :8025).
+- Verify everything: `pnpm format:check && pnpm build && pnpm lint && pnpm typecheck && pnpm test`.
+- API: `pnpm --filter @tk/api dev` (needs root `.env`); migrations: `pnpm --filter @tk/api exec prisma migrate dev --name <x>`.
+- TypeScript is pinned to 6.0 (T-016). Do not add SWC or other unsigned native binaries without checking they load on
+  this machine — Windows Smart App Control blocks them (KI-011).
+- Business values are never hard-coded: new configurable rules go into the `SETTINGS` registry in `packages/contracts`.
