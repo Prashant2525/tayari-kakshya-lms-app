@@ -1,6 +1,6 @@
 # Technology Stack Options
 
-Status: **PROPOSED — NOT APPROVED** (awaiting owner decision, Q42). Nothing here is locked until recorded in `DECISIONS.md`.
+Status: **APPROVED by owner on 2026-10-02 (Q42)** — recorded as T-001…T-015 in `DECISIONS.md`. Amendments: video is hybrid Bunny + YouTube (D-015); hosting is a Nepal VPS with Docker Compose (D-037); public website uses Next.js (T-015).
 Fixed by owner: **React Native** (mobile) and **PostgreSQL** (canonical database).
 
 Cost notes are relative (Low / Medium / High) — exact vendor prices change and will be checked against current

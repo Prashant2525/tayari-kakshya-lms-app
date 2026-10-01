@@ -37,3 +37,6 @@ Thumbs.db
 # --- Local tooling ---
 .claude/settings.local.json
 tmp/
+
+# --- Large design reference (local-only, D-041) ---
+Tayari Kakshya - LMS System.pdf

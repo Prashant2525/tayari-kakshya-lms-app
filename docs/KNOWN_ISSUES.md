@@ -2,11 +2,13 @@
 
 | ID | Type | Description | Impact | Status |
 |---|---|---|---|---|
-| KI-001 | Repo | `Tayari Kakshya - LMS System.pdf` (51 MB) is committed on `main`; GitHub warns above 50 MB and every clone downloads it. | Slower clones | Open — owner decision (Q40). No history rewrite without approval. |
-| KI-002 | Repo | `README.md` is UTF-16 encoded (created by PowerShell); renders oddly in some tools. | Cosmetic | Open — will rewrite as UTF-8 when scaffolding (Phase 3). |
-| KI-003 | Product risk | App-store payment policies (Apple IAP; Google Play billing) may restrict selling digital courses through eSewa/Khalti/ConnectIPS inside the app. | Could block store approval or force a different purchase flow | Open — Q26; verify current policy before Phase 11. |
-| KI-004 | Legal risk | Gorkhapatra content and official organisation emblems (Police/Army/APF/NID) may require permission to reproduce. | Takedown/legal exposure | Open — Q2, Q14. |
-| KI-005 | Reference gaps | PDF lacks course detail, checkout, exam flow, results, quiz feedback, news detail, empty/error states; pages 20–22 are empty stubs. | Requires new design | Tracked in `PDF_UI_FEATURE_EXTRACTION.md §4`. |
-| KI-006 | Reference copy | Copy errors in PDF: "Forget your password?", reset button labelled "Send email", "Sainey" spelling, duplicated tiles on p9. | Must not be copied | Note for design phase. |
-| KI-007 | Environment | No Docker / PostgreSQL / pnpm on the dev machine. | Blocks Phase 4 local DB | Open — Q41. |
-| KI-008 | Scale risk | Weekly exams cause synchronized load spikes. | Outage during exams | Design for it in Phase 3; load-test before launch. |
+| KI-001 | Repo | 51 MB design PDF was committed on `main`. | Large clones | **Mitigated** — untracked going forward (D-041); remains in old history by owner choice (no rewrite). |
+| KI-002 | Repo | `README.md` is UTF-16 encoded. | Cosmetic | Open — rewrite as UTF-8 in Phase 4 scaffold. |
+| KI-003 | Store-policy risk | Android in-app eSewa/Khalti for digital content conflicts with Google Play's billing policy text, although Play Billing is unavailable to Nepal-based merchants; iOS web-only purchasing may be challenged under Apple 3.1.1/3.1.3(b). | Store rejection/enforcement | **Accepted by owner** (D-027). Mitigations: purchase channels are server-side settings (switch to web-only without a release); website checkout always available; Apple IAP can be added. Re-check policies before store submission. |
+| KI-004 | Legal risk | Official emblems (Police/Army/APF/NID) on category tiles; owner did not confirm permission. Gorkhapatra resolved (team summaries only, D-018). | Takedown risk | Open — emblems are CMS uploads chosen by the owner; reminder in launch checklist. |
+| KI-005 | Reference gaps | PDF lacks course detail, checkout, exam flow, results, news detail, empty/error states. | New design needed | Covered in `FEATURE_SPECIFICATION.md` v1.0 + `DESIGN_SYSTEM.md` §8. |
+| KI-006 | Reference copy | Copy errors in PDF ("Forget your password?", reset button "Send email", duplicated tiles). | Must not be copied | Note for implementation. |
+| KI-007 | Environment | No Docker / WSL2 on dev machine; firmware virtualization reported disabled. | Blocks Phase 4 | Open — owner action (`ENVIRONMENT_STATUS.md`). |
+| KI-008 | Scale | Weekly exams create synchronized bursts. | Outage risk | Designed for (ARCHITECTURE §8); load test in Phase 16. |
+| KI-009 | Video security | YouTube-hosted videos (free/promo) can be watched outside the app by anyone with the ID. | Leakage of free content only | Accepted (D-015); CMS warns if YouTube is used for premium. |
+| KI-010 | Payments | Nepali wallets do not support recurring auto-debit; renewals are manual. | Plan renewals need reminders | Design: expiry reminders via notifications. |

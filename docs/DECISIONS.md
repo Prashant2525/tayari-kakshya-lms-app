@@ -1,18 +1,101 @@
 # Decisions Log
 
-Format: `D-### | date | decision | rationale | decided by`. Only owner-confirmed product/business decisions and
-approved technical decisions belong here. Proposals live in `OPEN_QUESTIONS.md` / `TECH_STACK_OPTIONS.md` until approved.
+Only owner-confirmed product/business decisions and approved technical decisions belong here.
+Source of answers: `OPEN_QUESTIONS.md` (owner answers, 2026-10-02) + follow-up clarifications the same day.
 
-## Confirmed
+**Principle adopted from the answers ("manage from admin portal"):** wherever the owner chose admin control, the rule is
+implemented as **validated configuration data in PostgreSQL, editable in the Admin CMS**, with no hard-coded business
+values. Development seed data uses clearly fake placeholder values; real values are entered by the owner before launch
+(tracked in `LAUNCH_CONFIG_CHECKLIST` section of `PROJECT_STATE.md`).
 
-| ID | Date | Decision | Rationale | By |
-|---|---|---|---|---|
-| D-001 | 2026-10-02 | Mobile app uses **React Native** | Owner preference (master prompt) | Owner |
-| D-002 | 2026-10-02 | **PostgreSQL** is the canonical primary database | Owner requirement | Owner |
-| D-003 | 2026-10-02 | Payment gateways in scope: **eSewa, Khalti, ConnectIPS**, behind a provider abstraction with server-side verification | Owner requirement | Owner |
-| D-004 | 2026-10-02 | Three surfaces: student mobile app, web Admin CMS, backend API; all academic/commercial content CMS-driven | Owner requirement | Owner |
-| D-005 | 2026-10-02 | UI reference PDF is a functional reference; visual design will be redesigned to a premium, accessible design system | Owner requirement | Owner |
-| D-006 | 2026-10-02 | GitHub `origin` is the primary remote; conventional commits; no force-push or secret commits | Owner requirement | Owner |
+## Product & scope
 
-## Pending (see OPEN_QUESTIONS.md)
-- Exam scope, academic hierarchy, business model, pricing/validity, platforms, language, exam rules, hosting, full tech stack.
+| ID | Decision | Ref |
+|---|---|---|
+| D-001 | Mobile app uses **React Native** (Expo). | master prompt, Q42 |
+| D-002 | **PostgreSQL** is the canonical primary database. | master prompt |
+| D-004 | Surfaces: student mobile app (Android + iOS), web Admin CMS, backend API, **public website** (course pages, web checkout, legal pages — needed for iOS purchases and SEO). | Q5, Q26, S21 |
+| D-005 | UI PDF is a functional reference; visual design is redesigned into a premium, accessible design system. Brand palette is refined by us (no logo yet — placeholder wordmark until owner supplies one). | Q1 |
+| D-007 | Exam taxonomy is **fully admin-managed** and generic. Launch content: Nepal Police, Nepal Army, APF, NID (posts e.g. Sainey Likhit, Officer Cadet, Prahari Jawan) — entered via CMS, not code. Lok Sewa (PSC) and any other authority can be added later without code changes. | Q2, Q3 |
+| D-008 | **Bilingual UI (English/Nepali) with in-app toggle.** CMS text fields are localizable (en/ne, at least one required, fallback to the other). | Q4 |
+| D-009 | **Dates displayed in Bikram Sambat (BS)**; stored as UTC timestamps / AD dates; timezone Asia/Kathmandu. | Q4 |
+| D-010 | Approved hierarchy: configurable exam taxonomy (Authority → Level → Service → Group → Post, levels optional) + Paper; reusable content tree Subject → Chapter → Topic → items; Courses link to posts/papers and include ordered subjects. Subjects/chapters/questions are **shared and reusable** across courses (as proposed). | Q6 |
+| D-011 | A student may hold **several active courses**; Home provides a current-course switcher. | Q7 |
+| D-012 | Paper/subject metadata (full marks, pass marks, duration) is **entered by admins**. | Q8 |
+| D-013 | Instructors have public profiles shown to students; instructors are CMS users whose permissions are granted by the Super Admin. | Q9 |
+
+## Content & learning
+
+| ID | Decision | Ref |
+|---|---|---|
+| D-014 | Notes support **both rich-text and PDF**. PDFs are **downloadable with a per-user watermark** (name/email/phone + date). | Q10 |
+| D-015 | **Hybrid video hosting**: per video the admin chooses **Bunny Stream** (token-protected HLS, offline-capable; for premium) or **YouTube unlisted** (for free/promo). YouTube *private* videos are technically impossible for app users. Offline download only for Bunny videos. CMS warns when YouTube is used for premium content. | Q11 + follow-up |
+| D-016 | Question types: the system ships the full engine set (single-choice MCQ, multiple-answer, true/false, fill-in-the-blank, match-the-following, numerical, subjective with model answer, passage/comprehension groups, image in stem/options). Admins enable/disable types and author freely. A *new* type beyond these engines requires development. | Q12 |
+| D-017 | Quiz defaults: results **after submission**, explanations shown, **unlimited retakes**, **timed** — all overridable per quiz in the CMS. | Q13 |
+| D-018 | "Gorkhapatra" section = **team-written summaries** of exam-relevant Gorkhapatra news with date + source link. No republishing of Gorkhapatra articles/e-paper. | Q14 follow-up |
+| D-019 | Notice tab = **official exam notices + announcements + instructor messages** (one-way broadcasts from CMS, audience-targetable). Two-way discussion is a separate feature (S12). | Q15 |
+| D-020 | Owner holds rights to previous-year questions; PYQs managed in the CMS. | Q16 |
+
+## Exams & engagement
+
+| ID | Decision | Ref |
+|---|---|---|
+| D-021 | Weekly/mock/all assessment rules are **CMS-configurable per assessment**: availability (fixed window or open period), duration, marks, negative marking, pass mark, attempts, result release (immediate / after window / manual), leaderboard on/off, access (free/premium/course/plan), blueprint sections, shuffling, subjective grading mode (self-evaluated or instructor-graded). | Q17, Q18 |
+| D-022 | **At launch:** daily challenge, streaks, leaderboard, certificates. | Q19 |
+
+## Commerce
+
+| ID | Decision | Ref |
+|---|---|---|
+| D-003 | Payment provider abstraction with server-side verification. **Launch gateways: eSewa and Khalti** (owner has merchant accounts). ConnectIPS implemented later behind the same interface. | Q25 |
+| D-023 | **Both** per-course purchases and plans (Free/Premium…). "Forever" = lifetime. Prices, sale prices, plan contents, validity (days / fixed end date / lifetime) are CMS-managed. | Q20, Q21 |
+| D-024 | Free vs premium is set **per content item** by admins. | Q22 |
+| D-025 | Coupons and time-limited sale prices are CMS-managed (type, value, validity, usage limits, applicable products). | Q23 |
+| D-026 | Tax/invoice/refund settings are CMS-managed: VAT on/off, rate, inclusive/exclusive pricing, PAN/VAT number, invoice numbering prefix/fiscal-year reset; refunds via an admin-approved workflow. | Q24 |
+| D-027 | **Purchase channels:** Android app → in-app eSewa/Khalti checkout. iOS app → **no purchase UI, prices or external purchase links**; users buy on the website and the iOS app unlocks content. Website checkout available to all. Channel availability per platform is a server-side setting (changeable without an app release). Apple IAP may be added later. Entitlements are channel-independent. | Q26 + follow-up |
+| D-028 | Device/concurrent-session limit is enforced and **configurable in the CMS** (global default + per-user override). | Q27 |
+
+## Accounts & communication
+
+| ID | Decision | Ref |
+|---|---|---|
+| D-029 | Sign-up: **email + password** and **Google**. Verification channels (email and/or phone OTP) are toggled in the CMS; if both are enabled the student chooses. | Q28 |
+| D-030 | Password reset by **OTP code** (6 digits). | Q29 |
+| D-031 | Profile field "Student" on Edit Profile = **Education level** (option list managed in CMS). | Q30 follow-up |
+| D-032 | **Self-service account deletion** in Profile with a 7-day grace period; personal data erased afterwards; payment/invoice records retained anonymised. | Q31 follow-up |
+| D-033 | Notification channels: **push + in-app + email**. Events: purchase, course update, exam reminder, result (+ CMS notices/announcements). No marketing notifications at launch. Students can toggle categories. | Q32 + follow-up |
+| D-034 | Support = **contact options** (phone/WhatsApp/email/etc.) managed in the CMS; no ticketing at launch. | Q33 |
+| D-035 | **All suggested features S1–S24 approved** (see `SUGGESTED_FEATURES.md`). Sequencing per `IMPLEMENTATION_PLAN.md`. | Q34 |
+
+## Admin & operations
+
+| ID | Decision | Ref |
+|---|---|---|
+| D-036 | RBAC: a protected **Super Admin** creates roles with selected permissions and assigns them (Admin, Content Manager, Instructor, …). Publishing is a separate permission, so users without it submit content for review. | Q35 |
+| D-037 | Hosting: **Nepal-based VPS** for API, worker, PostgreSQL, Redis, admin and website. PDFs/images on Cloudflare R2; premium video on Bunny Stream (global CDNs). | Q36 + follow-up |
+| D-038 | Terms, Privacy, Refund and About pages: **drafted by Claude, marked DRAFT**, reviewed and amended by the owner before publishing. | Q37 |
+| D-039 | Product analytics: **PostHog**. Error monitoring: Sentry (part of approved stack). | Q38, Q42 |
+| D-040 | Scale target: ~250–500 users at launch, ~1,000 in year 1 → single-VPS modular monolith; no horizontal scaling infrastructure needed now, but stateless design keeps that option open. | Q39 |
+| D-006 | GitHub `origin` is the primary remote; conventional commits; no force-push or secret commits. **Feature branches + PRs into `main`.** | Q40 |
+| D-041 | Design PDF removed from tracking going forward (normal commit + `.gitignore`); history is **not** rewritten. `PDF_UI_FEATURE_EXTRACTION.md` is the in-repo reference. | Q40 follow-up |
+| D-042 | Local dev uses **Docker Desktop** (Postgres + Redis via Docker Compose). Owner has Android Studio. | Q41 |
+
+## Technology (approved stack — Q42)
+
+| ID | Area | Decision |
+|---|---|---|
+| T-001 | Mobile | Expo (React Native, TypeScript), Expo Router, dev builds, EAS |
+| T-002 | Backend | NestJS on Fastify (modular monolith; API process + worker process) |
+| T-003 | API | REST `/api/v1` + OpenAPI + generated TypeScript client |
+| T-004 | ORM | Prisma (+ raw SQL for reports) |
+| T-005 | Auth | In-house: Argon2id, short-lived JWT access + rotating hashed refresh tokens per device session, Google ID-token verification, OTP |
+| T-006 | State | TanStack Query + Zustand (+ MMKV persistence on mobile) |
+| T-007 | Storage | Cloudflare R2 (private + public buckets, presigned URLs) |
+| T-008 | Video | `VideoProvider` abstraction: Bunny Stream + YouTube (D-015) |
+| T-009 | Cache/jobs | Redis + BullMQ |
+| T-010 | Search | PostgreSQL FTS + pg_trgm |
+| T-011 | Push | expo-notifications + Expo Push Service |
+| T-012 | Admin CMS | React + Vite + TanStack Router/Query/Table + React Hook Form + Zod + shadcn/ui + Tailwind + TipTap |
+| T-013 | Monitoring | Sentry + Pino logs + uptime checks + PostHog |
+| T-014 | Repo | pnpm + Turborepo monorepo, GitHub Actions CI |
+| T-015 | Public website | **Next.js** (App Router) — SEO course pages, web checkout, legal pages. *Technical choice implied by D-004/D-027; TECH_STACK_OPTIONS listed Next.js as the fit for a public site.* |
