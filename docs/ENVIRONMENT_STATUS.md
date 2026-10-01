@@ -10,13 +10,14 @@ Last checked: 2026-10-02 (Phase 4). Requirements inventory: `ENVIRONMENT_REQUIRE
 | pnpm | ✅ 12.8.1 (`npm i -g pnpm@12.8.1`; corepack needs admin rights) |
 | Git | ✅ configured (Prashant Dhimal) |
 | GitHub remote / push | ✅ `origin` → https://github.com/Prashant2525/tayari-kakshya-lms-app.git — push over HTTPS works |
-| GitHub CLI `gh` | ❌ not installed (PRs are opened via the GitHub web link) |
+| GitHub CLI `gh` | ⚠️ installed (`C:\\Program Files\\GitHub CLI`), not authenticated in the agent shell (KI-019) |
 | WSL2 | ✅ installed |
 | CPU virtualization | ✅ working (Docker runs) |
 | Docker Desktop | ✅ 29.8.1, Compose v5.5.1 |
 | PostgreSQL / Redis / Mailpit | ✅ `pnpm infra:up` (Postgres 17.11 + test DB, Redis 7.4, Mailpit UI :8025) |
 | Smart App Control | ⚠️ blocks unsigned native Node binaries (KI-011) |
 | Android SDK | ✅ present (`%LOCALAPPDATA%\Android\Sdk`); Android Studio installed per owner |
+| Playwright Chromium | ✅ installed (`pnpm --filter @tk/admin exec playwright install chromium`) |
 | Python 3.14 + PyMuPDF | ✅ (discovery tooling only) |
 
 ## Owner action: install Docker Desktop (Windows Home → WSL2 backend)

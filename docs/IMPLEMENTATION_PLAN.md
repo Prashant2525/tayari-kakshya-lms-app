@@ -9,8 +9,8 @@ Scope = approved decisions only (`DECISIONS.md`). Each phase ends with tests, do
 | 1 | PDF extraction | `PDF_UI_FEATURE_EXTRACTION.md` (49/49 pages) | ☑ |
 | 2 | Features + stack selection | All suggestions approved; stack approved (T-001…T-015) | ☑ |
 | 3 | Architecture | `ARCHITECTURE.md`, `DATABASE_ARCHITECTURE.md`, `API_DOCUMENTATION.md`, `DESIGN_SYSTEM.md` | ☑ approved by owner |
-| 4 | Monorepo + backend foundation | see §4 | ☑ verified locally (75 tests); 👀 PR review + first CI run |
-| 5 | Admin CMS foundation | see §5 | ☐ |
+| 4 | Monorepo + backend foundation | see §4 | ☑ merged (PR #3), CI green |
+| 5 | Admin CMS foundation | see §5 | ☑ verified (148 tests incl. browser E2E); 👀 PR review |
 | 6 | Academic/content CMS | see §6 | ☐ |
 | 7 | Question bank + assessment CMS | see §7 | ☐ |
 | 8 | Student mobile foundation | see §8 (includes design preview gate) | ☐ |
@@ -41,7 +41,18 @@ Scope = approved decisions only (`DECISIONS.md`). Each phase ends with tests, do
 - ☑ CI workflow (GitHub Actions) — first run pending (KI-017)
 - ↪ Moved: presigned uploads → §6 (media library); `design-tokens` skeleton → §8
 
-**§5 Admin CMS foundation** — Vite app, staff auth (cookie refresh, `X-TK-Client` header, TOTP 2FA — KI-014), education level
+**§5 Admin CMS foundation** (branch `feature/admin-foundation`) — ☑ DONE
+- ☑ API: staff TOTP 2FA + recovery codes + policy (T-022), education levels, dashboard counts, audit actor names
+- ☑ `@tk/design-tokens` (light/dark, WCAG-tested) consumed by the CMS via Tailwind 4
+- ☑ `apps/admin`: React 19 + Vite 8 + TanStack Router/Query + RHF/Zod + Radix; sign-in with 2FA step, forgot/set password,
+  forced 2FA enrolment with QR + recovery codes, permission-aware navigation, dashboard, students (search, filter,
+  cursor pagination, detail, sessions, suspend/reactivate, revoke, device-limit override), staff (invite, roles,
+  suspend), roles & permission editor (cannot grant what you lack), education levels (bilingual, reorder), typed system
+  settings, audit log, account (profile, password, 2FA), light/dark/system theme, responsive layout, BS dates
+- ☑ Tests: admin unit (Vitest) + Playwright E2E (CI job `admin-e2e`)
+- ↪ Deferred: command palette (⌘K) and generic data-table framework → built with the first content module in Phase 6
+
+Original scope: Vite app, staff auth (cookie refresh, `X-TK-Client` header, TOTP 2FA — KI-014), education level
 CRUD (KI-016), layout/nav, command palette,
 generic resource table (server pagination/filter/sort), form system (RHF + Zod), status workflow UI, media picker,
 roles & staff management, settings screens, audit log viewer. Playwright smoke tests.
@@ -84,5 +95,6 @@ course reviews + moderation, discussions/doubts + moderation, admin dashboards &
 AI study assistant (after L2), live classes (after L3), Apple IAP (only if decided later).
 
 ## Next concrete steps
-1. Owner reviews and merges the `feature/foundation` PR; confirm the first GitHub Actions run is green (KI-017).
-2. Start §5 Admin CMS foundation on `feature/admin-foundation` (branched from updated `main`).
+1. Owner reviews and merges the `feature/admin-foundation` PR; confirm both CI jobs (`verify`, `admin-e2e`) are green.
+2. Start §6 Academic/content CMS on `feature/content-cms` (taxonomy, papers, courses, subjects/chapters/topics, notes,
+   PDFs, videos, media library + local S3-compatible storage choice — T-020).

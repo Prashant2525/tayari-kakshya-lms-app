@@ -59,7 +59,7 @@ A real logo will replace the placeholder wordmark when supplied.
 | `amber.700` | `#B45309` | amber text (5.0:1) |
 | `green.700` | `#15803D` | success text/icons (5.0:1); correct answer |
 | `green.50` | `#ECFDF3` | success background |
-| `red.600` | `#DC2626` | errors, wrong answer (4.8:1) |
+| `red.700` | `#B91C1C` | errors, wrong answer (6.5:1; red.600 fell below 4.5:1 on red.50) |
 | `red.50` | `#FEF2F2` | error background |
 
 ### Dark theme (S18)
