@@ -99,3 +99,8 @@ values. Development seed data uses clearly fake placeholder values; real values 
 | T-013 | Monitoring | Sentry + Pino logs + uptime checks + PostHog |
 | T-014 | Repo | pnpm + Turborepo monorepo, GitHub Actions CI |
 | T-015 | Public website | **Next.js** (App Router) — SEO course pages, web checkout, legal pages. *Technical choice implied by D-004/D-027; TECH_STACK_OPTIONS listed Next.js as the fit for a public site.* |
+| T-016 | TypeScript | Pinned to **TypeScript 6.0.x**. TS 7 (native) lacks the JS compiler API that typescript-eslint (`<6.1`) and NestJS/Prisma tooling need. Revisit when the ecosystem supports TS 7. |
+| T-017 | API build | API compiles with **`tsc`** (emits decorator metadata); tests transpile with TypeScript's `transpileModule` via a small Vite plugin. SWC was dropped: Windows Smart App Control blocks its unsigned native binary on the dev machine. |
+| T-018 | Admin CSRF | Admin refresh token in an HttpOnly, SameSite=Strict cookie scoped to `/api/v1/admin/auth`; cookie endpoints require the `X-TK-Client: admin` header (custom-header CSRF defence + CORS allow-list). Replaces the double-submit idea in ARCHITECTURE §4 because the CMS and API live on different subdomains. |
+| T-019 | Dependencies | pnpm 12 blocks install scripts by default; only packages in `pnpm-workspace.yaml` `allowBuilds` may run them (Prisma engines, argon2, msgpackr-extract). `@scarf/scarf` telemetry is denied. |
+| T-020 | Local object storage | `minio/minio` images are no longer published on Docker Hub; a maintained S3-compatible local service is chosen in Phase 6 with the media library. |

@@ -1,0 +1,276 @@
+// Tayari Kakshya — PostgreSQL schema. See docs/DATABASE_ARCHITECTURE.md.
+// Conventions: UUIDv7 ids, snake_case tables/columns, timestamptz, soft delete only where documented.
+
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "esm"
+}
+
+datasource db {
+  provider = "postgresql"
+  // Extensions (citext, pg_trgm) are created in the first migration's SQL.
+}
+
+// ───────────────────────────── Identity ─────────────────────────────
+
+enum UserKind {
+  student
+  staff
+}
+
+enum UserStatus {
+  active
+  suspended
+  pending_deletion
+  deleted
+}
+
+enum Locale {
+  en
+  ne
+}
+
+enum Platform {
+  android
+  ios
+  web
+}
+
+model User {
+  id                  String     @id @default(uuid(7)) @db.Uuid
+  kind                UserKind
+  status              UserStatus @default(active)
+  /// Null after account erasure (D-032).
+  email               String?    @unique @db.Citext
+  emailVerifiedAt     DateTime?  @map("email_verified_at") @db.Timestamptz(6)
+  /// Only verified phone numbers are stored here (E.164).
+  phone               String?    @unique
+  phoneVerifiedAt     DateTime?  @map("phone_verified_at") @db.Timestamptz(6)
+  /// Null for Google-only accounts that never set a password.
+  passwordHash        String?    @map("password_hash")
+  fullName            String     @map("full_name")
+  locale              Locale     @default(en)
+  dob                 DateTime?  @db.Date
+  gender              String?
+  educationLevelId    String?    @map("education_level_id") @db.Uuid
+  deviceLimitOverride Int?       @map("device_limit_override")
+  lastLoginAt         DateTime?  @map("last_login_at") @db.Timestamptz(6)
+  createdAt           DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt           DateTime   @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  educationLevel   EducationLevel?          @relation(fields: [educationLevelId], references: [id], onDelete: SetNull)
+  identities       AuthIdentity[]
+  sessions         AuthSession[]
+  otpCodes         OtpCode[]
+  deletionRequests AccountDeletionRequest[]
+  roles            UserRole[]
+  staffScopes      StaffScope[]
+
+  @@index([kind, status])
+  @@map("users")
+}
+
+model AuthIdentity {
+  id              String   @id @default(uuid(7)) @db.Uuid
+  userId          String   @map("user_id") @db.Uuid
+  provider        String
+  providerSubject String   @map("provider_subject")
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerSubject])
+  @@index([userId])
+  @@map("auth_identities")
+}
+
+enum AuthAudience {
+  student
+  staff
+}
+
+model AuthSession {
+  id           String       @id @default(uuid(7)) @db.Uuid
+  userId       String       @map("user_id") @db.Uuid
+  audience     AuthAudience
+  deviceId     String       @map("device_id")
+  deviceName   String       @map("device_name")
+  platform     Platform
+  ip           String?
+  userAgent    String?      @map("user_agent")
+  createdAt    DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  lastUsedAt   DateTime     @default(now()) @map("last_used_at") @db.Timestamptz(6)
+  expiresAt    DateTime     @map("expires_at") @db.Timestamptz(6)
+  revokedAt    DateTime?    @map("revoked_at") @db.Timestamptz(6)
+  revokeReason String?      @map("revoke_reason")
+
+  user          User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  refreshTokens AuthRefreshToken[]
+
+  @@index([userId, revokedAt])
+  @@map("auth_sessions")
+}
+
+/// Every refresh token ever issued for a session. Presenting an already-used token = theft → session revoked.
+model AuthRefreshToken {
+  id        String    @id @default(uuid(7)) @db.Uuid
+  sessionId String    @map("session_id") @db.Uuid
+  tokenHash String    @unique @map("token_hash")
+  expiresAt DateTime  @map("expires_at") @db.Timestamptz(6)
+  usedAt    DateTime? @map("used_at") @db.Timestamptz(6)
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  session AuthSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+  @@map("auth_refresh_tokens")
+}
+
+enum OtpPurpose {
+  verify_email
+  verify_phone
+  reset_password
+}
+
+enum OtpChannel {
+  email
+  phone
+}
+
+model OtpCode {
+  id         String     @id @default(uuid(7)) @db.Uuid
+  userId     String?    @map("user_id") @db.Uuid
+  purpose    OtpPurpose
+  channel    OtpChannel
+  /// Email or E.164 phone the code was sent to.
+  target     String
+  codeHash   String     @map("code_hash")
+  attempts   Int        @default(0)
+  expiresAt  DateTime   @map("expires_at") @db.Timestamptz(6)
+  consumedAt DateTime?  @map("consumed_at") @db.Timestamptz(6)
+  createdAt  DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([target, purpose, createdAt(sort: Desc)])
+  @@map("otp_codes")
+}
+
+model AccountDeletionRequest {
+  id           String    @id @default(uuid(7)) @db.Uuid
+  userId       String    @map("user_id") @db.Uuid
+  requestedAt  DateTime  @default(now()) @map("requested_at") @db.Timestamptz(6)
+  scheduledFor DateTime  @map("scheduled_for") @db.Timestamptz(6)
+  cancelledAt  DateTime? @map("cancelled_at") @db.Timestamptz(6)
+  completedAt  DateTime? @map("completed_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([scheduledFor])
+  @@index([userId])
+  @@map("account_deletion_requests")
+}
+
+model EducationLevel {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  /// LocalizedText { en?, ne? }
+  name      Json
+  sortOrder Int      @default(0) @map("sort_order")
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  users User[]
+
+  @@map("education_levels")
+}
+
+// ───────────────────────────── Access control ─────────────────────────────
+
+model Role {
+  id          String   @id @default(uuid(7)) @db.Uuid
+  name        String   @unique
+  description String?
+  /// The protected Super Admin role (D-036): all permissions, cannot be edited or deleted.
+  isSystem    Boolean  @default(false) @map("is_system")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  permissions RolePermission[]
+  users       UserRole[]
+
+  @@map("roles")
+}
+
+model RolePermission {
+  roleId     String @map("role_id") @db.Uuid
+  permission String
+
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permission])
+  @@map("role_permissions")
+}
+
+model UserRole {
+  userId    String   @map("user_id") @db.Uuid
+  roleId    String   @map("role_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [roleId], references: [id], onDelete: Restrict)
+
+  @@id([userId, roleId])
+  @@index([roleId])
+  @@map("user_roles")
+}
+
+enum StaffScopeType {
+  course
+  subject
+}
+
+/// Restricts a staff member (e.g. instructor) to specific courses/subjects.
+model StaffScope {
+  userId    String         @map("user_id") @db.Uuid
+  scopeType StaffScopeType @map("scope_type")
+  scopeId   String         @map("scope_id") @db.Uuid
+  createdAt DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, scopeType, scopeId])
+  @@map("staff_scopes")
+}
+
+// ───────────────────────────── Operations ─────────────────────────────
+
+model SystemSetting {
+  key         String   @id
+  value       Json
+  updatedById String?  @map("updated_by") @db.Uuid
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("system_settings")
+}
+
+/// Append-only. The production DB role has no UPDATE/DELETE on this table.
+model AuditLog {
+  id          String   @id @default(uuid(7)) @db.Uuid
+  actorUserId String?  @map("actor_user_id") @db.Uuid
+  actorType   String   @map("actor_type")
+  action      String
+  entityType  String   @map("entity_type")
+  entityId    String?  @map("entity_id")
+  changes     Json?
+  ip          String?
+  userAgent   String?  @map("user_agent")
+  requestId   String?  @map("request_id")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([entityType, entityId])
+  @@index([actorUserId, createdAt(sort: Desc)])
+  @@index([createdAt(sort: Desc)])
+  @@map("audit_logs")
+}

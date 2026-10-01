@@ -8,8 +8,8 @@ Scope = approved decisions only (`DECISIONS.md`). Each phase ends with tests, do
 | 0 | Requirements discovery | Owner questions asked and answered | ☑ |
 | 1 | PDF extraction | `PDF_UI_FEATURE_EXTRACTION.md` (49/49 pages) | ☑ |
 | 2 | Features + stack selection | All suggestions approved; stack approved (T-001…T-015) | ☑ |
-| 3 | Architecture | `ARCHITECTURE.md`, `DATABASE_ARCHITECTURE.md`, `API_DOCUMENTATION.md`, `DESIGN_SYSTEM.md` | 👀 docs written; owner review |
-| 4 | Monorepo + backend foundation | see §4 | ☐ (needs Docker — D-042) |
+| 3 | Architecture | `ARCHITECTURE.md`, `DATABASE_ARCHITECTURE.md`, `API_DOCUMENTATION.md`, `DESIGN_SYSTEM.md` | ☑ approved by owner |
+| 4 | Monorepo + backend foundation | see §4 | ☑ verified locally (75 tests); 👀 PR review + first CI run |
 | 5 | Admin CMS foundation | see §5 | ☐ |
 | 6 | Academic/content CMS | see §6 | ☐ |
 | 7 | Question bank + assessment CMS | see §7 | ☐ |
@@ -27,15 +27,22 @@ Scope = approved decisions only (`DECISIONS.md`). Each phase ends with tests, do
 
 ## Phase details
 
-**§4 Monorepo + backend foundation** (branch `feature/foundation`)
-pnpm + Turborepo workspace; `packages/config`, `contracts`, `domain` (BS date + money utils with tests), `design-tokens` skeleton;
-Docker Compose dev (Postgres 17, Redis 7, Mailpit, MinIO); NestJS app (Fastify) with config validation, Prisma, migrations
-for identity/RBAC/settings/audit/media tables, Zod validation, error format, Pino logging, rate limiting, health checks,
-OpenAPI; auth (register, login, refresh rotation, logout, Google, OTP email, password reset/change, sessions, device limit,
-deletion request); RBAC guard + permission catalog + Super Admin CLI; settings registry; audit interceptor; presigned uploads;
-CI workflow. Tests: unit + integration (real Postgres) for auth, RBAC, settings, audit.
+**§4 Monorepo + backend foundation** (branch `feature/foundation`) — ☑ DONE
+- ☑ pnpm + Turborepo workspace; `packages/config`, `contracts`, `domain` (BS dates + money, tested)
+- ☑ Docker Compose dev (Postgres 17 + test DB, Redis 7.4, Mailpit) — MinIO dropped (T-020)
+- ☑ NestJS 12 (Fastify, ESM) with env validation, Prisma 7 + first migration (identity, sessions, OTP, deletion,
+  education levels, RBAC, settings, audit), Zod validation, error format, Pino logging, request ids, Redis rate limiting,
+  helmet/CORS/cookies, health checks, OpenAPI (`/api/docs`, non-production)
+- ☑ Auth: register, login, Google, refresh rotation + reuse detection, logout, sessions, device limit (+ replace session),
+  email/phone OTP verification (channel toggles), password reset by OTP, change password, self-service deletion + erasure job
+- ☑ Staff auth (cookie refresh, `X-TK-Client` CSRF header), RBAC guard, permission catalog, roles/staff management with
+  escalation protection, Super Admin CLI, student administration, typed settings registry, audit log, maintenance mode
+- ☑ Worker process (BullMQ schedulers: account erasure, auth cleanup)
+- ☑ CI workflow (GitHub Actions) — first run pending (KI-017)
+- ↪ Moved: presigned uploads → §6 (media library); `design-tokens` skeleton → §8
 
-**§5 Admin CMS foundation** — Vite app, staff auth (cookie refresh, CSRF, optional TOTP), layout/nav, command palette,
+**§5 Admin CMS foundation** — Vite app, staff auth (cookie refresh, `X-TK-Client` header, TOTP 2FA — KI-014), education level
+CRUD (KI-016), layout/nav, command palette,
 generic resource table (server pagination/filter/sort), form system (RHF + Zod), status workflow UI, media picker,
 roles & staff management, settings screens, audit log viewer. Playwright smoke tests.
 
@@ -77,6 +84,5 @@ course reviews + moderation, discussions/doubts + moderation, admin dashboards &
 AI study assistant (after L2), live classes (after L3), Apple IAP (only if decided later).
 
 ## Next concrete steps
-1. Owner reviews Phase 3 docs (architecture, DB, API, design system) — changes recorded in `DECISIONS.md`.
-2. Owner installs Docker Desktop (steps in `ENVIRONMENT_STATUS.md`).
-3. Start §4 on `feature/foundation`.
+1. Owner reviews and merges the `feature/foundation` PR; confirm the first GitHub Actions run is green (KI-017).
+2. Start §5 Admin CMS foundation on `feature/admin-foundation` (branched from updated `main`).

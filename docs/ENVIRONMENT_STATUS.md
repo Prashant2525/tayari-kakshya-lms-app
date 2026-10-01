@@ -1,20 +1,21 @@
 # Environment Status
 
-Last checked: 2026-10-02. Requirements inventory: `ENVIRONMENT_REQUIREMENTS.md`.
+Last checked: 2026-10-02 (Phase 4). Requirements inventory: `ENVIRONMENT_REQUIREMENTS.md`.
 
 ## Local machine
 | Item | Status |
 |---|---|
 | OS / hardware | Windows 11 Home; 28 logical CPUs; 16 GB RAM |
 | Node.js / npm | ✅ v24.15.0 / 11.12.1 |
-| pnpm | ❌ not installed — will enable via `corepack enable` in Phase 4 |
+| pnpm | ✅ 12.8.1 (`npm i -g pnpm@12.8.1`; corepack needs admin rights) |
 | Git | ✅ configured (Prashant Dhimal) |
 | GitHub remote / push | ✅ `origin` → https://github.com/Prashant2525/tayari-kakshya-lms-app.git — push over HTTPS works |
 | GitHub CLI `gh` | ❌ not installed (PRs are opened via the GitHub web link) |
-| WSL2 | ❌ not installed |
-| CPU virtualization (firmware) | ⚠️ reported **disabled** |
-| Docker Desktop | ❌ not installed (chosen: D-042) |
-| PostgreSQL / Redis | via Docker (after install) |
+| WSL2 | ✅ installed |
+| CPU virtualization | ✅ working (Docker runs) |
+| Docker Desktop | ✅ 29.8.1, Compose v5.5.1 |
+| PostgreSQL / Redis / Mailpit | ✅ `pnpm infra:up` (Postgres 17.11 + test DB, Redis 7.4, Mailpit UI :8025) |
+| Smart App Control | ⚠️ blocks unsigned native Node binaries (KI-011) |
 | Android SDK | ✅ present (`%LOCALAPPDATA%\Android\Sdk`); Android Studio installed per owner |
 | Python 3.14 + PyMuPDF | ✅ (discovery tooling only) |
 

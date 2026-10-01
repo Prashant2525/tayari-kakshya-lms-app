@@ -40,3 +40,6 @@ tmp/
 
 # --- Large design reference (local-only, D-041) ---
 Tayari Kakshya - LMS System.pdf
+
+# --- Generated code ---
+apps/api/src/generated/
