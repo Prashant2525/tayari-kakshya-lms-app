@@ -4,6 +4,7 @@ This repository is the source of truth for a **production** Lok Sewa / competiti
 React Native student app + web Admin CMS + backend API + PostgreSQL. It is a real product, not a demo.
 
 ## Start of every session (mandatory)
+
 1. Read `docs/PROJECT_STATE.md`, `docs/SESSION_HANDOFF.md`, `docs/IMPLEMENTATION_PLAN.md`, `docs/DECISIONS.md`,
    `docs/KNOWN_ISSUES.md`, `docs/TEST_STATUS.md`, `docs/ENVIRONMENT_STATUS.md`.
 2. Run `git status`, `git log --oneline -15`, `git branch -a`; inspect the actual code and tests.
@@ -11,6 +12,7 @@ React Native student app + web Admin CMS + backend API + PostgreSQL. It is a rea
 4. State CURRENT PHASE / TASK / ACTUALLY COMPLETED / IN PROGRESS / REMAINING / NEXT before changing code.
 
 ## Permanent rules
+
 1. Never fabricate secrets or production credentials. Sandbox/test only until the owner provides production values.
 2. Never silently invent product/business rules (prices, validity, marks, negative marking, refunds, legal text).
    Unanswered → ask, and record in `docs/OPEN_QUESTIONS.md`. Answered → record in `docs/DECISIONS.md`.
@@ -28,6 +30,7 @@ React Native student app + web Admin CMS + backend API + PostgreSQL. It is a rea
 11. Follow approved decisions in `DECISIONS.md`; only implement features approved in `SUGGESTED_FEATURES.md`.
 
 ## Git / GitHub rules
+
 - Remote: `origin` → github.com/Prashant2525/tayari-kakshya-lms-app. Default branch `main`.
 - Never force-push, never rewrite remote history, never reset shared branches, never commit `.env`/keys/certs.
 - Before every commit/push: check branch, remote, `git status`, staged files, diff; scan for secrets; run relevant checks.
@@ -37,6 +40,7 @@ React Native student app + web Admin CMS + backend API + PostgreSQL. It is a rea
 - End-of-session report: Git branch / Latest commit / GitHub push status / Tests / Files changed / Current phase / Next task.
 
 ## Key documents
+
 - `docs/PDF_UI_FEATURE_EXTRACTION.md` — page-by-page analysis of the UI reference PDF (49 pages)
 - `docs/FEATURE_SPECIFICATION.md` — approved scope v1.0
 - `docs/SUGGESTED_FEATURES.md` — S1–S24, all approved
@@ -48,6 +52,7 @@ React Native student app + web Admin CMS + backend API + PostgreSQL. It is a rea
   is **local-only / untracked** (D-041) — use `docs/PDF_UI_FEATURE_EXTRACTION.md` as the in-repo reference.
 
 ## Stack (approved — `docs/DECISIONS.md` T-001…T-015)
+
 pnpm + Turborepo monorepo: `apps/api` (NestJS/Fastify + Prisma + PostgreSQL 17 + Redis/BullMQ), `apps/admin` (React + Vite +
 TanStack + shadcn/ui), `apps/mobile` (Expo + Expo Router), `apps/web` (Next.js), `packages/*` (contracts, domain,
 design-tokens, i18n, config). Storage Cloudflare R2; video Bunny Stream + YouTube unlisted; push Expo; Sentry + PostHog.
@@ -55,10 +60,12 @@ Hosting: Nepal VPS with Docker Compose. Architecture: `docs/ARCHITECTURE.md`, `d
 `docs/API_DOCUMENTATION.md`, `docs/DESIGN_SYSTEM.md`.
 
 ## Product rules that are easy to get wrong
+
 - Business values are CMS data ("manage from admin portal") — never constants in code.
 - iOS app shows **no prices, purchase buttons or external purchase links** when the iOS channel is web-only (D-027).
 - Bilingual en/ne everywhere; dates displayed in Bikram Sambat (D-008, D-009).
 - Premium answers/bodies/URLs are never sent to non-entitled clients.
 
 ## Environment notes
+
 Windows 11; PowerShell + Git Bash. Node 24, npm 11. Docker Desktop pending owner install; pnpm via corepack (see `docs/ENVIRONMENT_STATUS.md`).

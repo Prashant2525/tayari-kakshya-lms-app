@@ -1,0 +1,26 @@
+{
+  "name": "tayari-kakshya",
+  "private": true,
+  "description": "Tayari Kakshya LMS — student app, Admin CMS, website and API monorepo",
+  "packageManager": "pnpm@12.8.1",
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "infra:up": "docker compose -f infra/docker/docker-compose.dev.yml up -d",
+    "infra:down": "docker compose -f infra/docker/docker-compose.dev.yml down",
+    "infra:logs": "docker compose -f infra/docker/docker-compose.dev.yml logs -f"
+  },
+  "devDependencies": {
+    "prettier": "3.9.9",
+    "turbo": "2.11.6",
+    "typescript": "6.0.3"
+  }
+}

@@ -1,0 +1,47 @@
+import { z } from 'zod';
+
+/**
+ * Stable machine-readable error codes. Clients branch on `code`, never on `message`.
+ * Adding a code is non-breaking; renaming or removing one is breaking.
+ */
+export const ErrorCode = {
+  VALIDATION_FAILED: 'VALIDATION_FAILED',
+  UNAUTHENTICATED: 'UNAUTHENTICATED',
+  TOKEN_EXPIRED: 'TOKEN_EXPIRED',
+  FORBIDDEN: 'FORBIDDEN',
+  NOT_FOUND: 'NOT_FOUND',
+  CONFLICT: 'CONFLICT',
+  RATE_LIMITED: 'RATE_LIMITED',
+  INTERNAL_ERROR: 'INTERNAL_ERROR',
+  MAINTENANCE_MODE: 'MAINTENANCE_MODE',
+
+  EMAIL_ALREADY_REGISTERED: 'EMAIL_ALREADY_REGISTERED',
+  PHONE_ALREADY_REGISTERED: 'PHONE_ALREADY_REGISTERED',
+  INVALID_CREDENTIALS: 'INVALID_CREDENTIALS',
+  ACCOUNT_SUSPENDED: 'ACCOUNT_SUSPENDED',
+  ACCOUNT_DELETED: 'ACCOUNT_DELETED',
+  DEVICE_LIMIT_REACHED: 'DEVICE_LIMIT_REACHED',
+  REFRESH_TOKEN_INVALID: 'REFRESH_TOKEN_INVALID',
+  REFRESH_TOKEN_REUSED: 'REFRESH_TOKEN_REUSED',
+  PASSWORD_NOT_SET: 'PASSWORD_NOT_SET',
+  OTP_INVALID: 'OTP_INVALID',
+  OTP_EXPIRED: 'OTP_EXPIRED',
+  OTP_TOO_MANY_ATTEMPTS: 'OTP_TOO_MANY_ATTEMPTS',
+  OTP_RESEND_TOO_SOON: 'OTP_RESEND_TOO_SOON',
+  VERIFICATION_CHANNEL_DISABLED: 'VERIFICATION_CHANNEL_DISABLED',
+  PHONE_REQUIRED: 'PHONE_REQUIRED',
+  GOOGLE_NOT_CONFIGURED: 'GOOGLE_NOT_CONFIGURED',
+  GOOGLE_TOKEN_INVALID: 'GOOGLE_TOKEN_INVALID',
+  SUPER_ADMIN_PROTECTED: 'SUPER_ADMIN_PROTECTED',
+} as const;
+export type ErrorCode = (typeof ErrorCode)[keyof typeof ErrorCode];
+
+export const ApiErrorBody = z.object({
+  error: z.object({
+    code: z.string(),
+    message: z.string(),
+    details: z.unknown().optional(),
+    requestId: z.string().optional(),
+  }),
+});
+export type ApiErrorBody = z.infer<typeof ApiErrorBody>;
