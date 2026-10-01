@@ -32,21 +32,33 @@ React Native student app + web Admin CMS + backend API + PostgreSQL. It is a rea
 - Never force-push, never rewrite remote history, never reset shared branches, never commit `.env`/keys/certs.
 - Before every commit/push: check branch, remote, `git status`, staged files, diff; scan for secrets; run relevant checks.
 - Conventional commits (`feat(auth): …`, `fix(exams): …`, `docs: …`, `test(…)`, `refactor(…)`).
-- Substantial work on `feature/*` branches (branching strategy pending owner confirmation — Q40).
+- Work on `feature/*` (or `docs/*`, `fix/*`) branches; push and open a PR into `main` (D-006). Never commit directly to `main`.
 - If push fails, commit locally and report exactly what is needed. Never claim a push that did not succeed.
 - End-of-session report: Git branch / Latest commit / GitHub push status / Tests / Files changed / Current phase / Next task.
 
 ## Key documents
 - `docs/PDF_UI_FEATURE_EXTRACTION.md` — page-by-page analysis of the UI reference PDF (49 pages)
-- `docs/FEATURE_SPECIFICATION.md` — scope, tagged by origin [PDF]/[USER]/[REC]/[TECH]
-- `docs/SUGGESTED_FEATURES.md` — optional features awaiting approval
-- `docs/TECH_STACK_OPTIONS.md` — stack comparison (pending approval)
-- `docs/OPEN_QUESTIONS.md` — owner decisions outstanding
+- `docs/FEATURE_SPECIFICATION.md` — approved scope v1.0
+- `docs/SUGGESTED_FEATURES.md` — S1–S24, all approved
+- `docs/TECH_STACK_OPTIONS.md` — stack comparison (approved)
+- `docs/OPEN_QUESTIONS.md` — owner answers + later questions (L1–L5)
+- `docs/DECISIONS.md` — every confirmed decision (read before implementing anything)
 - `docs/ENVIRONMENT_REQUIREMENTS.md`, `.env.example` — credentials inventory
-- Reference inputs (repo root): `LokSewa_LMS_Production_Build_Playbook.pdf` (process), `Tayari Kakshya - LMS System.pdf` (UI)
+- Reference inputs: `LokSewa_LMS_Production_Build_Playbook.pdf` (process, tracked). The UI PDF `Tayari Kakshya - LMS System.pdf`
+  is **local-only / untracked** (D-041) — use `docs/PDF_UI_FEATURE_EXTRACTION.md` as the in-repo reference.
 
-## Stack
-Not yet approved. See `docs/TECH_STACK_OPTIONS.md`. Fixed by owner: React Native, PostgreSQL.
+## Stack (approved — `docs/DECISIONS.md` T-001…T-015)
+pnpm + Turborepo monorepo: `apps/api` (NestJS/Fastify + Prisma + PostgreSQL 17 + Redis/BullMQ), `apps/admin` (React + Vite +
+TanStack + shadcn/ui), `apps/mobile` (Expo + Expo Router), `apps/web` (Next.js), `packages/*` (contracts, domain,
+design-tokens, i18n, config). Storage Cloudflare R2; video Bunny Stream + YouTube unlisted; push Expo; Sentry + PostHog.
+Hosting: Nepal VPS with Docker Compose. Architecture: `docs/ARCHITECTURE.md`, `docs/DATABASE_ARCHITECTURE.md`,
+`docs/API_DOCUMENTATION.md`, `docs/DESIGN_SYSTEM.md`.
+
+## Product rules that are easy to get wrong
+- Business values are CMS data ("manage from admin portal") — never constants in code.
+- iOS app shows **no prices, purchase buttons or external purchase links** when the iOS channel is web-only (D-027).
+- Bilingual en/ne everywhere; dates displayed in Bikram Sambat (D-008, D-009).
+- Premium answers/bodies/URLs are never sent to non-entitled clients.
 
 ## Environment notes
-Windows 11; PowerShell + Git Bash. Node 24, npm 11. No Docker / PostgreSQL / pnpm installed yet (see `docs/ENVIRONMENT_STATUS.md`).
+Windows 11; PowerShell + Git Bash. Node 24, npm 11. Docker Desktop pending owner install; pnpm via corepack (see `docs/ENVIRONMENT_STATUS.md`).

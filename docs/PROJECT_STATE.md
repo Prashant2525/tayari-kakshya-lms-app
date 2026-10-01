@@ -1,56 +1,50 @@
 # Project State
 
-Current Phase: **Phase 0/1 — Requirements discovery + PDF extraction** (complete; awaiting owner answers)
-Current Milestone: Discovery documentation
-Overall Status: **BLOCKED on owner decisions** (`docs/OPEN_QUESTIONS.md`)
+Current Phase: **Phase 3 — Architecture** (documents written; awaiting owner review)
+Current Milestone: Architecture sign-off → Phase 4 foundation
+Overall Status: **IN PROGRESS** (no application code yet)
 Last updated: 2026-10-02
 
 ## Completed
-- Read the Production Build Playbook (process document) in full.
-- Inspected all 49 pages of the UI reference PDF: parsed text + rendered page images.
-- Created `PDF_UI_FEATURE_EXTRACTION.md`, `FEATURE_SPECIFICATION.md` (draft), `SUGGESTED_FEATURES.md`,
-  `TECH_STACK_OPTIONS.md`, `OPEN_QUESTIONS.md`, `ENVIRONMENT_REQUIREMENTS.md`, `.env.example`, `.gitignore`,
-  `CLAUDE.md` and all state/handoff documents.
-- Checked current official integration docs for eSewa ePay v2, Khalti KPG-2 and ConnectIPS (summary only).
+- Phase 0/1: discovery + 49-page PDF extraction.
+- Phase 2: all owner questions answered (incl. follow-ups) and recorded in `DECISIONS.md` (D-001…D-042, T-001…T-015);
+  all suggested features approved; stack approved.
+- Phase 3 documents: `ARCHITECTURE.md`, `DATABASE_ARCHITECTURE.md`, `API_DOCUMENTATION.md`, `DESIGN_SYSTEM.md`;
+  `FEATURE_SPECIFICATION.md` v1.0; `IMPLEMENTATION_PLAN.md` with every approved feature mapped to a phase.
+- Design PDF untracked from git going forward (D-041).
 
 ## In Progress
-- None (waiting for owner).
+- Owner review of Phase 3 documents.
 
 ## Remaining
-- Phase 2: stack approval → record in `DECISIONS.md`.
-- Phase 3: architecture, database architecture, API documentation, repo scaffold.
-- Phases 4–20 per `IMPLEMENTATION_PLAN.md`.
+- Phases 4–18 (`IMPLEMENTATION_PLAN.md`).
 
 ## Files Changed
-- See `CHANGELOG.md` (docs only; no application code yet).
+- Docs only (see `CHANGELOG.md`).
 
-## Database Changes
-- None.
-
-## API Changes
-- None.
-
-## Mobile Changes
-- None.
-
-## Admin CMS Changes
-- None.
+## Database / API / Mobile / Admin Changes
+- None implemented (designs only).
 
 ## Tests
-- None exist yet (no code).
+- None yet (no code).
 
 ## Known Issues
 - See `KNOWN_ISSUES.md`.
 
 ## Blockers
-- Owner answers to 🔴 questions in `OPEN_QUESTIONS.md` (scope, hierarchy, business model, platforms, scale, hosting, stack).
-- Local dev environment lacks Docker/PostgreSQL (Q41).
+- Docker Desktop not installed (needs WSL2 + virtualization enabled — owner action; steps in `ENVIRONMENT_STATUS.md`).
 
 ## User Decisions Required
-- All of `OPEN_QUESTIONS.md` (42 questions; 🔴 ones first).
+- Review/approve Phase 3 docs.
+- Later questions L1–L5 in `OPEN_QUESTIONS.md` (asked when their phase starts).
 
 ## Credentials Required
-- None yet. Inventory in `ENVIRONMENT_REQUIREMENTS.md`.
+- None for Phase 4 local development. eSewa/Khalti **sandbox** setup needed by Phase 11; Google OAuth client IDs by Phase 8.
+
+## Launch configuration checklist (owner enters in CMS before go-live)
+Taxonomy & courses · prices/sale prices/validity · plans & inclusions · coupons · VAT/PAN/invoice prefix · refund policy text ·
+device limit · verification channels · purchase channels per platform · assessment rules (weekly/mock/daily) · certificate
+rules · contact options · legal pages (reviewed drafts) · education level list · notification templates review.
 
 ## Exact Next Task
-- Record owner answers in `DECISIONS.md`, update `FEATURE_SPECIFICATION.md`, lock the stack, then start Phase 3 (architecture + DB design).
+- After review: create `feature/foundation` and implement Phase 4 §4 (monorepo scaffold, Docker Compose, NestJS foundation, auth, RBAC).

@@ -1,6 +1,6 @@
 # Environment Requirements
 
-Status: **No credentials received yet.** None are needed until the matching phase begins.
+Status: **No credentials received yet.** None are needed until the matching phase begins. Launch gateways: eSewa + Khalti (D-003); ConnectIPS later (Phase 14). Analytics: PostHog (D-039).
 Rules: never commit real values; `.env*` files are git-ignored except `.env.example`; production secrets live in the
 hosting provider's secret manager / GitHub Actions secrets; sandbox/test credentials are used until production
 credentials are explicitly provided by the owner.
@@ -27,7 +27,7 @@ Legend: 🔐 secret · 🔓 non-secret config · Phase = when it is first needed
 |---|---|---|---|---|
 | `GOOGLE_OAUTH_WEB_CLIENT_ID`, `GOOGLE_OAUTH_ANDROID_CLIENT_ID`, `GOOGLE_OAUTH_IOS_CLIENT_ID` | 🔓 | 8 | owner's Google Cloud project | Android requires SHA-1 of signing key |
 | `EMAIL_PROVIDER`, `EMAIL_FROM`, `SMTP_HOST/PORT/USER/PASSWORD` or `RESEND_API_KEY`/`SES_*` | 🔐 | 4 | owner | verified sending domain (SPF/DKIM/DMARC) |
-| `SMS_PROVIDER`, `SMS_API_KEY`, `SMS_SENDER_ID` | 🔐 | 4 (if OTP approved, Q28) | owner | Nepal providers e.g. Sparrow SMS, Aakash SMS — sender ID/template approval required |
+| `SMS_PROVIDER`, `SMS_API_KEY`, `SMS_SENDER_ID` | 🔐 | when phone verification is enabled (D-029, L1) | owner | Nepal providers e.g. Sparrow SMS, Aakash SMS — sender ID/template approval required |
 
 ## 3. Payments (Phase 11 — re-verify official docs before coding)
 
@@ -45,10 +45,11 @@ Verified against official docs on 2026-10-02 (summary; full re-check required at
 | Variable | Kind | Phase | Notes |
 |---|---|---|---|
 | `STORAGE_DRIVER`, `S3_ENDPOINT`, `S3_REGION`, `S3_BUCKET_PUBLIC`, `S3_BUCKET_PRIVATE`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`, `CDN_BASE_URL` | 🔐 | 6 | R2/S3 (pending approval); local dev uses MinIO or filesystem driver |
-| `VIDEO_PROVIDER`, `BUNNY_STREAM_LIBRARY_ID`, `BUNNY_STREAM_API_KEY`, `BUNNY_STREAM_TOKEN_KEY`, `BUNNY_CDN_HOSTNAME` (or `CF_STREAM_*`) | 🔐 | 6 | depends on Q11 + stack approval |
-| `EXPO_ACCESS_TOKEN` (push), FCM service account (`FIREBASE_SERVICE_ACCOUNT_JSON`), APNs key (`APNS_KEY_ID`, `APNS_TEAM_ID`, `.p8`) | 🔐 | 12 | iOS only if iOS is in scope (Q5) |
+| `YOUTUBE_API_KEY` (optional — import title/duration/thumbnail for YouTube-hosted free videos) | 🔐 | 6 | owner's Google Cloud project |
+| `VIDEO_PROVIDER`, `BUNNY_STREAM_LIBRARY_ID`, `BUNNY_STREAM_API_KEY`, `BUNNY_STREAM_TOKEN_KEY`, `BUNNY_CDN_HOSTNAME` (or `CF_STREAM_*`) | 🔐 | 6 | Bunny Stream for premium video (D-015) |
+| `EXPO_ACCESS_TOKEN` (push), FCM service account (`FIREBASE_SERVICE_ACCOUNT_JSON`), APNs key (`APNS_KEY_ID`, `APNS_TEAM_ID`, `.p8`) | 🔐 | 12 | Android + iOS both in scope (D-004) |
 | `SENTRY_DSN_API`, `SENTRY_DSN_ADMIN`, `EXPO_PUBLIC_SENTRY_DSN`, `SENTRY_AUTH_TOKEN` | 🔐/🔓 | 4 | DSNs are semi-public; auth token is secret |
-| `POSTHOG_API_KEY`, `POSTHOG_HOST` | 🔓 | 13 | if approved (Q38) |
+| `POSTHOG_API_KEY`, `POSTHOG_HOST` | 🔓 | 8 | approved (D-039) |
 
 ## 5. Mobile build & release
 
@@ -58,7 +59,7 @@ Verified against official docs on 2026-10-02 (summary; full re-check required at
 | Expo account / EAS project ID | 8 | owner | |
 | Android upload keystore | 20 | generated, stored in EAS/secret store | never committed |
 | Google Play Console account (organisation) | 20 | owner | org account requires D-U-N-S; personal accounts have testing requirements |
-| Apple Developer Program + App Store Connect | 20 | owner | only if iOS (Q5) |
+| Apple Developer Program + App Store Connect | 18 | owner | required (iOS in scope) |
 | `EXPO_PUBLIC_API_URL` | 8 | me | `EXPO_PUBLIC_*` values are embedded in the app — **never secrets** |
 
 ## 6. CI/CD & hosting
