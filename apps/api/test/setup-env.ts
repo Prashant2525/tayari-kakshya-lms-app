@@ -28,4 +28,5 @@ Object.assign(process.env, {
   JWT_ACCESS_SECRET: process.env['JWT_ACCESS_SECRET'] ?? secret(),
   REFRESH_TOKEN_PEPPER: process.env['REFRESH_TOKEN_PEPPER'] ?? secret(),
   OTP_PEPPER: process.env['OTP_PEPPER'] ?? secret(),
+  ENCRYPTION_KEY: process.env['ENCRYPTION_KEY'] ?? secret(),
 });

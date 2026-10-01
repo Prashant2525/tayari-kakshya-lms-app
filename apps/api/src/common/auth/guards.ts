@@ -4,6 +4,7 @@ import { ErrorCode, type Permission } from '@tk/contracts';
 import type { FastifyRequest } from 'fastify';
 import { PrismaService } from '../../infra/prisma/prisma.service.js';
 import { TokenService } from '../../modules/auth/token.service.js';
+import { MfaService } from '../../modules/auth/mfa.service.js';
 import { RbacService, type StaffAccess } from '../../modules/rbac/rbac.service.js';
 import { SettingsService } from '../../modules/settings/settings.service.js';
 import { AppError, Errors } from '../errors/app-error.js';
@@ -74,6 +75,7 @@ export class PermissionsGuard implements CanActivate {
   constructor(
     private readonly reflector: Reflector,
     private readonly rbac: RbacService,
+    private readonly mfa: MfaService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -86,6 +88,9 @@ export class PermissionsGuard implements CanActivate {
     if (!req.auth || req.auth.audience !== 'staff') throw Errors.forbidden();
     const access = await this.rbac.getAccess(req.auth.userId);
     if (!access.isSuperAdmin && !required.every((p) => access.permissions.has(p))) throw Errors.forbidden();
+    if (await this.mfa.isSetupRequired(req.auth.userId, access)) {
+      throw new AppError(403, ErrorCode.MFA_SETUP_REQUIRED, 'Set up two-factor authentication to continue');
+    }
     req.staffAccess = access;
     return true;
   }

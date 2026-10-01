@@ -81,6 +81,37 @@ export class TokenService {
       .digest('base64url');
   }
 
+  /** Short-lived proof that a staff member passed the password step; only exchangeable at the MFA step. */
+  async issueMfaChallenge(userId: string): Promise<string> {
+    return new SignJWT({})
+      .setProtectedHeader({ alg: 'HS256', typ: 'JWT' })
+      .setIssuer(ISSUER)
+      .setAudience('mfa')
+      .setSubject(userId)
+      .setIssuedAt()
+      .setExpirationTime('5m')
+      .sign(this.accessKey);
+  }
+
+  async verifyMfaChallenge(token: string): Promise<string> {
+    try {
+      const { payload } = await jwtVerify(token, this.accessKey, {
+        issuer: ISSUER,
+        audience: 'mfa',
+        algorithms: ['HS256'],
+      });
+      if (typeof payload.sub !== 'string') throw new Error('malformed');
+      return payload.sub;
+    } catch {
+      throw new AppError(401, ErrorCode.MFA_INVALID, 'The sign-in attempt expired; please start again');
+    }
+  }
+
+  /** Key for hashing MFA recovery codes. */
+  get recoveryCodeKey(): string {
+    return this.env.OTP_PEPPER;
+  }
+
   static safeEqual(a: string, b: string): boolean {
     const ab = Buffer.from(a);
     const bb = Buffer.from(b);

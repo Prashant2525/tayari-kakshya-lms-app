@@ -122,6 +122,10 @@ export const MeView = z.object({
   educationLevelId: z.uuid().nullable(),
   deletionScheduledFor: z.iso.datetime().nullable(),
   permissions: z.array(z.string()),
+  /** Staff only: two-factor status and whether policy forces setup before using the CMS. */
+  mfaEnabled: z.boolean(),
+  mfaSetupRequired: z.boolean(),
+  isSuperAdmin: z.boolean(),
 });
 export type MeView = z.infer<typeof MeView>;
 

@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { Email } from './auth.js';
-import { CursorQuery } from './common.js';
+import { CursorQuery, LocalizedText } from './common.js';
 import { isPermission } from './permissions.js';
 
 export const PermissionName = z.string().refine(isPermission, { message: 'Unknown permission' });
@@ -46,3 +46,24 @@ export type AuditLogQuery = z.infer<typeof AuditLogQuery>;
 
 export const UpdateSettingInput = z.object({ value: z.unknown() });
 export type UpdateSettingInput = z.infer<typeof UpdateSettingInput>;
+
+export const EducationLevelInput = z.object({
+  name: LocalizedText,
+  active: z.boolean().default(true),
+});
+export type EducationLevelInput = z.infer<typeof EducationLevelInput>;
+
+export const ReorderInput = z.object({ ids: z.array(z.uuid()).min(1).max(500) });
+export type ReorderInput = z.infer<typeof ReorderInput>;
+
+/** 6-digit authenticator code or a recovery code (xxxx-xxxx). */
+export const MfaCode = z
+  .string()
+  .trim()
+  .regex(/^(\d{6}|[a-z0-9]{4}-[a-z0-9]{4})$/i, 'Enter the 6-digit code or a recovery code');
+
+export const MfaLoginInput = z.object({ mfaToken: z.string().min(20).max(2048), code: MfaCode });
+export type MfaLoginInput = z.infer<typeof MfaLoginInput>;
+
+export const MfaCodeInput = z.object({ code: MfaCode });
+export type MfaCodeInput = z.infer<typeof MfaCodeInput>;

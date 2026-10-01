@@ -69,6 +69,8 @@ export async function createTestApp(): Promise<TestContext> {
       );
       await redis.client.flushdb();
       settings.clearCache();
+      // Default for tests: staff MFA not enforced. MFA behaviour is covered explicitly in mfa.e2e.test.ts.
+      await prisma.systemSetting.create({ data: { key: 'auth.staffMfa', value: { requiredFor: 'none' } } });
       mail.outbox.length = 0;
       sms.outbox.length = 0;
       google.tokens.clear();

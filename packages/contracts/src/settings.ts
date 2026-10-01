@@ -25,6 +25,12 @@ export const SETTINGS = {
     default: { channels: { email: true, phone: false }, requiredForLearning: false },
     public: true,
   },
+  /** Staff two-factor authentication policy (ARCHITECTURE §4: required for Super Admins). */
+  'auth.staffMfa': {
+    schema: z.object({ requiredFor: z.enum(['none', 'super_admins', 'all_staff']) }),
+    default: { requiredFor: 'super_admins' as const },
+    public: false,
+  },
   /** D-032: days between a self-service deletion request and erasure (owner chose 7). */
   'account.deletionGraceDays': {
     schema: z.object({ days: z.number().int().min(1).max(60) }),

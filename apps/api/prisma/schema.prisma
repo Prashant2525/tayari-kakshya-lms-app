@@ -55,6 +55,11 @@ model User {
   gender              String?
   educationLevelId    String?    @map("education_level_id") @db.Uuid
   deviceLimitOverride Int?       @map("device_limit_override")
+  /// TOTP secret (AES-256-GCM encrypted). Set during setup; active once mfaEnabledAt is set (staff only).
+  mfaSecretEnc        String?    @map("mfa_secret_enc")
+  mfaEnabledAt        DateTime?  @map("mfa_enabled_at") @db.Timestamptz(6)
+  /// Last accepted TOTP time step — prevents replaying a code within its validity window.
+  mfaLastUsedStep     Int?       @map("mfa_last_used_step")
   lastLoginAt         DateTime?  @map("last_login_at") @db.Timestamptz(6)
   createdAt           DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt           DateTime   @updatedAt @map("updated_at") @db.Timestamptz(6)
@@ -66,6 +71,7 @@ model User {
   deletionRequests AccountDeletionRequest[]
   roles            UserRole[]
   staffScopes      StaffScope[]
+  recoveryCodes    MfaRecoveryCode[]
 
   @@index([kind, status])
   @@map("users")
@@ -170,6 +176,19 @@ model AccountDeletionRequest {
   @@index([scheduledFor])
   @@index([userId])
   @@map("account_deletion_requests")
+}
+
+model MfaRecoveryCode {
+  id        String    @id @default(uuid(7)) @db.Uuid
+  userId    String    @map("user_id") @db.Uuid
+  codeHash  String    @unique @map("code_hash")
+  usedAt    DateTime? @map("used_at") @db.Timestamptz(6)
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("mfa_recovery_codes")
 }
 
 model EducationLevel {
