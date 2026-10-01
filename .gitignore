@@ -43,3 +43,5 @@ Tayari Kakshya - LMS System.pdf
 
 # --- Generated code ---
 apps/api/src/generated/
+test-results/
+playwright-report/
