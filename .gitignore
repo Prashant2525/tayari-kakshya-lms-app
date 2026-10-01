@@ -1,0 +1,39 @@
+# --- Secrets: never commit ---
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p8
+*.p12
+*.pfx
+*.jks
+*.keystore
+service-account*.json
+google-services.json
+GoogleService-Info.plist
+
+# --- Dependencies / build output ---
+node_modules/
+dist/
+build/
+coverage/
+.turbo/
+.expo/
+.next/
+web-build/
+*.tsbuildinfo
+
+# --- Logs / OS / editor ---
+*.log
+npm-debug.log*
+pnpm-debug.log*
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# --- Local tooling ---
+.claude/settings.local.json
+tmp/
