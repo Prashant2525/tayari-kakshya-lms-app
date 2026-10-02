@@ -1,14 +1,22 @@
-import { createRequire } from 'node:module';
+import * as nepaliDateModule from 'nepali-date-converter';
 
 /**
  * Bikram Sambat (BS) calendar helpers (D-009).
  * Storage is always UTC timestamps / AD dates; BS is a display and input concern.
  * Conversion tables come from `nepali-date-converter` (MIT), wrapped so the rest of the codebase
  * never depends on that library's API. Supported range: BS 2000-01-01 … 2090-12-30.
+ * Works in Node (CommonJS build) and browsers/bundlers (ES build): the default export is unwrapped below.
  */
-const require = createRequire(import.meta.url);
-const lib = require('nepali-date-converter') as { default?: NepaliDateCtor } & NepaliDateCtor;
-const NepaliDate: NepaliDateCtor = lib.default ?? lib;
+type ModuleShape = NepaliDateCtor | { default?: NepaliDateCtor | { default?: NepaliDateCtor } };
+function resolveCtor(mod: ModuleShape): NepaliDateCtor {
+  let candidate: unknown = mod;
+  for (let i = 0; i < 3 && typeof candidate !== 'function'; i++) {
+    candidate = (candidate as { default?: unknown })?.default;
+  }
+  if (typeof candidate !== 'function') throw new Error('nepali-date-converter could not be loaded');
+  return candidate as NepaliDateCtor;
+}
+const NepaliDate = resolveCtor(nepaliDateModule as unknown as ModuleShape);
 
 interface NepaliDateInstance {
   getYear(): number;

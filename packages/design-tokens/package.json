@@ -1,0 +1,30 @@
+{
+  "name": "@tk/design-tokens",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Design tokens (DESIGN_SYSTEM.md) for mobile, admin and web: TypeScript + generated CSS variables.",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./tokens.css": "./dist/tokens.css"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json && node dist/build-css.js",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint src",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@tk/config": "workspace:*",
+    "@types/node": "24.19.0",
+    "eslint": "10.11.0",
+    "typescript": "6.0.3",
+    "vitest": "5.0.3"
+  }
+}

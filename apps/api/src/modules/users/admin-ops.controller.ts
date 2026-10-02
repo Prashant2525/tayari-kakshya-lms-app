@@ -112,6 +112,31 @@ export class AdminOpsController {
     return { key, value: await this.settings.update(key, body.value, auth.userId, client) };
   }
 
+  // ───────────── Dashboard ─────────────
+
+  /** Headline numbers for the CMS home screen (more KPIs arrive with later modules). */
+  @Get('dashboard')
+  @RequirePermissions('users:read')
+  async dashboard() {
+    const weekAgo = new Date(Date.now() - 7 * 86_400_000);
+    const [students, activeStudents, newStudents, suspended, pendingDeletion, staff] = await Promise.all([
+      this.prisma.user.count({ where: { kind: 'student', status: { not: 'deleted' } } }),
+      this.prisma.user.count({ where: { kind: 'student', status: 'active', lastLoginAt: { gte: weekAgo } } }),
+      this.prisma.user.count({ where: { kind: 'student', createdAt: { gte: weekAgo } } }),
+      this.prisma.user.count({ where: { kind: 'student', status: 'suspended' } }),
+      this.prisma.user.count({ where: { kind: 'student', status: 'pending_deletion' } }),
+      this.prisma.user.count({ where: { kind: 'staff', status: { not: 'deleted' } } }),
+    ]);
+    return {
+      students,
+      activeStudentsLast7Days: activeStudents,
+      newStudentsLast7Days: newStudents,
+      suspended,
+      pendingDeletion,
+      staff,
+    };
+  }
+
   // ───────────── Audit log ─────────────
 
   @Get('audit-logs')
@@ -129,8 +154,18 @@ export class AdminOpsController {
       take: query.limit + 1,
     });
     const page = rows.slice(0, query.limit);
+    const actorIds = [...new Set(page.map((r) => r.actorUserId).filter((id): id is string => Boolean(id)))];
+    const actors = await this.prisma.user.findMany({
+      where: { id: { in: actorIds } },
+      select: { id: true, fullName: true, email: true, kind: true },
+    });
+    const byId = new Map(actors.map((a) => [a.id, a]));
     return {
-      data: page.map((r) => ({ ...r, createdAt: r.createdAt.toISOString() })),
+      data: page.map((r) => ({
+        ...r,
+        createdAt: r.createdAt.toISOString(),
+        actor: r.actorUserId ? (byId.get(r.actorUserId) ?? null) : null,
+      })),
       nextCursor: rows.length > query.limit ? (page.at(-1)?.id ?? null) : null,
     };
   }

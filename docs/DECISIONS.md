@@ -104,3 +104,7 @@ values. Development seed data uses clearly fake placeholder values; real values 
 | T-018 | Admin CSRF | Admin refresh token in an HttpOnly, SameSite=Strict cookie scoped to `/api/v1/admin/auth`; cookie endpoints require the `X-TK-Client: admin` header (custom-header CSRF defence + CORS allow-list). Replaces the double-submit idea in ARCHITECTURE §4 because the CMS and API live on different subdomains. |
 | T-019 | Dependencies | pnpm 12 blocks install scripts by default; only packages in `pnpm-workspace.yaml` `allowBuilds` may run them (Prisma engines, argon2, msgpackr-extract). `@scarf/scarf` telemetry is denied. |
 | T-020 | Local object storage | `minio/minio` images are no longer published on Docker Hub; a maintained S3-compatible local service is chosen in Phase 6 with the media library. |
+| T-021 | Admin CMS language | Admin **interface chrome is English**; all content fields stay bilingual (en/ne). D-008's toggle applies to the student app and website. |
+| T-022 | Staff 2FA | RFC 6238 TOTP + 10 single-use recovery codes; secrets AES-256-GCM encrypted (`ENCRYPTION_KEY`); policy setting `auth.staffMfa`, default **required for Super Admins** (ARCHITECTURE §4). |
+| T-023 | Admin E2E | Playwright against the real API on a dedicated `*_e2e` database (created, migrated and reset by `apps/admin/e2e/start-api.mjs`); runs in CI job `admin-e2e`. |
+| T-024 | Design tokens | `@tk/design-tokens` is the single source for colour/typography/spacing; an automated WCAG test guards every text/background pair in light and dark themes. |

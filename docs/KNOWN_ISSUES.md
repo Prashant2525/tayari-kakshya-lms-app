@@ -15,7 +15,10 @@
 | KI-011 | Environment | Windows **Smart App Control** blocks unsigned native Node binaries (e.g. `@swc/core`). | Some native dev tools unusable locally | Mitigated (T-017). Check new native deps on this machine early. |
 | KI-012 | Dates | BS conversion library covers **BS 2000–2090 (≈ AD 1943–2034)**; dates outside throw `BsDateRangeError`. | Must update data/library before ~2033 | Open — long-term. |
 | KI-013 | Auth | Staff invitation email reuses the password-reset OTP copy ("Your password reset code"). | Slightly confusing wording for new staff | Open — dedicated invite template with CMS templates (Phase 12). |
-| KI-014 | Auth | Optional TOTP 2FA for staff (ARCHITECTURE §4) not implemented yet. | Super Admin protected by password only | Planned for Phase 5. |
+| KI-014 | Auth | TOTP 2FA for staff. | — | **Resolved** in Phase 5 (T-022). |
 | KI-015 | Logging | Worker/CLI use Nest's default console logger rather than structured Pino JSON. | Less structured worker logs | Open — align in Phase 18 (observability). |
-| KI-016 | Profile | Education levels table exists but has no CMS CRUD yet; `PATCH /me` validates against it. | Students cannot pick a level until the CMS adds levels | Planned for Phase 5. |
-| KI-017 | CI | The GitHub Actions workflow has not yet been observed passing on GitHub (see push result). | Unverified CI | Check the first run after push. |
+| KI-016 | Profile | Education level CRUD. | — | **Resolved** in Phase 5 (admin page + API). |
+| KI-017 | CI | First GitHub Actions run. | — | **Resolved** — owner confirmed CI green for PR #3. New `admin-e2e` job to be confirmed on the Phase 5 PR. |
+| KI-018 | Admin performance | Main admin JS chunk ≈ 650 KB (204 KB gzip) despite route-level code splitting. | Slower first load of the internal CMS on slow links | Open — analyse and split vendor chunks when content modules land (Phase 6). |
+| KI-019 | Tooling | GitHub CLI is installed but not authenticated in the agent's shell, so PRs/CI status can't be checked automatically. | Owner opens PRs and checks CI | Open — owner can run `gh auth login` once. |
+| KI-020 | Admin UX | Visiting the login page with no session logs one expected 401 (refresh-cookie probe) in the browser console. | Cosmetic (console only) | Accepted. |

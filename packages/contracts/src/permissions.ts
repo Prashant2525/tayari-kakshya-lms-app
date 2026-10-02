@@ -12,6 +12,7 @@ export const PERMISSIONS = {
   'settings:read': 'View system settings',
   'settings:update': 'Change system settings',
   'audit:read': 'View the audit log',
+  'education_levels:manage': 'Manage the education level options shown on student profiles',
 } as const;
 
 export type Permission = keyof typeof PERMISSIONS;

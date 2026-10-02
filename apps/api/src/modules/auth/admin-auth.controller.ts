@@ -1,6 +1,6 @@
 import { Controller, HttpCode, Inject, Post, Req, Res } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { ErrorCode, StaffLoginInput, type AuthTokens } from '@tk/contracts';
+import { ErrorCode, MfaLoginInput, StaffLoginInput, type AuthTokens } from '@tk/contracts';
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import {
   Audiences,
@@ -51,7 +51,24 @@ export class AdminAuthController {
     @Res({ passthrough: true }) reply: FastifyReply,
   ) {
     this.assertAdminClient(req);
-    return this.respond(reply, await this.auth.staffLogin(body, client));
+    const result = await this.auth.staffLogin(body, client);
+    if ('mfaToken' in result) return { mfaRequired: true, mfaToken: result.mfaToken };
+    return this.respond(reply, result.tokens);
+  }
+
+  @Public()
+  @Post('login/mfa')
+  @HttpCode(200)
+  @RateLimit({ name: 'admin.login.mfa', limit: 10, windowSeconds: 900, by: ['ip'] })
+  @ApiZodBody(MfaLoginInput)
+  async loginMfa(
+    @ZodBody(MfaLoginInput) body: MfaLoginInput,
+    @Client() client: ClientInfo,
+    @Req() req: FastifyRequest,
+    @Res({ passthrough: true }) reply: FastifyReply,
+  ) {
+    this.assertAdminClient(req);
+    return this.respond(reply, await this.auth.completeStaffMfaLogin(body.mfaToken, body.code, client));
   }
 
   @Public()

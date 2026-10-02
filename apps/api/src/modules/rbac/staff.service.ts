@@ -163,6 +163,7 @@ export class StaffService {
       email: u.email,
       status: u.status,
       hasPassword: Boolean(u.passwordHash),
+      mfaEnabled: Boolean(u.mfaEnabledAt),
       lastLoginAt: u.lastLoginAt?.toISOString() ?? null,
       roles: u.roles.map((r) => ({ id: r.role.id, name: r.role.name, isSystem: r.role.isSystem })),
     }));

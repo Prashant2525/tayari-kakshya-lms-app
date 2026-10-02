@@ -277,3 +277,28 @@ describe('settings and maintenance mode', () => {
     expect((await call(ctx, 'GET', '/admin/settings', { token })).status).toBe(200);
   });
 });
+
+describe('dashboard and audit enrichment', () => {
+  it('returns headline counts and names the actor of audit entries', async () => {
+    const admin = await createStaff(ctx, 'admin@example.com', { superAdmin: true });
+    const { token } = await staffLogin(ctx, 'admin@example.com');
+    await registerStudent(ctx, 'a@example.com');
+    await registerStudent(ctx, 'b@example.com');
+    const dash = await call(ctx, 'GET', '/admin/dashboard', { token });
+    expect(dash.body).toMatchObject({ students: 2, newStudentsLast7Days: 2, staff: 1 });
+
+    await call(ctx, 'PUT', '/admin/settings/app.maintenance', {
+      token,
+      body: { value: { enabled: false, message: null } },
+    });
+    const audit = await call(ctx, 'GET', '/admin/audit-logs?action=settings.update', { token });
+    expect(audit.body.data[0].actor).toMatchObject({
+      id: admin.id,
+      email: 'admin@example.com',
+      kind: 'staff',
+    });
+
+    const staff = await call(ctx, 'GET', '/admin/staff', { token });
+    expect(staff.body[0]).toMatchObject({ email: 'admin@example.com', mfaEnabled: false });
+  });
+});

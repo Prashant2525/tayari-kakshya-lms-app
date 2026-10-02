@@ -23,6 +23,7 @@ import { AuditService } from '../audit/audit.service.js';
 import { RbacService } from '../rbac/rbac.service.js';
 import { SettingsService } from '../settings/settings.service.js';
 import { GoogleVerifier } from './google-verifier.js';
+import { MfaService } from './mfa.service.js';
 import { OtpService } from './otp.service.js';
 import { PasswordService } from './password.service.js';
 import { SessionService } from './session.service.js';
@@ -44,6 +45,7 @@ export class AuthService {
     private readonly google: GoogleVerifier,
     private readonly rbac: RbacService,
     private readonly audit: AuditService,
+    private readonly mfa: MfaService,
   ) {}
 
   // ───────────── Students ─────────────
@@ -149,8 +151,36 @@ export class AuthService {
 
   // ───────────── Staff ─────────────
 
-  async staffLogin(input: StaffLoginInput, client: ClientInfo): Promise<AuthTokens> {
+  /** Password step. Staff with two-factor enabled get a short-lived challenge instead of a session. */
+  async staffLogin(
+    input: StaffLoginInput,
+    client: ClientInfo,
+  ): Promise<{ tokens: AuthTokens } | { mfaToken: string }> {
     const user = await this.verifyPassword(input.email, input.password, 'staff');
+    if (user.mfaEnabledAt) return { mfaToken: await this.mfa.issueChallenge(user.id) };
+    return { tokens: await this.openStaffSession(user, client) };
+  }
+
+  /** Second step: exchange the challenge plus an authenticator or recovery code for a session. */
+  async completeStaffMfaLogin(mfaToken: string, code: string, client: ClientInfo): Promise<AuthTokens> {
+    const userId = await this.mfa.verifyChallenge(mfaToken);
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user || user.kind !== 'staff') throw invalidCredentials();
+    this.assertCanSignIn(user);
+    const { usedRecoveryCode } = await this.mfa.verifyCode(user.id, code);
+    if (usedRecoveryCode) {
+      await this.audit.record({
+        actorUserId: user.id,
+        action: 'auth.mfa_recovery_code_used',
+        entityType: 'user',
+        entityId: user.id,
+        client,
+      });
+    }
+    return this.openStaffSession(user, client);
+  }
+
+  private openStaffSession(user: User, client: ClientInfo): Promise<AuthTokens> {
     return this.sessions.open({
       user,
       audience: 'staff',
@@ -309,6 +339,7 @@ export class AuthService {
       },
     });
     const access = user.kind === 'staff' ? await this.rbac.getAccess(user.id) : null;
+    const mfaSetupRequired = access ? await this.mfa.isSetupRequired(user.id, access) : false;
     return {
       id: user.id,
       kind: user.kind,
@@ -324,6 +355,9 @@ export class AuthService {
       educationLevelId: user.educationLevelId,
       deletionScheduledFor: user.deletionRequests[0]?.scheduledFor.toISOString() ?? null,
       permissions: access ? [...access.permissions].sort() : [],
+      mfaEnabled: Boolean(user.mfaEnabledAt),
+      mfaSetupRequired,
+      isSuperAdmin: access?.isSuperAdmin ?? false,
     };
   }
 

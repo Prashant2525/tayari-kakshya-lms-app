@@ -47,7 +47,12 @@ Authoritative shapes: OpenAPI at `/api/docs` (local) and `packages/contracts`. W
 | PATCH | `/admin/users/:id` | `users:update` | `deviceLimitOverride` |
 | POST | `/admin/users/:id/suspend` · `/reactivate` · `/revoke-sessions` | `users:suspend` | |
 | GET | `/admin/settings` · PUT `/admin/settings/:key` | `settings:read` / `settings:update` | validated per key, audited |
-| GET | `/admin/audit-logs` | `audit:read` | filters + cursor |
+| GET | `/admin/audit-logs` | `audit:read` | filters + cursor; each entry includes `actor { id, fullName, email, kind }` |
+| POST | `/admin/auth/login/mfa` | public | `{ mfaToken, code }` (6-digit TOTP or recovery code) after login returned `{ mfaRequired: true, mfaToken }` |
+| GET / POST / DELETE | `/admin/me/mfa` · `/admin/me/mfa/setup` · `/admin/me/mfa/enable` | staff | own 2FA status, setup (secret + otpauth URL), enable (returns 10 recovery codes once), disable (requires code) |
+| GET | `/admin/dashboard` | `users:read` | headline student/staff counts |
+| GET | `/education-levels` | public | active levels, ordered |
+| GET / POST | `/admin/education-levels` · PUT / DELETE `/admin/education-levels/:id` · PUT `/admin/education-levels/order` | `education_levels:manage` | bilingual names, in-use delete blocked |
 
 ## 2. Public / app bootstrap
 | Method | Path | Notes |

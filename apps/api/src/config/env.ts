@@ -35,6 +35,8 @@ export const EnvSchema = z
     REFRESH_TOKEN_TTL_DAYS: z.coerce.number().int().min(1).max(365).default(30),
     REFRESH_TOKEN_PEPPER: z.string().min(32),
     OTP_PEPPER: z.string().min(32),
+    /** Encrypts secrets stored in the database (TOTP). Rotating it invalidates enrolled authenticators. */
+    ENCRYPTION_KEY: z.string().min(32),
 
     EMAIL_PROVIDER: z.enum(['smtp', 'log']).default('log'),
     EMAIL_FROM: z.string().default('Tayari Kakshya <no-reply@localhost>'),

@@ -1,32 +1,29 @@
 # Test Status
 
-Last updated: 2026-10-02 (Phase 4). Run everything with `pnpm test` (needs `pnpm infra:up`).
+Last updated: 2026-10-02 (Phase 5). `pnpm test` runs unit + integration suites (needs `pnpm infra:up`);
+`pnpm build && pnpm --filter @tk/admin e2e` runs the browser suite.
 
 ## Current results — all passing locally
 
-| Package | Files | Tests | Kind |
-|---|---|---|---|
-| `@tk/domain` | 2 | 19 | Unit: BS/AD conversion (reference new years 2080–2082, full-year round-trip), validation, month lengths, Kathmandu day boundary, formatting (en/ne), fiscal year; money: VAT inclusive/exclusive, rounding, discounts, parsing, NPR formatting |
-| `@tk/contracts` | 1 | 5 | Unit: localized text, email normalization, password policy, mass-assignment rejection, settings defaults valid |
-| `@tk/api` | 4 | 51 | Integration against **real PostgreSQL + Redis** through the real HTTP stack (Fastify inject) + RBAC unit tests |
-| **Total** | **7** | **75** | |
+| Package | Tests | Kind |
+|---|---|---|
+| `@tk/design-tokens` | 39 | WCAG contrast for every text/background pair (light + dark), CSS generation |
+| `@tk/domain` | 19 | BS calendar, Kathmandu day boundary, fiscal year, money/VAT/discounts |
+| `@tk/contracts` | 5 | Schema behaviour (localized text, email normalisation, mass assignment, settings defaults) |
+| `@tk/api` | 71 | Integration against real PostgreSQL + Redis through the HTTP stack; TOTP RFC 6238 vectors; RBAC unit |
+| `@tk/admin` (unit) | 11 | API client (headers, refresh single-flight, retry, session loss, error mapping), BS formatting, Button `asChild` regression |
+| `@tk/admin` (E2E, Playwright) | 3 | Real browser + real API + `*_e2e` database |
+| **Total** | **148** | |
 
-### API coverage
-- **Auth:** register (+ verification email), duplicate email (case-insensitive), validation error format + request id, identical errors for wrong password / unknown email, staff blocked on student login, suspended accounts, per-account login rate limit (429).
-- **Refresh tokens:** rotation; reuse of a rotated token revokes the session (theft detection, audited); unknown tokens.
-- **Sessions:** logout invalidates the access token immediately; list/revoke own sessions; cannot revoke another user's session; same-device re-login replaces the session.
-- **Device limit:** off by default; block mode with session list + `replaceSessionId`; revoke-oldest mode; per-user override.
-- **Profile/password:** allowed fields only; changing the password signs out other devices.
-- **OTP:** email verification; newest code only; 5-attempt lockout; resend cooldown; codes stored hashed; phone channel toggle; phone stored only after verification; phone uniqueness.
-- **Password reset:** OTP flow revokes all sessions, verifies email, single-use code; unknown email indistinguishable.
-- **Google:** create, reuse, link to existing student, reject invalid/unverified tokens, never link to staff.
-- **Account deletion:** 7-day schedule, other devices signed out, cancel, erasure after grace (PII cleared, sessions deleted, audited, email reusable).
-- **Admin/RBAC:** HttpOnly SameSite=Strict scoped cookie; `X-TK-Client` header required; student/staff audience separation (both directions); permission checks; `/me` permissions; privilege escalation blocked; only a Super Admin grants Super Admin; Super Admin role and last Super Admin protected; assigned roles cannot be deleted; staff invitation + password setup; student suspension revokes sessions + audit; cursor pagination; settings validation + audit; maintenance-mode scope.
+### Added in Phase 5
+- **API:** staff MFA (forced enrolment by policy, wrong/valid codes, recovery codes single-use + audited, replay of a TOTP step rejected, forged challenge rejected, challenge is not an access token, encrypted secret at rest, disable requires a code, `all_staff` policy); education levels (permission, bilingual create, public active-only ordered list, reorder validation, in-use delete blocked, inactive level rejected on profile, audited); dashboard counts; audit actor names; staff MFA flag.
+- **Browser E2E:** wrong password; forced 2FA enrolment with hidden navigation and route redirect; invalid then valid TOTP; 10 recovery codes; sign-in with TOTP; empty code field (regression); session survives reload; create role with a permission; invite staff with that role (pending invitation shown); create bilingual education level; save a setting; audit log shows the actions; sign-out protects routes.
 
-### Verification beyond tests
-- Mutation check: disabling the escalation rule fails 3 tests (tests are not vacuous).
-- Manual smoke: API boots (NestJS 12 / Fastify, ESM); `/health/ready` (DB + Redis); `/app/config`; OpenAPI at `/api/docs` (35 paths); worker registers BullMQ schedulers and completes jobs; CLI `create-super-admin` sends a setup code delivered to Mailpit over SMTP.
+### Bugs caught by verification this phase
+- Contrast test: light danger-on-soft and dark primary-hover failed AA → tokens fixed.
+- Browser walkthrough: `Button asChild` crashed Roles/Not-found pages (Slot received two children) → fixed + unit test.
+- Browser walkthrough: 2FA code field showed the email (reused uncontrolled input) → keyed forms + E2E assertion.
+- Browser walkthrough: dashboard query fired during forced 2FA (403) → `can()` mirrors the server rule.
 
 ## Not yet covered
-- GitHub Actions run (KI-017).
-- Load testing (Phase 16); payments, exams, content (later phases).
+- Load testing (Phase 16); content, exams, payments (later phases); student mobile app (Phase 8).

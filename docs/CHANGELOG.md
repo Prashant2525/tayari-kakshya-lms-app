@@ -4,6 +4,19 @@ All notable changes to this project. Format based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Added — 2026-10-02 (Phase 5: Admin CMS foundation)
+- Staff two-factor authentication (TOTP + recovery codes, encrypted secrets, replay protection, policy setting with
+  forced enrolment for Super Admins); two-step staff login.
+- Education levels (public list, admin CRUD/reorder); admin dashboard counts; audit entries name their actor.
+- `@tk/design-tokens` with WCAG contrast tests; BS date helpers now work in browsers.
+- `apps/admin` Admin CMS: sign-in/2FA/password flows, permission-aware shell, dashboard, students, staff, roles &
+  permissions, education levels, system settings, audit log, account security; light/dark theme; responsive.
+- Tests: admin unit tests and Playwright E2E (new CI job `admin-e2e`).
+
+### Fixed
+- Contrast of danger text on soft red (light) and primary hover (dark).
+- `Button asChild` crash; 2FA code field pre-filled with the email; dashboard request during forced 2FA.
+
 ### Added — 2026-10-02 (Phase 4: monorepo + backend foundation)
 - pnpm 12 + Turborepo monorepo, shared TS/ESLint/Prettier config, GitHub Actions CI, UTF-8 README.
 - Local infrastructure via Docker Compose: PostgreSQL 17 (+ test DB, citext, pg_trgm), Redis 7.4, Mailpit.
