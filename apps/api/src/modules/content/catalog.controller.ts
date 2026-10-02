@@ -1,11 +1,24 @@
-import { Controller, Get, Header, Param, ParseUUIDPipe, Query, Req, Res } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Header,
+  HttpCode,
+  Param,
+  ParseUUIDPipe,
+  Post,
+  Query,
+  Req,
+  Res,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { CursorQuery, ExamNodeType, type Platform } from '@tk/contracts';
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import { z } from 'zod';
 import {
   Audiences,
+  Client,
   CurrentAuth,
+  type ClientInfo,
   OptionalAuth,
   Public,
   type AuthContext,
@@ -13,6 +26,7 @@ import {
 import { RateLimit } from '../../common/security/rate-limit.js';
 import { ZodQuery } from '../../common/validation/zod.js';
 import { CatalogService } from './catalog.service.js';
+import { EntitlementsService } from './entitlements.service.js';
 import { ClientPlatform } from './request-helpers.js';
 import { TaxonomyService } from './taxonomy.service.js';
 
@@ -63,7 +77,25 @@ export class CatalogController {
 @Audiences('student')
 @Controller()
 export class LearningController {
-  constructor(private readonly catalog: CatalogService) {}
+  constructor(
+    private readonly catalog: CatalogService,
+    private readonly entitlements: EntitlementsService,
+  ) {}
+
+  /** Enrol in a free (price 0) course. 201 when access was created, 200 when the student already has it. */
+  @Post('courses/:courseId/enrol')
+  @HttpCode(200)
+  @RateLimit({ name: 'learning.enrol', limit: 30, windowSeconds: 3600, by: ['user'] })
+  async enrol(
+    @Param('courseId', uuid()) courseId: string,
+    @CurrentAuth() auth: AuthContext,
+    @Client() client: ClientInfo,
+    @Res({ passthrough: true }) reply: FastifyReply,
+  ) {
+    const result = await this.entitlements.enrolFree(auth.userId, courseId, client);
+    if (result.enrolled) void reply.status(201);
+    return result;
+  }
 
   @Get('me/courses')
   myCourses(@CurrentAuth() auth: AuthContext) {

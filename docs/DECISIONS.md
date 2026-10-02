@@ -79,6 +79,7 @@ values. Development seed data uses clearly fake placeholder values; real values 
 | D-006 | GitHub `origin` is the primary remote; conventional commits; no force-push or secret commits. **Feature branches + PRs into `main`.** | Q40 |
 | D-041 | Design PDF removed from tracking going forward (normal commit + `.gitignore`); history is **not** rewritten. `PDF_UI_FEATURE_EXTRACTION.md` is the in-repo reference. | Q40 follow-up |
 | D-042 | Local dev uses **Docker Desktop** (Postgres + Redis via Docker Compose). Owner has Android Studio. | Q41 |
+| D-043 | **Free courses (list price 0) use an Enrol step**: premium items stay locked until the student taps Enrol, which creates a `free_enrol` entitlement (shows in My courses, counts in analytics). Access lasts for the course's configured validity; a course whose fixed end date has passed cannot be joined. A paid course on a temporary sale is not "free". | L6 (2026-10-02) |
 
 ## Technology (approved stack — Q42)
 

@@ -13,6 +13,9 @@ All notable changes to this project. Format based on Keep a Changelog.
 - Student/public catalog and learning API: platform-aware prices (D-027), server-side locking of premium content,
   per-student watermarked PDFs, YouTube nocookie and signed Bunny Stream playback.
 - Admin access grants/revokes (until payments arrive in Phase 13).
+- Free-course enrolment (`POST /courses/:id/enrol`, D-043) with access validity from the course settings
+  (`accessEndsAt` in `@tk/domain`; fixed dates end at midnight Nepal time).
+- Tests never use real video-provider keys from a developer `.env`.
 
 ### Fixed
 - CI: SeaweedFS readiness wait and volume settings; server errors now logged in CI test output.

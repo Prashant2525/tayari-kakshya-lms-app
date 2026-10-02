@@ -8,12 +8,12 @@ Last updated: 2026-10-02 (Phase 6, content API). `pnpm test` runs unit + integra
 | Package | Tests | Kind |
 |---|---|---|
 | `@tk/design-tokens` | 39 | WCAG contrast for every text/background pair (light + dark), CSS generation |
-| `@tk/domain` | 19 | BS calendar, Kathmandu day boundary, fiscal year, money/VAT/discounts |
+| `@tk/domain` | 24 | BS calendar, Kathmandu day boundary, fiscal year, money/VAT/discounts, access validity |
 | `@tk/contracts` | 16 | Schema behaviour (localized text, email normalisation, mass assignment, settings defaults, rich-text validation) |
-| `@tk/api` | 113 | Integration against real PostgreSQL + Redis + S3 (SeaweedFS) through the HTTP stack; TOTP RFC 6238 vectors; RBAC, video, watermark unit |
+| `@tk/api` | 117 | Integration against real PostgreSQL + Redis + S3 (SeaweedFS) through the HTTP stack; TOTP RFC 6238 vectors; RBAC, video, watermark unit |
 | `@tk/admin` (unit) | 11 | API client (headers, refresh single-flight, retry, session loss, error mapping), BS formatting, Button `asChild` regression |
 | `@tk/admin` (E2E, Playwright) | 3 | Real browser + real API + `*_e2e` database |
-| **Total** | **201** | |
+| **Total** | **210** | |
 
 ### Added in Phase 6 (content API)
 - **Media:** real-type sniffing rejects disguised files; images re-encoded to WebP variants with metadata stripped;
@@ -25,7 +25,10 @@ Last updated: 2026-10-02 (Phase 6, content API). `pnpm test` runs unit + integra
   when the in-app channel is enabled; premium note bodies / PDF / video never sent without an entitlement
   (`CONTENT_LOCKED`); verification-required setting; revoked/expired grants lose access; archived courses stay visible
   to entitled students; watermarked PDF stream.
-- **Unit:** YouTube URL parsing, ISO durations, Bunny signed-embed token, PDF watermark on every page.
+- **Free enrolment (D-043):** locked until enrol; access for the course validity; idempotent under 5 concurrent
+  taps (one row); paid / closed / unpublished refused; students only; audited. Mutation check: dropping the
+  price guard fails the suite.
+- **Unit:** access validity (days, fixed date ends at Nepal midnight, lifetime, invalid input), YouTube URL parsing, ISO durations, Bunny signed-embed token, PDF watermark on every page.
 - Mutation check: making `hasSubjectAccess` always true fails 3 catalog tests.
 
 ### Added in Phase 5

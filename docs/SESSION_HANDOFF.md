@@ -13,6 +13,12 @@ Current task: Phase 6 Admin CMS screens (not started)
   `-volume.max=0 -master.volumeSizeLimitMB=256`, readiness wait on `/dir/assign` (fails with container logs),
   `TEST_LOG_LEVEL=error` so server errors appear in CI output (KI-021).
 
+## Later in the session
+- Owner provided Bunny Stream credentials → stored only in the local `.env`; API key verified against the library
+  (empty library, so signed playback not yet tested — KI-023). Tests force Bunny/YouTube keys empty.
+- Owner answered L6 → D-043 implemented: `POST /courses/:id/enrol`, migration `free_enrolment` (enum value
+  `free_enrol`), `access.canEnrol` on course detail, `accessEndsAt` helper in `@tk/domain`.
+
 ## Decisions taken during implementation
 - T-020 resolved (SeaweedFS), T-025 (API-validated uploads), T-026 (live-edit rule), T-027 (archived courses stay
   visible to entitled students), T-028 (instructor scopes). See `DECISIONS.md`.
@@ -37,16 +43,16 @@ Current task: Phase 6 Admin CMS screens (not started)
 - Migration `content_catalog`; endpoints in `API_DOCUMENTATION.md` §1b.
 
 ## Tests run
-- `pnpm format:check && pnpm build && pnpm lint && pnpm typecheck && pnpm test` → all passing, 198 tests.
+- `pnpm format:check && pnpm build && pnpm lint && pnpm typecheck && pnpm test` → all passing, 207 tests.
 
 ## Known issues / blockers
 - KI-021 (CI-only media failure — fix pending CI confirmation), KI-022 (per-request watermark cost). No blockers.
 
 ## Credentials still required
-- Bunny Stream (library ID, API key, token key, CDN hostname) for premium video; R2 before staging.
+- Cloudflare R2 before staging. (Bunny provided — local `.env`.)
 
 ## Questions for the owner
-- L6: free (price 0) courses — open to all or enrol step?
+- None open. Owner to enable Bunny Token Authentication (KI-023).
 
 ## Local environment notes
 - Dev DB has Super Admin `owner@example.test` (dev-only password `Dev-only password 1`, 2FA reset — enrol on first sign-in).

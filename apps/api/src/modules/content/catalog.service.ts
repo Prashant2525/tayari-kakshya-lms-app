@@ -6,7 +6,7 @@ import { PrismaService } from '../../infra/prisma/prisma.service.js';
 import { StorageService } from '../../infra/storage/storage.service.js';
 import { MediaService } from '../media/media.service.js';
 import { SettingsService } from '../settings/settings.service.js';
-import { EntitlementsService } from './entitlements.service.js';
+import { EntitlementsService, isFreeEnrollable } from './entitlements.service.js';
 import { isLive, liveWhere, publishedWhere } from './publishing.js';
 import { watermarkPdf } from './pdf-watermark.js';
 import { VideoService } from './video.service.js';
@@ -147,7 +147,8 @@ export class CatalogService {
             ? this.storage.publicUrl(i.user.instructorProfile!.photo.objectKey)
             : null,
         })),
-      access: viewer ? { entitled } : null,
+      // Free courses are joined with POST /courses/:id/enrol (L6); entitled students skip it.
+      access: viewer ? { entitled, canEnrol: !entitled && isFreeEnrollable(course) } : null,
     };
   }
 

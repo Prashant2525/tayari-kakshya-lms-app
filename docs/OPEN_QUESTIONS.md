@@ -136,5 +136,5 @@ supported merchant locations (Nepal: developer ✔, merchant ✘); YouTube priva
 - **L4 (Phase 18):** Specific Nepal VPS provider/specs, domain names, backup location (offsite encrypted backups outside Nepal acceptable?).
 - **L6 (Phase 6, asked 2026-10-02):** A course priced at 0 — should its *premium* items open to every signed-in
   student, or should students tap "Enrol" (creating a free entitlement, so it appears in My courses and analytics)?
-  *Until answered, the API treats price 0 as display-only: premium items still need an entitlement (granted by admin).*
+  **Answered 2026-10-02: Enrol step** (D-043).
 - **L5 (Phase 18):** App identifiers (`com.<org>.<app>`), store account ownership (Play Console organisation account, Apple Developer).

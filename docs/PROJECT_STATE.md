@@ -18,7 +18,8 @@ Last updated: 2026-10-02
     publish workflow (D-036), courses (details, pricing, subjects, exam links, instructors, publishing), instructor
     profiles, staff scopes, admin access grants/revokes.
   - Student/public API: catalog (exam tree, course list/detail with platform-aware prices), my courses, subject outline,
-    learning items with server-side locking, watermarked PDF stream, video playback (YouTube nocookie / signed Bunny).
+    learning items with server-side locking, watermarked PDF stream, video playback (YouTube nocookie / signed Bunny),
+    free-course enrolment (D-043).
 
 ## In Progress
 - Phase 6 Admin CMS screens (media library, taxonomy, content tree + TipTap editor, courses, access grants).
@@ -43,20 +44,20 @@ Last updated: 2026-10-02
 - Not started (Phase 8 / Phase 11).
 
 ## Tests
-- Unit/integration 198 · browser E2E 3 — all passing locally (see `TEST_STATUS.md`).
+- Unit/integration 207 · browser E2E 3 — all passing locally (see `TEST_STATUS.md`).
 
 ## Known Issues
-- See `KNOWN_ISSUES.md` (KI-021 CI storage flake under investigation, KI-022 per-request PDF watermarking).
+- See `KNOWN_ISSUES.md` (KI-021 CI storage flake under investigation, KI-022 per-request PDF watermarking, KI-023 Bunny token auth).
 
 ## Blockers
 - None for local work.
 
 ## User Decisions Required
-- **L6** — free (price 0) courses: open premium items to everyone, or require an "enrol" step? (`OPEN_QUESTIONS.md`)
+- None open. L6 answered: free courses use an Enrol step (D-043, implemented).
 
 ## Credentials Required
-- **Bunny Stream** (library ID, API key, token security key, CDN hostname) — premium video returns
-  `VIDEO_PROVIDER_NOT_CONFIGURED` until provided. Optional: `YOUTUBE_API_KEY` for automatic title/duration.
+- Bunny Stream: **provided** (local `.env` only, API key verified). Owner to enable Token Authentication in the
+  Bunny library (KI-023). Optional: `YOUTUBE_API_KEY` for automatic title/duration.
 - Cloudflare R2 bucket + keys before staging/production (local dev uses SeaweedFS).
 
 ## Launch configuration checklist (owner enters in CMS before go-live)

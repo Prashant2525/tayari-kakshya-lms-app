@@ -40,4 +40,10 @@ Object.assign(process.env, {
   PUBLIC_MEDIA_BASE_URL: 'http://localhost/api/v1/public-media',
   PUBLIC_MEDIA_PROXY: 'true',
   STORAGE_AUTO_CREATE_BUCKETS: 'true',
+  // Never call real video providers from tests, even when the developer's .env holds live keys.
+  BUNNY_STREAM_LIBRARY_ID: '',
+  BUNNY_STREAM_API_KEY: '',
+  BUNNY_STREAM_TOKEN_KEY: '',
+  BUNNY_CDN_HOSTNAME: '',
+  YOUTUBE_API_KEY: '',
 });

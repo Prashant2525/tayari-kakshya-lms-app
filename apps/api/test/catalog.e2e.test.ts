@@ -100,6 +100,7 @@ describe('premium access is enforced on the server', () => {
     expect(JSON.stringify(unlocked.body.noteContent)).toContain('Premium secret body');
     expect((await call(ctx, 'GET', '/courses/sainey-likhit', { token })).body.access).toEqual({
       entitled: true,
+      canEnrol: false,
     });
     expect(
       (await call(ctx, 'GET', '/me/courses', { token })).body.map((c: { slug: string }) => c.slug),
@@ -204,5 +205,109 @@ describe('premium access is enforced on the server', () => {
       body: { status: 'draft' },
     });
     expect((await call(ctx, 'GET', `/learning-items/${seeded.freeNote.id}`, { token })).status).toBe(404);
+  });
+});
+
+describe('free courses are joined with an enrol step (L6)', () => {
+  async function freeCourse(admin: string, courseId: string, validity: Record<string, unknown> = {}) {
+    const res = await call(ctx, 'PUT', `/admin/courses/${courseId}/pricing`, {
+      token: admin,
+      body: {
+        pricePaisa: 0,
+        salePricePaisa: null,
+        saleStartsAt: null,
+        saleEndsAt: null,
+        validityType: 'days',
+        validityDays: 30,
+        validityEndsOn: null,
+        ...validity,
+      },
+    });
+    if (res.status >= 300) throw new Error(`${res.status} ${JSON.stringify(res.body)}`);
+  }
+  const enrol = (courseId: string, token?: string) =>
+    call(ctx, 'POST', `/courses/${courseId}/enrol`, token ? { token } : {});
+
+  it('keeps premium items locked until the student enrols, then unlocks them for the course validity', async () => {
+    const { admin, seeded, token, userId } = await setup();
+    await freeCourse(admin, seeded.course.id);
+
+    const before = await call(ctx, 'GET', '/courses/sainey-likhit', { token });
+    expect(before.body).toMatchObject({ isFree: true, access: { entitled: false, canEnrol: true } });
+    expect((await call(ctx, 'GET', `/learning-items/${seeded.premiumNote.id}`, { token })).status).toBe(403);
+
+    const started = Date.now();
+    const res = await enrol(seeded.course.id, token);
+    expect(res.status).toBe(201);
+    expect(res.body.enrolled).toBe(true);
+    const days = (Date.parse(res.body.endsAt) - started) / 86_400_000;
+    expect(days).toBeGreaterThan(29.99);
+    expect(days).toBeLessThan(30.01);
+
+    const item = await call(ctx, 'GET', `/learning-items/${seeded.premiumNote.id}`, { token });
+    expect(item.status).toBe(200);
+    expect(JSON.stringify(item.body)).toContain('Premium secret body');
+    const mine = await call(ctx, 'GET', '/me/courses', { token });
+    expect(mine.body.map((c: { id: string }) => c.id)).toEqual([seeded.course.id]);
+    const after = await call(ctx, 'GET', '/courses/sainey-likhit', { token });
+    expect(after.body.access).toEqual({ entitled: true, canEnrol: false });
+
+    const rows = await ctx.prisma.entitlement.findMany({ where: { userId } });
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({ sourceType: 'free_enrol', grantedById: null });
+    const audit = await ctx.prisma.auditLog.findFirst({ where: { action: 'entitlement.enrol_free' } });
+    expect(audit).toMatchObject({ actorUserId: userId, entityId: rows[0]!.id });
+  });
+
+  it('is idempotent, including under concurrent taps', async () => {
+    const { admin, seeded, token, userId } = await setup();
+    await freeCourse(admin, seeded.course.id, { validityType: 'lifetime', validityDays: null });
+    const results = await Promise.all(Array.from({ length: 5 }, () => enrol(seeded.course.id, token)));
+    expect(results.map((r) => r.status).sort()).toEqual([200, 200, 200, 200, 201]);
+    expect(results.every((r) => r.body.endsAt === null)).toBe(true);
+    expect(await ctx.prisma.entitlement.count({ where: { userId } })).toBe(1);
+    expect((await enrol(seeded.course.id, token)).body).toEqual({ enrolled: false, endsAt: null });
+  });
+
+  it('refuses paid, unpublished and closed courses', async () => {
+    const { admin, seeded, token, userId } = await setup();
+    const paid = await enrol(seeded.course.id, token);
+    expect(paid.status).toBe(409);
+    expect(paid.body.error).toMatchObject({
+      code: 'ENROLMENT_NOT_AVAILABLE',
+      details: { reason: 'not_free' },
+    });
+    expect((await call(ctx, 'GET', '/courses/sainey-likhit', { token })).body.access.canEnrol).toBe(false);
+
+    await freeCourse(admin, seeded.course.id);
+    // A fixed end date that has already passed (set directly: the CMS form may refuse past dates).
+    await ctx.prisma.course.update({
+      where: { id: seeded.course.id },
+      data: {
+        validityType: 'fixed_date',
+        validityDays: null,
+        validityEndsOn: new Date('2020-01-01T00:00:00Z'),
+      },
+    });
+    const closed = await enrol(seeded.course.id, token);
+    expect(closed.status).toBe(409);
+    expect(closed.body.error.details).toEqual({ reason: 'access_period_ended' });
+    expect((await call(ctx, 'GET', '/courses/sainey-likhit', { token })).body.access.canEnrol).toBe(false);
+
+    await freeCourse(admin, seeded.course.id);
+    await call(ctx, 'PUT', `/admin/courses/${seeded.course.id}/publishing`, {
+      token: admin,
+      body: { status: 'draft' },
+    });
+    expect((await enrol(seeded.course.id, token)).status).toBe(404);
+    expect(await ctx.prisma.entitlement.count({ where: { userId } })).toBe(0);
+  });
+
+  it('is for signed-in students only', async () => {
+    const { admin, seeded } = await setup();
+    await freeCourse(admin, seeded.course.id);
+    expect((await enrol(seeded.course.id)).status).toBe(401);
+    expect((await enrol(seeded.course.id, admin)).status).toBe(403);
+    expect(await ctx.prisma.entitlement.count()).toBe(0);
   });
 });

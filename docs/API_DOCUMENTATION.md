@@ -84,6 +84,7 @@ courses/subjects. Every write is audited.
 | GET / POST | `/admin/users/:id/entitlements` · POST `/admin/entitlements/:id/revoke` | `entitlements:grant` (read: `users:read`) | admin grants until payments (Phase 13); never deleted |
 | GET | `/exam-nodes` | public | live taxonomy tree |
 | GET | `/courses` · `/courses/:slug` | public (optional auth) | prices hidden for `X-TK-Platform: ios` and for `android` unless the in-app channel is on (D-027); detail adds `access: { entitled }` when signed in; archived courses visible only to entitled students |
+| POST | `/courses/:courseId/enrol` | student | free (price 0) live courses only (D-043): 201 `{ enrolled: true, endsAt }`, 200 if already enrolled; 409 `ENROLMENT_NOT_AVAILABLE` (`reason: not_free \| access_period_ended`); course detail exposes `access.canEnrol` |
 | GET | `/me/courses` | student | courses with an active entitlement, incl. archived ones (T-027) |
 | GET | `/courses/:courseId/subjects/:subjectId/outline` | student | chapters/topics/items with `locked` flags; no premium bodies |
 | GET | `/learning-items/:id` | student | `CONTENT_LOCKED` (403) without access; `VERIFICATION_REQUIRED` when the setting demands it |

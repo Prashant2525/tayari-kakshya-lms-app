@@ -678,6 +678,8 @@ enum EntitlementSource {
   admin_grant
   coupon
   referral
+  /// Self-service enrolment in a course priced at 0 (L6).
+  free_enrol
 }
 
 enum EntitlementStatus {
