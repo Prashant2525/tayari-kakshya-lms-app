@@ -8,7 +8,13 @@ import { MfaService } from '../../modules/auth/mfa.service.js';
 import { RbacService, type StaffAccess } from '../../modules/rbac/rbac.service.js';
 import { SettingsService } from '../../modules/settings/settings.service.js';
 import { AppError, Errors } from '../errors/app-error.js';
-import { AUDIENCES, IS_PUBLIC, PERMISSIONS_REQUIRED, type Audience } from './auth-context.js';
+import {
+  AUDIENCES,
+  IS_PUBLIC,
+  PERMISSIONS_ANY,
+  PERMISSIONS_REQUIRED,
+  type Audience,
+} from './auth-context.js';
 
 declare module 'fastify' {
   interface FastifyRequest {
@@ -83,11 +89,18 @@ export class PermissionsGuard implements CanActivate {
       context.getHandler(),
       context.getClass(),
     ]);
-    if (!required || required.length === 0) return true;
+    const any = this.reflector.getAllAndOverride<Permission[]>(PERMISSIONS_ANY, [
+      context.getHandler(),
+      context.getClass(),
+    ]);
+    if ((!required || required.length === 0) && (!any || any.length === 0)) return true;
     const req = context.switchToHttp().getRequest<FastifyRequest>();
     if (!req.auth || req.auth.audience !== 'staff') throw Errors.forbidden();
     const access = await this.rbac.getAccess(req.auth.userId);
-    if (!access.isSuperAdmin && !required.every((p) => access.permissions.has(p))) throw Errors.forbidden();
+    if (!access.isSuperAdmin) {
+      if (required?.length && !required.every((p) => access.permissions.has(p))) throw Errors.forbidden();
+      if (any?.length && !any.some((p) => access.permissions.has(p))) throw Errors.forbidden();
+    }
     if (await this.mfa.isSetupRequired(req.auth.userId, access)) {
       throw new AppError(403, ErrorCode.MFA_SETUP_REQUIRED, 'Set up two-factor authentication to continue');
     }

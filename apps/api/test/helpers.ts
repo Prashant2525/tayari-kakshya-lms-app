@@ -207,3 +207,49 @@ export async function staffLogin(
   if (!cookie) throw new Error('no refresh cookie');
   return { token: res.body.accessToken, refreshCookie: cookie.value };
 }
+
+/** Builds a multipart/form-data body for app.inject (one file + text fields). */
+export function multipart(
+  file: { name: string; contentType: string; data: Buffer },
+  fields: Record<string, string> = {},
+): { payload: Buffer; headers: Record<string, string> } {
+  const boundary = `----tk${Date.now().toString(16)}`;
+  const parts: Buffer[] = [];
+  for (const [key, value] of Object.entries(fields)) {
+    parts.push(
+      Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="${key}"\r\n\r\n${value}\r\n`),
+    );
+  }
+  parts.push(
+    Buffer.from(
+      `--${boundary}\r\nContent-Disposition: form-data; name="file"; filename="${file.name}"\r\nContent-Type: ${file.contentType}\r\n\r\n`,
+    ),
+    file.data,
+    Buffer.from(`\r\n--${boundary}--\r\n`),
+  );
+  return {
+    payload: Buffer.concat(parts),
+    headers: { 'content-type': `multipart/form-data; boundary=${boundary}` },
+  };
+}
+
+export async function upload<T = any>( // eslint-disable-line @typescript-eslint/no-explicit-any -- see Res
+  ctx: TestContext,
+  token: string,
+  file: { name: string; contentType: string; data: Buffer },
+  fields: Record<string, string> = { visibility: 'public' },
+): Promise<Res<T>> {
+  const { payload, headers } = multipart(file, fields);
+  const res = await ctx.app.inject({
+    method: 'POST',
+    url: '/api/v1/admin/media',
+    payload,
+    headers: { ...headers, authorization: `Bearer ${token}` },
+  });
+  return {
+    status: res.statusCode,
+    body: JSON.parse(res.body || 'null'),
+    headers: res.headers as Res['headers'],
+    cookies: [],
+  };
+}

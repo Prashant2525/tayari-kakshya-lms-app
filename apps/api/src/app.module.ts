@@ -10,6 +10,9 @@ import { MailService } from './infra/messaging/mail.service.js';
 import { SmsService } from './infra/messaging/sms.service.js';
 import { PrismaService } from './infra/prisma/prisma.service.js';
 import { RedisService } from './infra/redis/redis.provider.js';
+import { StorageService } from './infra/storage/storage.service.js';
+import { AdminMediaController, PublicMediaController } from './modules/media/media.controller.js';
+import { MediaService } from './modules/media/media.service.js';
 import { AuditService } from './modules/audit/audit.service.js';
 import { AccountDeletionService } from './modules/auth/account-deletion.service.js';
 import { AdminAuthController } from './modules/auth/admin-auth.controller.js';
@@ -47,8 +50,9 @@ import { EducationLevelsService } from './modules/users/education-levels.service
     RedisService,
     MailService,
     SmsService,
+    StorageService,
   ],
-  exports: [ENV, PrismaService, RedisService, MailService, SmsService],
+  exports: [ENV, PrismaService, RedisService, MailService, SmsService, StorageService],
 })
 export class InfraModule {}
 
@@ -71,6 +75,7 @@ export class InfraModule {}
     FieldEncryption,
     MfaService,
     EducationLevelsService,
+    MediaService,
     { provide: GoogleVerifier, useClass: GoogleAuthLibraryVerifier },
   ],
   exports: [
@@ -89,6 +94,7 @@ export class InfraModule {}
     FieldEncryption,
     MfaService,
     EducationLevelsService,
+    MediaService,
     GoogleVerifier,
   ],
 })
@@ -128,6 +134,8 @@ export class DomainModule {}
     AdminMfaController,
     EducationLevelsController,
     AdminEducationLevelsController,
+    AdminMediaController,
+    PublicMediaController,
   ],
   providers: [
     // Order matters: rate limit → maintenance → authentication → permissions.

@@ -48,6 +48,23 @@ export const EnvSchema = z
 
     SMS_PROVIDER: z.enum(['disabled', 'log']).default('disabled'),
 
+    // Object storage (S3-compatible: Cloudflare R2 in production, SeaweedFS locally — T-020).
+    S3_ENDPOINT: z.string().min(1),
+    S3_REGION: z.string().default('auto'),
+    S3_ACCESS_KEY_ID: z.string().min(1),
+    S3_SECRET_ACCESS_KEY: z.string().min(1),
+    S3_BUCKET_PUBLIC: z.string().min(3),
+    S3_BUCKET_PRIVATE: z.string().min(3),
+    S3_FORCE_PATH_STYLE: bool,
+    /** Base URL for public objects (R2 public domain / CDN in production; the API dev proxy locally). */
+    PUBLIC_MEDIA_BASE_URL: z.string().min(1),
+    /** Serve public objects through the API (development/test only). */
+    PUBLIC_MEDIA_PROXY: bool,
+    /** Create buckets on start-up (development/test only). */
+    STORAGE_AUTO_CREATE_BUCKETS: bool,
+    MEDIA_MAX_IMAGE_MB: z.coerce.number().int().min(1).max(50).default(10),
+    MEDIA_MAX_PDF_MB: z.coerce.number().int().min(1).max(500).default(100),
+
     GOOGLE_OAUTH_WEB_CLIENT_ID: optional,
     GOOGLE_OAUTH_ANDROID_CLIENT_ID: optional,
     GOOGLE_OAUTH_IOS_CLIENT_ID: optional,
@@ -66,6 +83,13 @@ export const EnvSchema = z
         code: 'custom',
         path: ['SMS_PROVIDER'],
         message: 'log SMS provider is not allowed here',
+      });
+    }
+    if (prodLike && (env.PUBLIC_MEDIA_PROXY || env.STORAGE_AUTO_CREATE_BUCKETS)) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['PUBLIC_MEDIA_PROXY'],
+        message: 'media proxy / bucket auto-creation are development-only',
       });
     }
     if (env.EMAIL_PROVIDER === 'smtp' && (!env.SMTP_HOST || !env.SMTP_PORT)) {

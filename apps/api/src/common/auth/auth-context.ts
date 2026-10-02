@@ -19,12 +19,17 @@ declare module 'fastify' {
 export const IS_PUBLIC = 'tk:isPublic';
 export const AUDIENCES = 'tk:audiences';
 export const PERMISSIONS_REQUIRED = 'tk:permissions';
+export const PERMISSIONS_ANY = 'tk:permissionsAny';
 
 /** Route needs no access token (default is deny). */
 export const Public = () => SetMetadata(IS_PUBLIC, true);
 
 /** Restricts a route/controller to tokens of the given audience(s). */
 export const Audiences = (...audiences: Audience[]) => SetMetadata(AUDIENCES, audiences);
+
+/** Staff-only route requiring at least one of the listed permissions (e.g. pickers used by several editors). */
+export const RequireAnyPermission = (...permissions: Permission[]) =>
+  SetMetadata(PERMISSIONS_ANY, permissions);
 
 /** Staff-only route requiring all listed permissions (Super Admin implicitly has all). */
 export const RequirePermissions = (...permissions: Permission[]) =>

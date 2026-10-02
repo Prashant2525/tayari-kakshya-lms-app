@@ -1,0 +1,9 @@
+{
+  "identities": [
+    {
+      "name": "tayari-dev",
+      "credentials": [{ "accessKey": "tayari_dev_access", "secretKey": "tayari_dev_secret_only" }],
+      "actions": ["Admin", "Read", "Write", "List", "Tagging"]
+    }
+  ]
+}
