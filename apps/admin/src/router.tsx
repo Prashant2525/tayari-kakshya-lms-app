@@ -149,6 +149,11 @@ const routes = [
   }),
   createRoute({
     getParentRoute: () => appRoute,
+    path: '/questions/import',
+    component: lazyRouteComponent(() => import('./features/questions/import-page'), 'QuestionImportPage'),
+  }),
+  createRoute({
+    getParentRoute: () => appRoute,
     path: '/questions/new',
     validateSearch: (s: Record<string, unknown>): { type: QuestionType } => ({
       type: QuestionTypeSchema.safeParse(s['type']).data ?? 'single_choice',

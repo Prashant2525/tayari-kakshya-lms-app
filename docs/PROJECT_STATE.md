@@ -1,6 +1,6 @@
 # Project State
 
-Current Phase: **Phase 7 — Question bank + assessment CMS: IN PROGRESS** (question bank done; dynamic-admin audit applied)
+Current Phase: **Phase 7 — Question bank + assessment CMS: IN PROGRESS** (question bank + Excel import done; assessments next)
 Current Milestone: content API on `feature/content-cms` → Admin CMS content screens
 Overall Status: **IN PROGRESS**
 Last updated: 2026-10-02
@@ -25,7 +25,7 @@ Last updated: 2026-10-02
     limits — verified in a real browser (E2E + screenshots in light, dark, mobile).
 
 ## In Progress
-- Phase 7 on `feature/question-bank`: XLSX import (preview + confirm) next, then assessments.
+- Phase 7 on `feature/question-bank`: assessments (schema, builder, rules per D-021/D-044) next.
 - Dynamic admin audit done (`DYNAMIC_ADMIN_AUDIT.md`, D-045): category types and question types are now admin-managed.
 - Phase 6 merged (PR #5, #6). Bunny security verified (KI-023 resolved).
 
@@ -49,7 +49,7 @@ Last updated: 2026-10-02
 - Not started (Phase 8 / Phase 11).
 
 ## Tests
-- Unit/integration 273 · browser E2E 17 — all passing locally (see `TEST_STATUS.md`).
+- Unit/integration 277 · browser E2E 18 — all passing locally (see `TEST_STATUS.md`).
 
 ## Known Issues
 - See `KNOWN_ISSUES.md` (KI-021 CI storage flake under investigation, KI-022 per-request PDF watermarking, KI-023 Bunny token auth).
@@ -77,4 +77,5 @@ and `pnpm --filter @tk/admin dev` → create your Super Admin:
 (code in Mailpit http://localhost:8025) → set password at http://localhost:5173/set-password → sign in → enrol 2FA.
 
 ## Exact Next Task
-- XLSX question import: upload, preview with row/column problems and name resolution, confirm (template D-046).
+- Assessments: schema (assessments, sections, fixed/random questions, scoring choices D-044), admin builder,
+  publishing/scheduling; then grading queue and result release with the attempt engine (§10).

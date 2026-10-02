@@ -1,7 +1,7 @@
 import type { QuestionType } from '@tk/contracts';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { Link, useNavigate } from '@tanstack/react-router';
-import { Download, Flag, Plus, Search } from 'lucide-react';
+import { Download, Flag, Plus, Search, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 import { DropdownMenu } from 'radix-ui';
 import { useState } from 'react';
@@ -72,6 +72,11 @@ export function QuestionsPage() {
                 }}
               >
                 <Download /> Import template
+              </Button>
+              <Button asChild variant="secondary">
+                <Link to="/questions/import">
+                  <Upload /> Import
+                </Link>
               </Button>
               <DropdownMenu.Root>
                 <DropdownMenu.Trigger asChild>

@@ -10,10 +10,20 @@ Last updated: 2026-10-03 (Phase 7, question bank backend). `pnpm test` runs unit
 | `@tk/design-tokens` | 39 | WCAG contrast for every text/background pair (light + dark), CSS generation |
 | `@tk/domain` | 39 | BS calendar, Kathmandu day boundary, fiscal year, money/VAT/discounts, access validity |
 | `@tk/contracts` | 21 | Schema behaviour (localized text, email normalisation, mass assignment, settings defaults, rich-text validation) |
-| `@tk/api` | 141 | Integration against real PostgreSQL + Redis + S3 (SeaweedFS) through the HTTP stack; TOTP RFC 6238 vectors; RBAC, video, watermark unit |
+| `@tk/api` | 145 | Integration against real PostgreSQL + Redis + S3 (SeaweedFS) through the HTTP stack; TOTP RFC 6238 vectors; RBAC, video, watermark unit |
 | `@tk/admin` (unit) | 33 | API client (headers, refresh single-flight, retry, session loss, error mapping), BS formatting, Button `asChild` regression |
-| `@tk/admin` (E2E, Playwright) | 17 | Real browser + real API + `*_e2e` database |
-| **Total** | **290** | |
+| `@tk/admin` (E2E, Playwright) | 18 | Real browser + real API + `*_e2e` database |
+| **Total** | **295** | |
+
+### Added with the Excel import
+- **API:** the template's 8 example rows (all 7 types + passage) preview clean and import as drafts with topic, PYQ
+  stage, paper, tags and passage resolved; nothing saved before confirm; confirm twice refused; re-upload warns about
+  duplicates; 8 kinds of row problems reported with the exact column (duplicate ref, unknown subject / category /
+  paper / chapter / passage, disabled type, bad answer); only ready rows imported; unreadable file and missing sheet
+  refused; only the uploader can confirm; a topic deleted after preview blocks the confirm (mutation-checked);
+  scoped editors only match their subjects; permission required.
+- **Browser E2E:** download the template from the app, fill it with ExcelJS, upload, see the problem row and the
+  ready row, filter, import, find the draft in the Question bank.
 
 ### Added with the dynamic admin audit
 - **Bug caught by CI:** concurrent free-enrol taps could create two entitlements — the request that waited on the

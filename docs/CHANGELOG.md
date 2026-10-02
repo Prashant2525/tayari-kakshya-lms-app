@@ -4,6 +4,13 @@ All notable changes to this project. Format based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Added — 2026-10-03 (Phase 7: Excel question import)
+- Import page in the admin (Question bank → Import): upload the template, preview every problem by row and column,
+  import the ready rows as drafts; passages created and linked; recent imports listed.
+- API: `question_imports` table (migration `question_imports`), preview/commit/history endpoints; names of
+  subjects, chapters, topics, category paths and papers resolved within the editor's scope; duplicate-text warnings;
+  re-checks at confirm time; audit entry per import.
+
 ### Added — 2026-10-03 (dynamic admin audit)
 - `docs/DYNAMIC_ADMIN_AUDIT.md`: inventory of what is admin-managed, hard-coded or intentionally code-controlled.
 - **Category types** are admin-managed (`exam_node_types`): rename, re-order, add levels such as sub-group and exam

@@ -78,6 +78,7 @@ model User {
   grantedEntitlements Entitlement[]            @relation("EntitlementGrantedBy")
   questionReports     QuestionReport[]         @relation("QuestionReportUser")
   resolvedReports     QuestionReport[]         @relation("QuestionReportResolver")
+  questionImports     QuestionImport[]         @relation("QuestionImportCreator")
   uploadedMedia       MediaAsset[]
 
   @@index([kind, status])
@@ -378,7 +379,7 @@ model ExamNodeType {
   canHavePapers Boolean  @default(false) @map("can_have_papers")
   active        Boolean  @default(true)
   createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt     DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+  updatedAt     DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   nodes ExamNode[]
 
@@ -411,6 +412,7 @@ model ExamNode {
   questionSources QuestionSource[]
 
   @@index([parentId, sortOrder])
+  @@index([nodeType])
   @@map("exam_nodes")
 }
 
@@ -899,4 +901,30 @@ model QuestionReport {
   @@index([status, createdAt])
   @@index([questionId])
   @@map("question_reports")
+}
+
+enum QuestionImportStatus {
+  previewed
+  committed
+  expired
+}
+
+/// Excel question import (D-046): the checked rows wait here between preview and confirm.
+model QuestionImport {
+  id           String               @id @default(uuid(7)) @db.Uuid
+  fileName     String               @map("file_name")
+  status       QuestionImportStatus @default(previewed)
+  /// { rows, valid, invalid, warnings }
+  summary      Json
+  /// Resolved, validated rows ready to insert (QuestionInput + passage refs); cleared after commit.
+  payload      Json?
+  createdById  String               @map("created_by") @db.Uuid
+  createdAt    DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
+  committedAt  DateTime?            @map("committed_at") @db.Timestamptz(6)
+  createdCount Int?                 @map("created_count")
+
+  createdBy User @relation("QuestionImportCreator", fields: [createdById], references: [id], onDelete: Restrict)
+
+  @@index([createdById, createdAt])
+  @@map("question_imports")
 }

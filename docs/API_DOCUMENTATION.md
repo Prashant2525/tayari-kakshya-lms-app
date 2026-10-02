@@ -103,6 +103,9 @@ courses/subjects. Every write is audited.
 | GET | `/admin/question-tags?q=` | as list | tag suggestions with counts |
 | GET / POST / PUT | `/admin/question-groups` · `/admin/question-groups/:id` | `questions:edit` | passages for comprehension questions |
 | GET / PUT | `/admin/question-reports?status=` · `/admin/question-reports/:id` | `question_reports:manage` | resolve or reject with a note |
+| POST | `/admin/question-imports` | `questions:edit` | multipart `file` (.xlsx ≤ 5 MB, ≤ 2,000 rows) → preview `{ id, summary, fileProblems, rows[{ row, ref, type, preview, problems[{column,message}], warnings }] }`; names resolved (subject, chapter/topic, category path, paper, passage); nothing saved |
+| POST | `/admin/question-imports/:id/commit` | `questions:edit` (uploader only) | creates the ready rows + passages as drafts in one transaction; 409 if already confirmed, older than 24 h, or references changed |
+| GET | `/admin/question-imports` | `questions:edit` | your 20 most recent imports |
 | GET | `/admin/questions/import-template` | `questions:edit` | `.xlsx` template `tk-questions-v1` with dropdowns filled from the LMS (subjects, category paths, papers) |
 | GET / POST / PUT / DELETE | `/admin/exam-node-types` · `/admin/exam-node-types/:key` | read: taxonomy/course/question/assessment editors; write: `taxonomy:manage` | admin-managed category types; key permanent; rank/flag changes refused (409) if existing categories would break; in-use types cannot be deleted |
 | GET | `/exam-node-types` | public | active category types (key, name, rank) for app labels |

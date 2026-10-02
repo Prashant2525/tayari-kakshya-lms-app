@@ -47,7 +47,7 @@ function mediaIds(docs: LocalizedRichDoc[]): string[] {
   return docs.flatMap((d) => [...richDocMediaIds(d.en), ...richDocMediaIds(d.ne)]);
 }
 
-function searchTextOf(content: QuestionContent): string {
+export function searchTextOf(content: QuestionContent): string {
   const docs = [content.stem];
   if (content.type === 'single_choice' || content.type === 'multiple_choice')
     docs.push(...content.options.map((o) => o.content));
@@ -149,32 +149,45 @@ export class QuestionsService {
       ]);
     }
     await this.validate(input, actor);
-    const id = await this.prisma.$transaction(async (tx) => {
-      const question = await tx.question.create({
-        data: {
-          ...this.metadata(input),
-          type: input.content.type,
-          searchText: searchTextOf(input.content),
-          createdById: actor.userId,
-          updatedById: actor.userId,
-        },
-      });
-      const version = await tx.questionVersion.create({
-        data: {
-          questionId: question.id,
-          versionNo: 1,
-          content: input.content as Prisma.InputJsonValue,
-          createdById: actor.userId,
-        },
-      });
-      await tx.question.update({ where: { id: question.id }, data: { currentVersionId: version.id } });
-      await this.replaceTagsAndSources(tx, question.id, input);
-      await this.log(tx, actor, 'question.create', question.id, {
-        after: { type: input.content.type, subjectId: input.subjectId, difficulty: input.difficulty },
-      });
-      return question.id;
-    });
+    const id = await this.prisma.$transaction((tx) => this.insert(tx, input, actor));
     return this.detail(id);
+  }
+
+  /**
+   * Inserts a validated question with version 1 (shared by the editor and the Excel import). The caller has
+   * already checked references, scope and enabled types.
+   */
+  async insert(
+    tx: Prisma.TransactionClient,
+    input: QuestionInput,
+    actor: ContentActor,
+    extra: { status?: 'draft' | 'in_review'; importId?: string } = {},
+  ): Promise<string> {
+    const question = await tx.question.create({
+      data: {
+        ...this.metadata(input),
+        type: input.content.type,
+        status: extra.status ?? 'draft',
+        searchText: searchTextOf(input.content),
+        createdById: actor.userId,
+        updatedById: actor.userId,
+      },
+    });
+    const version = await tx.questionVersion.create({
+      data: {
+        questionId: question.id,
+        versionNo: 1,
+        content: input.content as Prisma.InputJsonValue,
+        createdById: actor.userId,
+      },
+    });
+    await tx.question.update({ where: { id: question.id }, data: { currentVersionId: version.id } });
+    await this.replaceTagsAndSources(tx, question.id, input);
+    await this.log(tx, actor, 'question.create', question.id, {
+      after: { type: input.content.type, subjectId: input.subjectId, difficulty: input.difficulty },
+      ...(extra.importId ? { importId: extra.importId } : {}),
+    });
+    return question.id;
   }
 
   async update(id: string, input: QuestionInput, actor: ContentActor) {

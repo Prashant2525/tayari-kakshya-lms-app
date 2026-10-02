@@ -40,6 +40,7 @@ import { ScopeService } from './modules/content/scope.service.js';
 import { TaxonomyService } from './modules/content/taxonomy.service.js';
 import { VideoService } from './modules/content/video.service.js';
 import { HealthController } from './modules/health/health.controller.js';
+import { QuestionImportService } from './modules/questions/question-import.service.js';
 import { QuestionReportsService } from './modules/questions/question-reports.service.js';
 import {
   AdminQuestionsController,
@@ -104,6 +105,7 @@ export class InfraModule {}
     ScopeService,
     QuestionsService,
     QuestionReportsService,
+    QuestionImportService,
     { provide: GoogleVerifier, useClass: GoogleAuthLibraryVerifier },
   ],
   exports: [
@@ -133,6 +135,7 @@ export class InfraModule {}
     ScopeService,
     QuestionsService,
     QuestionReportsService,
+    QuestionImportService,
     GoogleVerifier,
   ],
 })
