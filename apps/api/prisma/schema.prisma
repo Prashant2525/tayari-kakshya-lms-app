@@ -78,6 +78,7 @@ model User {
   grantedEntitlements Entitlement[]            @relation("EntitlementGrantedBy")
   questionReports     QuestionReport[]         @relation("QuestionReportUser")
   resolvedReports     QuestionReport[]         @relation("QuestionReportResolver")
+  questionImports     QuestionImport[]         @relation("QuestionImportCreator")
   uploadedMedia       MediaAsset[]
 
   @@index([kind, status])
@@ -364,18 +365,31 @@ enum AccessLevel {
 
 // ───────────────────────────── Exam taxonomy (D-007, D-010) ─────────────────────────────
 
-enum ExamNodeType {
-  authority
-  level
-  service
-  group
-  post
+/// Admin-managed category types (audit §4.1): authority, level, service, group, sub-group, post, exam stage…
+/// A node's type must rank lower in the hierarchy (higher `rank`) than its parent's.
+model ExamNodeType {
+  /// Stable identifier used by APIs and imports; never changes.
+  key           String   @id @db.VarChar(40)
+  name          Json
+  description   Json?
+  rank          Int
+  /// Top-level types have no parent; every other type needs one.
+  topLevel      Boolean  @default(false) @map("top_level")
+  /// Papers can be linked to nodes of this type (posts, exam stages).
+  canHavePapers Boolean  @default(false) @map("can_have_papers")
+  active        Boolean  @default(true)
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  nodes ExamNode[]
+
+  @@map("exam_node_types")
 }
 
 model ExamNode {
   id          String        @id @default(uuid(7)) @db.Uuid
   parentId    String?       @map("parent_id") @db.Uuid
-  nodeType    ExamNodeType  @map("node_type")
+  nodeType    String        @map("node_type") @db.VarChar(40)
   /// LocalizedText
   name        Json
   slug        String
@@ -389,6 +403,7 @@ model ExamNode {
   updatedAt   DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
   deletedAt   DateTime?     @map("deleted_at") @db.Timestamptz(6)
 
+  type            ExamNodeType     @relation(fields: [nodeType], references: [key], onDelete: Restrict)
   parent          ExamNode?        @relation("ExamNodeTree", fields: [parentId], references: [id], onDelete: Restrict)
   children        ExamNode[]       @relation("ExamNodeTree")
   icon            MediaAsset?      @relation(fields: [iconMediaId], references: [id], onDelete: SetNull)
@@ -396,7 +411,10 @@ model ExamNode {
   courses         CourseExamNode[]
   questionSources QuestionSource[]
 
+  assessments Assessment[]
+
   @@index([parentId, sortOrder])
+  @@index([nodeType])
   @@map("exam_nodes")
 }
 
@@ -451,6 +469,8 @@ model Subject {
   courses   CourseSubject[]
   questions Question[]
 
+  assessments Assessment[]
+
   @@map("subjects")
 }
 
@@ -469,6 +489,8 @@ model Chapter {
 
   subject Subject @relation(fields: [subjectId], references: [id], onDelete: Restrict)
   topics  Topic[]
+
+  assessments Assessment[]
 
   @@index([subjectId, sortOrder])
   @@map("chapters")
@@ -490,6 +512,8 @@ model Topic {
   chapter   Chapter        @relation(fields: [chapterId], references: [id], onDelete: Restrict)
   items     LearningItem[]
   questions Question[]
+
+  assessments Assessment[]
 
   @@index([chapterId, sortOrder])
   @@map("topics")
@@ -609,6 +633,8 @@ model Course {
   subjects     CourseSubject[]
   instructors  CourseInstructor[]
   entitlements Entitlement[]
+
+  assessments Assessment[]
 
   @@index([status, isFeatured, popularityRank])
   @@map("courses")
@@ -790,6 +816,8 @@ model Question {
   tags           QuestionTag[]
   reports        QuestionReport[]
 
+  assessmentLinks AssessmentQuestion[]
+
   @@index([subjectId, topicId, type, difficulty, status])
   @@index([groupId])
   @@map("questions")
@@ -885,4 +913,151 @@ model QuestionReport {
   @@index([status, createdAt])
   @@index([questionId])
   @@map("question_reports")
+}
+
+enum QuestionImportStatus {
+  previewed
+  committed
+  expired
+}
+
+/// Excel question import (D-046): the checked rows wait here between preview and confirm.
+model QuestionImport {
+  id           String               @id @default(uuid(7)) @db.Uuid
+  fileName     String               @map("file_name")
+  status       QuestionImportStatus @default(previewed)
+  /// { rows, valid, invalid, warnings }
+  summary      Json
+  /// Resolved, validated rows ready to insert (QuestionInput + passage refs); cleared after commit.
+  payload      Json?
+  createdById  String               @map("created_by") @db.Uuid
+  createdAt    DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
+  committedAt  DateTime?            @map("committed_at") @db.Timestamptz(6)
+  createdCount Int?                 @map("created_count")
+
+  createdBy User @relation("QuestionImportCreator", fields: [createdById], references: [id], onDelete: Restrict)
+
+  @@index([createdById, createdAt])
+  @@map("question_imports")
+}
+
+// ───────────── Assessments (D-021, D-022, D-044) ─────────────
+
+enum AssessmentType {
+  quiz
+  subject_test
+  weekly
+  mock
+  pyq_mock
+  daily_challenge
+}
+
+enum AssessmentAvailability {
+  always
+  window
+}
+
+enum ResultRelease {
+  immediate
+  after_close
+  manual
+}
+
+enum SubjectiveGrading {
+  none
+  self
+  instructor
+}
+
+enum SectionPickMode {
+  fixed
+  random
+}
+
+/// Rules are chosen per assessment in the CMS; nothing here is a business default (D-021, D-044).
+model Assessment {
+  id                 String                 @id @default(uuid(7)) @db.Uuid
+  type               AssessmentType
+  title              Json
+  instructions       Json?
+  courseId           String?                @map("course_id") @db.Uuid
+  subjectId          String?                @map("subject_id") @db.Uuid
+  chapterId          String?                @map("chapter_id") @db.Uuid
+  topicId            String?                @map("topic_id") @db.Uuid
+  examNodeId         String?                @map("exam_node_id") @db.Uuid
+  accessLevel        AccessLevel            @default(premium) @map("access_level")
+  availability       AssessmentAvailability
+  opensAt            DateTime?              @map("opens_at") @db.Timestamptz(6)
+  closesAt           DateTime?              @map("closes_at") @db.Timestamptz(6)
+  durationSeconds    Int?                   @map("duration_seconds")
+  maxAttempts        Int?                   @map("max_attempts")
+  passMarks          Decimal?               @map("pass_marks") @db.Decimal(8, 2)
+  /// ScoringRulesInput: negativeMarking, multipleChoice, match, fillBlank, scoreFloor.
+  scoring            Json
+  shuffleQuestions   Boolean                @map("shuffle_questions")
+  shuffleOptions     Boolean                @map("shuffle_options")
+  resultRelease      ResultRelease          @map("result_release")
+  resultsReleasedAt  DateTime?              @map("results_released_at") @db.Timestamptz(6)
+  showExplanations   Boolean                @map("show_explanations")
+  leaderboardEnabled Boolean                @map("leaderboard_enabled")
+  subjectiveGrading  SubjectiveGrading      @map("subjective_grading")
+  challengeDate      DateTime?              @map("challenge_date") @db.Date
+  status             PublishStatus          @default(draft)
+  publishAt          DateTime?              @map("publish_at") @db.Timestamptz(6)
+  createdById        String?                @map("created_by") @db.Uuid
+  updatedById        String?                @map("updated_by") @db.Uuid
+  createdAt          DateTime               @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime               @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt          DateTime?              @map("deleted_at") @db.Timestamptz(6)
+
+  course    Course?              @relation(fields: [courseId], references: [id], onDelete: Restrict)
+  subject   Subject?             @relation(fields: [subjectId], references: [id], onDelete: Restrict)
+  chapter   Chapter?             @relation(fields: [chapterId], references: [id], onDelete: Restrict)
+  topic     Topic?               @relation(fields: [topicId], references: [id], onDelete: Restrict)
+  examNode  ExamNode?            @relation(fields: [examNodeId], references: [id], onDelete: Restrict)
+  sections  AssessmentSection[]
+  questions AssessmentQuestion[]
+
+  @@index([type, status])
+  @@index([courseId])
+  @@index([subjectId])
+  @@map("assessments")
+}
+
+model AssessmentSection {
+  id                       String          @id @default(uuid(7)) @db.Uuid
+  assessmentId             String          @map("assessment_id") @db.Uuid
+  title                    Json?
+  sortOrder                Int             @map("sort_order")
+  pickMode                 SectionPickMode @map("pick_mode")
+  /// random: QuestionPoolFilter
+  filter                   Json?
+  questionCount            Int?            @map("question_count")
+  marksPerQuestion         Decimal?        @map("marks_per_question") @db.Decimal(6, 2)
+  negativeMarksPerQuestion Decimal?        @map("negative_marks_per_question") @db.Decimal(6, 2)
+
+  assessment Assessment           @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  questions  AssessmentQuestion[]
+
+  @@index([assessmentId, sortOrder])
+  @@map("assessment_sections")
+}
+
+model AssessmentQuestion {
+  id            String   @id @default(uuid(7)) @db.Uuid
+  assessmentId  String   @map("assessment_id") @db.Uuid
+  sectionId     String   @map("section_id") @db.Uuid
+  questionId    String   @map("question_id") @db.Uuid
+  sortOrder     Int      @map("sort_order")
+  marks         Decimal? @db.Decimal(6, 2)
+  negativeMarks Decimal? @map("negative_marks") @db.Decimal(6, 2)
+
+  assessment Assessment        @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  section    AssessmentSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  question   Question          @relation(fields: [questionId], references: [id], onDelete: Restrict)
+
+  @@unique([assessmentId, questionId])
+  @@index([sectionId, sortOrder])
+  @@index([questionId])
+  @@map("assessment_questions")
 }

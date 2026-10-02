@@ -22,7 +22,6 @@ import {
 import { api, errorMessage } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import {
-  NODE_TYPE_LABEL,
   STATUS_LABEL,
   toLocalized,
   type CursorPage,
@@ -38,7 +37,7 @@ import {
   draftToInput,
   emptyDraft,
   nextId,
-  QUESTION_TYPE_LABEL,
+  useQuestionTypes,
   validateDraft,
   type Bilingual,
   type ChoiceDraft,
@@ -46,6 +45,7 @@ import {
   type QuestionDraft,
 } from '@/lib/questions';
 import { cn } from '@/lib/utils';
+import { useNodeTypes } from '@/lib/node-types';
 
 type Lang = 'en' | 'ne';
 
@@ -656,6 +656,8 @@ function QuestionEditor({ type, question }: { type: QuestionType; question: Ques
     queryFn: () =>
       api.get<Array<{ id: string; title: { en?: string; ne?: string } | null }>>('/admin/question-groups'),
   });
+  const nodeTypes = useNodeTypes();
+  const questionTypes = useQuestionTypes();
   const nodes = useQuery({
     queryKey: ['exam-nodes', { showDeleted: false }],
     queryFn: () => api.get<ExamNode[]>('/admin/exam-nodes'),
@@ -746,7 +748,7 @@ function QuestionEditor({ type, question }: { type: QuestionType; question: Ques
       <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="text-sm font-semibold uppercase tracking-wide text-text-muted">
-            {QUESTION_TYPE_LABEL[type]}
+            {questionTypes.label(type)}
           </p>
           <h1 className="text-[26px] font-bold leading-8 tracking-tight text-text">
             {question ? 'Edit question' : 'New question'}
@@ -957,7 +959,7 @@ function QuestionEditor({ type, question }: { type: QuestionType; question: Ques
                         <option value="">—</option>
                         {(nodes.data ?? []).map((n) => (
                           <option key={n.id} value={n.id}>
-                            {localized(n.name)} ({NODE_TYPE_LABEL[n.nodeType]})
+                            {localized(n.name)} ({nodeTypes.label(n.nodeType)})
                           </option>
                         ))}
                       </Select>

@@ -1,4 +1,9 @@
-import { QuestionType as QuestionTypeSchema, type QuestionType } from '@tk/contracts';
+import {
+  AssessmentType as AssessmentTypeSchema,
+  QuestionType as QuestionTypeSchema,
+  type AssessmentType,
+  type QuestionType,
+} from '@tk/contracts';
 import {
   createRootRoute,
   createRoute,
@@ -144,8 +149,37 @@ const routes = [
   }),
   createRoute({
     getParentRoute: () => appRoute,
+    path: '/assessments',
+    component: lazyRouteComponent(() => import('./features/assessments/assessments-page'), 'AssessmentsPage'),
+  }),
+  createRoute({
+    getParentRoute: () => appRoute,
+    path: '/assessments/new',
+    validateSearch: (s: Record<string, unknown>): { type: AssessmentType } => ({
+      type: AssessmentTypeSchema.safeParse(s['type']).data ?? 'quiz',
+    }),
+    component: lazyRouteComponent(
+      () => import('./features/assessments/assessment-editor-page'),
+      'NewAssessmentPage',
+    ),
+  }),
+  createRoute({
+    getParentRoute: () => appRoute,
+    path: '/assessments/$assessmentId',
+    component: lazyRouteComponent(
+      () => import('./features/assessments/assessment-editor-page'),
+      'AssessmentPage',
+    ),
+  }),
+  createRoute({
+    getParentRoute: () => appRoute,
     path: '/questions',
     component: lazyRouteComponent(() => import('./features/questions/questions-page'), 'QuestionsPage'),
+  }),
+  createRoute({
+    getParentRoute: () => appRoute,
+    path: '/questions/import',
+    component: lazyRouteComponent(() => import('./features/questions/import-page'), 'QuestionImportPage'),
   }),
   createRoute({
     getParentRoute: () => appRoute,
@@ -177,6 +211,14 @@ const routes = [
     getParentRoute: () => appRoute,
     path: '/categories',
     component: lazyRouteComponent(() => import('./features/taxonomy/categories-page'), 'CategoriesPage'),
+  }),
+  createRoute({
+    getParentRoute: () => appRoute,
+    path: '/category-types',
+    component: lazyRouteComponent(
+      () => import('./features/taxonomy/category-types-page'),
+      'CategoryTypesPage',
+    ),
   }),
   createRoute({
     getParentRoute: () => appRoute,

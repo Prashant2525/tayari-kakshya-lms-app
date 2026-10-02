@@ -51,6 +51,14 @@ export class CatalogController {
     private readonly taxonomy: TaxonomyService,
   ) {}
 
+  /** Active category types, so apps can label levels (e.g. "Post", "Exam stage") without hard-coding them. */
+  @Public()
+  @Get('exam-node-types')
+  async nodeTypes() {
+    const types = await this.taxonomy.listTypes(true);
+    return types.map(({ key, name, description, rank }) => ({ key, name, description, rank }));
+  }
+
   @Public()
   @Get('exam-nodes')
   nodes(@ZodQuery(NodesQuery) query: z.infer<typeof NodesQuery>) {

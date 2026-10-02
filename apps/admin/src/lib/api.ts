@@ -136,6 +136,26 @@ export const api = {
   put: <T>(path: string, body?: unknown) => request<T>('PUT', path, { body }),
   patch: <T>(path: string, body?: unknown) => request<T>('PATCH', path, { body }),
   delete: <T>(path: string, body?: unknown) => request<T>('DELETE', path, { body }),
+  /** Authenticated file download (e.g. the question import template); saves it with the server's file name. */
+  download: async (path: string, fallbackName: string) => {
+    let res = await send('GET', path, {});
+    if (res.status === 401 && accessToken && (await refreshSession())) res = await send('GET', path, {});
+    if (!res.ok) {
+      const data = (await parse(res)) as ApiErrorBody | undefined;
+      throw new ApiError(
+        res.status,
+        data?.error?.code ?? 'INTERNAL_ERROR',
+        data?.error?.message ?? 'Download failed',
+      );
+    }
+    const name = /filename="([^"]+)"/.exec(res.headers.get('Content-Disposition') ?? '')?.[1] ?? fallbackName;
+    const url = URL.createObjectURL(await res.blob());
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = name;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  },
   /** multipart/form-data upload (media library). */
   upload: <T>(path: string, form: FormData) => request<T>('POST', path, { body: form }),
 };

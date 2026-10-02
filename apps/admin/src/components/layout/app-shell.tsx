@@ -2,6 +2,7 @@ import type { Permission } from '@tk/contracts';
 import { Link, Navigate, Outlet, useRouterState } from '@tanstack/react-router';
 import {
   BookOpen,
+  ClipboardCheck,
   FileQuestion,
   FileText,
   Flag,
@@ -10,6 +11,7 @@ import {
   Library,
   Presentation,
   Images,
+  Layers,
   LayoutDashboard,
   LogOut,
   Menu,
@@ -47,6 +49,7 @@ const NAV: Array<{ group: string; items: NavItem[] }> = [
       { to: '/courses', label: 'Courses', icon: Library, permission: 'courses:edit' },
       { to: '/subjects', label: 'Subjects', icon: BookOpen, permission: 'content:edit' },
       { to: '/questions', label: 'Question bank', icon: FileQuestion, permission: 'questions:edit' },
+      { to: '/assessments', label: 'Assessments', icon: ClipboardCheck, permission: 'assessments:edit' },
       {
         to: '/question-reports',
         label: 'Question reports',
@@ -54,6 +57,7 @@ const NAV: Array<{ group: string; items: NavItem[] }> = [
         permission: 'question_reports:manage',
       },
       { to: '/categories', label: 'Exam categories', icon: FolderTree, permission: 'taxonomy:manage' },
+      { to: '/category-types', label: 'Category types', icon: Layers, permission: 'taxonomy:manage' },
       { to: '/papers', label: 'Papers', icon: FileText, permission: 'taxonomy:manage' },
       { to: '/media', label: 'Media library', icon: Images, permission: 'media:manage' },
       { to: '/instructors', label: 'Instructors', icon: Presentation, permission: 'instructors:manage' },

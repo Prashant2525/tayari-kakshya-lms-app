@@ -105,7 +105,8 @@ test('single choice: validation, options, correct answer, tags and a previous-ye
   await expect(row).toContainText('#Physics');
   await expect(row).toContainText('Published');
   await page.getByLabel('Previous-year questions').selectOption('false');
-  await expect(page.getByText('No matching questions')).toBeVisible();
+  // Other specs add non-PYQ questions, so check this PYQ question is filtered out rather than an empty list.
+  await expect(page.getByRole('row', { name: /SI unit of force/ })).toHaveCount(0);
   await page.getByLabel('Previous-year questions').selectOption('');
   await page.getByLabel('Search questions').fill('force');
   await expect(page.getByRole('row', { name: /SI unit of force/ })).toBeVisible();
@@ -165,4 +166,84 @@ test('question reports: a student report is resolved by staff', async () => {
   await expect(page.getByRole('listitem').filter({ hasText: 'Newton is correct' })).toContainText(
     'Rejected by E2E Editor',
   );
+});
+
+test('the import template downloads with the LMS lists filled in', async () => {
+  await nav('Question bank').click();
+  const [download] = await Promise.all([
+    page.waitForEvent('download'),
+    page.getByRole('button', { name: 'Import template' }).click(),
+  ]);
+  expect(download.suggestedFilename()).toBe('tayari-question-import-tk-questions-v1.xlsx');
+  const { default: ExcelJS } = await import('exceljs');
+  const wb = new ExcelJS.Workbook();
+  await wb.xlsx.readFile(await download.path());
+  expect(wb.worksheets.map((s) => s.name)).toEqual([
+    'Instructions',
+    'Questions',
+    'Examples',
+    'Passages',
+    'Lists',
+  ]);
+  const values: string[] = [];
+  wb.getWorksheet('Lists')!.eachRow((row) => row.eachCell((c) => values.push(String(c.value))));
+  expect(values).toContain('Science');
+});
+
+test('Excel import: preview shows problems by row and column, then imports the ready rows as drafts', async () => {
+  await nav('Question bank').click();
+  await page.getByRole('link', { name: 'Import', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Import questions' })).toBeVisible();
+
+  // Fill the template the app provides, exactly as a user would.
+  const [download] = await Promise.all([
+    page.waitForEvent('download'),
+    page.getByRole('button', { name: 'Download template' }).click(),
+  ]);
+  const { default: ExcelJS } = await import('exceljs');
+  const wb = new ExcelJS.Workbook();
+  await wb.xlsx.readFile(await download.path());
+  const sheet = wb.getWorksheet('Questions')!;
+  const headers = (sheet.getRow(1).values as unknown[]).slice(1).map(String);
+  const add = (values: Record<string, string>) => sheet.addRow(headers.map((h) => values[h] ?? ''));
+  const base = {
+    type: 'single_choice',
+    difficulty: 'easy',
+    marks: '1',
+    access: 'free',
+    option_a_en: 'Mercury',
+    option_b_en: 'Venus',
+    correct: 'a',
+  };
+  add({
+    ...base,
+    ref: 'IMP-1',
+    subject: 'Science',
+    question_en: 'Which planet is closest to the Sun?',
+    tags: 'astronomy',
+  });
+  add({ ...base, ref: 'IMP-2', subject: 'Nope', question_en: 'This row has an unknown subject' });
+  const buffer = Buffer.from(await wb.xlsx.writeBuffer());
+
+  await page.getByLabel('Upload question spreadsheet').setInputFiles({
+    name: 'my-questions.xlsx',
+    mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    buffer,
+  });
+  await expect(page.getByRole('heading', { name: 'Preview: my-questions.xlsx' })).toBeVisible();
+  const problemRow = page.getByRole('row', { name: /This row has an unknown subject/ });
+  await expect(problemRow).toContainText('subject');
+  await expect(problemRow).toContainText('No subject called "Nope"');
+  await expect(page.getByRole('row', { name: /closest to the Sun/ })).toContainText('Ready');
+  await page.getByLabel('Only rows with problems or warnings').click();
+  await expect(page.getByRole('row', { name: /closest to the Sun/ })).toHaveCount(0);
+
+  await page.getByRole('button', { name: 'Import 1 question' }).click();
+  await expect(page.getByText('1 question imported as drafts').first()).toBeVisible();
+  await expect(page.getByText('1 question imported', { exact: true })).toBeVisible(); // history
+
+  await nav('Question bank').click();
+  const row = page.getByRole('row', { name: /closest to the Sun/ });
+  await expect(row).toContainText('Draft');
+  await expect(row).toContainText('#astronomy');
 });

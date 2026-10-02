@@ -269,6 +269,23 @@ describe('free courses are joined with an enrol step (L6)', () => {
     expect((await enrol(seeded.course.id, token)).body).toEqual({ enrolled: false, endsAt: null });
   });
 
+  it('does not enrol twice when a slower request carries an earlier time (regression)', async () => {
+    const { admin, seeded, userId } = await setup();
+    await freeCourse(admin, seeded.course.id, { validityType: 'lifetime', validityDays: null });
+    const { EntitlementsService } = await import('../src/modules/content/entitlements.service.js');
+    const service = ctx.app.get(EntitlementsService);
+    const client = { ip: '127.0.0.1', userAgent: null, requestId: 'test' };
+    const later = new Date(Date.now() + 1000);
+    const earlier = new Date(Date.now() - 1000);
+    expect(await service.enrolFree(userId, seeded.course.id, client, later)).toMatchObject({
+      enrolled: true,
+    });
+    expect(await service.enrolFree(userId, seeded.course.id, client, earlier)).toMatchObject({
+      enrolled: false,
+    });
+    expect(await ctx.prisma.entitlement.count({ where: { userId } })).toBe(1);
+  });
+
   it('refuses paid, unpublished and closed courses', async () => {
     const { admin, seeded, token, userId } = await setup();
     const paid = await enrol(seeded.course.id, token);

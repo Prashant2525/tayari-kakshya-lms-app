@@ -6,6 +6,8 @@ import {
   type QuestionContent,
   type QuestionType,
 } from '@tk/contracts';
+import { useQuery } from '@tanstack/react-query';
+import { api } from './api';
 import { isEmptyDoc, type JsonNode } from './rich-doc';
 
 export const QUESTION_TYPE_LABEL: Record<QuestionType, string> = {
@@ -334,4 +336,25 @@ export function nextId(existing: string[], prefix: 'letter' | 'l' | 'r' | 'b'): 
 export function blanksInStem(stem: Bilingual): string[] {
   const text = JSON.stringify([stem.en, stem.ne]);
   return [...new Set([...text.matchAll(/\[\[([a-z0-9]{1,8})\]\]/g)].map((m) => m[1] as string))];
+}
+
+interface AppConfig {
+  enabledQuestionTypes?: QuestionType[];
+  questionTypeLabels?: Partial<Record<QuestionType, LocalizedText>>;
+}
+
+/** Question types the CMS allows (setting `questions.types`) and their display names. */
+export function useQuestionTypes() {
+  const config = useQuery({
+    queryKey: ['app-config'],
+    queryFn: () => api.get<AppConfig>('/app/config'),
+    staleTime: 60_000,
+  });
+  const all = Object.keys(QUESTION_TYPE_LABEL) as QuestionType[];
+  const labels = config.data?.questionTypeLabels ?? {};
+  return {
+    isPending: config.isPending,
+    enabled: config.data?.enabledQuestionTypes ?? all,
+    label: (type: QuestionType) => labels[type]?.en ?? labels[type]?.ne ?? QUESTION_TYPE_LABEL[type],
+  };
 }

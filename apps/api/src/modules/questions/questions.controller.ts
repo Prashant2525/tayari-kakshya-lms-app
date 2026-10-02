@@ -1,6 +1,19 @@
-import { Controller, Delete, Get, HttpCode, Param, ParseUUIDPipe, Post, Put, Query } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import {
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  Param,
+  ParseUUIDPipe,
+  Post,
+  Put,
+  Query,
+  Req,
+  Res,
+} from '@nestjs/common';
+import { ApiBearerAuth, ApiConsumes, ApiTags } from '@nestjs/swagger';
+import {
+  ErrorCode,
   CursorQuery,
   PublishStatus,
   QuestionGroupInput,
@@ -21,6 +34,10 @@ import { RateLimit } from '../../common/security/rate-limit.js';
 import { ApiZodBody, ZodBody, ZodQuery } from '../../common/validation/zod.js';
 import { StaffActor } from '../content/request-helpers.js';
 import type { ContentActor } from '../content/scope.service.js';
+import type { FastifyReply, FastifyRequest } from 'fastify';
+import { AppError, Errors } from '../../common/errors/app-error.js';
+import { buildQuestionTemplate, TEMPLATE_VERSION } from './import-template.js';
+import { IMPORT_LIMITS, QuestionImportService } from './question-import.service.js';
 import { QuestionReportsService } from './question-reports.service.js';
 import { QuestionsService } from './questions.service.js';
 
@@ -40,6 +57,7 @@ export class AdminQuestionsController {
   constructor(
     private readonly questions: QuestionsService,
     private readonly reports: QuestionReportsService,
+    private readonly imports: QuestionImportService,
   ) {}
 
   @Get('questions')
@@ -53,6 +71,19 @@ export class AdminQuestionsController {
   @ApiZodBody(QuestionInput)
   create(@ZodBody(QuestionInput) body: QuestionInput, @StaffActor() a: ContentActor) {
     return this.questions.create(body, a);
+  }
+
+  /** Excel import template with dropdowns filled from the LMS (subjects, category paths, papers). */
+  @Get('questions/import-template')
+  @RequirePermissions('questions:edit')
+  async template(@StaffActor() a: ContentActor, @Res() reply: FastifyReply) {
+    const wb = await buildQuestionTemplate(await this.questions.templateLists(a));
+    const body = Buffer.from(await wb.xlsx.writeBuffer());
+    void reply
+      .header('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+      .header('Content-Disposition', `attachment; filename="tayari-question-import-${TEMPLATE_VERSION}.xlsx"`)
+      .header('Cache-Control', 'no-store')
+      .send(body);
   }
 
   @Get('questions/:id')
@@ -102,6 +133,44 @@ export class AdminQuestionsController {
   @RequirePermissions('questions:edit')
   async restore(@Param('id', uuid()) id: string, @StaffActor() a: ContentActor) {
     await this.questions.restore(id, a);
+  }
+
+  // ───────────── Excel import (D-046) ─────────────
+
+  /** multipart/form-data with `file` (.xlsx, template tk-questions-v1). Returns a preview; nothing is saved yet. */
+  @Post('question-imports')
+  @RequirePermissions('questions:edit')
+  @RateLimit({ name: 'admin.questions.import', limit: 30, windowSeconds: 3600, by: ['user'] })
+  @ApiConsumes('multipart/form-data')
+  async importPreview(@Req() req: FastifyRequest, @StaffActor() a: ContentActor) {
+    if (!req.isMultipart()) {
+      throw Errors.validation([{ path: 'file', message: 'Send the file as multipart/form-data' }]);
+    }
+    const part = await req.file({ limits: { fileSize: IMPORT_LIMITS.maxBytes, files: 1 } });
+    if (!part) throw Errors.validation([{ path: 'file', message: 'No file received' }]);
+    let buffer: Buffer;
+    try {
+      buffer = await part.toBuffer();
+    } catch {
+      throw new AppError(
+        413,
+        ErrorCode.VALIDATION_FAILED,
+        'The file is larger than 5 MB. Split it into smaller files.',
+      );
+    }
+    return this.imports.preview({ buffer, filename: part.filename }, a);
+  }
+
+  @Post('question-imports/:id/commit')
+  @RequirePermissions('questions:edit')
+  importCommit(@Param('id', uuid()) id: string, @StaffActor() a: ContentActor) {
+    return this.imports.commit(id, a);
+  }
+
+  @Get('question-imports')
+  @RequirePermissions('questions:edit')
+  importHistory(@StaffActor() a: ContentActor) {
+    return this.imports.history(a);
   }
 
   @Get('question-tags')

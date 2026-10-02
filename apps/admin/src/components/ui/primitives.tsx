@@ -173,15 +173,19 @@ export function Checkbox({
   onCheckedChange,
   id,
   disabled,
+  describedBy,
 }: {
   checked: boolean;
   onCheckedChange: (value: boolean) => void;
   id?: string;
   disabled?: boolean;
+  /** Id of extra help text (kept out of the accessible name). */
+  describedBy?: string;
 }) {
   return (
     <RadixCheckbox.Root
       id={id}
+      aria-describedby={describedBy}
       checked={checked}
       onCheckedChange={(v) => onCheckedChange(v === true)}
       disabled={disabled}

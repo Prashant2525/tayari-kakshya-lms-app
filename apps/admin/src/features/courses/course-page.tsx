@@ -17,7 +17,6 @@ import { useAuth } from '@/lib/auth';
 import {
   isoToNepalLocal,
   nepalLocalToIso,
-  NODE_TYPE_LABEL,
   paisaToRupeesInput,
   STATUS_LABEL,
   toLocalized,
@@ -31,6 +30,7 @@ import {
 import { formatDateTimeBs, localized } from '@/lib/format';
 import { isEmptyDoc, type JsonNode } from '@/lib/rich-doc';
 import { cn } from '@/lib/utils';
+import { useNodeTypes } from '@/lib/node-types';
 
 type Tab = 'details' | 'pricing' | 'subjects' | 'links';
 const TABS: Array<[Tab, string]> = [
@@ -708,11 +708,16 @@ function CheckList({
                 checked={selected.includes(i.id)}
                 disabled={disabled}
                 onCheckedChange={(on) => onToggle(i.id, on)}
+                describedBy={i.hint ? `${id}-hint` : undefined}
               />
               <label htmlFor={id} className="text-sm text-text">
                 {i.label}
-                {i.hint ? <span className="ml-1.5 text-xs text-text-muted">{i.hint}</span> : null}
               </label>
+              {i.hint ? (
+                <span id={`${id}-hint`} className="text-xs text-text-muted">
+                  {i.hint}
+                </span>
+              ) : null}
             </li>
           );
         })}
@@ -723,6 +728,7 @@ function CheckList({
 
 function LinksSection({ course, readOnly }: { course: CourseDetail; readOnly: boolean }) {
   const s = useSection(course.id);
+  const { label: typeLabel } = useNodeTypes();
   const nodes = useQuery({
     queryKey: ['exam-nodes', { showDeleted: false }],
     queryFn: () => api.get<ExamNode[]>('/admin/exam-nodes'),
@@ -740,9 +746,9 @@ function LinksSection({ course, readOnly }: { course: CourseDetail; readOnly: bo
       return parent ? `${path(parent)} › ${localized(n.name)}` : localized(n.name);
     };
     return (nodes.data ?? [])
-      .map((n) => ({ id: n.id, label: path(n), hint: NODE_TYPE_LABEL[n.nodeType] }))
+      .map((n) => ({ id: n.id, label: path(n), hint: typeLabel(n.nodeType) }))
       .sort((a, b) => a.label.localeCompare(b.label));
-  }, [nodes.data]);
+  }, [nodes.data, typeLabel]);
   const toggle = (setter: typeof setExamNodeIds) => (id: string, on: boolean) =>
     setter((ids) => (on ? [...ids, id] : ids.filter((x) => x !== id)));
   return (

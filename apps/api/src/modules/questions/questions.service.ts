@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import {
+  ErrorCode,
   richDocMediaIds,
   richDocText,
   type LocalizedRichDoc,
@@ -17,6 +18,8 @@ import { AuditService } from '../audit/audit.service.js';
 import { assertCanSetStatus } from '../content/publishing.js';
 import { assertCanEditLive, ScopeService, type ContentActor } from '../content/scope.service.js';
 import { MediaService } from '../media/media.service.js';
+import { BASE_LISTS, type TemplateLists } from './import-template.js';
+import { SettingsService } from '../settings/settings.service.js';
 
 /** Stable JSON (sorted keys) so stored jsonb and incoming content compare equal when nothing changed. */
 export function canonicalJson(value: unknown): string {
@@ -45,7 +48,7 @@ function mediaIds(docs: LocalizedRichDoc[]): string[] {
   return docs.flatMap((d) => [...richDocMediaIds(d.en), ...richDocMediaIds(d.ne)]);
 }
 
-function searchTextOf(content: QuestionContent): string {
+export function searchTextOf(content: QuestionContent): string {
   const docs = [content.stem];
   if (content.type === 'single_choice' || content.type === 'multiple_choice')
     docs.push(...content.options.map((o) => o.content));
@@ -78,6 +81,7 @@ export class QuestionsService {
     private readonly audit: AuditService,
     private readonly scope: ScopeService,
     private readonly media: MediaService,
+    private readonly settings: SettingsService,
   ) {}
 
   async list(query: QuestionListQuery, actor: ContentActor) {
@@ -139,33 +143,52 @@ export class QuestionsService {
   }
 
   async create(input: QuestionInput, actor: ContentActor) {
+    const { enabled } = await this.settings.get('questions.types');
+    if (!enabled.includes(input.content.type)) {
+      throw Errors.validation([
+        { path: 'content.type', message: 'This question type is turned off in the system settings' },
+      ]);
+    }
     await this.validate(input, actor);
-    const id = await this.prisma.$transaction(async (tx) => {
-      const question = await tx.question.create({
-        data: {
-          ...this.metadata(input),
-          type: input.content.type,
-          searchText: searchTextOf(input.content),
-          createdById: actor.userId,
-          updatedById: actor.userId,
-        },
-      });
-      const version = await tx.questionVersion.create({
-        data: {
-          questionId: question.id,
-          versionNo: 1,
-          content: input.content as Prisma.InputJsonValue,
-          createdById: actor.userId,
-        },
-      });
-      await tx.question.update({ where: { id: question.id }, data: { currentVersionId: version.id } });
-      await this.replaceTagsAndSources(tx, question.id, input);
-      await this.log(tx, actor, 'question.create', question.id, {
-        after: { type: input.content.type, subjectId: input.subjectId, difficulty: input.difficulty },
-      });
-      return question.id;
-    });
+    const id = await this.prisma.$transaction((tx) => this.insert(tx, input, actor));
     return this.detail(id);
+  }
+
+  /**
+   * Inserts a validated question with version 1 (shared by the editor and the Excel import). The caller has
+   * already checked references, scope and enabled types.
+   */
+  async insert(
+    tx: Prisma.TransactionClient,
+    input: QuestionInput,
+    actor: ContentActor,
+    extra: { status?: 'draft' | 'in_review'; importId?: string } = {},
+  ): Promise<string> {
+    const question = await tx.question.create({
+      data: {
+        ...this.metadata(input),
+        type: input.content.type,
+        status: extra.status ?? 'draft',
+        searchText: searchTextOf(input.content),
+        createdById: actor.userId,
+        updatedById: actor.userId,
+      },
+    });
+    const version = await tx.questionVersion.create({
+      data: {
+        questionId: question.id,
+        versionNo: 1,
+        content: input.content as Prisma.InputJsonValue,
+        createdById: actor.userId,
+      },
+    });
+    await tx.question.update({ where: { id: question.id }, data: { currentVersionId: version.id } });
+    await this.replaceTagsAndSources(tx, question.id, input);
+    await this.log(tx, actor, 'question.create', question.id, {
+      after: { type: input.content.type, subjectId: input.subjectId, difficulty: input.difficulty },
+      ...(extra.importId ? { importId: extra.importId } : {}),
+    });
+    return question.id;
   }
 
   async update(id: string, input: QuestionInput, actor: ContentActor) {
@@ -259,6 +282,18 @@ export class QuestionsService {
     assertCanSetStatus(actor.access, 'archived', 'questions:publish');
     const q = await this.findLive(id);
     await this.scope.assertSubject(actor, q.subjectId);
+    const live = await this.prisma.assessmentQuestion.count({
+      where: { questionId: id, assessment: { deletedAt: null, status: { in: ['published', 'scheduled'] } } },
+    });
+    if (live > 0) {
+      throw Errors.conflict(
+        ErrorCode.CONFLICT,
+        'Live assessments use this question. Remove it from them first.',
+        {
+          assessments: live,
+        },
+      );
+    }
     await this.prisma.$transaction(async (tx) => {
       await tx.question.update({ where: { id }, data: { deletedAt: new Date(), updatedById: actor.userId } });
       await this.log(tx, actor, 'question.delete', id, {});
@@ -284,6 +319,39 @@ export class QuestionsService {
       include: { _count: { select: { questions: true } } },
     });
     return rows.map((t) => ({ name: t.name, questionCount: t._count.questions }));
+  }
+
+  /** Live dropdown lists for the import template: subject names, category paths ("A > B > C") and papers. */
+  async templateLists(actor: ContentActor): Promise<TemplateLists> {
+    const allowed = await this.scope.allowedSubjectIds(actor);
+    const [subjects, nodes, papers] = await Promise.all([
+      this.prisma.subject.findMany({
+        where: { deletedAt: null, ...(allowed ? { id: { in: [...allowed] } } : {}) },
+        select: { name: true },
+      }),
+      this.prisma.examNode.findMany({
+        where: { deletedAt: null },
+        select: { id: true, parentId: true, name: true },
+      }),
+      this.prisma.paper.findMany({ where: { deletedAt: null }, select: { name: true, code: true } }),
+    ]);
+    const text = (v: unknown) => {
+      const l = v as LocalizedText;
+      return l.en ?? l.ne ?? '';
+    };
+    const byId = new Map(nodes.map((n) => [n.id, n]));
+    const pathOf = (id: string): string => {
+      const n = byId.get(id);
+      if (!n) return '';
+      return n.parentId && byId.has(n.parentId) ? `${pathOf(n.parentId)} > ${text(n.name)}` : text(n.name);
+    };
+    const sorted = (list: string[]) => [...new Set(list.filter(Boolean))].sort((a, b) => a.localeCompare(b));
+    return {
+      ...BASE_LISTS,
+      subjects: sorted(subjects.map((s) => text(s.name))),
+      categories: sorted(nodes.map((n) => pathOf(n.id))),
+      papers: sorted(papers.map((p) => p.code || text(p.name))),
+    };
   }
 
   // ───────────── Passages ─────────────

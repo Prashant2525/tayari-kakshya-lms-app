@@ -16,6 +16,9 @@ import {
 } from '@/components/ui/primitives';
 import { api, errorMessage } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
+import { QUESTION_TYPE_LABEL } from '@/lib/questions';
+
+const QUESTION_TYPES = Object.keys(QUESTION_TYPE_LABEL) as Array<keyof typeof QUESTION_TYPE_LABEL>;
 
 interface SettingRow {
   key: SettingKey;
@@ -62,6 +65,7 @@ function SettingCard<K extends SettingKey>({
     try {
       await api.put(`/admin/settings/${row.key}`, { value: parsed.data });
       await qc.invalidateQueries({ queryKey: ['settings'] });
+      await qc.invalidateQueries({ queryKey: ['app-config'] });
       toast.success(`${title} saved`);
     } catch (err) {
       setError(errorMessage(err));
@@ -313,6 +317,59 @@ export function SettingsPage() {
                 )}
               </Field>
             </div>
+          )}
+        </SettingCard>
+
+        <SettingCard
+          row={row('questions.types')}
+          title="Question types"
+          description="Which kinds of questions your team can create, and the names students see. Existing questions keep working when a type is turned off."
+        >
+          {(d, set, disabled) => (
+            <ul className="divide-y divide-border rounded-sm border border-border">
+              {QUESTION_TYPES.map((type) => {
+                const on = d.enabled.includes(type);
+                const label = d.labels[type];
+                return (
+                  <li key={type} className="grid gap-3 p-3 sm:grid-cols-[200px_1fr_1fr] sm:items-center">
+                    <label className="flex items-center gap-3 text-sm font-semibold text-text">
+                      <Switch
+                        checked={on}
+                        disabled={disabled}
+                        label={`${QUESTION_TYPE_LABEL[type]} enabled`}
+                        onCheckedChange={(v) =>
+                          set({
+                            ...d,
+                            enabled: v ? [...d.enabled, type] : d.enabled.filter((x) => x !== type),
+                          })
+                        }
+                      />
+                      {QUESTION_TYPE_LABEL[type]}
+                    </label>
+                    {(['en', 'ne'] as const).map((lang) => (
+                      <Input
+                        key={lang}
+                        lang={lang}
+                        aria-label={`${QUESTION_TYPE_LABEL[type]} name (${lang === 'en' ? 'English' : 'Nepali'})`}
+                        placeholder={
+                          lang === 'en' ? `Name shown (default: ${QUESTION_TYPE_LABEL[type]})` : 'नेपाली नाम'
+                        }
+                        value={label?.[lang] ?? ''}
+                        disabled={disabled}
+                        onChange={(e) => {
+                          const next = { ...label, [lang]: e.target.value || undefined };
+                          const labels = { ...d.labels };
+                          if (next.en || next.ne)
+                            labels[type] = next as (typeof labels)[typeof type] & object;
+                          else delete labels[type];
+                          set({ ...d, labels });
+                        }}
+                      />
+                    ))}
+                  </li>
+                );
+              })}
+            </ul>
           )}
         </SettingCard>
 

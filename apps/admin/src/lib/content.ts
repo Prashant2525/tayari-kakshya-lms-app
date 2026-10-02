@@ -1,4 +1,4 @@
-import type { ExamNodeType, LocalizedText, PublishStatus } from '@tk/contracts';
+import type { LocalizedText, PublishStatus } from '@tk/contracts';
 
 /** Media library asset as returned by `/admin/media`. Private files carry a short-lived signed URL. */
 export interface MediaView {
@@ -25,7 +25,8 @@ export interface CursorPage<T> {
 export interface ExamNode {
   id: string;
   parentId: string | null;
-  nodeType: ExamNodeType;
+  /** Category type key (admin-managed); see `useNodeTypes`. */
+  nodeType: string;
   name: LocalizedText;
   slug: string;
   description: LocalizedText | null;
@@ -57,14 +58,6 @@ export const STATUS_LABEL: Record<PublishStatus, string> = {
   scheduled: 'Scheduled',
   published: 'Published',
   archived: 'Archived',
-};
-
-export const NODE_TYPE_LABEL: Record<ExamNodeType, string> = {
-  authority: 'Authority',
-  level: 'Level',
-  service: 'Service',
-  group: 'Group',
-  post: 'Post',
 };
 
 /** Builds a LocalizedText from two optional inputs; null when both are empty. */

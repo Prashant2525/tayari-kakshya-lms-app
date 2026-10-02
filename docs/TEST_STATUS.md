@@ -10,10 +10,47 @@ Last updated: 2026-10-03 (Phase 7, question bank backend). `pnpm test` runs unit
 | `@tk/design-tokens` | 39 | WCAG contrast for every text/background pair (light + dark), CSS generation |
 | `@tk/domain` | 39 | BS calendar, Kathmandu day boundary, fiscal year, money/VAT/discounts, access validity |
 | `@tk/contracts` | 21 | Schema behaviour (localized text, email normalisation, mass assignment, settings defaults, rich-text validation) |
-| `@tk/api` | 129 | Integration against real PostgreSQL + Redis + S3 (SeaweedFS) through the HTTP stack; TOTP RFC 6238 vectors; RBAC, video, watermark unit |
+| `@tk/api` | 151 | Integration against real PostgreSQL + Redis + S3 (SeaweedFS) through the HTTP stack; TOTP RFC 6238 vectors; RBAC, video, watermark unit |
 | `@tk/admin` (unit) | 33 | API client (headers, refresh single-flight, retry, session loss, error mapping), BS formatting, Button `asChild` regression |
-| `@tk/admin` (E2E, Playwright) | 15 | Real browser + real API + `*_e2e` database |
-| **Total** | **276** | |
+| `@tk/admin` (E2E, Playwright) | 19 | Real browser + real API + `*_e2e` database |
+| **Total** | **302** | |
+
+### Added with the assessment builder
+- **API:** fixed + random sections; readiness problems (no sections, unpublished question, pool too small) and
+  exact totals with per-question and section marks; publish refused until ready (mutation-checked); question in a
+  live assessment cannot be deleted; mixed-marks warning and min/max totals; written answers need a grading mode;
+  pass marks above total; window / after-close / daily-challenge validation; one daily challenge per day (409);
+  chapter must belong to the subject; broken structures rejected; review workflow; staff scopes; audit; defaults
+  endpoint.
+- **Browser E2E:** quiz with unchosen scoring refused, created, publish refused while not ready, questions added with
+  the picker and a marks override, random section shortage reported then removed, ready (2 questions · 5 marks),
+  published, list row.
+- Note: one full local run printed `145 passed (151)` with no failure listed; two forced re-runs and CI passed 151/151.
+
+### Added with the Excel import
+- **API:** the template's 8 example rows (all 7 types + passage) preview clean and import as drafts with topic, PYQ
+  stage, paper, tags and passage resolved; nothing saved before confirm; confirm twice refused; re-upload warns about
+  duplicates; 8 kinds of row problems reported with the exact column (duplicate ref, unknown subject / category /
+  paper / chapter / passage, disabled type, bad answer); only ready rows imported; unreadable file and missing sheet
+  refused; only the uploader can confirm; a topic deleted after preview blocks the confirm (mutation-checked);
+  scoped editors only match their subjects; permission required.
+- **Browser E2E:** download the template from the app, fill it with ExcelJS, upload, see the problem row and the
+  ready row, filter, import, find the draft in the Question bank.
+
+### Added with the dynamic admin audit
+- **Bug caught by CI:** concurrent free-enrol taps could create two entitlements — the request that waited on the
+  lock checked with an earlier timestamp than the new row's start. Fixed (any active, unexpired access counts) with a
+  deterministic regression test that fails on the old check.
+- **API:** PSC-style tree with sub-group and exam stage; hierarchy rules read from the types table; papers on exam
+  stages; type rank/flag changes refused when existing categories would break; in-use types cannot be deleted; off
+  types unusable for new categories; only taxonomy managers edit types; disabled question types refused; labels in
+  `/app/config`; template download with live lists (questions:edit only).
+- **Unit:** template sheets/columns/version, dropdowns and numeric validations survive a write/read round trip, every
+  example row (all 7 types) parses into valid content, row parser reports the exact column for each problem.
+- **Migration check:** on a scratch database with categories, `exam_node_types` kept every node's type, dropped the
+  old enum and rejected an unknown type.
+- **Browser E2E:** category types page (add a level, rename an in-use type, exam stage offered under a post);
+  template download from the Question bank.
 
 ### Added in Phase 7 (question bank admin screens)
 - **Unit:** every question type round-trips API → editor → API unchanged; readable validation messages; blank and
