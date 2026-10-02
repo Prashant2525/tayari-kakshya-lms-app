@@ -54,6 +54,43 @@ Authoritative shapes: OpenAPI at `/api/docs` (local) and `packages/contracts`. W
 | GET | `/education-levels` | public | active levels, ordered |
 | GET / POST | `/admin/education-levels` · PUT / DELETE `/admin/education-levels/:id` · PUT `/admin/education-levels/order` | `education_levels:manage` | bilingual names, in-use delete blocked |
 
+## 1b. Implemented endpoints (Phase 6 — content) ✅
+
+Publish workflow (D-036, T-026): `content:edit` / `courses:edit` may set `draft` or `in_review`; `published`,
+`scheduled` (needs future `publishAt`) and `archived` need `content:publish` / `courses:publish`, and so does editing
+anything already live. Deletes are soft; `restore` brings rows back. Scoped staff (T-028) only reach assigned
+courses/subjects. Every write is audited.
+
+| Method | Path | Auth | Notes |
+|---|---|---|---|
+| POST | `/admin/media` | `media:manage` | multipart `file` + `visibility`, `altText`; type sniffed; images → WebP variants; PDFs always private |
+| GET | `/admin/media` · `/admin/media/:id` | `media:manage` or content/course edit | list (kind, search, cursor) / detail with signed URL for private files |
+| PATCH / DELETE | `/admin/media/:id` | `media:manage` | alt text; delete blocked while referenced |
+| GET | `/public-media/*` | public | **dev only** (`PUBLIC_MEDIA_PROXY=true`); production serves the public bucket from the CDN |
+| GET / POST | `/admin/exam-nodes` · PUT `/admin/exam-nodes/:id` · PUT `/admin/exam-nodes/order` | `taxonomy:manage` | authority → category → post tree, bilingual |
+| PUT / DELETE | `/admin/exam-nodes/:id/status` · `/admin/exam-nodes/:id` · POST `…/restore` | `taxonomy:manage` | |
+| GET / POST | `/admin/papers` · PUT / DELETE `/admin/papers/:id` · PUT `/admin/papers/:id/status` | `taxonomy:manage` | papers with marks/duration, linked to posts |
+| GET / POST | `/admin/subjects` · GET `/admin/subjects/:id/tree` · PUT `/admin/subjects/:id` | `content:edit` (read: also `content:publish`, `courses:edit`) | tree = chapters → topics → items |
+| POST | `/admin/subjects/:id/chapters` · `/admin/chapters/:id/topics` · `/admin/topics/:id/items` | `content:edit` | items: `note` (rich text), `pdf` (media id), `video` (YouTube URL or Bunny id) |
+| PUT | `…/chapters/order` · `…/topics/order` · `/admin/topics/:id/items/order` | `content:edit` | ids must be exactly the current children |
+| PUT / DELETE / POST | `/admin/{subjects,chapters,topics}/:id` (+ `/status`, `/restore`) | `content:edit` | |
+| GET / PUT / DELETE / POST | `/admin/learning-items/:id` (+ `/publishing`, `/restore`) | `content:edit` | `publishing`: `{ status, publishAt? }` |
+| GET / POST | `/admin/courses` · GET / PUT `/admin/courses/:id` | `courses:edit` (read: any course permission) | |
+| PUT | `/admin/courses/:id/pricing` | `courses:pricing` | paisa; sale window; validity `days` / `fixed_date` / `lifetime` |
+| PUT | `/admin/courses/:id/subjects` · `/admin/courses/:id/links` | `courses:edit` | display marks per subject; exam nodes + instructors |
+| PUT / DELETE / POST | `/admin/courses/:id/publishing` · `/admin/courses/:id` · `…/restore` | `courses:edit` (+ `courses:publish`) | delete blocked while active entitlements exist (T-027) |
+| GET / PUT | `/admin/instructors` · `/admin/instructors/:userId` | `instructors:manage` | public instructor profile |
+| GET / PUT | `/admin/staff/:id/scopes` | `staff:read` / `staff:manage` | course/subject scopes (T-028) |
+| GET / POST | `/admin/users/:id/entitlements` · POST `/admin/entitlements/:id/revoke` | `entitlements:grant` (read: `users:read`) | admin grants until payments (Phase 13); never deleted |
+| GET | `/exam-nodes` | public | live taxonomy tree |
+| GET | `/courses` · `/courses/:slug` | public (optional auth) | prices hidden for `X-TK-Platform: ios` and for `android` unless the in-app channel is on (D-027); detail adds `access: { entitled }` when signed in; archived courses visible only to entitled students |
+| POST | `/courses/:courseId/enrol` | student | free (price 0) live courses only (D-043): 201 `{ enrolled: true, endsAt }`, 200 if already enrolled; 409 `ENROLMENT_NOT_AVAILABLE` (`reason: not_free \| access_period_ended`); course detail exposes `access.canEnrol` |
+| GET | `/me/courses` | student | courses with an active entitlement, incl. archived ones (T-027) |
+| GET | `/courses/:courseId/subjects/:subjectId/outline` | student | chapters/topics/items with `locked` flags; no premium bodies |
+| GET | `/learning-items/:id` | student | `CONTENT_LOCKED` (403) without access; `VERIFICATION_REQUIRED` when the setting demands it |
+| GET | `/learning-items/:id/pdf` | student | streamed PDF, watermarked per student (T-029) |
+| GET | `/learning-items/:id/playback` | student | YouTube nocookie embed or signed, expiring Bunny embed; `VIDEO_PROVIDER_NOT_CONFIGURED` (503) without Bunny credentials |
+
 ## 2. Public / app bootstrap
 | Method | Path | Notes |
 |---|---|---|

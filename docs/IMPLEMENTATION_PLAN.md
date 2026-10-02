@@ -57,7 +57,20 @@ CRUD (KI-016), layout/nav, command palette,
 generic resource table (server pagination/filter/sort), form system (RHF + Zod), status workflow UI, media picker,
 roles & staff management, settings screens, audit log viewer. Playwright smoke tests.
 
-**§6 Academic/content CMS** — exam taxonomy tree (drag/move), papers, subjects/chapters/topics (reorder/duplicate),
+**§6 Academic/content CMS** (branch `feature/content-cms`) — ◐ IN PROGRESS
+- ☑ Object storage (SeaweedFS local/CI, R2 prod — T-020) + media library with validated uploads (T-025)
+- ☑ Migration `content_catalog` (taxonomy, papers, subjects/chapters/topics, learning items, videos, courses,
+  instructors, entitlements)
+- ☑ Admin API: taxonomy + papers, content tree with reorder/soft delete/restore, publish/schedule workflow (D-036,
+  T-026), courses (details, pricing, subjects, exam links, instructors, publishing), instructor profiles, staff scopes,
+  admin access grants (until payments)
+- ☑ Student API: catalog (platform-aware prices, D-027), my courses, outline, items with server-side locking,
+  watermarked PDF (T-029), video playback (YouTube nocookie, signed Bunny — awaiting credentials)
+- ☐ Admin screens: media library + picker, taxonomy tree, papers, content tree + TipTap editor, courses, access grants,
+  command palette, generic data table; preview-as-student
+- ☐ Playwright E2E for the content flow
+
+Original scope: exam taxonomy tree (drag/move), papers, subjects/chapters/topics (reorder/duplicate),
 courses (pricing fields, validity, instructors, subjects, exam links), instructor profiles, learning items (TipTap notes,
 PDFs, videos via Bunny upload or YouTube link), media library, publish/schedule/soft delete, preview-as-student;
 student read APIs for all of the above with access checks. Tests: CRUD, publish rules, access control.

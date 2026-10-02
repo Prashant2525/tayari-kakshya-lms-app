@@ -79,6 +79,7 @@ values. Development seed data uses clearly fake placeholder values; real values 
 | D-006 | GitHub `origin` is the primary remote; conventional commits; no force-push or secret commits. **Feature branches + PRs into `main`.** | Q40 |
 | D-041 | Design PDF removed from tracking going forward (normal commit + `.gitignore`); history is **not** rewritten. `PDF_UI_FEATURE_EXTRACTION.md` is the in-repo reference. | Q40 follow-up |
 | D-042 | Local dev uses **Docker Desktop** (Postgres + Redis via Docker Compose). Owner has Android Studio. | Q41 |
+| D-043 | **Free courses (list price 0) use an Enrol step**: premium items stay locked until the student taps Enrol, which creates a `free_enrol` entitlement (shows in My courses, counts in analytics). Access lasts for the course's configured validity; a course whose fixed end date has passed cannot be joined. A paid course on a temporary sale is not "free". | L6 (2026-10-02) |
 
 ## Technology (approved stack — Q42)
 
@@ -103,8 +104,13 @@ values. Development seed data uses clearly fake placeholder values; real values 
 | T-017 | API build | API compiles with **`tsc`** (emits decorator metadata); tests transpile with TypeScript's `transpileModule` via a small Vite plugin. SWC was dropped: Windows Smart App Control blocks its unsigned native binary on the dev machine. |
 | T-018 | Admin CSRF | Admin refresh token in an HttpOnly, SameSite=Strict cookie scoped to `/api/v1/admin/auth`; cookie endpoints require the `X-TK-Client: admin` header (custom-header CSRF defence + CORS allow-list). Replaces the double-submit idea in ARCHITECTURE §4 because the CMS and API live on different subdomains. |
 | T-019 | Dependencies | pnpm 12 blocks install scripts by default; only packages in `pnpm-workspace.yaml` `allowBuilds` may run them (Prisma engines, argon2, msgpackr-extract). `@scarf/scarf` telemetry is denied. |
-| T-020 | Local object storage | `minio/minio` images are no longer published on Docker Hub; a maintained S3-compatible local service is chosen in Phase 6 with the media library. |
+| T-020 | Local object storage | `minio/minio` images are no longer published on Docker Hub. **Resolved (Phase 6): SeaweedFS** (`chrislusf/seaweedfs`, Apache-2.0, S3 API) locally and in CI; production uses Cloudflare R2 through the same S3 client. |
 | T-021 | Admin CMS language | Admin **interface chrome is English**; all content fields stay bilingual (en/ne). D-008's toggle applies to the student app and website. |
 | T-022 | Staff 2FA | RFC 6238 TOTP + 10 single-use recovery codes; secrets AES-256-GCM encrypted (`ENCRYPTION_KEY`); policy setting `auth.staffMfa`, default **required for Super Admins** (ARCHITECTURE §4). |
 | T-023 | Admin E2E | Playwright against the real API on a dedicated `*_e2e` database (created, migrated and reset by `apps/admin/e2e/start-api.mjs`); runs in CI job `admin-e2e`. |
 | T-024 | Design tokens | `@tk/design-tokens` is the single source for colour/typography/spacing; an automated WCAG test guards every text/background pair in light and dark themes. |
+| T-025 | Uploads | Uploads go **through the API** (multipart) instead of presigned PUT: the server sniffs the real type, re-encodes images to WebP (w320/w640/w1280, metadata stripped), checks PDFs, and stores PDFs privately (served only via short-lived signed URLs or the watermarked stream). Replaces the presigned-upload idea in T-007; large video goes to Bunny directly. |
+| T-026 | Publishing | Editing content that is **live** (published, or scheduled) needs the publish permission, so edits cannot bypass review (extends D-036). "Live" is evaluated at read time (`published`, or `scheduled` with `publishAt <= now`) — no job needed to go live. |
+| T-027 | Archived courses | Archiving hides a course from the catalog but **students with an active entitlement keep access** until it expires. A course cannot be deleted while active entitlements exist. |
+| T-028 | Instructor scope | `staff_scopes` restrict a staff member to assigned courses/subjects; staff without scope rows and Super Admins are unrestricted. Scoped staff cannot create top-level subjects/courses. |
+| T-029 | PDF watermark | Every PDF a student opens is stamped per request with email/phone, an 8-character account id and the date (ASCII only, every page). |

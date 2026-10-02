@@ -64,14 +64,19 @@ model User {
   createdAt           DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt           DateTime   @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  educationLevel   EducationLevel?          @relation(fields: [educationLevelId], references: [id], onDelete: SetNull)
-  identities       AuthIdentity[]
-  sessions         AuthSession[]
-  otpCodes         OtpCode[]
-  deletionRequests AccountDeletionRequest[]
-  roles            UserRole[]
-  staffScopes      StaffScope[]
-  recoveryCodes    MfaRecoveryCode[]
+  educationLevel      EducationLevel?          @relation(fields: [educationLevelId], references: [id], onDelete: SetNull)
+  identities          AuthIdentity[]
+  sessions            AuthSession[]
+  otpCodes            OtpCode[]
+  deletionRequests    AccountDeletionRequest[]
+  roles               UserRole[]
+  staffScopes         StaffScope[]
+  recoveryCodes       MfaRecoveryCode[]
+  instructorProfile   InstructorProfile?
+  courseInstructor    CourseInstructor[]
+  entitlements        Entitlement[]            @relation("EntitlementUser")
+  grantedEntitlements Entitlement[]            @relation("EntitlementGrantedBy")
+  uploadedMedia       MediaAsset[]
 
   @@index([kind, status])
   @@map("users")
@@ -111,7 +116,7 @@ model AuthSession {
   revokedAt    DateTime?    @map("revoked_at") @db.Timestamptz(6)
   revokeReason String?      @map("revoke_reason")
 
-  user          User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user          User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   refreshTokens AuthRefreshToken[]
 
   @@index([userId, revokedAt])
@@ -292,4 +297,422 @@ model AuditLog {
   @@index([actorUserId, createdAt(sort: Desc)])
   @@index([createdAt(sort: Desc)])
   @@map("audit_logs")
+}
+
+// ───────────────────────────── Media ─────────────────────────────
+
+enum MediaKind {
+  image
+  pdf
+}
+
+enum MediaVisibility {
+  public
+  private
+}
+
+/// Files in object storage (R2 / SeaweedFS in development). Bytes never live in the database.
+model MediaAsset {
+  id           String          @id @default(uuid(7)) @db.Uuid
+  kind         MediaKind
+  visibility   MediaVisibility
+  objectKey    String          @unique @map("object_key")
+  originalName String          @map("original_name")
+  mimeType     String          @map("mime_type")
+  sizeBytes    Int             @map("size_bytes")
+  sha256       String
+  width        Int?
+  height       Int?
+  pageCount    Int?            @map("page_count")
+  /// Image renditions: { "w320": "key", "w640": "key", ... }
+  variants     Json?
+  /// LocalizedText alt text for images.
+  altText      Json?           @map("alt_text")
+  uploadedById String?         @map("uploaded_by") @db.Uuid
+  createdAt    DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  deletedAt    DateTime?       @map("deleted_at") @db.Timestamptz(6)
+
+  uploadedBy User? @relation(fields: [uploadedById], references: [id], onDelete: SetNull)
+
+  examNodeIcons    ExamNode[]
+  subjectIcons     Subject[]
+  courseThumbnails Course[]
+  pdfItems         LearningItem[]
+  instructorPhotos InstructorProfile[]
+
+  @@index([kind, createdAt(sort: Desc)])
+  @@index([sha256])
+  @@map("media_assets")
+}
+
+// ───────────────────────────── Publishing ─────────────────────────────
+
+enum PublishStatus {
+  draft
+  in_review
+  scheduled
+  published
+  archived
+}
+
+enum AccessLevel {
+  free
+  premium
+}
+
+// ───────────────────────────── Exam taxonomy (D-007, D-010) ─────────────────────────────
+
+enum ExamNodeType {
+  authority
+  level
+  service
+  group
+  post
+}
+
+model ExamNode {
+  id          String        @id @default(uuid(7)) @db.Uuid
+  parentId    String?       @map("parent_id") @db.Uuid
+  nodeType    ExamNodeType  @map("node_type")
+  /// LocalizedText
+  name        Json
+  slug        String
+  description Json?
+  iconMediaId String?       @map("icon_media_id") @db.Uuid
+  sortOrder   Int           @default(0) @map("sort_order")
+  status      PublishStatus @default(draft)
+  createdById String?       @map("created_by") @db.Uuid
+  updatedById String?       @map("updated_by") @db.Uuid
+  createdAt   DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt   DateTime?     @map("deleted_at") @db.Timestamptz(6)
+
+  parent   ExamNode?        @relation("ExamNodeTree", fields: [parentId], references: [id], onDelete: Restrict)
+  children ExamNode[]       @relation("ExamNodeTree")
+  icon     MediaAsset?      @relation(fields: [iconMediaId], references: [id], onDelete: SetNull)
+  papers   PostPaper[]
+  courses  CourseExamNode[]
+
+  @@index([parentId, sortOrder])
+  @@map("exam_nodes")
+}
+
+model Paper {
+  id              String        @id @default(uuid(7)) @db.Uuid
+  name            Json
+  code            String?
+  fullMarks       Decimal?      @map("full_marks") @db.Decimal(6, 2)
+  passMarks       Decimal?      @map("pass_marks") @db.Decimal(6, 2)
+  durationMinutes Int?          @map("duration_minutes")
+  pattern         Json?
+  status          PublishStatus @default(draft)
+  createdAt       DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt       DateTime?     @map("deleted_at") @db.Timestamptz(6)
+
+  posts          PostPaper[]
+  courseSubjects CourseSubject[]
+
+  @@map("papers")
+}
+
+model PostPaper {
+  examNodeId String @map("exam_node_id") @db.Uuid
+  paperId    String @map("paper_id") @db.Uuid
+  sortOrder  Int    @default(0) @map("sort_order")
+
+  examNode ExamNode @relation(fields: [examNodeId], references: [id], onDelete: Cascade)
+  paper    Paper    @relation(fields: [paperId], references: [id], onDelete: Cascade)
+
+  @@id([examNodeId, paperId])
+  @@map("post_papers")
+}
+
+// ───────────────────────────── Content tree ─────────────────────────────
+
+model Subject {
+  id          String        @id @default(uuid(7)) @db.Uuid
+  name        Json
+  summary     Json?
+  iconMediaId String?       @map("icon_media_id") @db.Uuid
+  status      PublishStatus @default(draft)
+  createdById String?       @map("created_by") @db.Uuid
+  updatedById String?       @map("updated_by") @db.Uuid
+  createdAt   DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt   DateTime?     @map("deleted_at") @db.Timestamptz(6)
+
+  icon     MediaAsset?     @relation(fields: [iconMediaId], references: [id], onDelete: SetNull)
+  chapters Chapter[]
+  courses  CourseSubject[]
+
+  @@map("subjects")
+}
+
+model Chapter {
+  id               String        @id @default(uuid(7)) @db.Uuid
+  subjectId        String        @map("subject_id") @db.Uuid
+  numberLabel      String?       @map("number_label")
+  title            Json
+  description      Json?
+  estimatedMinutes Int?          @map("estimated_minutes")
+  sortOrder        Int           @default(0) @map("sort_order")
+  status           PublishStatus @default(draft)
+  createdAt        DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt        DateTime?     @map("deleted_at") @db.Timestamptz(6)
+
+  subject Subject @relation(fields: [subjectId], references: [id], onDelete: Restrict)
+  topics  Topic[]
+
+  @@index([subjectId, sortOrder])
+  @@map("chapters")
+}
+
+model Topic {
+  id               String        @id @default(uuid(7)) @db.Uuid
+  chapterId        String        @map("chapter_id") @db.Uuid
+  numberLabel      String?       @map("number_label")
+  title            Json
+  description      Json?
+  estimatedMinutes Int?          @map("estimated_minutes")
+  sortOrder        Int           @default(0) @map("sort_order")
+  status           PublishStatus @default(draft)
+  createdAt        DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt        DateTime?     @map("deleted_at") @db.Timestamptz(6)
+
+  chapter Chapter        @relation(fields: [chapterId], references: [id], onDelete: Restrict)
+  items   LearningItem[]
+
+  @@index([chapterId, sortOrder])
+  @@map("topics")
+}
+
+enum LearningItemType {
+  note
+  pdf
+  video
+}
+
+enum ContentLanguage {
+  en
+  ne
+  both
+}
+
+model LearningItem {
+  id              String           @id @default(uuid(7)) @db.Uuid
+  topicId         String           @map("topic_id") @db.Uuid
+  type            LearningItemType
+  title           Json
+  accessLevel     AccessLevel      @default(premium) @map("access_level")
+  language        ContentLanguage  @default(both)
+  sortOrder       Int              @default(0) @map("sort_order")
+  status          PublishStatus    @default(draft)
+  publishAt       DateTime?        @map("publish_at") @db.Timestamptz(6)
+  /// type=note: { en?: TipTapDoc, ne?: TipTapDoc }
+  noteContent     Json?            @map("note_content")
+  /// type=pdf
+  pdfMediaId      String?          @map("pdf_media_id") @db.Uuid
+  downloadable    Boolean          @default(false)
+  /// type=video
+  videoAssetId    String?          @map("video_asset_id") @db.Uuid
+  durationSeconds Int?             @map("duration_seconds")
+  createdById     String?          @map("created_by") @db.Uuid
+  updatedById     String?          @map("updated_by") @db.Uuid
+  createdAt       DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime         @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt       DateTime?        @map("deleted_at") @db.Timestamptz(6)
+
+  topic Topic       @relation(fields: [topicId], references: [id], onDelete: Restrict)
+  pdf   MediaAsset? @relation(fields: [pdfMediaId], references: [id], onDelete: Restrict)
+  video VideoAsset? @relation(fields: [videoAssetId], references: [id], onDelete: Restrict)
+
+  @@index([topicId, sortOrder])
+  @@index([status, publishAt])
+  @@map("learning_items")
+}
+
+enum VideoProvider {
+  bunny
+  youtube
+}
+
+enum VideoStatus {
+  uploading
+  processing
+  ready
+  failed
+}
+
+model VideoAsset {
+  id              String        @id @default(uuid(7)) @db.Uuid
+  provider        VideoProvider
+  providerVideoId String        @map("provider_video_id")
+  status          VideoStatus   @default(ready)
+  title           String?
+  durationSeconds Int?          @map("duration_seconds")
+  thumbnailUrl    String?       @map("thumbnail_url")
+  createdById     String?       @map("created_by") @db.Uuid
+  createdAt       DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  items LearningItem[]
+
+  @@unique([provider, providerVideoId])
+  @@map("video_assets")
+}
+
+// ───────────────────────────── Catalog ─────────────────────────────
+
+enum ValidityType {
+  days
+  fixed_date
+  lifetime
+}
+
+model Course {
+  id               String          @id @default(uuid(7)) @db.Uuid
+  slug             String
+  title            Json
+  shortDescription Json?           @map("short_description")
+  description      Json?
+  thumbnailMediaId String?         @map("thumbnail_media_id") @db.Uuid
+  language         ContentLanguage @default(both)
+  /// Paisa (NPR x 100). 0 = free course. Set by admins (D-023).
+  pricePaisa       Int             @default(0) @map("price_paisa")
+  salePricePaisa   Int?            @map("sale_price_paisa")
+  saleStartsAt     DateTime?       @map("sale_starts_at") @db.Timestamptz(6)
+  saleEndsAt       DateTime?       @map("sale_ends_at") @db.Timestamptz(6)
+  validityType     ValidityType    @default(lifetime) @map("validity_type")
+  validityDays     Int?            @map("validity_days")
+  validityEndsOn   DateTime?       @map("validity_ends_on") @db.Date
+  isFeatured       Boolean         @default(false) @map("is_featured")
+  popularityRank   Int?            @map("popularity_rank")
+  status           PublishStatus   @default(draft)
+  publishAt        DateTime?       @map("publish_at") @db.Timestamptz(6)
+  createdById      String?         @map("created_by") @db.Uuid
+  updatedById      String?         @map("updated_by") @db.Uuid
+  createdAt        DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime        @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt        DateTime?       @map("deleted_at") @db.Timestamptz(6)
+
+  thumbnail    MediaAsset?        @relation(fields: [thumbnailMediaId], references: [id], onDelete: SetNull)
+  examNodes    CourseExamNode[]
+  subjects     CourseSubject[]
+  instructors  CourseInstructor[]
+  entitlements Entitlement[]
+
+  @@index([status, isFeatured, popularityRank])
+  @@map("courses")
+}
+
+model CourseExamNode {
+  courseId   String @map("course_id") @db.Uuid
+  examNodeId String @map("exam_node_id") @db.Uuid
+
+  course   Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  examNode ExamNode @relation(fields: [examNodeId], references: [id], onDelete: Cascade)
+
+  @@id([courseId, examNodeId])
+  @@index([examNodeId])
+  @@map("course_exam_nodes")
+}
+
+model CourseSubject {
+  courseId               String   @map("course_id") @db.Uuid
+  subjectId              String   @map("subject_id") @db.Uuid
+  paperId                String?  @map("paper_id") @db.Uuid
+  sortOrder              Int      @default(0) @map("sort_order")
+  displayFullMarks       Decimal? @map("display_full_marks") @db.Decimal(6, 2)
+  displayPassMarks       Decimal? @map("display_pass_marks") @db.Decimal(6, 2)
+  displayDurationMinutes Int?     @map("display_duration_minutes")
+
+  course  Course  @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  subject Subject @relation(fields: [subjectId], references: [id], onDelete: Restrict)
+  paper   Paper?  @relation(fields: [paperId], references: [id], onDelete: SetNull)
+
+  @@id([courseId, subjectId])
+  @@index([subjectId])
+  @@map("course_subjects")
+}
+
+model CourseInstructor {
+  courseId  String @map("course_id") @db.Uuid
+  userId    String @map("user_id") @db.Uuid
+  sortOrder Int    @default(0) @map("sort_order")
+
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([courseId, userId])
+  @@map("course_instructors")
+}
+
+/// Public profile of a staff member shown to students (D-013).
+model InstructorProfile {
+  userId       String   @id @map("user_id") @db.Uuid
+  displayName  Json     @map("display_name")
+  bio          Json?
+  photoMediaId String?  @map("photo_media_id") @db.Uuid
+  isPublic     Boolean  @default(true) @map("is_public")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user  User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  photo MediaAsset? @relation(fields: [photoMediaId], references: [id], onDelete: SetNull)
+
+  @@map("instructor_profiles")
+}
+
+// ───────────────────────────── Entitlements ─────────────────────────────
+
+enum EntitlementScope {
+  course
+  plan
+}
+
+enum EntitlementSource {
+  order
+  admin_grant
+  coupon
+  referral
+  /// Self-service enrolment in a course priced at 0 (L6).
+  free_enrol
+}
+
+enum EntitlementStatus {
+  active
+  revoked
+  expired
+}
+
+/// Access rights. Created only by server-side flows (verified payments in Phase 11, admin grants now). Never deleted.
+model Entitlement {
+  id            String            @id @default(uuid(7)) @db.Uuid
+  userId        String            @map("user_id") @db.Uuid
+  scopeType     EntitlementScope  @map("scope_type")
+  courseId      String?           @map("course_id") @db.Uuid
+  /// Plans arrive in Phase 11 (FK added then).
+  planId        String?           @map("plan_id") @db.Uuid
+  sourceType    EntitlementSource @map("source_type")
+  sourceId      String?           @map("source_id")
+  startsAt      DateTime          @default(now()) @map("starts_at") @db.Timestamptz(6)
+  /// Null = lifetime.
+  endsAt        DateTime?         @map("ends_at") @db.Timestamptz(6)
+  status        EntitlementStatus @default(active)
+  grantedById   String?           @map("granted_by") @db.Uuid
+  note          String?
+  revokedAt     DateTime?         @map("revoked_at") @db.Timestamptz(6)
+  revokedReason String?           @map("revoked_reason")
+  createdAt     DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user      User    @relation("EntitlementUser", fields: [userId], references: [id], onDelete: Restrict)
+  grantedBy User?   @relation("EntitlementGrantedBy", fields: [grantedById], references: [id], onDelete: SetNull)
+  course    Course? @relation(fields: [courseId], references: [id], onDelete: Restrict)
+
+  @@index([userId, status])
+  @@index([courseId])
+  @@map("entitlements")
 }

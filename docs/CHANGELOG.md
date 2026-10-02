@@ -4,6 +4,22 @@ All notable changes to this project. Format based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Added — 2026-10-02 (Phase 6: content API)
+- S3-compatible object storage (SeaweedFS locally and in CI, Cloudflare R2 in production) and a media library with
+  server-validated uploads (WebP image variants, private PDFs, signed URLs).
+- Content schema: exam taxonomy, papers, subjects/chapters/topics, learning items (note/PDF/video), video assets,
+  courses, instructors, entitlements.
+- Admin content API with publish workflow, scheduling, reorder, soft delete/restore, instructor scoping and audit.
+- Student/public catalog and learning API: platform-aware prices (D-027), server-side locking of premium content,
+  per-student watermarked PDFs, YouTube nocookie and signed Bunny Stream playback.
+- Admin access grants/revokes (until payments arrive in Phase 13).
+- Free-course enrolment (`POST /courses/:id/enrol`, D-043) with access validity from the course settings
+  (`accessEndsAt` in `@tk/domain`; fixed dates end at midnight Nepal time).
+- Tests never use real video-provider keys from a developer `.env`.
+
+### Fixed
+- CI: SeaweedFS readiness wait and volume settings; server errors now logged in CI test output.
+
 ### Added — 2026-10-02 (Phase 5: Admin CMS foundation)
 - Staff two-factor authentication (TOTP + recovery codes, encrypted secrets, replay protection, policy setting with
   forced enrolment for Super Admins); two-step staff login.

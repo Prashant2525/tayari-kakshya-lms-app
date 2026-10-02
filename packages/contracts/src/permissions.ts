@@ -13,6 +13,15 @@ export const PERMISSIONS = {
   'settings:update': 'Change system settings',
   'audit:read': 'View the audit log',
   'education_levels:manage': 'Manage the education level options shown on student profiles',
+  'media:manage': 'Upload, edit and remove files in the media library',
+  'taxonomy:manage': 'Manage exam categories, posts and papers',
+  'content:edit': 'Create and edit subjects, chapters, topics, notes, PDFs and videos (drafts)',
+  'content:publish': 'Publish, schedule, archive and delete learning content',
+  'courses:edit': 'Create and edit courses (drafts)',
+  'courses:publish': 'Publish, schedule, archive and delete courses',
+  'courses:pricing': 'Change course prices, sales and validity',
+  'instructors:manage': 'Manage public instructor profiles',
+  'entitlements:grant': "Grant or revoke a student's access to courses",
 } as const;
 
 export type Permission = keyof typeof PERMISSIONS;

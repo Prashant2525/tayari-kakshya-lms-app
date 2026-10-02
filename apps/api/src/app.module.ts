@@ -10,6 +10,9 @@ import { MailService } from './infra/messaging/mail.service.js';
 import { SmsService } from './infra/messaging/sms.service.js';
 import { PrismaService } from './infra/prisma/prisma.service.js';
 import { RedisService } from './infra/redis/redis.provider.js';
+import { StorageService } from './infra/storage/storage.service.js';
+import { AdminMediaController, PublicMediaController } from './modules/media/media.controller.js';
+import { MediaService } from './modules/media/media.service.js';
 import { AuditService } from './modules/audit/audit.service.js';
 import { AccountDeletionService } from './modules/auth/account-deletion.service.js';
 import { AdminAuthController } from './modules/auth/admin-auth.controller.js';
@@ -24,6 +27,18 @@ import { OtpService } from './modules/auth/otp.service.js';
 import { PasswordService } from './modules/auth/password.service.js';
 import { SessionService } from './modules/auth/session.service.js';
 import { TokenService } from './modules/auth/token.service.js';
+import { AdminContentController } from './modules/content/admin-content.controller.js';
+import { AdminCoursesController } from './modules/content/admin-courses.controller.js';
+import { AdminTaxonomyController } from './modules/content/admin-taxonomy.controller.js';
+import { CatalogController, LearningController } from './modules/content/catalog.controller.js';
+import { CatalogService } from './modules/content/catalog.service.js';
+import { ContentService } from './modules/content/content.service.js';
+import { CoursesService } from './modules/content/courses.service.js';
+import { EntitlementsService } from './modules/content/entitlements.service.js';
+import { LearningItemsService } from './modules/content/learning-items.service.js';
+import { ScopeService } from './modules/content/scope.service.js';
+import { TaxonomyService } from './modules/content/taxonomy.service.js';
+import { VideoService } from './modules/content/video.service.js';
 import { HealthController } from './modules/health/health.controller.js';
 import { AdminAccessController } from './modules/rbac/admin-access.controller.js';
 import { RbacService } from './modules/rbac/rbac.service.js';
@@ -47,8 +62,9 @@ import { EducationLevelsService } from './modules/users/education-levels.service
     RedisService,
     MailService,
     SmsService,
+    StorageService,
   ],
-  exports: [ENV, PrismaService, RedisService, MailService, SmsService],
+  exports: [ENV, PrismaService, RedisService, MailService, SmsService, StorageService],
 })
 export class InfraModule {}
 
@@ -71,6 +87,15 @@ export class InfraModule {}
     FieldEncryption,
     MfaService,
     EducationLevelsService,
+    MediaService,
+    TaxonomyService,
+    ContentService,
+    LearningItemsService,
+    VideoService,
+    CoursesService,
+    EntitlementsService,
+    CatalogService,
+    ScopeService,
     { provide: GoogleVerifier, useClass: GoogleAuthLibraryVerifier },
   ],
   exports: [
@@ -89,6 +114,15 @@ export class InfraModule {}
     FieldEncryption,
     MfaService,
     EducationLevelsService,
+    MediaService,
+    TaxonomyService,
+    ContentService,
+    LearningItemsService,
+    VideoService,
+    CoursesService,
+    EntitlementsService,
+    CatalogService,
+    ScopeService,
     GoogleVerifier,
   ],
 })
@@ -128,6 +162,13 @@ export class DomainModule {}
     AdminMfaController,
     EducationLevelsController,
     AdminEducationLevelsController,
+    AdminMediaController,
+    PublicMediaController,
+    AdminTaxonomyController,
+    AdminContentController,
+    AdminCoursesController,
+    CatalogController,
+    LearningController,
   ],
   providers: [
     // Order matters: rate limit → maintenance → authentication → permissions.
