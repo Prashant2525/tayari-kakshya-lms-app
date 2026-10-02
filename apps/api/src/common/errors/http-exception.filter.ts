@@ -25,7 +25,13 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const { status, body, headers } = this.toResponse(exception);
     body.error.requestId = String(request.id);
 
-    if (status >= 500) {
+    if (status >= 500 && exception instanceof AppError) {
+      // Deliberate operational errors (provider not configured, upstream unreachable): no stack, not "unhandled".
+      this.logger.warn(
+        { code: exception.code, status, requestId: request.id, url: request.url },
+        exception.message,
+      );
+    } else if (status >= 500) {
       this.logger.error(
         { err: exception, requestId: request.id, url: request.url },
         'Unhandled error while processing request',

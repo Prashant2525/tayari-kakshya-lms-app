@@ -218,7 +218,7 @@ export function PageHeader({
         <h1 className="text-[26px] font-bold leading-8 tracking-tight text-text">{title}</h1>
         {description ? <p className="mt-1 max-w-2xl text-[15px] text-text-secondary">{description}</p> : null}
       </div>
-      {actions ? <div className="flex items-center gap-2">{actions}</div> : null}
+      {actions ? <div className="flex flex-wrap items-center gap-2">{actions}</div> : null}
     </div>
   );
 }

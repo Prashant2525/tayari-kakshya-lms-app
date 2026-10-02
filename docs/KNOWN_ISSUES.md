@@ -19,7 +19,7 @@
 | KI-015 | Logging | Worker/CLI use Nest's default console logger rather than structured Pino JSON. | Less structured worker logs | Open — align in Phase 18 (observability). |
 | KI-016 | Profile | Education level CRUD. | — | **Resolved** in Phase 5 (admin page + API). |
 | KI-017 | CI | First GitHub Actions run. | — | **Resolved** — owner confirmed CI green for PR #3. New `admin-e2e` job to be confirmed on the Phase 5 PR. |
-| KI-018 | Admin performance | Main admin JS chunk ≈ 650 KB (204 KB gzip) despite route-level code splitting. | Slower first load of the internal CMS on slow links | Open — analyse and split vendor chunks while building the Phase 6 screens. |
+| KI-018 | Admin performance | Main admin JS chunk ≈ 548 KB (172 KB gzip); the note editor (TipTap) is a separate lazy chunk of 490 KB (154 KB gzip) loaded only on item pages. | Slower first load of the internal CMS on slow links | Open — split vendor chunks (Radix/TanStack) before launch. |
 | KI-019 | Tooling | GitHub CLI not authenticated in the agent's shell. | — | **Resolved** — owner ran `gh auth login`. |
 | KI-020 | Admin UX | Visiting the login page with no session logs one expected 401 (refresh-cookie probe) in the browser console. | Cosmetic (console only) | Accepted. |
 | KI-021 | CI | On `aeef198` the CI `verify` job failed one media test (private PDF upload → 500): SeaweedFS was not ready. | — | **Resolved** — readiness wait on `/dir/assign` + `-volume.max=0`; CI green on `e6bf6b4` and `597f722`. |

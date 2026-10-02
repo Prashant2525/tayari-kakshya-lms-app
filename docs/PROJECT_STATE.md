@@ -1,6 +1,6 @@
 # Project State
 
-Current Phase: **Phase 6 — Academic/content CMS: IN PROGRESS** (API done; admin: media, categories, papers done)
+Current Phase: **Phase 6 — Academic/content CMS: IN PROGRESS** (API done; admin: media, categories, papers, subjects + item editor done)
 Current Milestone: content API on `feature/content-cms` → Admin CMS content screens
 Overall Status: **IN PROGRESS**
 Last updated: 2026-10-02
@@ -20,11 +20,12 @@ Last updated: 2026-10-02
   - Student/public API: catalog (exam tree, course list/detail with platform-aware prices), my courses, subject outline,
     learning items with server-side locking, watermarked PDF stream, video playback (YouTube nocookie / signed Bunny),
     free-course enrolment (D-043).
-  - Admin CMS: media library + picker, exam categories tree, papers — verified in a real browser (E2E + screenshots
-    in light, dark and mobile).
+  - Admin CMS: media library + picker, exam categories tree, papers, subjects outline and item editor (TipTap notes
+    in en/ne, PDFs, videos, publishing/scheduling) — verified in a real browser (E2E + screenshots in light, dark,
+    mobile).
 
 ## In Progress
-- Phase 6 Admin CMS screens: subjects/chapters/topics/items (TipTap), courses, instructors, access grants.
+- Phase 6 Admin CMS screens: courses, instructors, staff scopes, student access grants.
 
 ## Remaining
 - Phase 6 admin screens + E2E; Phases 7–18 (`IMPLEMENTATION_PLAN.md`).
@@ -46,7 +47,7 @@ Last updated: 2026-10-02
 - Not started (Phase 8 / Phase 11).
 
 ## Tests
-- Unit/integration 213 · browser E2E 7 — all passing locally (see `TEST_STATUS.md`).
+- Unit/integration 222 · browser E2E 9 — all passing locally (see `TEST_STATUS.md`).
 
 ## Known Issues
 - See `KNOWN_ISSUES.md` (KI-021 CI storage flake under investigation, KI-022 per-request PDF watermarking, KI-023 Bunny token auth).
@@ -75,4 +76,5 @@ and `pnpm --filter @tk/admin dev` → create your Super Admin:
 (code in Mailpit http://localhost:8025) → set password at http://localhost:5173/set-password → sign in → enrol 2FA.
 
 ## Exact Next Task
-- Admin CMS: subjects → chapters → topics → learning items (TipTap note editor, PDF and video items).
+- Admin CMS: courses (details, pricing, subjects, exam links, instructors, publishing), then access grants on the
+  student page, instructor profiles and staff scopes.

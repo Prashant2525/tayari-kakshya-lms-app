@@ -104,3 +104,114 @@ export function imageVariant(media: Pick<MediaView, 'url' | 'variants'>, minWidt
     .sort((a, b) => a.width - b.width);
   return sizes[0]?.url ?? media.url;
 }
+
+export type ItemType = 'note' | 'pdf' | 'video';
+export type AccessLevel = 'free' | 'premium';
+
+export interface SubjectRow {
+  id: string;
+  name: LocalizedText;
+  summary: LocalizedText | null;
+  iconUrl: string | null;
+  status: PublishStatus;
+  deletedAt: string | null;
+  chapterCount: number;
+  courseCount: number;
+  updatedAt: string;
+}
+
+export interface ItemSummary {
+  id: string;
+  type: ItemType;
+  title: LocalizedText;
+  status: PublishStatus;
+  accessLevel: AccessLevel;
+  publishAt: string | null;
+  durationSeconds: number | null;
+  sortOrder: number;
+}
+
+export interface TopicNode {
+  id: string;
+  numberLabel: string | null;
+  title: LocalizedText;
+  description: LocalizedText | null;
+  estimatedMinutes: number | null;
+  status: PublishStatus;
+  items: ItemSummary[];
+}
+
+export interface ChapterNode extends Omit<TopicNode, 'items'> {
+  topics: TopicNode[];
+}
+
+export interface SubjectTree {
+  id: string;
+  name: LocalizedText;
+  summary: LocalizedText | null;
+  iconMediaId: string | null;
+  iconUrl: string | null;
+  status: PublishStatus;
+  chapters: ChapterNode[];
+}
+
+/** `/admin/learning-items/:id`. */
+export interface LearningItemAdmin {
+  id: string;
+  topicId: string;
+  type: ItemType;
+  title: LocalizedText;
+  accessLevel: AccessLevel;
+  language: 'en' | 'ne' | 'both';
+  status: PublishStatus;
+  publishAt: string | null;
+  sortOrder: number;
+  noteContent: { en?: unknown; ne?: unknown } | null;
+  pdf: MediaView | null;
+  downloadable: boolean;
+  video: {
+    id: string;
+    provider: 'youtube' | 'bunny';
+    providerVideoId: string;
+    status: string;
+    title: string | null;
+    thumbnailUrl: string | null;
+  } | null;
+  durationSeconds: number | null;
+  updatedAt: string;
+}
+
+export const ITEM_TYPE_LABEL: Record<ItemType, string> = { note: 'Note', pdf: 'PDF', video: 'Video' };
+
+/** "1:05:09" / "4:05" from seconds. */
+export function formatDuration(seconds: number | null | undefined): string {
+  if (!seconds) return '';
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  const s = seconds % 60;
+  const mm = h ? String(m).padStart(2, '0') : String(m);
+  return `${h ? `${h}:` : ''}${mm}:${String(s).padStart(2, '0')}`;
+}
+
+/** Parses "75", "4:05" or "1:05:09" into seconds; null when empty, NaN when invalid. */
+export function parseDuration(input: string): number | null {
+  const v = input.trim();
+  if (!v) return null;
+  if (!/^\d+(:\d{1,2}){0,2}$/.test(v)) return Number.NaN;
+  const parts = v.split(':').map(Number);
+  if (parts.slice(1).some((p) => p >= 60)) return Number.NaN;
+  return parts.reduce((total, p) => total * 60 + p, 0);
+}
+
+/** Nepal Standard Time is UTC+05:45; `datetime-local` values are entered as Nepal time. */
+export function nepalLocalToIso(value: string): string | null {
+  if (!value) return null;
+  const d = new Date(`${value}:00+05:45`);
+  return Number.isNaN(d.getTime()) ? null : d.toISOString();
+}
+
+export function isoToNepalLocal(iso: string | null | undefined): string {
+  if (!iso) return '';
+  const shifted = new Date(new Date(iso).getTime() + (5 * 60 + 45) * 60_000);
+  return shifted.toISOString().slice(0, 16);
+}

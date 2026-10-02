@@ -95,6 +95,33 @@ const routes = [
   }),
   createRoute({
     getParentRoute: () => appRoute,
+    path: '/subjects',
+    component: lazyRouteComponent(() => import('./features/content/subjects-page'), 'SubjectsPage'),
+  }),
+  createRoute({
+    getParentRoute: () => appRoute,
+    path: '/subjects/$subjectId',
+    component: lazyRouteComponent(() => import('./features/content/subject-page'), 'SubjectPage'),
+  }),
+  createRoute({
+    getParentRoute: () => appRoute,
+    path: '/topics/$topicId/new',
+    validateSearch: (s: Record<string, unknown>): { type: 'note' | 'pdf' | 'video'; subjectId?: string } => ({
+      type: s['type'] === 'pdf' || s['type'] === 'video' ? s['type'] : 'note',
+      subjectId: typeof s['subjectId'] === 'string' ? s['subjectId'] : undefined,
+    }),
+    component: lazyRouteComponent(() => import('./features/content/item-editor-page'), 'NewItemPage'),
+  }),
+  createRoute({
+    getParentRoute: () => appRoute,
+    path: '/learning-items/$itemId',
+    validateSearch: (s: Record<string, unknown>): { subjectId?: string } => ({
+      subjectId: typeof s['subjectId'] === 'string' ? s['subjectId'] : undefined,
+    }),
+    component: lazyRouteComponent(() => import('./features/content/item-editor-page'), 'ItemPage'),
+  }),
+  createRoute({
+    getParentRoute: () => appRoute,
     path: '/media',
     component: lazyRouteComponent(() => import('./features/media/media-page'), 'MediaPage'),
   }),

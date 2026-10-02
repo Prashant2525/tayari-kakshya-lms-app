@@ -2,7 +2,7 @@
 
 Session date: 2026-10-02 (session 4 — resumed after a VS Code crash)
 Current phase: **Phase 6 — content CMS, API layer complete and verified locally**
-Current task: Phase 6 Admin CMS screens — media, categories, papers done; content tree next
+Current task: Phase 6 Admin CMS screens — media, categories, papers, subjects + item editor done; courses next
 
 ## Completed this session
 - Recovered the interrupted work from the repository (nothing lost). Verified the uncommitted content API:
@@ -23,6 +23,8 @@ Current task: Phase 6 Admin CMS screens — media, categories, papers done; cont
   (forged/expired tokens accepted, HLS playlist loads with any Referer). Owner must enable it (KI-023).
 - Admin CMS: media library + media picker, exam categories, papers. E2E uses a seeded non-Super-Admin content
   account (`E2E_EDITOR_EMAIL`). Fixed `Button` default submit and a DOM-clobbering field name found by E2E.
+- Admin CMS: subjects list + outline and the item editor (TipTap; `toStoredDoc` keeps output inside the server
+  allow-list). Content E2E now signs in once (staff login limit 5/15 min). Expected 5xx AppErrors log as warnings.
 
 ## Decisions taken during implementation
 - T-020 resolved (SeaweedFS), T-025 (API-validated uploads), T-026 (live-edit rule), T-027 (archived courses stay
@@ -33,9 +35,8 @@ Current task: Phase 6 Admin CMS screens — media, categories, papers done; cont
 
 ## Exact next steps
 1. Confirm CI for the latest commit (`gh run list --branch feature/content-cms`).
-2. Admin CMS: subjects → chapters → topics → items with TipTap note editor; courses (details,
-   pricing, subjects, links, publishing); student access grants on the student detail page. Command palette and the
-   generic data table (deferred from Phase 5).
+2. Admin CMS: courses (details, pricing, subjects, links, publishing); student access grants on the student detail
+   page; instructor profiles; staff scopes. Command palette and the generic data table (KI-024).
 3. Playwright E2E for the content flow; browser walkthrough with screenshots.
 4. After the owner enables Bunny token auth, re-run the signed-playback check (KI-023).
 5. Open the PR `feature/content-cms` → `main` once the screens are done.
@@ -47,7 +48,7 @@ Current task: Phase 6 Admin CMS screens — media, categories, papers done; cont
 - Migration `content_catalog`; endpoints in `API_DOCUMENTATION.md` §1b.
 
 ## Tests run
-- `pnpm format:check && pnpm build && pnpm lint && pnpm typecheck && pnpm test` → all passing, 213 tests; `pnpm --filter @tk/admin e2e` → 7 passing.
+- `pnpm format:check && pnpm build && pnpm lint && pnpm typecheck && pnpm test` → all passing, 222 tests; `pnpm --filter @tk/admin e2e` → 9 passing.
 
 ## Known issues / blockers
 - KI-021 (CI-only media failure — fix pending CI confirmation), KI-022 (per-request watermark cost). No blockers.

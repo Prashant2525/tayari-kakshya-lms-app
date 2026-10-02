@@ -10,10 +10,10 @@ Last updated: 2026-10-02 (Phase 6, content API + first admin content screens). `
 | `@tk/design-tokens` | 39 | WCAG contrast for every text/background pair (light + dark), CSS generation |
 | `@tk/domain` | 24 | BS calendar, Kathmandu day boundary, fiscal year, money/VAT/discounts, access validity |
 | `@tk/contracts` | 16 | Schema behaviour (localized text, email normalisation, mass assignment, settings defaults, rich-text validation) |
-| `@tk/api` | 117 | Integration against real PostgreSQL + Redis + S3 (SeaweedFS) through the HTTP stack; TOTP RFC 6238 vectors; RBAC, video, watermark unit |
-| `@tk/admin` (unit) | 17 | API client (headers, refresh single-flight, retry, session loss, error mapping), BS formatting, Button `asChild` regression |
-| `@tk/admin` (E2E, Playwright) | 7 | Real browser + real API + `*_e2e` database |
-| **Total** | **220** | |
+| `@tk/api` | 120 | Integration against real PostgreSQL + Redis + S3 (SeaweedFS) through the HTTP stack; TOTP RFC 6238 vectors; RBAC, video, watermark unit |
+| `@tk/admin` (unit) | 23 | API client (headers, refresh single-flight, retry, session loss, error mapping), BS formatting, Button `asChild` regression |
+| `@tk/admin` (E2E, Playwright) | 9 | Real browser + real API + `*_e2e` database |
+| **Total** | **231** | |
 
 ### Added in Phase 6 (content API)
 - **Media:** real-type sniffing rejects disguised files; images re-encoded to WebP variants with metadata stripped;
@@ -45,7 +45,15 @@ Last updated: 2026-10-02 (Phase 6, content API + first admin content screens). `
 - **Browser E2E (content team, non-Super-Admin):** permission-aware navigation; media upload of an image and a PDF
   (image re-encoded and rendered, PDF private), description saved, type filter; exam categories authority → post with
   emblem from the media picker, auto URL name, allowed child types, publish, delete refused while not empty; papers
-  with marks validation, post links and status persisted.
+  with marks validation, post links and status persisted; subject → chapter → topic → bilingual note (bold, image
+  from the media library, Nepali tab) with required-field errors, unsaved-changes guard, reload persistence and
+  publishing; video items (YouTube-for-premium warning, Bunny-not-configured error, duration validation), PDF item
+  with download flag, scheduling in Nepal time shown in BS.
+- **Unit (editor):** real TipTap output for every toolbar feature passes the server's rich-text allow-list after
+  `toStoredDoc`; unsafe links and non-library images are dropped (mutation check: without the converter 3 tests
+  fail — TipTap emits `orderedList.type` and table `align`). Duration and Nepal-time helpers.
+- **API unit:** exception filter — deliberate 5xx `AppError`s log as warnings without stack; unexpected errors log as
+  errors and never leak their message.
 - **Unit:** multipart uploads in the API client, Button never submits a form unless `type="submit"`, slug/localised
   text/image variant/size helpers.
 
@@ -55,8 +63,13 @@ Last updated: 2026-10-02 (Phase 6, content API + first admin content screens). `
 - E2E: a form field named `nodeType` shadowed `HTMLFormElement.nodeType` (DOM clobbering), hiding the form from
   Playwright's text/ARIA engines → renamed to `kind`. (Chrome's own accessibility tree was unaffected — checked via CDP.)
 - Screenshot review: "1 papers" → pluralised.
+- Screenshot review (390 px): subject outline overflowed horizontally and squeezed item titles to nothing → badges
+  wrap under the title; page-header actions wrap. Checked `scrollWidth` = viewport on outline, editor and media.
+- E2E log review: an expected "Bunny not configured" 503 was logged as an unhandled error with a stack → now a
+  warning.
+- E2E: staff sign-in rate limit (5 per account / 15 min) hit by per-test sign-ins → content specs share one session.
 - Watermark label contained a double space after stripping non-ASCII characters → whitespace collapsed.
 
 ## Not yet covered
-- Admin screens for subjects/chapters/topics/items, courses and access grants (next).
+- Admin screens for courses, instructors, staff scopes and access grants (next).
 - Load testing (Phase 16); content, exams, payments (later phases); student mobile app (Phase 8).

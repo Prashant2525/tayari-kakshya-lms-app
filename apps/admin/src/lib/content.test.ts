@@ -1,5 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import { formatBytes, imageVariant, slugify, toLocalized } from './content';
+import {
+  formatBytes,
+  formatDuration,
+  imageVariant,
+  isoToNepalLocal,
+  nepalLocalToIso,
+  parseDuration,
+  slugify,
+  toLocalized,
+} from './content';
 import { plural } from './format';
 
 describe('content helpers', () => {
@@ -35,5 +44,22 @@ describe('content helpers', () => {
     expect(formatBytes(5 * 1024 * 1024)).toBe('5.0 MB');
     expect(plural(1, 'paper')).toBe('1 paper');
     expect(plural(3, 'paper')).toBe('3 papers');
+  });
+
+  it('parses and formats video durations', () => {
+    expect(parseDuration('')).toBeNull();
+    expect(parseDuration('75')).toBe(75);
+    expect(parseDuration('4:05')).toBe(245);
+    expect(parseDuration('1:05:09')).toBe(3909);
+    for (const bad of ['4:60', 'abc', '1:2:3:4', '-5']) expect(parseDuration(bad)).toBeNaN();
+    expect(formatDuration(245)).toBe('4:05');
+    expect(formatDuration(3909)).toBe('1:05:09');
+    expect(formatDuration(null)).toBe('');
+  });
+
+  it('treats schedule inputs as Nepal time regardless of the browser time zone', () => {
+    expect(nepalLocalToIso('2026-10-05T09:00')).toBe('2026-10-05T03:15:00.000Z');
+    expect(isoToNepalLocal('2026-10-05T03:15:00.000Z')).toBe('2026-10-05T09:00');
+    expect(nepalLocalToIso('')).toBeNull();
   });
 });

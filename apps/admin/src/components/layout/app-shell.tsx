@@ -1,6 +1,7 @@
 import type { Permission } from '@tk/contracts';
 import { Link, Navigate, Outlet, useRouterState } from '@tanstack/react-router';
 import {
+  BookOpen,
   FileText,
   FolderTree,
   GraduationCap,
@@ -39,6 +40,7 @@ const NAV: Array<{ group: string; items: NavItem[] }> = [
   {
     group: 'Content',
     items: [
+      { to: '/subjects', label: 'Subjects', icon: BookOpen, permission: 'content:edit' },
       { to: '/categories', label: 'Exam categories', icon: FolderTree, permission: 'taxonomy:manage' },
       { to: '/papers', label: 'Papers', icon: FileText, permission: 'taxonomy:manage' },
       { to: '/media', label: 'Media library', icon: Images, permission: 'media:manage' },
