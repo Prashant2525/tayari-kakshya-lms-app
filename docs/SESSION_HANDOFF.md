@@ -2,7 +2,7 @@
 
 Session date: 2026-10-02 (session 4 — resumed after a VS Code crash)
 Current phase: **Phase 6 — content CMS, API layer complete and verified locally**
-Current task: Phase 6 Admin CMS screens (not started)
+Current task: Phase 6 Admin CMS screens — media, categories, papers done; content tree next
 
 ## Completed this session
 - Recovered the interrupted work from the repository (nothing lost). Verified the uncommitted content API:
@@ -19,6 +19,11 @@ Current task: Phase 6 Admin CMS screens (not started)
 - Owner answered L6 → D-043 implemented: `POST /courses/:id/enrol`, migration `free_enrolment` (enum value
   `free_enrol`), `access.canEnrol` on course detail, `accessEndsAt` helper in `@tk/domain`.
 
+- Owner uploaded 4 videos to Bunny → checked signed playback: **token authentication is OFF** in the library
+  (forged/expired tokens accepted, HLS playlist loads with any Referer). Owner must enable it (KI-023).
+- Admin CMS: media library + media picker, exam categories, papers. E2E uses a seeded non-Super-Admin content
+  account (`E2E_EDITOR_EMAIL`). Fixed `Button` default submit and a DOM-clobbering field name found by E2E.
+
 ## Decisions taken during implementation
 - T-020 resolved (SeaweedFS), T-025 (API-validated uploads), T-026 (live-edit rule), T-027 (archived courses stay
   visible to entitled students), T-028 (instructor scopes). See `DECISIONS.md`.
@@ -27,13 +32,12 @@ Current task: Phase 6 Admin CMS screens (not started)
 - Nothing partially implemented. Admin screens for Phase 6 not started.
 
 ## Exact next steps
-1. `gh run list --branch feature/content-cms` — confirm `verify` and `admin-e2e` pass. If `verify` still fails, the
-   API error is now logged in the job output (KI-021).
-2. Admin CMS: media library page + reusable media picker.
-3. Exam taxonomy tree + papers; subjects → chapters → topics → items with TipTap note editor; courses (details,
+1. Confirm CI for the latest commit (`gh run list --branch feature/content-cms`).
+2. Admin CMS: subjects → chapters → topics → items with TipTap note editor; courses (details,
    pricing, subjects, links, publishing); student access grants on the student detail page. Command palette and the
    generic data table (deferred from Phase 5).
-4. Playwright E2E for the content flow; browser walkthrough with screenshots.
+3. Playwright E2E for the content flow; browser walkthrough with screenshots.
+4. After the owner enables Bunny token auth, re-run the signed-playback check (KI-023).
 5. Open the PR `feature/content-cms` → `main` once the screens are done.
 
 ## Files changed
@@ -43,7 +47,7 @@ Current task: Phase 6 Admin CMS screens (not started)
 - Migration `content_catalog`; endpoints in `API_DOCUMENTATION.md` §1b.
 
 ## Tests run
-- `pnpm format:check && pnpm build && pnpm lint && pnpm typecheck && pnpm test` → all passing, 207 tests.
+- `pnpm format:check && pnpm build && pnpm lint && pnpm typecheck && pnpm test` → all passing, 213 tests; `pnpm --filter @tk/admin e2e` → 7 passing.
 
 ## Known issues / blockers
 - KI-021 (CI-only media failure — fix pending CI confirmation), KI-022 (per-request watermark cost). No blockers.
@@ -52,7 +56,7 @@ Current task: Phase 6 Admin CMS screens (not started)
 - Cloudflare R2 before staging. (Bunny provided — local `.env`.)
 
 ## Questions for the owner
-- None open. Owner to enable Bunny Token Authentication (KI-023).
+- None open. **Action:** enable Bunny Token Authentication (KI-023).
 
 ## Local environment notes
 - Dev DB has Super Admin `owner@example.test` (dev-only password `Dev-only password 1`, 2FA reset — enrol on first sign-in).

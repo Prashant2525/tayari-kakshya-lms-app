@@ -7,8 +7,23 @@ import { RedisService } from '../infra/redis/redis.provider.js';
 import { PasswordService } from '../modules/auth/password.service.js';
 import { RbacService } from '../modules/rbac/rbac.service.js';
 
+/** Content team role for browser tests of the content CMS (no 2FA is required for non-Super Admins by default). */
+const CONTENT_PERMISSIONS = [
+  'media:manage',
+  'taxonomy:manage',
+  'content:edit',
+  'content:publish',
+  'courses:edit',
+  'courses:publish',
+  'courses:pricing',
+  'instructors:manage',
+  'entitlements:grant',
+  'users:read',
+];
+
 /**
- * Resets the browser end-to-end test database (and its Redis logical DB) and creates one Super Admin.
+ * Resets the browser end-to-end test database (and its Redis logical DB) and creates one Super Admin, plus a
+ * content editor when E2E_EDITOR_EMAIL is set.
  * Refuses to run unless the database name ends with `_e2e` and APP_ENV is not production/staging.
  */
 async function main(): Promise<void> {
@@ -44,7 +59,27 @@ async function main(): Promise<void> {
         roles: { create: { roleId: role.id } },
       },
     });
-    console.log(`E2E database reset; Super Admin ${email} created.`);
+    const editorEmail = process.env['E2E_EDITOR_EMAIL'];
+    if (editorEmail) {
+      const editorRole = await prisma.role.create({
+        data: {
+          name: 'E2E Content Team',
+          permissions: { create: CONTENT_PERMISSIONS.map((permission) => ({ permission })) },
+        },
+      });
+      await prisma.user.create({
+        data: {
+          kind: 'staff',
+          email: editorEmail,
+          fullName: 'E2E Editor',
+          passwordHash,
+          roles: { create: { roleId: editorRole.id } },
+        },
+      });
+    }
+    console.log(
+      `E2E database reset; Super Admin ${email} created${editorEmail ? `, editor ${editorEmail}` : ''}.`,
+    );
   } finally {
     await app.close();
   }

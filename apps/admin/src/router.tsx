@@ -95,6 +95,21 @@ const routes = [
   }),
   createRoute({
     getParentRoute: () => appRoute,
+    path: '/media',
+    component: lazyRouteComponent(() => import('./features/media/media-page'), 'MediaPage'),
+  }),
+  createRoute({
+    getParentRoute: () => appRoute,
+    path: '/categories',
+    component: lazyRouteComponent(() => import('./features/taxonomy/categories-page'), 'CategoriesPage'),
+  }),
+  createRoute({
+    getParentRoute: () => appRoute,
+    path: '/papers',
+    component: lazyRouteComponent(() => import('./features/taxonomy/papers-page'), 'PapersPage'),
+  }),
+  createRoute({
+    getParentRoute: () => appRoute,
     path: '/education-levels',
     component: lazyRouteComponent(
       () => import('./features/config/education-levels-page'),

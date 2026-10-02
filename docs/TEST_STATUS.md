@@ -1,6 +1,6 @@
 # Test Status
 
-Last updated: 2026-10-02 (Phase 6, content API). `pnpm test` runs unit + integration suites (needs `pnpm infra:up`);
+Last updated: 2026-10-02 (Phase 6, content API + first admin content screens). `pnpm test` runs unit + integration suites (needs `pnpm infra:up`);
 `pnpm build && pnpm --filter @tk/admin e2e` runs the browser suite.
 
 ## Current results — all passing locally
@@ -11,9 +11,9 @@ Last updated: 2026-10-02 (Phase 6, content API). `pnpm test` runs unit + integra
 | `@tk/domain` | 24 | BS calendar, Kathmandu day boundary, fiscal year, money/VAT/discounts, access validity |
 | `@tk/contracts` | 16 | Schema behaviour (localized text, email normalisation, mass assignment, settings defaults, rich-text validation) |
 | `@tk/api` | 117 | Integration against real PostgreSQL + Redis + S3 (SeaweedFS) through the HTTP stack; TOTP RFC 6238 vectors; RBAC, video, watermark unit |
-| `@tk/admin` (unit) | 11 | API client (headers, refresh single-flight, retry, session loss, error mapping), BS formatting, Button `asChild` regression |
-| `@tk/admin` (E2E, Playwright) | 3 | Real browser + real API + `*_e2e` database |
-| **Total** | **210** | |
+| `@tk/admin` (unit) | 17 | API client (headers, refresh single-flight, retry, session loss, error mapping), BS formatting, Button `asChild` regression |
+| `@tk/admin` (E2E, Playwright) | 7 | Real browser + real API + `*_e2e` database |
+| **Total** | **220** | |
 
 ### Added in Phase 6 (content API)
 - **Media:** real-type sniffing rejects disguised files; images re-encoded to WebP variants with metadata stripped;
@@ -41,9 +41,22 @@ Last updated: 2026-10-02 (Phase 6, content API). `pnpm test` runs unit + integra
 - Browser walkthrough: 2FA code field showed the email (reused uncontrolled input) → keyed forms + E2E assertion.
 - Browser walkthrough: dashboard query fired during forced 2FA (403) → `can()` mirrors the server rule.
 
+### Added in Phase 6 (admin content screens)
+- **Browser E2E (content team, non-Super-Admin):** permission-aware navigation; media upload of an image and a PDF
+  (image re-encoded and rendered, PDF private), description saved, type filter; exam categories authority → post with
+  emblem from the media picker, auto URL name, allowed child types, publish, delete refused while not empty; papers
+  with marks validation, post links and status persisted.
+- **Unit:** multipart uploads in the API client, Button never submits a form unless `type="submit"`, slug/localised
+  text/image variant/size helpers.
+
 ### Bugs caught by verification in Phase 6
+- E2E: the media picker's **Choose** button submitted (and saved) the surrounding form → `Button` now defaults to
+  `type="button"` (+ regression test).
+- E2E: a form field named `nodeType` shadowed `HTMLFormElement.nodeType` (DOM clobbering), hiding the form from
+  Playwright's text/ARIA engines → renamed to `kind`. (Chrome's own accessibility tree was unaffected — checked via CDP.)
+- Screenshot review: "1 papers" → pluralised.
 - Watermark label contained a double space after stripping non-ASCII characters → whitespace collapsed.
 
 ## Not yet covered
-- Admin CMS content screens and their E2E tests (next).
+- Admin screens for subjects/chapters/topics/items, courses and access grants (next).
 - Load testing (Phase 16); content, exams, payments (later phases); student mobile app (Phase 8).

@@ -66,9 +66,11 @@ roles & staff management, settings screens, audit log viewer. Playwright smoke t
   admin access grants (until payments)
 - ☑ Student API: catalog (platform-aware prices, D-027), my courses, outline, items with server-side locking,
   watermarked PDF (T-029), video playback (YouTube nocookie, signed Bunny — awaiting credentials)
-- ☐ Admin screens: media library + picker, taxonomy tree, papers, content tree + TipTap editor, courses, access grants,
-  command palette, generic data table; preview-as-student
-- ☐ Playwright E2E for the content flow
+- ☑ Admin screens: media library + media picker, exam categories tree, papers (+ Playwright E2E, content-team account)
+- ☐ Admin screens: subjects → chapters → topics → items with TipTap note editor, PDF and video items; courses
+  (details, pricing, subjects, links, publishing); instructor profiles; staff scopes; student access grants;
+  preview-as-student; command palette + generic data table (KI-024)
+- ☐ Playwright E2E for the remaining content flow
 
 Original scope: exam taxonomy tree (drag/move), papers, subjects/chapters/topics (reorder/duplicate),
 courses (pricing fields, validity, instructors, subjects, exam links), instructor profiles, learning items (TipTap notes,

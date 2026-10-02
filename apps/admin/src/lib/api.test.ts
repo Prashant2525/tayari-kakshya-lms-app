@@ -29,6 +29,16 @@ describe('api client', () => {
     expect(init?.headers).toMatchObject({ 'X-TK-Client': 'admin', Authorization: 'Bearer token-1' });
   });
 
+  it('sends uploads as multipart without forcing a JSON content type', async () => {
+    fetchMock.mockResolvedValueOnce(json(201, { id: 'm1' }));
+    const form = new FormData();
+    form.append('visibility', 'public');
+    await api.upload('/admin/media', form);
+    const init = fetchMock.mock.calls[0]![1]!;
+    expect(init.body).toBe(form);
+    expect(init.headers).not.toHaveProperty('Content-Type');
+  });
+
   it('drops empty query parameters', async () => {
     fetchMock.mockResolvedValueOnce(json(200, []));
     await api.get('/admin/users', { q: '', status: undefined, limit: 25 });

@@ -4,6 +4,7 @@ import {
   type InputHTMLAttributes,
   type ReactNode,
   type SelectHTMLAttributes,
+  type TextareaHTMLAttributes,
 } from 'react';
 import { cn } from '@/lib/utils';
 
@@ -16,6 +17,12 @@ export const Input = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputE
 ) {
   return <input ref={ref} className={cn(control, 'h-10', className)} {...props} />;
 });
+
+export const Textarea = forwardRef<HTMLTextAreaElement, TextareaHTMLAttributes<HTMLTextAreaElement>>(
+  function Textarea({ className, rows = 3, ...props }, ref) {
+    return <textarea ref={ref} rows={rows} className={cn(control, 'py-2 leading-6', className)} {...props} />;
+  },
+);
 
 export const Select = forwardRef<HTMLSelectElement, SelectHTMLAttributes<HTMLSelectElement>>(function Select(
   { className, children, ...props },

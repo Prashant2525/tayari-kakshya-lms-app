@@ -1,6 +1,6 @@
 # Project State
 
-Current Phase: **Phase 6 — Academic/content CMS: IN PROGRESS** (API layer done and verified; admin screens next)
+Current Phase: **Phase 6 — Academic/content CMS: IN PROGRESS** (API done; admin: media, categories, papers done)
 Current Milestone: content API on `feature/content-cms` → Admin CMS content screens
 Overall Status: **IN PROGRESS**
 Last updated: 2026-10-02
@@ -20,9 +20,11 @@ Last updated: 2026-10-02
   - Student/public API: catalog (exam tree, course list/detail with platform-aware prices), my courses, subject outline,
     learning items with server-side locking, watermarked PDF stream, video playback (YouTube nocookie / signed Bunny),
     free-course enrolment (D-043).
+  - Admin CMS: media library + picker, exam categories tree, papers — verified in a real browser (E2E + screenshots
+    in light, dark and mobile).
 
 ## In Progress
-- Phase 6 Admin CMS screens (media library, taxonomy, content tree + TipTap editor, courses, access grants).
+- Phase 6 Admin CMS screens: subjects/chapters/topics/items (TipTap), courses, instructors, access grants.
 
 ## Remaining
 - Phase 6 admin screens + E2E; Phases 7–18 (`IMPLEMENTATION_PLAN.md`).
@@ -44,7 +46,7 @@ Last updated: 2026-10-02
 - Not started (Phase 8 / Phase 11).
 
 ## Tests
-- Unit/integration 207 · browser E2E 3 — all passing locally (see `TEST_STATUS.md`).
+- Unit/integration 213 · browser E2E 7 — all passing locally (see `TEST_STATUS.md`).
 
 ## Known Issues
 - See `KNOWN_ISSUES.md` (KI-021 CI storage flake under investigation, KI-022 per-request PDF watermarking, KI-023 Bunny token auth).
@@ -56,8 +58,8 @@ Last updated: 2026-10-02
 - None open. L6 answered: free courses use an Enrol step (D-043, implemented).
 
 ## Credentials Required
-- Bunny Stream: **provided** (local `.env` only, API key verified). Owner to enable Token Authentication in the
-  Bunny library (KI-023). Optional: `YOUTUBE_API_KEY` for automatic title/duration.
+- Bunny Stream: **provided** (local `.env` only, API key verified). **Token Authentication is OFF in the Bunny
+  library — premium videos are not protected until the owner enables it (KI-023).** Optional: `YOUTUBE_API_KEY` for automatic title/duration.
 - Cloudflare R2 bucket + keys before staging/production (local dev uses SeaweedFS).
 
 ## Launch configuration checklist (owner enters in CMS before go-live)
@@ -73,5 +75,4 @@ and `pnpm --filter @tk/admin dev` → create your Super Admin:
 (code in Mailpit http://localhost:8025) → set password at http://localhost:5173/set-password → sign in → enrol 2FA.
 
 ## Exact Next Task
-- Confirm CI is green for the content API commit, then build the Phase 6 Admin CMS screens, starting with the media
-  library and the exam taxonomy tree.
+- Admin CMS: subjects → chapters → topics → learning items (TipTap note editor, PDF and video items).

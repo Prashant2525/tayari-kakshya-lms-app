@@ -14,6 +14,25 @@ describe('Button', () => {
     expect(link.className).toContain('bg-primary');
   });
 
+  it('does not submit a surrounding form unless it is a submit button (regression: media picker saved the form)', () => {
+    let submits = 0;
+    render(
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          submits += 1;
+        }}
+      >
+        <Button>Choose</Button>
+        <Button type="submit">Save</Button>
+      </form>,
+    );
+    screen.getByRole('button', { name: 'Choose' }).click();
+    expect(submits).toBe(0);
+    screen.getByRole('button', { name: 'Save' }).click();
+    expect(submits).toBe(1);
+  });
+
   it('disables itself and marks busy while loading', () => {
     render(<Button loading>Save</Button>);
     const button = screen.getByRole('button', { name: 'Save' });

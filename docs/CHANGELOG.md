@@ -16,9 +16,13 @@ All notable changes to this project. Format based on Keep a Changelog.
 - Free-course enrolment (`POST /courses/:id/enrol`, D-043) with access validity from the course settings
   (`accessEndsAt` in `@tk/domain`; fixed dates end at midnight Nepal time).
 - Tests never use real video-provider keys from a developer `.env`.
+- Admin CMS: **Media library** (multi-file upload, public/private, preview, descriptions, delete), reusable media
+  picker, **Exam categories** tree (add inside, edit/move, publish/unpublish/archive, reorder, delete/restore) and
+  **Papers** (marks, time, pattern, linked posts, status); "Content" navigation group.
 
 ### Fixed
 - CI: SeaweedFS readiness wait and volume settings; server errors now logged in CI test output.
+- Admin `Button` no longer submits forms by default; renamed a form field that clobbered `form.nodeType`.
 
 ### Added — 2026-10-02 (Phase 5: Admin CMS foundation)
 - Staff two-factor authentication (TOTP + recovery codes, encrypted secrets, replay protection, policy setting with

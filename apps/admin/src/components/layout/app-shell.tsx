@@ -1,7 +1,10 @@
 import type { Permission } from '@tk/contracts';
 import { Link, Navigate, Outlet, useRouterState } from '@tanstack/react-router';
 import {
+  FileText,
+  FolderTree,
   GraduationCap,
+  Images,
   LayoutDashboard,
   LogOut,
   Menu,
@@ -33,6 +36,14 @@ interface NavItem {
 
 const NAV: Array<{ group: string; items: NavItem[] }> = [
   { group: 'Overview', items: [{ to: '/', label: 'Dashboard', icon: LayoutDashboard }] },
+  {
+    group: 'Content',
+    items: [
+      { to: '/categories', label: 'Exam categories', icon: FolderTree, permission: 'taxonomy:manage' },
+      { to: '/papers', label: 'Papers', icon: FileText, permission: 'taxonomy:manage' },
+      { to: '/media', label: 'Media library', icon: Images, permission: 'media:manage' },
+    ],
+  },
   {
     group: 'People',
     items: [
