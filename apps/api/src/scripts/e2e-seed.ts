@@ -3,6 +3,7 @@ import 'reflect-metadata';
 import { NestFactory } from '@nestjs/core';
 import { DomainModule } from '../app.module.js';
 import { PrismaService } from '../infra/prisma/prisma.service.js';
+import { DEFAULT_NODE_TYPES } from '../modules/content/default-node-types.js';
 import { RedisService } from '../infra/redis/redis.provider.js';
 import { PasswordService } from '../modules/auth/password.service.js';
 import { RbacService } from '../modules/rbac/rbac.service.js';
@@ -49,6 +50,8 @@ async function main(): Promise<void> {
     await prisma.$executeRawUnsafe(
       `TRUNCATE TABLE ${tables.map((t) => `"${t.tablename}"`).join(', ')} RESTART IDENTITY CASCADE`,
     );
+    // Restore reference data that migrations seed (category types).
+    await prisma.examNodeType.createMany({ data: [...DEFAULT_NODE_TYPES] });
     // Clear rate-limit counters from previous runs (E2E Redis logical database only).
     await app.get(RedisService).client.flushdb();
     const role = await app.get(RbacService).ensureSuperAdminRole();

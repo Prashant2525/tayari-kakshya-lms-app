@@ -1,7 +1,8 @@
 import type { QuestionType } from '@tk/contracts';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { Link, useNavigate } from '@tanstack/react-router';
-import { Flag, Plus, Search } from 'lucide-react';
+import { Download, Flag, Plus, Search } from 'lucide-react';
+import { toast } from 'sonner';
 import { DropdownMenu } from 'radix-ui';
 import { useState } from 'react';
 import { StatusBadge } from '@/components/content/status';
@@ -9,11 +10,11 @@ import { Button } from '@/components/ui/button';
 import { Input, Select } from '@/components/ui/form';
 import { Badge, Card, EmptyState, ErrorState, PageHeader, Spinner } from '@/components/ui/primitives';
 import { Table, TBody, TD, TH, THead, TR } from '@/components/ui/table';
-import { api } from '@/lib/api';
+import { api, errorMessage } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import type { CursorPage, SubjectRow } from '@/lib/content';
 import { formatRelative, localized } from '@/lib/format';
-import { DIFFICULTY_LABEL, QUESTION_TYPE_LABEL, type QuestionRow } from '@/lib/questions';
+import { DIFFICULTY_LABEL, QUESTION_TYPE_LABEL, useQuestionTypes, type QuestionRow } from '@/lib/questions';
 
 const TYPES = Object.keys(QUESTION_TYPE_LABEL) as QuestionType[];
 const menuItem =
@@ -22,6 +23,8 @@ const menuItem =
 export function QuestionsPage() {
   const navigate = useNavigate();
   const { can } = useAuth();
+  const questionTypes = useQuestionTypes();
+  const [downloading, setDownloading] = useState(false);
   const [filters, setFilters] = useState({
     q: '',
     subjectId: '',
@@ -53,30 +56,48 @@ export function QuestionsPage() {
         description="Questions are shared by quizzes, tests and mock exams. Edits create a new version; past attempts keep what students saw."
         actions={
           can('questions:edit') ? (
-            <DropdownMenu.Root>
-              <DropdownMenu.Trigger asChild>
-                <Button>
-                  <Plus /> New question
-                </Button>
-              </DropdownMenu.Trigger>
-              <DropdownMenu.Portal>
-                <DropdownMenu.Content
-                  align="end"
-                  sideOffset={4}
-                  className="z-50 min-w-56 rounded-md border border-border bg-surface-raised p-1 shadow-e2"
-                >
-                  {TYPES.map((t) => (
-                    <DropdownMenu.Item
-                      key={t}
-                      className={menuItem}
-                      onSelect={() => void navigate({ to: '/questions/new', search: { type: t } })}
-                    >
-                      {QUESTION_TYPE_LABEL[t]}
-                    </DropdownMenu.Item>
-                  ))}
-                </DropdownMenu.Content>
-              </DropdownMenu.Portal>
-            </DropdownMenu.Root>
+            <>
+              <Button
+                variant="secondary"
+                loading={downloading}
+                onClick={async () => {
+                  setDownloading(true);
+                  try {
+                    await api.download('/admin/questions/import-template', 'question-import-template.xlsx');
+                  } catch (err) {
+                    toast.error(errorMessage(err));
+                  } finally {
+                    setDownloading(false);
+                  }
+                }}
+              >
+                <Download /> Import template
+              </Button>
+              <DropdownMenu.Root>
+                <DropdownMenu.Trigger asChild>
+                  <Button>
+                    <Plus /> New question
+                  </Button>
+                </DropdownMenu.Trigger>
+                <DropdownMenu.Portal>
+                  <DropdownMenu.Content
+                    align="end"
+                    sideOffset={4}
+                    className="z-50 min-w-56 rounded-md border border-border bg-surface-raised p-1 shadow-e2"
+                  >
+                    {questionTypes.enabled.map((t) => (
+                      <DropdownMenu.Item
+                        key={t}
+                        className={menuItem}
+                        onSelect={() => void navigate({ to: '/questions/new', search: { type: t } })}
+                      >
+                        {questionTypes.label(t)}
+                      </DropdownMenu.Item>
+                    ))}
+                  </DropdownMenu.Content>
+                </DropdownMenu.Portal>
+              </DropdownMenu.Root>
+            </>
           ) : undefined
         }
       />
@@ -114,7 +135,7 @@ export function QuestionsPage() {
             <option value="">All types</option>
             {TYPES.map((t) => (
               <option key={t} value={t}>
-                {QUESTION_TYPE_LABEL[t]}
+                {questionTypes.label(t)}
               </option>
             ))}
           </Select>
@@ -211,7 +232,7 @@ export function QuestionsPage() {
                         ) : null}
                       </div>
                     </TD>
-                    <TD className="whitespace-nowrap text-text-secondary">{QUESTION_TYPE_LABEL[q.type]}</TD>
+                    <TD className="whitespace-nowrap text-text-secondary">{questionTypes.label(q.type)}</TD>
                     <TD className="text-text-secondary">
                       {localized(q.subject)}
                       {q.topic ? (

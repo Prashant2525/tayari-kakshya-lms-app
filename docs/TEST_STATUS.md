@@ -10,10 +10,22 @@ Last updated: 2026-10-03 (Phase 7, question bank backend). `pnpm test` runs unit
 | `@tk/design-tokens` | 39 | WCAG contrast for every text/background pair (light + dark), CSS generation |
 | `@tk/domain` | 39 | BS calendar, Kathmandu day boundary, fiscal year, money/VAT/discounts, access validity |
 | `@tk/contracts` | 21 | Schema behaviour (localized text, email normalisation, mass assignment, settings defaults, rich-text validation) |
-| `@tk/api` | 129 | Integration against real PostgreSQL + Redis + S3 (SeaweedFS) through the HTTP stack; TOTP RFC 6238 vectors; RBAC, video, watermark unit |
+| `@tk/api` | 140 | Integration against real PostgreSQL + Redis + S3 (SeaweedFS) through the HTTP stack; TOTP RFC 6238 vectors; RBAC, video, watermark unit |
 | `@tk/admin` (unit) | 33 | API client (headers, refresh single-flight, retry, session loss, error mapping), BS formatting, Button `asChild` regression |
-| `@tk/admin` (E2E, Playwright) | 15 | Real browser + real API + `*_e2e` database |
-| **Total** | **276** | |
+| `@tk/admin` (E2E, Playwright) | 17 | Real browser + real API + `*_e2e` database |
+| **Total** | **289** | |
+
+### Added with the dynamic admin audit
+- **API:** PSC-style tree with sub-group and exam stage; hierarchy rules read from the types table; papers on exam
+  stages; type rank/flag changes refused when existing categories would break; in-use types cannot be deleted; off
+  types unusable for new categories; only taxonomy managers edit types; disabled question types refused; labels in
+  `/app/config`; template download with live lists (questions:edit only).
+- **Unit:** template sheets/columns/version, dropdowns and numeric validations survive a write/read round trip, every
+  example row (all 7 types) parses into valid content, row parser reports the exact column for each problem.
+- **Migration check:** on a scratch database with categories, `exam_node_types` kept every node's type, dropped the
+  old enum and rejected an unknown type.
+- **Browser E2E:** category types page (add a level, rename an in-use type, exam stage offered under a post);
+  template download from the Question bank.
 
 ### Added in Phase 7 (question bank admin screens)
 - **Unit:** every question type round-trips API → editor → API unchanged; readable validation messages; blank and

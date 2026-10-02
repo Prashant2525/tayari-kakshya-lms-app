@@ -12,6 +12,7 @@ import { GoogleVerifier, type GoogleIdentity } from '../src/modules/auth/google-
 import { RbacService } from '../src/modules/rbac/rbac.service.js';
 import { SettingsService } from '../src/modules/settings/settings.service.js';
 import type { SettingKey } from '@tk/contracts';
+import { DEFAULT_NODE_TYPES } from '../src/modules/content/default-node-types.js';
 
 export class FakeGoogleVerifier extends GoogleVerifier {
   readonly tokens = new Map<string, GoogleIdentity>();
@@ -67,6 +68,8 @@ export async function createTestApp(): Promise<TestContext> {
       await prisma.$executeRawUnsafe(
         `TRUNCATE TABLE ${tables.map((t) => `"${t.tablename}"`).join(', ')} RESTART IDENTITY CASCADE`,
       );
+      // Reference data the migrations seed (category types) must exist in every test.
+      await prisma.examNodeType.createMany({ data: [...DEFAULT_NODE_TYPES] });
       await redis.client.flushdb();
       settings.clearCache();
       // Default for tests: staff MFA not enforced. MFA behaviour is covered explicitly in mfa.e2e.test.ts.

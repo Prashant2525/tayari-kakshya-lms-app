@@ -1,6 +1,6 @@
 # Project State
 
-Current Phase: **Phase 7 — Question bank + assessment CMS: IN PROGRESS** (question bank done: API + admin screens)
+Current Phase: **Phase 7 — Question bank + assessment CMS: IN PROGRESS** (question bank done; dynamic-admin audit applied)
 Current Milestone: content API on `feature/content-cms` → Admin CMS content screens
 Overall Status: **IN PROGRESS**
 Last updated: 2026-10-02
@@ -25,8 +25,9 @@ Last updated: 2026-10-02
     limits — verified in a real browser (E2E + screenshots in light, dark, mobile).
 
 ## In Progress
-- Phase 7 on `feature/question-bank`: CSV/XLSX import next, then assessments.
-- Phase 6 merged (PR #5, #6). Owner action: enable Bunny **CDN** token authentication (KI-023).
+- Phase 7 on `feature/question-bank`: XLSX import (preview + confirm) next, then assessments.
+- Dynamic admin audit done (`DYNAMIC_ADMIN_AUDIT.md`, D-045): category types and question types are now admin-managed.
+- Phase 6 merged (PR #5, #6). Bunny security verified (KI-023 resolved).
 
 ## Remaining
 - Phases 7–18 (`IMPLEMENTATION_PLAN.md`).
@@ -48,7 +49,7 @@ Last updated: 2026-10-02
 - Not started (Phase 8 / Phase 11).
 
 ## Tests
-- Unit/integration 261 · browser E2E 15 — all passing locally (see `TEST_STATUS.md`).
+- Unit/integration 272 · browser E2E 17 — all passing locally (see `TEST_STATUS.md`).
 
 ## Known Issues
 - See `KNOWN_ISSUES.md` (KI-021 CI storage flake under investigation, KI-022 per-request PDF watermarking, KI-023 Bunny token auth).
@@ -60,8 +61,7 @@ Last updated: 2026-10-02
 - None open. L6 answered: free courses use an Enrol step (D-043, implemented).
 
 ## Credentials Required
-- Bunny Stream: **provided** (local `.env` only, API key verified). **Token Authentication is OFF in the Bunny
-  library — premium videos are not protected until the owner enables it (KI-023).** Optional: `YOUTUBE_API_KEY` for automatic title/duration.
+- Bunny Stream: **provided** (local `.env` only). Embed + CDN token authentication on and verified (T-031). Optional: `YOUTUBE_API_KEY` for automatic title/duration.
 - Cloudflare R2 bucket + keys before staging/production (local dev uses SeaweedFS).
 
 ## Launch configuration checklist (owner enters in CMS before go-live)
@@ -77,4 +77,4 @@ and `pnpm --filter @tk/admin dev` → create your Super Admin:
 (code in Mailpit http://localhost:8025) → set password at http://localhost:5173/set-password → sign in → enrol 2FA.
 
 ## Exact Next Task
-- Question import from CSV/XLSX with a validation preview (needs an import template agreed with the owner).
+- XLSX question import: upload, preview with row/column problems and name resolution, confirm (template D-046).

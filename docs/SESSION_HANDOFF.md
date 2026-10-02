@@ -2,7 +2,7 @@
 
 Session date: 2026-10-02 (session 4 — resumed after a VS Code crash)
 Current phase: **Phase 6 — content CMS, API layer complete and verified locally**
-Current task: Phase 7 — question bank done (API + admin + E2E); import next (branch `feature/question-bank`)
+Current task: Phase 7 — dynamic-admin audit applied; XLSX import next (branch `feature/question-bank`)
 
 ## Completed this session
 - Recovered the interrupted work from the repository (nothing lost). Verified the uncommitted content API:
@@ -37,6 +37,13 @@ Current task: Phase 7 — question bank done (API + admin + E2E); import next (b
 - Reports to the owner end with a **"What you need to do"** checklist (owner request).
 - Question bank admin screens + reports queue; taxonomy/subject reads opened to course/question editors (bug fix).
 
+## Session 6 (2026-10-03)
+- Owner enabled Bunny CDN token auth + allowed domains → verified against Bunny docs and live (T-031, KI-023
+  resolved). Signed embed lifetime cut to 5 min. React Native plan: signed embed in a WebView.
+- Owner added the **fully dynamic admin** requirement → `DYNAMIC_ADMIN_AUDIT.md` + D-045. Implemented:
+  admin-managed category types (migration converts the enum in place; verified on a scratch DB), question types
+  switch, universal import template (D-046) + row parser. Test/E2E resets restore default category types.
+
 ## Decisions taken during implementation
 - T-020 resolved (SeaweedFS), T-025 (API-validated uploads), T-026 (live-edit rule), T-027 (archived courses stay
   visible to entitled students), T-028 (instructor scopes). See `DECISIONS.md`.
@@ -46,9 +53,9 @@ Current task: Phase 7 — question bank done (API + admin + E2E); import next (b
 
 ## Exact next steps
 1. Confirm CI for the latest commit (`gh run list --branch feature/content-cms`).
-2. CSV/XLSX import with validation preview (owner to share a sample of their existing question sheets).
+2. XLSX import: upload → parse with `parseQuestionRow` → resolve subject/chapter/topic/category path/paper/passage by
+   name → preview (problems per row/column) → confirm → drafts; E2E with the template's example rows.
 3. Assessments schema + builder (D-021/D-044), then grading/results with the attempt engine.
-4. When the owner enables Bunny CDN token auth, re-run the stream check (KI-023).
 
 ## Files changed
 - See `CHANGELOG.md` → Phase 6.
@@ -57,7 +64,7 @@ Current task: Phase 7 — question bank done (API + admin + E2E); import next (b
 - Migration `content_catalog`; endpoints in `API_DOCUMENTATION.md` §1b.
 
 ## Tests run
-- `pnpm format:check && pnpm build && pnpm lint && pnpm typecheck && pnpm test` → all passing, 261 tests; `pnpm --filter @tk/admin e2e` → 15 passing.
+- `pnpm format:check && pnpm build && pnpm lint && pnpm typecheck && pnpm test` → all passing, 272 tests; `pnpm --filter @tk/admin e2e` → 17 passing.
 
 ## Known issues / blockers
 - KI-021 (CI-only media failure — fix pending CI confirmation), KI-022 (per-request watermark cost). No blockers.

@@ -364,18 +364,31 @@ enum AccessLevel {
 
 // ───────────────────────────── Exam taxonomy (D-007, D-010) ─────────────────────────────
 
-enum ExamNodeType {
-  authority
-  level
-  service
-  group
-  post
+/// Admin-managed category types (audit §4.1): authority, level, service, group, sub-group, post, exam stage…
+/// A node's type must rank lower in the hierarchy (higher `rank`) than its parent's.
+model ExamNodeType {
+  /// Stable identifier used by APIs and imports; never changes.
+  key           String   @id @db.VarChar(40)
+  name          Json
+  description   Json?
+  rank          Int
+  /// Top-level types have no parent; every other type needs one.
+  topLevel      Boolean  @default(false) @map("top_level")
+  /// Papers can be linked to nodes of this type (posts, exam stages).
+  canHavePapers Boolean  @default(false) @map("can_have_papers")
+  active        Boolean  @default(true)
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  nodes ExamNode[]
+
+  @@map("exam_node_types")
 }
 
 model ExamNode {
   id          String        @id @default(uuid(7)) @db.Uuid
   parentId    String?       @map("parent_id") @db.Uuid
-  nodeType    ExamNodeType  @map("node_type")
+  nodeType    String        @map("node_type") @db.VarChar(40)
   /// LocalizedText
   name        Json
   slug        String
@@ -389,6 +402,7 @@ model ExamNode {
   updatedAt   DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
   deletedAt   DateTime?     @map("deleted_at") @db.Timestamptz(6)
 
+  type            ExamNodeType     @relation(fields: [nodeType], references: [key], onDelete: Restrict)
   parent          ExamNode?        @relation("ExamNodeTree", fields: [parentId], references: [id], onDelete: Restrict)
   children        ExamNode[]       @relation("ExamNodeTree")
   icon            MediaAsset?      @relation(fields: [iconMediaId], references: [id], onDelete: SetNull)

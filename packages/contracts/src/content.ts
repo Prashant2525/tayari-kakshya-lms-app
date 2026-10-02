@@ -9,17 +9,24 @@ export type PublishStatus = z.infer<typeof PublishStatus>;
 export const AccessLevel = z.enum(['free', 'premium']);
 export type AccessLevel = z.infer<typeof AccessLevel>;
 export const ContentLanguage = z.enum(['en', 'ne', 'both']);
-export const ExamNodeType = z.enum(['authority', 'level', 'service', 'group', 'post']);
+/**
+ * Category type key (admin-managed, DYNAMIC_ADMIN_AUDIT §4.1), e.g. "authority", "post", "exam_stage".
+ * Hierarchy rules (rank, top level, papers) live in the `exam_node_types` table, not in code.
+ */
+export const ExamNodeType = z.string().regex(/^[a-z][a-z0-9_]{1,39}$/, 'Use lowercase letters, digits and _');
 export type ExamNodeType = z.infer<typeof ExamNodeType>;
 
-/** Hierarchy order; a child's rank must be greater than its parent's (D-010). */
-export const EXAM_NODE_RANK: Record<ExamNodeType, number> = {
-  authority: 0,
-  level: 1,
-  service: 2,
-  group: 3,
-  post: 4,
-};
+export const ExamNodeTypeInput = z.object({
+  key: ExamNodeType,
+  name: LocalizedText,
+  description: LocalizedText.nullable().optional(),
+  /** Lower rank = higher in the hierarchy; a child must have a higher rank than its parent. */
+  rank: z.number().int().min(1).max(1000),
+  topLevel: z.boolean().default(false),
+  canHavePapers: z.boolean().default(false),
+  active: z.boolean().default(true),
+});
+export type ExamNodeTypeInput = z.infer<typeof ExamNodeTypeInput>;
 
 export const Slug = z
   .string()

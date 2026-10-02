@@ -22,6 +22,7 @@ import { Table, TBody, TD, TH, THead, TR } from '@/components/ui/table';
 import { api, errorMessage } from '@/lib/api';
 import { toLocalized, type ExamNode, type Paper } from '@/lib/content';
 import { localized } from '@/lib/format';
+import { useNodeTypes } from '@/lib/node-types';
 
 const optionalNumber = (max: number, integer = false) =>
   z
@@ -212,7 +213,12 @@ export function PapersPage() {
     queryKey: ['exam-nodes', { showDeleted: false }],
     queryFn: () => api.get<ExamNode[]>('/admin/exam-nodes'),
   });
-  const posts = useMemo(() => (nodes.data ?? []).filter((n) => n.nodeType === 'post'), [nodes.data]);
+  const nodeTypes = useNodeTypes();
+  // Papers link to categories whose type allows papers (posts, exam stages…), configured under Category types.
+  const posts = useMemo(
+    () => (nodes.data ?? []).filter((n) => nodeTypes.byKey.get(n.nodeType)?.canHavePapers),
+    [nodes.data, nodeTypes.byKey],
+  );
   const [q, setQ] = useState('');
   const [editing, setEditing] = useState<Paper | 'new' | null>(null);
   const [deleting, setDeleting] = useState<Paper | null>(null);

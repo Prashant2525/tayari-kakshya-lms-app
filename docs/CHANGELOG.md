@@ -4,6 +4,18 @@ All notable changes to this project. Format based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Added — 2026-10-03 (dynamic admin audit)
+- `docs/DYNAMIC_ADMIN_AUDIT.md`: inventory of what is admin-managed, hard-coded or intentionally code-controlled.
+- **Category types** are admin-managed (`exam_node_types`): rename, re-order, add levels such as sub-group and exam
+  stage, attach papers to any type that allows them; new "Category types" page; public `/exam-node-types`.
+- **Question types** can be switched off and renamed in System settings; `/app/config` publishes them.
+- **Question import template** (`docs/templates/question-import-template.xlsx`, also downloadable from the Question
+  bank with live dropdowns) and the row parser the importer will use.
+
+### Changed
+- Signed Bunny embed links last 5 minutes (was 4 hours) — verified safe for long videos.
+- Course editor checkboxes keep type hints out of the accessible name.
+
 ### Added — 2026-10-03 (Phase 7: question bank, backend)
 - Scoring engine in `@tk/domain`: all question types, configurable partial credit, negative marking, optional zero
   floor, exact centimark arithmetic (D-044, T-030).

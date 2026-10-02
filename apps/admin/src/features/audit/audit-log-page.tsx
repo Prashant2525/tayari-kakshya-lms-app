@@ -21,7 +21,26 @@ interface AuditEntry {
   actor: { id: string; fullName: string; email: string | null; kind: string } | null;
 }
 
-const ENTITY_TYPES = ['user', 'role', 'system_setting', 'education_level', 'auth_session'];
+const ENTITY_TYPES = [
+  'user',
+  'role',
+  'system_setting',
+  'education_level',
+  'auth_session',
+  'media_asset',
+  'exam_node',
+  'exam_node_type',
+  'paper',
+  'subject',
+  'chapter',
+  'topic',
+  'learning_item',
+  'course',
+  'entitlement',
+  'question',
+  'question_group',
+  'question_report',
+];
 
 function describeAction(action: string): string {
   return action.replace(/[._]/g, ' ').replace(/^\w/, (c) => c.toUpperCase());

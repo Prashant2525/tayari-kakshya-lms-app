@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import {
-  EXAM_NODE_RANK,
   ErrorCode,
   type ExamNodeInput,
+  type ExamNodeTypeInput,
   type LocalizedText,
   type PaperInput,
   type PublishStatus,
@@ -21,6 +21,7 @@ export interface Actor {
   client: ClientInfo;
 }
 
+const typeName = (t: { key: string; name: unknown }) => (t.name as LocalizedText).en ?? t.key;
 const json = (v: unknown) => (v ?? Prisma.DbNull) as Prisma.InputJsonValue;
 const num = (d: Prisma.Decimal | null) => (d === null ? null : Number(d));
 
@@ -33,6 +34,143 @@ export class TaxonomyService {
     private readonly media: MediaService,
     private readonly storage: StorageService,
   ) {}
+
+  // ───────────── Category types (admin-managed, DYNAMIC_ADMIN_AUDIT §4.1) ─────────────
+
+  async listTypes(activeOnly: boolean) {
+    const types = await this.prisma.examNodeType.findMany({
+      where: activeOnly ? { active: true } : {},
+      orderBy: [{ rank: 'asc' }, { key: 'asc' }],
+      include: { _count: { select: { nodes: { where: { deletedAt: null } } } } },
+    });
+    return types.map((t) => ({
+      key: t.key,
+      name: t.name as LocalizedText,
+      description: (t.description as LocalizedText | null) ?? null,
+      rank: t.rank,
+      topLevel: t.topLevel,
+      canHavePapers: t.canHavePapers,
+      active: t.active,
+      nodeCount: t._count.nodes,
+    }));
+  }
+
+  async createType(input: ExamNodeTypeInput, actor: Actor) {
+    if (await this.prisma.examNodeType.findUnique({ where: { key: input.key } })) {
+      throw new AppError(409, ErrorCode.CONFLICT, 'A category type with this key already exists', {
+        field: 'key',
+      });
+    }
+    await this.prisma.$transaction(async (tx) => {
+      await tx.examNodeType.create({ data: this.typeData(input) });
+      await this.logType(tx, actor, 'exam_node_type.create', { after: input });
+    });
+    return (await this.listTypes(false)).find((t) => t.key === input.key);
+  }
+
+  /** The key is permanent; rank and flags may change only if existing categories still fit the new rules. */
+  async updateType(key: string, input: ExamNodeTypeInput, actor: Actor) {
+    const before = await this.prisma.examNodeType.findUnique({ where: { key } });
+    if (!before) throw Errors.notFound('Category type');
+    if (input.key !== key) {
+      throw Errors.validation([{ path: 'key', message: 'The key of a category type cannot change' }]);
+    }
+    if (input.rank !== before.rank) {
+      // A child must rank below its parent: check both directions for live categories of this type.
+      const [underParent, overChild] = await Promise.all([
+        this.prisma.examNode.count({
+          where: {
+            nodeType: key,
+            deletedAt: null,
+            parent: { deletedAt: null, type: { rank: { gte: input.rank } } },
+          },
+        }),
+        this.prisma.examNode.count({
+          where: {
+            deletedAt: null,
+            type: { rank: { lte: input.rank } },
+            parent: { nodeType: key, deletedAt: null },
+          },
+        }),
+      ]);
+      if (underParent + overChild > 0) {
+        throw Errors.conflict(
+          ErrorCode.CONFLICT,
+          'Existing categories would no longer fit this order. Move them first.',
+          { conflicts: underParent + overChild },
+        );
+      }
+    }
+    if (input.topLevel !== before.topLevel) {
+      const misplaced = await this.prisma.examNode.count({
+        where: { nodeType: key, deletedAt: null, parentId: input.topLevel ? { not: null } : null },
+      });
+      if (misplaced > 0) {
+        throw Errors.conflict(
+          ErrorCode.CONFLICT,
+          input.topLevel
+            ? 'Some categories of this type sit inside another category'
+            : 'Some categories of this type are top-level',
+          { conflicts: misplaced },
+        );
+      }
+    }
+    if (before.canHavePapers && !input.canHavePapers) {
+      const linked = await this.prisma.postPaper.count({ where: { examNode: { nodeType: key } } });
+      if (linked > 0) {
+        throw Errors.conflict(
+          ErrorCode.CONFLICT,
+          'Papers are linked to categories of this type. Unlink them first.',
+          { conflicts: linked },
+        );
+      }
+    }
+    await this.prisma.$transaction(async (tx) => {
+      await tx.examNodeType.update({ where: { key }, data: this.typeData(input) });
+      await this.logType(tx, actor, 'exam_node_type.update', {
+        key,
+        before: { rank: before.rank, active: before.active, topLevel: before.topLevel },
+        after: input,
+      });
+    });
+    return (await this.listTypes(false)).find((t) => t.key === key);
+  }
+
+  async deleteType(key: string, actor: Actor) {
+    const type = await this.prisma.examNodeType.findUnique({
+      where: { key },
+      include: { _count: { select: { nodes: true } } },
+    });
+    if (!type) throw Errors.notFound('Category type');
+    if (type._count.nodes > 0) {
+      throw Errors.conflict(ErrorCode.CONFLICT, 'Categories use this type. Turn it off instead.', {
+        categories: type._count.nodes,
+      });
+    }
+    await this.prisma.$transaction(async (tx) => {
+      await tx.examNodeType.delete({ where: { key } });
+      await this.logType(tx, actor, 'exam_node_type.delete', { key });
+    });
+  }
+
+  private typeData(input: ExamNodeTypeInput) {
+    return {
+      key: input.key,
+      name: input.name,
+      description: json(input.description),
+      rank: input.rank,
+      topLevel: input.topLevel,
+      canHavePapers: input.canHavePapers,
+      active: input.active,
+    };
+  }
+
+  private logType(tx: Prisma.TransactionClient, actor: Actor, action: string, changes: object) {
+    return this.audit.record(
+      { actorUserId: actor.userId, action, entityType: 'exam_node_type', changes, client: actor.client },
+      tx,
+    );
+  }
 
   // ───────────── Exam nodes ─────────────
 
@@ -52,7 +190,7 @@ export class TaxonomyService {
   }
 
   /** Student-facing browse: published nodes under a parent (or roots), in order. */
-  async publicNodes(parentId: string | null, nodeType?: ExamNode['nodeType']) {
+  async publicNodes(parentId: string | null, nodeType?: string) {
     const nodes = await this.prisma.examNode.findMany({
       where: { ...publishedWhere, parentId, ...(nodeType ? { nodeType } : {}) },
       include: { icon: true },
@@ -392,29 +530,47 @@ export class TaxonomyService {
 
   // ───────────── helpers ─────────────
 
+  private async typeOf(key: string, path = 'nodeType') {
+    const type = await this.prisma.examNodeType.findUnique({ where: { key } });
+    if (!type) throw Errors.validation([{ path, message: 'Unknown category type' }]);
+    return type;
+  }
+
+  /** Hierarchy rules come from the admin-managed category types (rank, top level). */
   private async validateNode(input: ExamNodeInput, selfId: string | null): Promise<void> {
-    if (input.nodeType === 'authority') {
-      if (input.parentId)
-        throw Errors.validation([{ path: 'parentId', message: 'Authorities are top-level categories' }]);
+    const type = await this.typeOf(input.nodeType);
+    const before = selfId ? await this.prisma.examNode.findUnique({ where: { id: selfId } }) : null;
+    if (!type.active && before?.nodeType !== input.nodeType) {
+      throw Errors.validation([{ path: 'nodeType', message: 'This category type is turned off' }]);
+    }
+    const name = typeName(type);
+    if (type.topLevel) {
+      if (input.parentId) {
+        throw Errors.validation([{ path: 'parentId', message: `${name} is a top-level category` }]);
+      }
     } else {
       if (!input.parentId)
         throw Errors.validation([{ path: 'parentId', message: 'Choose where this belongs' }]);
-      if (input.parentId === selfId)
+      if (input.parentId === selfId) {
         throw Errors.validation([{ path: 'parentId', message: 'An item cannot contain itself' }]);
-      const parent = await this.prisma.examNode.findFirst({ where: { id: input.parentId, deletedAt: null } });
+      }
+      const parent = await this.prisma.examNode.findFirst({
+        where: { id: input.parentId, deletedAt: null },
+        include: { type: true },
+      });
       if (!parent) throw Errors.validation([{ path: 'parentId', message: 'Parent category not found' }]);
-      if (EXAM_NODE_RANK[input.nodeType] <= EXAM_NODE_RANK[parent.nodeType]) {
+      if (type.rank <= parent.type.rank) {
         throw Errors.validation([
-          { path: 'nodeType', message: `A ${input.nodeType} cannot be placed under a ${parent.nodeType}` },
+          { path: 'nodeType', message: `A ${name} cannot be placed under a ${typeName(parent.type)}` },
         ]);
       }
     }
     if (selfId) {
       const children = await this.prisma.examNode.findMany({
         where: { parentId: selfId, deletedAt: null },
-        select: { nodeType: true },
+        include: { type: true },
       });
-      if (children.some((c) => EXAM_NODE_RANK[c.nodeType] <= EXAM_NODE_RANK[input.nodeType])) {
+      if (children.some((c) => c.type.rank <= type.rank)) {
         throw Errors.validation([
           { path: 'nodeType', message: 'Items inside this category would no longer fit under it' },
         ]);
@@ -426,10 +582,13 @@ export class TaxonomyService {
   private async assertPosts(ids: string[]): Promise<void> {
     if (ids.length === 0) return;
     const count = await this.prisma.examNode.count({
-      where: { id: { in: ids }, nodeType: 'post', deletedAt: null },
+      where: { id: { in: ids }, deletedAt: null, type: { canHavePapers: true } },
     });
-    if (count !== new Set(ids).size)
-      throw Errors.validation([{ path: 'postIds', message: 'Papers can only be linked to posts' }]);
+    if (count !== new Set(ids).size) {
+      throw Errors.validation([
+        { path: 'postIds', message: 'Papers can only be linked to categories whose type allows papers' },
+      ]);
+    }
   }
 
   private async uniqueSlug<T>(fn: () => Promise<T>): Promise<T> {

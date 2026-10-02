@@ -166,3 +166,25 @@ test('question reports: a student report is resolved by staff', async () => {
     'Rejected by E2E Editor',
   );
 });
+
+test('the import template downloads with the LMS lists filled in', async () => {
+  await nav('Question bank').click();
+  const [download] = await Promise.all([
+    page.waitForEvent('download'),
+    page.getByRole('button', { name: 'Import template' }).click(),
+  ]);
+  expect(download.suggestedFilename()).toBe('tayari-question-import-tk-questions-v1.xlsx');
+  const { default: ExcelJS } = await import('exceljs');
+  const wb = new ExcelJS.Workbook();
+  await wb.xlsx.readFile(await download.path());
+  expect(wb.worksheets.map((s) => s.name)).toEqual([
+    'Instructions',
+    'Questions',
+    'Examples',
+    'Passages',
+    'Lists',
+  ]);
+  const values: string[] = [];
+  wb.getWorksheet('Lists')!.eachRow((row) => row.eachCell((c) => values.push(String(c.value))));
+  expect(values).toContain('Science');
+});

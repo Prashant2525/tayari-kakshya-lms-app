@@ -180,6 +180,14 @@ const routes = [
   }),
   createRoute({
     getParentRoute: () => appRoute,
+    path: '/category-types',
+    component: lazyRouteComponent(
+      () => import('./features/taxonomy/category-types-page'),
+      'CategoryTypesPage',
+    ),
+  }),
+  createRoute({
+    getParentRoute: () => appRoute,
     path: '/papers',
     component: lazyRouteComponent(() => import('./features/taxonomy/papers-page'), 'PapersPage'),
   }),

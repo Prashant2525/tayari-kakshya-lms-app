@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { LocalizedText } from './common.js';
+import { QuestionType } from './questions.js';
 
 /**
  * Typed registry of CMS-editable system settings. Each key has a schema and a default.
@@ -66,6 +67,29 @@ export const SETTINGS = {
       web: z.enum(['enabled', 'disabled']),
     }),
     default: { android: 'in_app' as const, ios: 'web_only' as const, web: 'enabled' as const },
+    public: true,
+  },
+  /**
+   * D-016 / DYNAMIC_ADMIN_AUDIT §4.2: question types the team may author, and optional display names.
+   * Turning a type off stops new questions of that type; existing ones keep working.
+   */
+  'questions.types': {
+    schema: z.object({
+      enabled: z.array(QuestionType).min(1, 'Keep at least one question type'),
+      labels: z.partialRecord(QuestionType, LocalizedText).default({}),
+    }),
+    default: {
+      enabled: [
+        'single_choice',
+        'multiple_choice',
+        'true_false',
+        'fill_blank',
+        'match',
+        'numeric',
+        'subjective',
+      ] as QuestionType[],
+      labels: {},
+    },
     public: true,
   },
 } as const satisfies Record<string, { schema: z.ZodType; default: unknown; public: boolean }>;

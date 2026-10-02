@@ -17,6 +17,8 @@ import { AuditService } from '../audit/audit.service.js';
 import { assertCanSetStatus } from '../content/publishing.js';
 import { assertCanEditLive, ScopeService, type ContentActor } from '../content/scope.service.js';
 import { MediaService } from '../media/media.service.js';
+import { BASE_LISTS, type TemplateLists } from './import-template.js';
+import { SettingsService } from '../settings/settings.service.js';
 
 /** Stable JSON (sorted keys) so stored jsonb and incoming content compare equal when nothing changed. */
 export function canonicalJson(value: unknown): string {
@@ -78,6 +80,7 @@ export class QuestionsService {
     private readonly audit: AuditService,
     private readonly scope: ScopeService,
     private readonly media: MediaService,
+    private readonly settings: SettingsService,
   ) {}
 
   async list(query: QuestionListQuery, actor: ContentActor) {
@@ -139,6 +142,12 @@ export class QuestionsService {
   }
 
   async create(input: QuestionInput, actor: ContentActor) {
+    const { enabled } = await this.settings.get('questions.types');
+    if (!enabled.includes(input.content.type)) {
+      throw Errors.validation([
+        { path: 'content.type', message: 'This question type is turned off in the system settings' },
+      ]);
+    }
     await this.validate(input, actor);
     const id = await this.prisma.$transaction(async (tx) => {
       const question = await tx.question.create({
@@ -284,6 +293,39 @@ export class QuestionsService {
       include: { _count: { select: { questions: true } } },
     });
     return rows.map((t) => ({ name: t.name, questionCount: t._count.questions }));
+  }
+
+  /** Live dropdown lists for the import template: subject names, category paths ("A > B > C") and papers. */
+  async templateLists(actor: ContentActor): Promise<TemplateLists> {
+    const allowed = await this.scope.allowedSubjectIds(actor);
+    const [subjects, nodes, papers] = await Promise.all([
+      this.prisma.subject.findMany({
+        where: { deletedAt: null, ...(allowed ? { id: { in: [...allowed] } } : {}) },
+        select: { name: true },
+      }),
+      this.prisma.examNode.findMany({
+        where: { deletedAt: null },
+        select: { id: true, parentId: true, name: true },
+      }),
+      this.prisma.paper.findMany({ where: { deletedAt: null }, select: { name: true, code: true } }),
+    ]);
+    const text = (v: unknown) => {
+      const l = v as LocalizedText;
+      return l.en ?? l.ne ?? '';
+    };
+    const byId = new Map(nodes.map((n) => [n.id, n]));
+    const pathOf = (id: string): string => {
+      const n = byId.get(id);
+      if (!n) return '';
+      return n.parentId && byId.has(n.parentId) ? `${pathOf(n.parentId)} > ${text(n.name)}` : text(n.name);
+    };
+    const sorted = (list: string[]) => [...new Set(list.filter(Boolean))].sort((a, b) => a.localeCompare(b));
+    return {
+      ...BASE_LISTS,
+      subjects: sorted(subjects.map((s) => text(s.name))),
+      categories: sorted(nodes.map((n) => pathOf(n.id))),
+      papers: sorted(papers.map((p) => p.code || text(p.name))),
+    };
   }
 
   // ───────────── Passages ─────────────

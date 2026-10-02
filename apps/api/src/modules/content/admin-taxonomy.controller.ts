@@ -1,6 +1,6 @@
 import { Controller, Delete, Get, HttpCode, Param, ParseUUIDPipe, Post, Put, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { ExamNodeInput, PaperInput, PublishStatus } from '@tk/contracts';
+import { ExamNodeInput, ExamNodeTypeInput, PaperInput, PublishStatus } from '@tk/contracts';
 import { z } from 'zod';
 import { Audiences, RequireAnyPermission, RequirePermissions } from '../../common/auth/auth-context.js';
 import { ApiZodBody, ZodBody } from '../../common/validation/zod.js';
@@ -18,6 +18,39 @@ const actor = (a: ContentActor) => ({ userId: a.userId, client: a.client });
 @Controller('admin')
 export class AdminTaxonomyController {
   constructor(private readonly taxonomy: TaxonomyService) {}
+
+  // ───────────── Category types (DYNAMIC_ADMIN_AUDIT §4.1) ─────────────
+
+  @Get('exam-node-types')
+  @RequireAnyPermission('taxonomy:manage', 'courses:edit', 'questions:edit', 'assessments:edit')
+  types() {
+    return this.taxonomy.listTypes(false);
+  }
+
+  @Post('exam-node-types')
+  @RequirePermissions('taxonomy:manage')
+  @ApiZodBody(ExamNodeTypeInput)
+  createType(@ZodBody(ExamNodeTypeInput) body: ExamNodeTypeInput, @StaffActor() a: ContentActor) {
+    return this.taxonomy.createType(body, actor(a));
+  }
+
+  @Put('exam-node-types/:key')
+  @RequirePermissions('taxonomy:manage')
+  @ApiZodBody(ExamNodeTypeInput)
+  updateType(
+    @Param('key') key: string,
+    @ZodBody(ExamNodeTypeInput) body: ExamNodeTypeInput,
+    @StaffActor() a: ContentActor,
+  ) {
+    return this.taxonomy.updateType(key, body, actor(a));
+  }
+
+  @Delete('exam-node-types/:key')
+  @HttpCode(204)
+  @RequirePermissions('taxonomy:manage')
+  async deleteType(@Param('key') key: string, @StaffActor() a: ContentActor) {
+    await this.taxonomy.deleteType(key, actor(a));
+  }
 
   @Get('exam-nodes')
   @RequireAnyPermission('taxonomy:manage', 'courses:edit', 'questions:edit', 'assessments:edit')

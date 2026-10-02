@@ -435,3 +435,40 @@ describe('reference data for course and question editors', () => {
     expect((await call(ctx, 'GET', `/admin/subjects/${subjectId}/tree`, { token: qe })).status).toBe(200);
   });
 });
+
+describe('question import template download', () => {
+  it('returns an .xlsx whose dropdown lists come from the LMS, for question editors only', async () => {
+    const token = await publisher(ctx);
+    await subjectWithTopic(token, 'Constitution Studies');
+    const psc = (
+      await call(ctx, 'POST', '/admin/exam-nodes', {
+        token,
+        body: { parentId: null, nodeType: 'authority', name: { en: 'Lok Sewa Aayog' }, slug: 'psc' },
+      })
+    ).body;
+    await call(ctx, 'POST', '/admin/exam-nodes', {
+      token,
+      body: { parentId: psc.id, nodeType: 'post', name: { en: 'Kharidar' }, slug: 'kharidar' },
+    });
+    const res = await ctx.app.inject({
+      method: 'GET',
+      url: '/api/v1/admin/questions/import-template',
+      headers: { authorization: `Bearer ${token}` },
+    });
+    expect(res.statusCode).toBe(200);
+    expect(res.headers['content-type']).toContain('spreadsheetml');
+    expect(res.headers['content-disposition']).toContain('tk-questions-v1');
+    const { default: ExcelJS } = await import('exceljs');
+    const wb = new ExcelJS.Workbook();
+    await wb.xlsx.load(res.rawPayload as unknown as ArrayBuffer);
+    const lists = wb.getWorksheet('Lists')!;
+    const values: string[] = [];
+    lists.eachRow((row) => row.eachCell((c) => values.push(String(c.value))));
+    expect(values).toContain('Constitution Studies');
+    expect(values).toContain('Lok Sewa Aayog > Kharidar');
+
+    await createStaff(ctx, 'reader@example.com', { permissions: ['assessments:edit'] });
+    const reader = (await staffLogin(ctx, 'reader@example.com')).token;
+    expect((await call(ctx, 'GET', '/admin/questions/import-template', { token: reader })).status).toBe(403);
+  });
+});

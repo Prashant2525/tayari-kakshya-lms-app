@@ -71,8 +71,12 @@ export const EnvSchema = z
     BUNNY_STREAM_TOKEN_KEY: optional,
     BUNNY_CDN_HOSTNAME: optional,
     YOUTUBE_API_KEY: optional,
-    /** Lifetime of signed playback URLs. */
-    VIDEO_PLAYBACK_TTL_SECONDS: z.coerce.number().int().min(300).max(86_400).default(14_400),
+    /**
+     * Lifetime of signed Bunny embed URLs. The token is only checked when the player loads; Bunny then signs the CDN
+     * segment URLs itself (verified 2026-10-03: ~10 h), so a short lifetime limits link sharing without cutting off
+     * long lectures. Bunny recommends short-lived tokens.
+     */
+    VIDEO_PLAYBACK_TTL_SECONDS: z.coerce.number().int().min(60).max(86_400).default(300),
 
     GOOGLE_OAUTH_WEB_CLIENT_ID: optional,
     GOOGLE_OAUTH_ANDROID_CLIENT_ID: optional,

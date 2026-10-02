@@ -75,7 +75,7 @@ test('media library: images are optimised, PDFs are private, descriptions are sa
 
 test('exam categories: build authority → post, enforce hierarchy, publish', async () => {
   await page.getByRole('link', { name: 'Exam categories' }).click();
-  await page.getByRole('button', { name: 'Add the first authority' }).click();
+  await page.getByRole('button', { name: 'Add the first category' }).click();
 
   let dialog = page.getByRole('dialog');
   await dialog.getByLabel('Name (English)').fill('Nepal Police');
@@ -94,7 +94,15 @@ test('exam categories: build authority → post, enforce hierarchy, publish', as
   await page.getByRole('menuitem', { name: 'Add inside' }).click();
   dialog = page.getByRole('dialog');
   // A post can sit directly under an authority; an authority cannot be nested.
-  await expect(dialog.getByLabel('Type').locator('option')).toHaveText(['Level', 'Service', 'Group', 'Post']);
+  // Offered types come from the admin-managed category types, in hierarchy order.
+  await expect(dialog.getByLabel('Type').locator('option')).toHaveText([
+    'Level',
+    'Service',
+    'Group',
+    'Sub-group',
+    'Post',
+    'Exam stage',
+  ]);
   await dialog.getByLabel('Type').selectOption('post');
   await dialog.getByLabel('Name (English)').fill('Constable');
   await dialog.getByRole('button', { name: 'Save' }).click();
@@ -116,6 +124,44 @@ test('exam categories: build authority → post, enforce hierarchy, publish', as
   await page.getByRole('dialog').getByRole('button', { name: 'Cancel' }).click();
   await expect(page.getByRole('button', { name: 'Actions for Nepal Police' })).toBeVisible();
   await expect(page.getByText('Authority · /nepal-police')).toBeVisible();
+});
+
+test('category types: add a level, use exam stages, link papers to a stage', async () => {
+  await page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Category types' }).click();
+  await expect(page.getByRole('row', { name: /Exam stage/ })).toContainText('Papers');
+  await page.getByRole('button', { name: 'Add type' }).click();
+  let dialog = page.getByRole('dialog');
+  await dialog.getByLabel('Name (English)').fill('Zone');
+  await dialog.getByLabel('Key').fill('zone');
+  await dialog.getByLabel('Order in the hierarchy').fill('15');
+  await dialog.getByRole('button', { name: 'Save' }).click();
+  await expect(page.getByText('Category type added')).toBeVisible();
+  await expect(page.getByRole('row', { name: /Zone/ })).toContainText('15');
+
+  // Renaming the in-use "Post" type keeps every category; the tree shows the new name.
+  await page.getByRole('button', { name: 'Edit Post' }).click();
+  dialog = page.getByRole('dialog');
+  await expect(dialog.getByLabel('Key')).toBeDisabled();
+  await dialog.getByLabel('Name (English)').fill('Position');
+  await dialog.getByRole('button', { name: 'Save' }).click();
+  await expect(page.getByText('Category type saved')).toBeVisible();
+
+  await page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Exam categories' }).click();
+  await expect(page.getByText('Position · /constable')).toBeVisible();
+  await page.getByRole('button', { name: 'Actions for Constable' }).click();
+  await page.getByRole('menuitem', { name: 'Add inside' }).click();
+  dialog = page.getByRole('dialog');
+  await expect(dialog.getByLabel('Type').locator('option')).toHaveText(['Exam stage']);
+  await dialog.getByLabel('Name (English)').fill('Written exam');
+  await dialog.getByRole('button', { name: 'Save' }).click();
+  await expect(page.getByText('Exam stage · /written-exam')).toBeVisible();
+
+  // Rename back so later steps read naturally.
+  await page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Category types' }).click();
+  await page.getByRole('button', { name: 'Edit Position' }).click();
+  await page.getByRole('dialog').getByLabel('Name (English)').fill('Post');
+  await page.getByRole('dialog').getByRole('button', { name: 'Save' }).click();
+  await expect(page.getByText('Category type saved')).toBeVisible();
 });
 
 test('papers: validates marks and links posts', async () => {
@@ -327,7 +373,7 @@ test('courses: create, describe, price, add subjects and exams, publish', async 
   await expect(page.getByText('Subjects saved')).toBeVisible();
 
   await page.getByRole('tab', { name: 'Exams & instructors' }).click();
-  await page.getByLabel('Nepal Police › Constable').check();
+  await page.getByLabel('Nepal Police › Constable', { exact: true }).check();
   await page.getByLabel('E2E Editor').check();
   await page.getByRole('button', { name: 'Save', exact: true }).click();
   await expect(page.getByText('Links saved')).toBeVisible();
@@ -343,7 +389,7 @@ test('courses: create, describe, price, add subjects and exams, publish', async 
   await expect(page.getByLabel('Sale price (Rs)')).toHaveValue('2500');
   await expect(page.getByLabel('Days')).toHaveValue('365');
   await page.getByRole('tab', { name: 'Exams & instructors' }).click();
-  await expect(page.getByLabel('Nepal Police › Constable')).toBeChecked();
+  await expect(page.getByLabel('Nepal Police › Constable', { exact: true })).toBeChecked();
 
   await page.getByRole('link', { name: 'Courses', exact: true }).first().click();
   const row = page.getByRole('row', { name: /Kharidar Complete Course/ });

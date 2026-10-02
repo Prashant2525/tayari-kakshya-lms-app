@@ -1,4 +1,15 @@
-import { Controller, Delete, Get, HttpCode, Param, ParseUUIDPipe, Post, Put, Query } from '@nestjs/common';
+import {
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  Param,
+  ParseUUIDPipe,
+  Post,
+  Put,
+  Query,
+  Res,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import {
   CursorQuery,
@@ -21,6 +32,8 @@ import { RateLimit } from '../../common/security/rate-limit.js';
 import { ApiZodBody, ZodBody, ZodQuery } from '../../common/validation/zod.js';
 import { StaffActor } from '../content/request-helpers.js';
 import type { ContentActor } from '../content/scope.service.js';
+import type { FastifyReply } from 'fastify';
+import { buildQuestionTemplate, TEMPLATE_VERSION } from './import-template.js';
 import { QuestionReportsService } from './question-reports.service.js';
 import { QuestionsService } from './questions.service.js';
 
@@ -53,6 +66,19 @@ export class AdminQuestionsController {
   @ApiZodBody(QuestionInput)
   create(@ZodBody(QuestionInput) body: QuestionInput, @StaffActor() a: ContentActor) {
     return this.questions.create(body, a);
+  }
+
+  /** Excel import template with dropdowns filled from the LMS (subjects, category paths, papers). */
+  @Get('questions/import-template')
+  @RequirePermissions('questions:edit')
+  async template(@StaffActor() a: ContentActor, @Res() reply: FastifyReply) {
+    const wb = await buildQuestionTemplate(await this.questions.templateLists(a));
+    const body = Buffer.from(await wb.xlsx.writeBuffer());
+    void reply
+      .header('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+      .header('Content-Disposition', `attachment; filename="tayari-question-import-${TEMPLATE_VERSION}.xlsx"`)
+      .header('Cache-Control', 'no-store')
+      .send(body);
   }
 
   @Get('questions/:id')

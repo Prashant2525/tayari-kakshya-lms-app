@@ -12,11 +12,12 @@ export class AppConfigController {
   @Public()
   @Get('config')
   async config() {
-    const [maintenance, minVersions, purchaseChannels, verification] = await Promise.all([
+    const [maintenance, minVersions, purchaseChannels, verification, questionTypes] = await Promise.all([
       this.settings.get('app.maintenance'),
       this.settings.get('app.minVersions'),
       this.settings.get('purchase.channels'),
       this.settings.get('auth.verification'),
+      this.settings.get('questions.types'),
     ]);
     return {
       maintenance,
@@ -26,6 +27,9 @@ export class AppConfigController {
         channels: verification.channels,
         requiredForLearning: verification.requiredForLearning,
       },
+      /** Display names the CMS set for question types (apps fall back to their own wording). */
+      questionTypeLabels: questionTypes.labels,
+      enabledQuestionTypes: questionTypes.enabled,
     };
   }
 }

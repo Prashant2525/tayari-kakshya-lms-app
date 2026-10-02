@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { EXAM_NODE_RANK, type ExamNodeType, type PublishStatus } from '@tk/contracts';
+import type { PublishStatus } from '@tk/contracts';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   ArrowDown,
@@ -24,15 +24,10 @@ import { ConfirmDialog, Dialog } from '@/components/ui/dialog';
 import { Field, Input, Select, Textarea } from '@/components/ui/form';
 import { Alert, Card, EmptyState, ErrorState, PageHeader, Spinner, Switch } from '@/components/ui/primitives';
 import { api, errorMessage } from '@/lib/api';
-import { NODE_TYPE_LABEL, slugify, toLocalized, type ExamNode } from '@/lib/content';
+import { slugify, toLocalized, type ExamNode } from '@/lib/content';
+import { childTypesOf, useNodeTypes } from '@/lib/node-types';
 import { localized, plural } from '@/lib/format';
 import { cn } from '@/lib/utils';
-
-const TYPES = Object.keys(EXAM_NODE_RANK) as ExamNodeType[];
-const childTypes = (parent: ExamNode | null) =>
-  parent
-    ? TYPES.filter((t) => EXAM_NODE_RANK[t] > EXAM_NODE_RANK[parent.nodeType])
-    : (['authority'] as const);
 
 const menuItem =
   'flex cursor-pointer select-none items-center gap-2 rounded-sm px-2.5 py-2 text-sm text-text outline-none data-[highlighted]:bg-surface-muted data-[disabled]:pointer-events-none data-[disabled]:opacity-50';
@@ -40,7 +35,7 @@ const menuItem =
 const schema = z
   .object({
     // Not `nodeType`: a form control with that name would shadow HTMLFormElement.nodeType (DOM clobbering).
-    kind: z.enum(['authority', 'level', 'service', 'group', 'post']),
+    kind: z.string().min(1, 'Choose a type'),
     parentId: z.string().nullable(),
     nameEn: z.string().trim().max(200),
     nameNe: z.string().trim().max(200),
@@ -89,7 +84,8 @@ function NodeDialog({
   const qc = useQueryClient();
   const [error, setError] = useState<string | null>(null);
   const byId = useMemo(() => new Map(nodes.map((n) => [n.id, n])), [nodes]);
-  const initialType = node?.nodeType ?? childTypes(parent)[0] ?? 'authority';
+  const nodeTypes = useNodeTypes();
+  const initialType = node?.nodeType ?? childTypesOf(nodeTypes.types, parent?.nodeType ?? null)[0]?.key ?? '';
   const [slugTouched, setSlugTouched] = useState(Boolean(node));
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -125,10 +121,13 @@ function NodeDialog({
   }, [node, nodes]);
   const parentOptions = nodes
     .filter((n) => !n.deletedAt && n.id !== node?.id && !descendants.has(n.id))
-    .filter((n) => EXAM_NODE_RANK[n.nodeType] < EXAM_NODE_RANK[nodeType])
-    .map((n) => ({ id: n.id, label: `${pathLabel(n, byId)} (${NODE_TYPE_LABEL[n.nodeType]})` }))
+    .filter((n) => (nodeTypes.byKey.get(n.nodeType)?.rank ?? 0) < (nodeTypes.byKey.get(nodeType)?.rank ?? 0))
+    .map((n) => ({ id: n.id, label: `${pathLabel(n, byId)} (${nodeTypes.label(n.nodeType)})` }))
     .sort((a, b) => a.label.localeCompare(b.label));
-  const typeOptions = node ? TYPES : parent ? childTypes(parent) : TYPES;
+  // New categories: only types that fit under the chosen parent. Editing: any active type (the server re-checks).
+  const typeOptions = node
+    ? nodeTypes.types.filter((t) => t.active || t.key === node.nodeType)
+    : childTypesOf(nodeTypes.types, parent?.nodeType ?? null);
 
   const onSubmit = form.handleSubmit(async (v) => {
     setError(null);
@@ -157,7 +156,9 @@ function NodeDialog({
       open
       size="lg"
       onOpenChange={(o) => !o && onClose()}
-      title={node ? 'Edit category' : parent ? `Add inside ${localized(parent.name)}` : 'Add an authority'}
+      title={
+        node ? 'Edit category' : parent ? `Add inside ${localized(parent.name)}` : 'Add a top-level category'
+      }
       description="Authorities hold levels, services, groups and posts. Students browse this tree to find courses."
       footer={
         <>
@@ -177,8 +178,8 @@ function NodeDialog({
             {(a) => (
               <Select {...a} {...form.register('kind')}>
                 {typeOptions.map((t) => (
-                  <option key={t} value={t}>
-                    {NODE_TYPE_LABEL[t]}
+                  <option key={t.key} value={t.key}>
+                    {localized(t.name)}
                   </option>
                 ))}
               </Select>
@@ -281,6 +282,7 @@ function buildTree(nodes: ExamNode[]): TreeNode[] {
 export function CategoriesPage() {
   const qc = useQueryClient();
   const [showDeleted, setShowDeleted] = useState(false);
+  const nodeTypes = useNodeTypes();
   const nodes = useQuery({
     queryKey: ['exam-nodes', { showDeleted }],
     queryFn: () => api.get<ExamNode[]>('/admin/exam-nodes', { includeDeleted: showDeleted || undefined }),
@@ -363,7 +365,7 @@ export function CategoriesPage() {
                   ) : null}
                 </p>
                 <p className="text-xs text-text-muted">
-                  {NODE_TYPE_LABEL[n.nodeType]} · /{n.slug}
+                  {nodeTypes.label(n.nodeType)} · /{n.slug}
                   {n.courseCount ? ` · ${plural(n.courseCount, 'course')}` : ''}
                   {n.paperCount ? ` · ${plural(n.paperCount, 'paper')}` : ''}
                 </p>
@@ -397,7 +399,7 @@ export function CategoriesPage() {
                       </DropdownMenu.Item>
                     ) : (
                       <>
-                        {n.nodeType !== 'post' ? (
+                        {childTypesOf(nodeTypes.types, n.nodeType).length ? (
                           <DropdownMenu.Item
                             className={menuItem}
                             onSelect={() => setEditing({ node: null, parent: n })}
@@ -477,7 +479,7 @@ export function CategoriesPage() {
         description="Authority → level → service → group → post. Students only see published categories whose parents are published too."
         actions={
           <Button onClick={() => setEditing({ node: null, parent: null })}>
-            <Plus /> Add authority
+            <Plus /> Add top-level category
           </Button>
         }
       />
@@ -498,7 +500,7 @@ export function CategoriesPage() {
             description="Start with an authority such as Lok Sewa Aayog or Nepal Police, then add posts inside it."
             action={
               <Button onClick={() => setEditing({ node: null, parent: null })}>
-                <Plus /> Add the first authority
+                <Plus /> Add the first category
               </Button>
             }
           />
@@ -510,7 +512,8 @@ export function CategoriesPage() {
         Courses and papers attach to posts. A category can be deleted only once it is empty.
       </p>
 
-      {editing ? (
+      {/* Wait for category types so the dialog starts with a valid type. */}
+      {editing && !nodeTypes.isPending ? (
         <NodeDialog
           node={editing.node}
           parent={editing.parent}

@@ -83,7 +83,9 @@ student read APIs for all of the above with access checks. Tests: CRUD, publish 
 - ☑ Scoring engine (`@tk/domain`), question schemas (`@tk/contracts`), migration `question_bank`, admin question API,
   passages, tags, PYQ sources, reports (+ tests)
 - ☑ Admin screens: question bank list/editor (all types), passages, reports queue (+ E2E)
-- ☐ CSV/XLSX import with validation preview
+- ☑ Dynamic admin audit (`DYNAMIC_ADMIN_AUDIT.md`): admin-managed category types (incl. sub-group, exam stage),
+  question types switch, import template `tk-questions-v1` + row parser
+- ☐ XLSX import: upload → validation preview (row/column problems, name resolution) → confirm → drafts
 - ☐ Assessments: schema, builder (sections, fixed/random blueprints, rules per D-021/D-044), admin screens
 - ☐ Grading queue and results release (with the attempt engine, §10)
 
