@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import {
+  ErrorCode,
   richDocMediaIds,
   richDocText,
   type LocalizedRichDoc,
@@ -281,6 +282,18 @@ export class QuestionsService {
     assertCanSetStatus(actor.access, 'archived', 'questions:publish');
     const q = await this.findLive(id);
     await this.scope.assertSubject(actor, q.subjectId);
+    const live = await this.prisma.assessmentQuestion.count({
+      where: { questionId: id, assessment: { deletedAt: null, status: { in: ['published', 'scheduled'] } } },
+    });
+    if (live > 0) {
+      throw Errors.conflict(
+        ErrorCode.CONFLICT,
+        'Live assessments use this question. Remove it from them first.',
+        {
+          assessments: live,
+        },
+      );
+    }
     await this.prisma.$transaction(async (tx) => {
       await tx.question.update({ where: { id }, data: { deletedAt: new Date(), updatedById: actor.userId } });
       await this.log(tx, actor, 'question.delete', id, {});

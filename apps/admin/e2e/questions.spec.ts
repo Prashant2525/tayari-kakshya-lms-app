@@ -105,7 +105,8 @@ test('single choice: validation, options, correct answer, tags and a previous-ye
   await expect(row).toContainText('#Physics');
   await expect(row).toContainText('Published');
   await page.getByLabel('Previous-year questions').selectOption('false');
-  await expect(page.getByText('No matching questions')).toBeVisible();
+  // Other specs add non-PYQ questions, so check this PYQ question is filtered out rather than an empty list.
+  await expect(page.getByRole('row', { name: /SI unit of force/ })).toHaveCount(0);
   await page.getByLabel('Previous-year questions').selectOption('');
   await page.getByLabel('Search questions').fill('force');
   await expect(page.getByRole('row', { name: /SI unit of force/ })).toBeVisible();

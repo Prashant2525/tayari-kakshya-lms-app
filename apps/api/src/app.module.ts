@@ -39,6 +39,8 @@ import { LearningItemsService } from './modules/content/learning-items.service.j
 import { ScopeService } from './modules/content/scope.service.js';
 import { TaxonomyService } from './modules/content/taxonomy.service.js';
 import { VideoService } from './modules/content/video.service.js';
+import { AdminAssessmentsController } from './modules/assessments/assessments.controller.js';
+import { AssessmentsService } from './modules/assessments/assessments.service.js';
 import { HealthController } from './modules/health/health.controller.js';
 import { QuestionImportService } from './modules/questions/question-import.service.js';
 import { QuestionReportsService } from './modules/questions/question-reports.service.js';
@@ -106,6 +108,7 @@ export class InfraModule {}
     QuestionsService,
     QuestionReportsService,
     QuestionImportService,
+    AssessmentsService,
     { provide: GoogleVerifier, useClass: GoogleAuthLibraryVerifier },
   ],
   exports: [
@@ -136,6 +139,7 @@ export class InfraModule {}
     QuestionsService,
     QuestionReportsService,
     QuestionImportService,
+    AssessmentsService,
     GoogleVerifier,
   ],
 })
@@ -184,6 +188,7 @@ export class DomainModule {}
     LearningController,
     AdminQuestionsController,
     QuestionReportsController,
+    AdminAssessmentsController,
   ],
   providers: [
     // Order matters: rate limit → maintenance → authentication → permissions.

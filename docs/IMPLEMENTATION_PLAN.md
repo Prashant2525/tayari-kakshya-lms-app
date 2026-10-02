@@ -86,7 +86,7 @@ student read APIs for all of the above with access checks. Tests: CRUD, publish 
 - ☑ Dynamic admin audit (`DYNAMIC_ADMIN_AUDIT.md`): admin-managed category types (incl. sub-group, exam stage),
   question types switch, import template `tk-questions-v1` + row parser
 - ☑ XLSX import: upload → validation preview (row/column problems, name resolution) → confirm → drafts (+ E2E)
-- ☐ Assessments: schema, builder (sections, fixed/random blueprints, rules per D-021/D-044), admin screens
+- ☑ Assessments: schema, builder (sections, fixed/random pools, rules per D-021/D-044), readiness, admin screens (+ E2E)
 - ☐ Grading queue and results release (with the attempt engine, §10)
 
 Original scope: all question type engines + versioning, PYQ metadata, tags, CSV/XLSX import with

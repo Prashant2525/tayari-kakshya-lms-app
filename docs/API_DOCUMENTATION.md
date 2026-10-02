@@ -111,6 +111,18 @@ courses/subjects. Every write is audited.
 | GET | `/exam-node-types` | public | active category types (key, name, rank) for app labels |
 | POST | `/questions/:id/reports` | student | published questions only; one open report per student per question (409) |
 
+## 1d. Implemented endpoints (Phase 7 — assessments) ✅
+
+| Method | Path | Auth | Notes |
+|---|---|---|---|
+| GET | `/admin/assessments` | `assessments:edit` / `assessments:publish` | filters `q`, `type`, `status`, `courseId`; scoped staff see their subjects/courses |
+| GET | `/admin/assessments/defaults` | `assessments:edit` | prefill from setting `assessments.defaults` (scoring choices null until set) |
+| POST / PUT | `/admin/assessments` · `/admin/assessments/:id` | `assessments:edit` | `AssessmentInput`: type, title, instructions, course/subject/chapter/topic/category links, access, availability window, duration, attempts, pass marks, **scoring choices (required, D-044)**, shuffling, result release, explanations, leaderboard, written-answer grading, daily-challenge day (one per day) |
+| GET | `/admin/assessments/:id` | as list | details + sections + `readiness { ready, questions, totalMarks{min,max}, problems[], warnings[] }` |
+| PUT | `/admin/assessments/:id/structure` | `assessments:edit` | replaces sections: fixed (question ids + marks overrides) or random (pool filter + count); section marks / negative marks |
+| PUT | `/admin/assessments/:id/publishing` | `assessments:edit` (+ `assessments:publish` beyond review) | publish/schedule refused (400, `details.problems`) until readiness is clean |
+| DELETE | `/admin/assessments/:id` | `assessments:publish` | soft delete |
+
 ## 2. Public / app bootstrap
 | Method | Path | Notes |
 |---|---|---|

@@ -411,6 +411,8 @@ model ExamNode {
   courses         CourseExamNode[]
   questionSources QuestionSource[]
 
+  assessments Assessment[]
+
   @@index([parentId, sortOrder])
   @@index([nodeType])
   @@map("exam_nodes")
@@ -467,6 +469,8 @@ model Subject {
   courses   CourseSubject[]
   questions Question[]
 
+  assessments Assessment[]
+
   @@map("subjects")
 }
 
@@ -485,6 +489,8 @@ model Chapter {
 
   subject Subject @relation(fields: [subjectId], references: [id], onDelete: Restrict)
   topics  Topic[]
+
+  assessments Assessment[]
 
   @@index([subjectId, sortOrder])
   @@map("chapters")
@@ -506,6 +512,8 @@ model Topic {
   chapter   Chapter        @relation(fields: [chapterId], references: [id], onDelete: Restrict)
   items     LearningItem[]
   questions Question[]
+
+  assessments Assessment[]
 
   @@index([chapterId, sortOrder])
   @@map("topics")
@@ -625,6 +633,8 @@ model Course {
   subjects     CourseSubject[]
   instructors  CourseInstructor[]
   entitlements Entitlement[]
+
+  assessments Assessment[]
 
   @@index([status, isFeatured, popularityRank])
   @@map("courses")
@@ -806,6 +816,8 @@ model Question {
   tags           QuestionTag[]
   reports        QuestionReport[]
 
+  assessmentLinks AssessmentQuestion[]
+
   @@index([subjectId, topicId, type, difficulty, status])
   @@index([groupId])
   @@map("questions")
@@ -927,4 +939,125 @@ model QuestionImport {
 
   @@index([createdById, createdAt])
   @@map("question_imports")
+}
+
+// ───────────── Assessments (D-021, D-022, D-044) ─────────────
+
+enum AssessmentType {
+  quiz
+  subject_test
+  weekly
+  mock
+  pyq_mock
+  daily_challenge
+}
+
+enum AssessmentAvailability {
+  always
+  window
+}
+
+enum ResultRelease {
+  immediate
+  after_close
+  manual
+}
+
+enum SubjectiveGrading {
+  none
+  self
+  instructor
+}
+
+enum SectionPickMode {
+  fixed
+  random
+}
+
+/// Rules are chosen per assessment in the CMS; nothing here is a business default (D-021, D-044).
+model Assessment {
+  id                 String                 @id @default(uuid(7)) @db.Uuid
+  type               AssessmentType
+  title              Json
+  instructions       Json?
+  courseId           String?                @map("course_id") @db.Uuid
+  subjectId          String?                @map("subject_id") @db.Uuid
+  chapterId          String?                @map("chapter_id") @db.Uuid
+  topicId            String?                @map("topic_id") @db.Uuid
+  examNodeId         String?                @map("exam_node_id") @db.Uuid
+  accessLevel        AccessLevel            @default(premium) @map("access_level")
+  availability       AssessmentAvailability
+  opensAt            DateTime?              @map("opens_at") @db.Timestamptz(6)
+  closesAt           DateTime?              @map("closes_at") @db.Timestamptz(6)
+  durationSeconds    Int?                   @map("duration_seconds")
+  maxAttempts        Int?                   @map("max_attempts")
+  passMarks          Decimal?               @map("pass_marks") @db.Decimal(8, 2)
+  /// ScoringRulesInput: negativeMarking, multipleChoice, match, fillBlank, scoreFloor.
+  scoring            Json
+  shuffleQuestions   Boolean                @map("shuffle_questions")
+  shuffleOptions     Boolean                @map("shuffle_options")
+  resultRelease      ResultRelease          @map("result_release")
+  resultsReleasedAt  DateTime?              @map("results_released_at") @db.Timestamptz(6)
+  showExplanations   Boolean                @map("show_explanations")
+  leaderboardEnabled Boolean                @map("leaderboard_enabled")
+  subjectiveGrading  SubjectiveGrading      @map("subjective_grading")
+  challengeDate      DateTime?              @map("challenge_date") @db.Date
+  status             PublishStatus          @default(draft)
+  publishAt          DateTime?              @map("publish_at") @db.Timestamptz(6)
+  createdById        String?                @map("created_by") @db.Uuid
+  updatedById        String?                @map("updated_by") @db.Uuid
+  createdAt          DateTime               @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime               @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt          DateTime?              @map("deleted_at") @db.Timestamptz(6)
+
+  course    Course?              @relation(fields: [courseId], references: [id], onDelete: Restrict)
+  subject   Subject?             @relation(fields: [subjectId], references: [id], onDelete: Restrict)
+  chapter   Chapter?             @relation(fields: [chapterId], references: [id], onDelete: Restrict)
+  topic     Topic?               @relation(fields: [topicId], references: [id], onDelete: Restrict)
+  examNode  ExamNode?            @relation(fields: [examNodeId], references: [id], onDelete: Restrict)
+  sections  AssessmentSection[]
+  questions AssessmentQuestion[]
+
+  @@index([type, status])
+  @@index([courseId])
+  @@index([subjectId])
+  @@map("assessments")
+}
+
+model AssessmentSection {
+  id                       String          @id @default(uuid(7)) @db.Uuid
+  assessmentId             String          @map("assessment_id") @db.Uuid
+  title                    Json?
+  sortOrder                Int             @map("sort_order")
+  pickMode                 SectionPickMode @map("pick_mode")
+  /// random: QuestionPoolFilter
+  filter                   Json?
+  questionCount            Int?            @map("question_count")
+  marksPerQuestion         Decimal?        @map("marks_per_question") @db.Decimal(6, 2)
+  negativeMarksPerQuestion Decimal?        @map("negative_marks_per_question") @db.Decimal(6, 2)
+
+  assessment Assessment           @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  questions  AssessmentQuestion[]
+
+  @@index([assessmentId, sortOrder])
+  @@map("assessment_sections")
+}
+
+model AssessmentQuestion {
+  id            String   @id @default(uuid(7)) @db.Uuid
+  assessmentId  String   @map("assessment_id") @db.Uuid
+  sectionId     String   @map("section_id") @db.Uuid
+  questionId    String   @map("question_id") @db.Uuid
+  sortOrder     Int      @map("sort_order")
+  marks         Decimal? @db.Decimal(6, 2)
+  negativeMarks Decimal? @map("negative_marks") @db.Decimal(6, 2)
+
+  assessment Assessment        @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  section    AssessmentSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  question   Question          @relation(fields: [questionId], references: [id], onDelete: Restrict)
+
+  @@unique([assessmentId, questionId])
+  @@index([sectionId, sortOrder])
+  @@index([questionId])
+  @@map("assessment_questions")
 }

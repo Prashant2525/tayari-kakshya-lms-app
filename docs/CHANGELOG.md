@@ -4,6 +4,17 @@ All notable changes to this project. Format based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Added — 2026-10-03 (Phase 7: assessment builder)
+- Migration `assessments`: assessments, sections (fixed / random), section questions; DB rules for windows, one
+  daily challenge per day, section shapes and non-negative marks.
+- Admin API: create/edit with every rule chosen per assessment (D-021, D-044), section structure, readiness report
+  (unpublished/deleted questions, too-small random pools, mixed marks, written answers without a grading mode,
+  impossible pass marks), publish/schedule only when ready, scopes, audit.
+- Setting `assessments.defaults` (D-017 prefill; scoring choices unset).
+- Admin CMS: Assessments list and editor (details, timing, scoring, results/display, sections with a question
+  picker and random pools, readiness + publishing).
+- Questions used by live assessments cannot be deleted.
+
 ### Added — 2026-10-03 (Phase 7: Excel question import)
 - Import page in the admin (Question bank → Import): upload the template, preview every problem by row and column,
   import the ready rows as drafts; passages created and linked; recent imports listed.

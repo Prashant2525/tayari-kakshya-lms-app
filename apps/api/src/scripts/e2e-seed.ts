@@ -23,6 +23,8 @@ const CONTENT_PERMISSIONS = [
   'questions:edit',
   'questions:publish',
   'question_reports:manage',
+  'assessments:edit',
+  'assessments:publish',
 ];
 
 /**

@@ -1,4 +1,9 @@
-import { QuestionType as QuestionTypeSchema, type QuestionType } from '@tk/contracts';
+import {
+  AssessmentType as AssessmentTypeSchema,
+  QuestionType as QuestionTypeSchema,
+  type AssessmentType,
+  type QuestionType,
+} from '@tk/contracts';
 import {
   createRootRoute,
   createRoute,
@@ -141,6 +146,30 @@ const routes = [
     getParentRoute: () => appRoute,
     path: '/instructors',
     component: lazyRouteComponent(() => import('./features/courses/instructors-page'), 'InstructorsPage'),
+  }),
+  createRoute({
+    getParentRoute: () => appRoute,
+    path: '/assessments',
+    component: lazyRouteComponent(() => import('./features/assessments/assessments-page'), 'AssessmentsPage'),
+  }),
+  createRoute({
+    getParentRoute: () => appRoute,
+    path: '/assessments/new',
+    validateSearch: (s: Record<string, unknown>): { type: AssessmentType } => ({
+      type: AssessmentTypeSchema.safeParse(s['type']).data ?? 'quiz',
+    }),
+    component: lazyRouteComponent(
+      () => import('./features/assessments/assessment-editor-page'),
+      'NewAssessmentPage',
+    ),
+  }),
+  createRoute({
+    getParentRoute: () => appRoute,
+    path: '/assessments/$assessmentId',
+    component: lazyRouteComponent(
+      () => import('./features/assessments/assessment-editor-page'),
+      'AssessmentPage',
+    ),
   }),
   createRoute({
     getParentRoute: () => appRoute,

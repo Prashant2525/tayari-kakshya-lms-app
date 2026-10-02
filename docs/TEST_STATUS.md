@@ -10,10 +10,22 @@ Last updated: 2026-10-03 (Phase 7, question bank backend). `pnpm test` runs unit
 | `@tk/design-tokens` | 39 | WCAG contrast for every text/background pair (light + dark), CSS generation |
 | `@tk/domain` | 39 | BS calendar, Kathmandu day boundary, fiscal year, money/VAT/discounts, access validity |
 | `@tk/contracts` | 21 | Schema behaviour (localized text, email normalisation, mass assignment, settings defaults, rich-text validation) |
-| `@tk/api` | 145 | Integration against real PostgreSQL + Redis + S3 (SeaweedFS) through the HTTP stack; TOTP RFC 6238 vectors; RBAC, video, watermark unit |
+| `@tk/api` | 151 | Integration against real PostgreSQL + Redis + S3 (SeaweedFS) through the HTTP stack; TOTP RFC 6238 vectors; RBAC, video, watermark unit |
 | `@tk/admin` (unit) | 33 | API client (headers, refresh single-flight, retry, session loss, error mapping), BS formatting, Button `asChild` regression |
-| `@tk/admin` (E2E, Playwright) | 18 | Real browser + real API + `*_e2e` database |
-| **Total** | **295** | |
+| `@tk/admin` (E2E, Playwright) | 19 | Real browser + real API + `*_e2e` database |
+| **Total** | **302** | |
+
+### Added with the assessment builder
+- **API:** fixed + random sections; readiness problems (no sections, unpublished question, pool too small) and
+  exact totals with per-question and section marks; publish refused until ready (mutation-checked); question in a
+  live assessment cannot be deleted; mixed-marks warning and min/max totals; written answers need a grading mode;
+  pass marks above total; window / after-close / daily-challenge validation; one daily challenge per day (409);
+  chapter must belong to the subject; broken structures rejected; review workflow; staff scopes; audit; defaults
+  endpoint.
+- **Browser E2E:** quiz with unchosen scoring refused, created, publish refused while not ready, questions added with
+  the picker and a marks override, random section shortage reported then removed, ready (2 questions · 5 marks),
+  published, list row.
+- Note: one full local run printed `145 passed (151)` with no failure listed; two forced re-runs and CI passed 151/151.
 
 ### Added with the Excel import
 - **API:** the template's 8 example rows (all 7 types + passage) preview clean and import as drafts with topic, PYQ

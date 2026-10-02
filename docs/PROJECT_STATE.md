@@ -1,6 +1,6 @@
 # Project State
 
-Current Phase: **Phase 7 — Question bank + assessment CMS: IN PROGRESS** (question bank + Excel import done; assessments next)
+Current Phase: **Phase 7 — Question bank + assessment CMS: IN PROGRESS** (question bank, import and assessment builder done)
 Current Milestone: content API on `feature/content-cms` → Admin CMS content screens
 Overall Status: **IN PROGRESS**
 Last updated: 2026-10-02
@@ -25,7 +25,8 @@ Last updated: 2026-10-02
     limits — verified in a real browser (E2E + screenshots in light, dark, mobile).
 
 ## In Progress
-- Phase 7 on `feature/question-bank`: assessments (schema, builder, rules per D-021/D-044) next.
+- Phase 7 on `feature/question-bank`: remaining — grading queue and result release, which need the attempt engine;
+  plan: open the Phase 7 PR now and build them with §10.
 - Dynamic admin audit done (`DYNAMIC_ADMIN_AUDIT.md`, D-045): category types and question types are now admin-managed.
 - Phase 6 merged (PR #5, #6). Bunny security verified (KI-023 resolved).
 
@@ -49,7 +50,7 @@ Last updated: 2026-10-02
 - Not started (Phase 8 / Phase 11).
 
 ## Tests
-- Unit/integration 277 · browser E2E 18 — all passing locally (see `TEST_STATUS.md`).
+- Unit/integration 283 · browser E2E 19 — all passing locally (see `TEST_STATUS.md`).
 
 ## Known Issues
 - See `KNOWN_ISSUES.md` (KI-021 CI storage flake under investigation, KI-022 per-request PDF watermarking, KI-023 Bunny token auth).
@@ -77,5 +78,5 @@ and `pnpm --filter @tk/admin dev` → create your Super Admin:
 (code in Mailpit http://localhost:8025) → set password at http://localhost:5173/set-password → sign in → enrol 2FA.
 
 ## Exact Next Task
-- Assessments: schema (assessments, sections, fixed/random questions, scoring choices D-044), admin builder,
-  publishing/scheduling; then grading queue and result release with the attempt engine (§10).
+- Open the Phase 7 PR. Then Phase 8 (student mobile foundation, design preview for owner sign-off first) or the
+  attempt engine — see SESSION_HANDOFF.

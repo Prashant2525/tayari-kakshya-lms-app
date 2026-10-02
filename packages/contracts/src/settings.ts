@@ -92,6 +92,38 @@ export const SETTINGS = {
     },
     public: true,
   },
+  /**
+   * Prefill for new assessments (D-017 quiz answers: results after submission, explanations shown, unlimited
+   * retakes). Scoring choices start unset (null): the admin chooses them per assessment (D-044) until defaults are set
+   * here.
+   */
+  'assessments.defaults': {
+    schema: z.object({
+      resultRelease: z.enum(['immediate', 'after_close', 'manual']),
+      showExplanations: z.boolean(),
+      maxAttempts: z.number().int().min(1).max(100).nullable(),
+      scoring: z.object({
+        negativeMarking: z.boolean().nullable(),
+        multipleChoice: z.enum(['all_or_nothing', 'partial_if_no_wrong']).nullable(),
+        match: z.enum(['all_or_nothing', 'per_pair']).nullable(),
+        fillBlank: z.enum(['all_or_nothing', 'per_blank']).nullable(),
+        scoreFloor: z.enum(['none', 'zero']).nullable(),
+      }),
+    }),
+    default: {
+      resultRelease: 'immediate' as const,
+      showExplanations: true,
+      maxAttempts: null,
+      scoring: {
+        negativeMarking: null,
+        multipleChoice: null,
+        match: null,
+        fillBlank: null,
+        scoreFloor: null,
+      },
+    },
+    public: false,
+  },
 } as const satisfies Record<string, { schema: z.ZodType; default: unknown; public: boolean }>;
 
 export type SettingKey = keyof typeof SETTINGS;
