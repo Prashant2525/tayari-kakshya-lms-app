@@ -53,6 +53,8 @@ export function Button({
   }
   return (
     <button
+      // Only explicit `type="submit"` buttons submit forms; e.g. a "Choose file" button inside a form must not.
+      type="button"
       className={cn(buttonVariants({ variant, size }), className)}
       disabled={disabled || loading}
       aria-busy={loading || undefined}

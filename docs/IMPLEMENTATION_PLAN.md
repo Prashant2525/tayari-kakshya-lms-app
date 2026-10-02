@@ -57,7 +57,7 @@ CRUD (KI-016), layout/nav, command palette,
 generic resource table (server pagination/filter/sort), form system (RHF + Zod), status workflow UI, media picker,
 roles & staff management, settings screens, audit log viewer. Playwright smoke tests.
 
-**§6 Academic/content CMS** (branch `feature/content-cms`) — ◐ IN PROGRESS
+**§6 Academic/content CMS** (branch `feature/content-cms`) — ☑ DONE (PR open; Bunny token auth pending, KI-023)
 - ☑ Object storage (SeaweedFS local/CI, R2 prod — T-020) + media library with validated uploads (T-025)
 - ☑ Migration `content_catalog` (taxonomy, papers, subjects/chapters/topics, learning items, videos, courses,
   instructors, entitlements)
@@ -66,9 +66,13 @@ roles & staff management, settings screens, audit log viewer. Playwright smoke t
   admin access grants (until payments)
 - ☑ Student API: catalog (platform-aware prices, D-027), my courses, outline, items with server-side locking,
   watermarked PDF (T-029), video playback (YouTube nocookie, signed Bunny — awaiting credentials)
-- ☐ Admin screens: media library + picker, taxonomy tree, papers, content tree + TipTap editor, courses, access grants,
-  command palette, generic data table; preview-as-student
-- ☐ Playwright E2E for the content flow
+- ☑ Admin screens: media library + media picker, exam categories tree, papers (+ Playwright E2E, content-team account)
+- ☑ Admin screens: subjects → chapters → topics → items with TipTap note editor (en/ne), PDF and video items,
+  publishing/scheduling (+ E2E)
+- ☑ Admin screens: courses (details, pricing, subjects, links, publishing), instructor profiles, staff scopes,
+  student access grants (+ E2E)
+- ↪ Moved: preview-as-student → §9 (reuses the student app's renderers); command palette + generic data table →
+  admin polish (KI-024)
 
 Original scope: exam taxonomy tree (drag/move), papers, subjects/chapters/topics (reorder/duplicate),
 courses (pricing fields, validity, instructors, subjects, exam links), instructor profiles, learning items (TipTap notes,

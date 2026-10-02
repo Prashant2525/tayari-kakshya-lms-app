@@ -17,6 +17,8 @@ const redisBase = (process.env.REDIS_URL ?? 'redis://localhost:6379').replace(/\
 
 export const E2E_ADMIN_EMAIL = 'e2e-admin@example.test';
 export const E2E_ADMIN_PASSWORD = 'e2e only password';
+/** Content-team staff (not a Super Admin) used by the content CMS specs; same password. */
+export const E2E_EDITOR_EMAIL = 'e2e-editor@example.test';
 
 export const e2eEnv = {
   ...process.env,
@@ -43,7 +45,14 @@ export const e2eEnv = {
   PUBLIC_MEDIA_BASE_URL: 'http://localhost:5174/api/v1/public-media',
   PUBLIC_MEDIA_PROXY: 'true',
   STORAGE_AUTO_CREATE_BUCKETS: 'true',
+  // Never call real video providers from browser tests, even when the developer's .env holds live keys.
+  BUNNY_STREAM_LIBRARY_ID: '',
+  BUNNY_STREAM_API_KEY: '',
+  BUNNY_STREAM_TOKEN_KEY: '',
+  BUNNY_CDN_HOSTNAME: '',
+  YOUTUBE_API_KEY: '',
   E2E_ADMIN_EMAIL,
+  E2E_EDITOR_EMAIL,
   E2E_ADMIN_PASSWORD,
 };
 

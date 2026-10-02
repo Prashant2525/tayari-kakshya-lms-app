@@ -71,12 +71,14 @@ async function parse(res: Response): Promise<unknown> {
 
 async function send(method: string, path: string, opts: RequestOptions): Promise<Response> {
   const headers: Record<string, string> = { 'X-TK-Client': 'admin', Accept: 'application/json' };
-  if (opts.body !== undefined) headers['Content-Type'] = 'application/json';
+  // FormData sets its own multipart boundary header.
+  const isForm = opts.body instanceof FormData;
+  if (opts.body !== undefined && !isForm) headers['Content-Type'] = 'application/json';
   if (accessToken) headers['Authorization'] = `Bearer ${accessToken}`;
   return fetch(buildUrl(path, opts.query), {
     method,
     headers,
-    body: opts.body === undefined ? undefined : JSON.stringify(opts.body),
+    body: opts.body === undefined ? undefined : isForm ? (opts.body as FormData) : JSON.stringify(opts.body),
     credentials: 'include',
     signal: opts.signal,
   });
@@ -134,6 +136,8 @@ export const api = {
   put: <T>(path: string, body?: unknown) => request<T>('PUT', path, { body }),
   patch: <T>(path: string, body?: unknown) => request<T>('PATCH', path, { body }),
   delete: <T>(path: string, body?: unknown) => request<T>('DELETE', path, { body }),
+  /** multipart/form-data upload (media library). */
+  upload: <T>(path: string, form: FormData) => request<T>('POST', path, { body: form }),
 };
 
 /** Human-friendly message for an error from the API or the network. */

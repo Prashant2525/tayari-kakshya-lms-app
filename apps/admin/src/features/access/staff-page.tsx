@@ -25,6 +25,7 @@ import { api, errorMessage } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { formatRelative } from '@/lib/format';
 import { useRoles, type Role } from './roles-pages';
+import { ScopesDialog } from './scopes-dialog';
 
 interface StaffMember {
   id: string;
@@ -214,6 +215,7 @@ export function StaffPage() {
   const roles = useRoles();
   const [inviteOpen, setInviteOpen] = useState(false);
   const [editing, setEditing] = useState<StaffMember | null>(null);
+  const [scoping, setScoping] = useState<StaffMember | null>(null);
   const [statusChange, setStatusChange] = useState<{
     member: StaffMember;
     to: 'suspend' | 'reactivate';
@@ -317,6 +319,12 @@ export function StaffPage() {
                                 Change roles
                               </DropdownMenu.Item>
                               <DropdownMenu.Item
+                                className="cursor-pointer rounded-sm px-2.5 py-2 text-sm outline-none data-[highlighted]:bg-surface-muted"
+                                onSelect={() => setScoping(m)}
+                              >
+                                Limit content access
+                              </DropdownMenu.Item>
+                              <DropdownMenu.Item
                                 className="cursor-pointer rounded-sm px-2.5 py-2 text-sm text-danger outline-none data-[highlighted]:bg-surface-muted"
                                 onSelect={() =>
                                   setStatusChange({
@@ -344,6 +352,7 @@ export function StaffPage() {
       {editing && roles.data ? (
         <RolesDialog member={editing} roles={roles.data} onClose={() => setEditing(null)} />
       ) : null}
+      {scoping ? <ScopesDialog member={scoping} onClose={() => setScoping(null)} /> : null}
       {statusChange ? (
         <ConfirmDialog
           open

@@ -16,9 +16,23 @@ All notable changes to this project. Format based on Keep a Changelog.
 - Free-course enrolment (`POST /courses/:id/enrol`, D-043) with access validity from the course settings
   (`accessEndsAt` in `@tk/domain`; fixed dates end at midnight Nepal time).
 - Tests never use real video-provider keys from a developer `.env`.
+- Admin CMS: **Media library** (multi-file upload, public/private, preview, descriptions, delete), reusable media
+  picker, **Exam categories** tree (add inside, edit/move, publish/unpublish/archive, reorder, delete/restore) and
+  **Papers** (marks, time, pattern, linked posts, status); "Content" navigation group.
+- Admin CMS: **Subjects** list and subject outline (chapters → topics → items: add, edit, status, reorder, delete),
+  **item editor** for notes (TipTap rich text in English and Nepali, images from the media library, tables, links),
+  PDFs (download flag) and videos (Bunny or YouTube, duration), access level, language, publishing and scheduling in
+  Nepal time, unsaved-changes guard.
+- Admin CMS: **Courses** list and course editor (details with rich description and thumbnail, pricing in rupees with
+  sale window and validity, ordered subjects with paper and display marks, exam categories and instructors,
+  publishing/scheduling, delete), **Instructors** profiles, **Course access** on the student page (grant with the
+  course's validity / a date / lifetime, revoke with reason, history) and **Limit content access** for staff.
 
 ### Fixed
 - CI: SeaweedFS readiness wait and volume settings; server errors now logged in CI test output.
+- Admin `Button` no longer submits forms by default; renamed a form field that clobbered `form.nodeType`.
+- API: expected 5xx errors (e.g. video provider not configured) are logged as warnings, not unhandled errors.
+- Admin: subject outline and page headers no longer overflow on phones.
 
 ### Added — 2026-10-02 (Phase 5: Admin CMS foundation)
 - Staff two-factor authentication (TOTP + recovery codes, encrypted secrets, replay protection, policy setting with

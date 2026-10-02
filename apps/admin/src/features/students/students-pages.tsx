@@ -24,6 +24,7 @@ import { TBody, TD, TH, THead, TR, Table } from '@/components/ui/table';
 import { api, errorMessage } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { formatDateBs, formatDateTimeBs, formatRelative } from '@/lib/format';
+import { CourseAccessCard } from './course-access-card';
 
 type Status = 'active' | 'suspended' | 'pending_deletion' | 'deleted';
 
@@ -374,6 +375,8 @@ export function StudentDetailPage() {
           )}
         </Card>
       </div>
+
+      {can('users:read') || can('entitlements:grant') ? <CourseAccessCard studentId={s.id} /> : null}
 
       <ConfirmDialog
         open={confirm === 'suspend'}

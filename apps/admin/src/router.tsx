@@ -95,6 +95,69 @@ const routes = [
   }),
   createRoute({
     getParentRoute: () => appRoute,
+    path: '/subjects',
+    component: lazyRouteComponent(() => import('./features/content/subjects-page'), 'SubjectsPage'),
+  }),
+  createRoute({
+    getParentRoute: () => appRoute,
+    path: '/subjects/$subjectId',
+    component: lazyRouteComponent(() => import('./features/content/subject-page'), 'SubjectPage'),
+  }),
+  createRoute({
+    getParentRoute: () => appRoute,
+    path: '/topics/$topicId/new',
+    validateSearch: (s: Record<string, unknown>): { type: 'note' | 'pdf' | 'video'; subjectId?: string } => ({
+      type: s['type'] === 'pdf' || s['type'] === 'video' ? s['type'] : 'note',
+      subjectId: typeof s['subjectId'] === 'string' ? s['subjectId'] : undefined,
+    }),
+    component: lazyRouteComponent(() => import('./features/content/item-editor-page'), 'NewItemPage'),
+  }),
+  createRoute({
+    getParentRoute: () => appRoute,
+    path: '/learning-items/$itemId',
+    validateSearch: (s: Record<string, unknown>): { subjectId?: string } => ({
+      subjectId: typeof s['subjectId'] === 'string' ? s['subjectId'] : undefined,
+    }),
+    component: lazyRouteComponent(() => import('./features/content/item-editor-page'), 'ItemPage'),
+  }),
+  createRoute({
+    getParentRoute: () => appRoute,
+    path: '/courses',
+    component: lazyRouteComponent(() => import('./features/courses/courses-page'), 'CoursesPage'),
+  }),
+  createRoute({
+    getParentRoute: () => appRoute,
+    path: '/courses/$courseId',
+    validateSearch: (s: Record<string, unknown>): { tab?: 'details' | 'pricing' | 'subjects' | 'links' } => ({
+      tab:
+        s['tab'] === 'pricing' || s['tab'] === 'subjects' || s['tab'] === 'links' || s['tab'] === 'details'
+          ? s['tab']
+          : undefined,
+    }),
+    component: lazyRouteComponent(() => import('./features/courses/course-page'), 'CoursePage'),
+  }),
+  createRoute({
+    getParentRoute: () => appRoute,
+    path: '/instructors',
+    component: lazyRouteComponent(() => import('./features/courses/instructors-page'), 'InstructorsPage'),
+  }),
+  createRoute({
+    getParentRoute: () => appRoute,
+    path: '/media',
+    component: lazyRouteComponent(() => import('./features/media/media-page'), 'MediaPage'),
+  }),
+  createRoute({
+    getParentRoute: () => appRoute,
+    path: '/categories',
+    component: lazyRouteComponent(() => import('./features/taxonomy/categories-page'), 'CategoriesPage'),
+  }),
+  createRoute({
+    getParentRoute: () => appRoute,
+    path: '/papers',
+    component: lazyRouteComponent(() => import('./features/taxonomy/papers-page'), 'PapersPage'),
+  }),
+  createRoute({
+    getParentRoute: () => appRoute,
     path: '/education-levels',
     component: lazyRouteComponent(
       () => import('./features/config/education-levels-page'),
