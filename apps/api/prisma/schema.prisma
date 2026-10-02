@@ -76,6 +76,8 @@ model User {
   courseInstructor    CourseInstructor[]
   entitlements        Entitlement[]            @relation("EntitlementUser")
   grantedEntitlements Entitlement[]            @relation("EntitlementGrantedBy")
+  questionReports     QuestionReport[]         @relation("QuestionReportUser")
+  resolvedReports     QuestionReport[]         @relation("QuestionReportResolver")
   uploadedMedia       MediaAsset[]
 
   @@index([kind, status])
@@ -387,11 +389,12 @@ model ExamNode {
   updatedAt   DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
   deletedAt   DateTime?     @map("deleted_at") @db.Timestamptz(6)
 
-  parent   ExamNode?        @relation("ExamNodeTree", fields: [parentId], references: [id], onDelete: Restrict)
-  children ExamNode[]       @relation("ExamNodeTree")
-  icon     MediaAsset?      @relation(fields: [iconMediaId], references: [id], onDelete: SetNull)
-  papers   PostPaper[]
-  courses  CourseExamNode[]
+  parent          ExamNode?        @relation("ExamNodeTree", fields: [parentId], references: [id], onDelete: Restrict)
+  children        ExamNode[]       @relation("ExamNodeTree")
+  icon            MediaAsset?      @relation(fields: [iconMediaId], references: [id], onDelete: SetNull)
+  papers          PostPaper[]
+  courses         CourseExamNode[]
+  questionSources QuestionSource[]
 
   @@index([parentId, sortOrder])
   @@map("exam_nodes")
@@ -410,8 +413,9 @@ model Paper {
   updatedAt       DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
   deletedAt       DateTime?     @map("deleted_at") @db.Timestamptz(6)
 
-  posts          PostPaper[]
-  courseSubjects CourseSubject[]
+  posts           PostPaper[]
+  courseSubjects  CourseSubject[]
+  questionSources QuestionSource[]
 
   @@map("papers")
 }
@@ -442,9 +446,10 @@ model Subject {
   updatedAt   DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
   deletedAt   DateTime?     @map("deleted_at") @db.Timestamptz(6)
 
-  icon     MediaAsset?     @relation(fields: [iconMediaId], references: [id], onDelete: SetNull)
-  chapters Chapter[]
-  courses  CourseSubject[]
+  icon      MediaAsset?     @relation(fields: [iconMediaId], references: [id], onDelete: SetNull)
+  chapters  Chapter[]
+  courses   CourseSubject[]
+  questions Question[]
 
   @@map("subjects")
 }
@@ -482,8 +487,9 @@ model Topic {
   updatedAt        DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
   deletedAt        DateTime?     @map("deleted_at") @db.Timestamptz(6)
 
-  chapter Chapter        @relation(fields: [chapterId], references: [id], onDelete: Restrict)
-  items   LearningItem[]
+  chapter   Chapter        @relation(fields: [chapterId], references: [id], onDelete: Restrict)
+  items     LearningItem[]
+  questions Question[]
 
   @@index([chapterId, sortOrder])
   @@map("topics")
@@ -715,4 +721,168 @@ model Entitlement {
   @@index([userId, status])
   @@index([courseId])
   @@map("entitlements")
+}
+
+// ───────────── Question bank (D-016, D-020) ─────────────
+
+enum QuestionType {
+  single_choice
+  multiple_choice
+  true_false
+  fill_blank
+  match
+  numeric
+  subjective
+}
+
+enum Difficulty {
+  easy
+  medium
+  hard
+}
+
+/// Passage / comprehension shared by several questions.
+model QuestionGroup {
+  id          String    @id @default(uuid(7)) @db.Uuid
+  title       Json?
+  /// { en?: TipTapDoc, ne?: TipTapDoc }
+  passage     Json
+  createdById String?   @map("created_by") @db.Uuid
+  updatedById String?   @map("updated_by") @db.Uuid
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt   DateTime? @map("deleted_at") @db.Timestamptz(6)
+
+  questions Question[]
+
+  @@map("question_groups")
+}
+
+/// Metadata lives here; the stem, choices and answer key live in immutable versions (every edit = new version).
+model Question {
+  id                   String          @id @default(uuid(7)) @db.Uuid
+  type                 QuestionType
+  subjectId            String          @map("subject_id") @db.Uuid
+  topicId              String?         @map("topic_id") @db.Uuid
+  groupId              String?         @map("group_id") @db.Uuid
+  difficulty           Difficulty
+  defaultMarks         Decimal         @map("default_marks") @db.Decimal(6, 2)
+  defaultNegativeMarks Decimal         @default(0) @map("default_negative_marks") @db.Decimal(6, 2)
+  language             ContentLanguage @default(both)
+  accessLevel          AccessLevel     @default(premium) @map("access_level")
+  isPyq                Boolean         @default(false) @map("is_pyq")
+  status               PublishStatus   @default(draft)
+  currentVersionId     String?         @unique @map("current_version_id") @db.Uuid
+  /// Plain text of the stem (both languages) for search.
+  searchText           String          @default("") @map("search_text")
+  createdById          String?         @map("created_by") @db.Uuid
+  updatedById          String?         @map("updated_by") @db.Uuid
+  createdAt            DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt            DateTime        @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt            DateTime?       @map("deleted_at") @db.Timestamptz(6)
+
+  subject        Subject           @relation(fields: [subjectId], references: [id], onDelete: Restrict)
+  topic          Topic?            @relation(fields: [topicId], references: [id], onDelete: Restrict)
+  group          QuestionGroup?    @relation(fields: [groupId], references: [id], onDelete: Restrict)
+  currentVersion QuestionVersion?  @relation("QuestionCurrentVersion", fields: [currentVersionId], references: [id], onDelete: Restrict)
+  versions       QuestionVersion[] @relation("QuestionVersions")
+  sources        QuestionSource[]
+  tags           QuestionTag[]
+  reports        QuestionReport[]
+
+  @@index([subjectId, topicId, type, difficulty, status])
+  @@index([groupId])
+  @@map("questions")
+}
+
+/// Immutable (a trigger forbids UPDATE/DELETE): attempts keep pointing at exactly what the student saw.
+model QuestionVersion {
+  id          String   @id @default(uuid(7)) @db.Uuid
+  questionId  String   @map("question_id") @db.Uuid
+  versionNo   Int      @map("version_no")
+  /// QuestionContent from @tk/contracts: stem, options, answer key, model answer, explanation.
+  content     Json
+  createdById String?  @map("created_by") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  question  Question  @relation("QuestionVersions", fields: [questionId], references: [id], onDelete: Restrict)
+  currentOf Question? @relation("QuestionCurrentVersion")
+
+  @@unique([questionId, versionNo])
+  @@map("question_versions")
+}
+
+/// Previous-year-question metadata (D-020).
+model QuestionSource {
+  id         String  @id @default(uuid(7)) @db.Uuid
+  questionId String  @map("question_id") @db.Uuid
+  examNodeId String? @map("exam_node_id") @db.Uuid
+  paperId    String? @map("paper_id") @db.Uuid
+  yearBs     Int?    @map("year_bs")
+  note       String?
+
+  question Question  @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  examNode ExamNode? @relation(fields: [examNodeId], references: [id], onDelete: Restrict)
+  paper    Paper?    @relation(fields: [paperId], references: [id], onDelete: Restrict)
+
+  @@index([questionId])
+  @@index([examNodeId, yearBs])
+  @@map("question_sources")
+}
+
+model Tag {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  name      String   @unique @db.Citext
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  questions QuestionTag[]
+
+  @@map("tags")
+}
+
+model QuestionTag {
+  questionId String @map("question_id") @db.Uuid
+  tagId      String @map("tag_id") @db.Uuid
+
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  tag      Tag      @relation(fields: [tagId], references: [id], onDelete: Restrict)
+
+  @@id([questionId, tagId])
+  @@index([tagId])
+  @@map("question_tags")
+}
+
+enum QuestionReportReason {
+  wrong_answer
+  typo
+  unclear
+  outdated
+  other
+}
+
+enum QuestionReportStatus {
+  open
+  resolved
+  rejected
+}
+
+model QuestionReport {
+  id             String               @id @default(uuid(7)) @db.Uuid
+  questionId     String               @map("question_id") @db.Uuid
+  userId         String               @map("user_id") @db.Uuid
+  reason         QuestionReportReason
+  message        String?
+  status         QuestionReportStatus @default(open)
+  resolvedById   String?              @map("resolved_by") @db.Uuid
+  resolutionNote String?              @map("resolution_note")
+  resolvedAt     DateTime?            @map("resolved_at") @db.Timestamptz(6)
+  createdAt      DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Restrict)
+  user       User     @relation("QuestionReportUser", fields: [userId], references: [id], onDelete: Restrict)
+  resolvedBy User?    @relation("QuestionReportResolver", fields: [resolvedById], references: [id], onDelete: SetNull)
+
+  @@index([status, createdAt])
+  @@index([questionId])
+  @@map("question_reports")
 }

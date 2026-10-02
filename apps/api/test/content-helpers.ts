@@ -12,6 +12,9 @@ export const ALL_CONTENT_PERMISSIONS = [
   'entitlements:grant',
   'users:read',
   'instructors:manage',
+  'questions:edit',
+  'questions:publish',
+  'question_reports:manage',
 ];
 
 export const note = (text: string) => ({

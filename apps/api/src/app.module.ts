@@ -40,6 +40,12 @@ import { ScopeService } from './modules/content/scope.service.js';
 import { TaxonomyService } from './modules/content/taxonomy.service.js';
 import { VideoService } from './modules/content/video.service.js';
 import { HealthController } from './modules/health/health.controller.js';
+import { QuestionReportsService } from './modules/questions/question-reports.service.js';
+import {
+  AdminQuestionsController,
+  QuestionReportsController,
+} from './modules/questions/questions.controller.js';
+import { QuestionsService } from './modules/questions/questions.service.js';
 import { AdminAccessController } from './modules/rbac/admin-access.controller.js';
 import { RbacService } from './modules/rbac/rbac.service.js';
 import { StaffService } from './modules/rbac/staff.service.js';
@@ -96,6 +102,8 @@ export class InfraModule {}
     EntitlementsService,
     CatalogService,
     ScopeService,
+    QuestionsService,
+    QuestionReportsService,
     { provide: GoogleVerifier, useClass: GoogleAuthLibraryVerifier },
   ],
   exports: [
@@ -123,6 +131,8 @@ export class InfraModule {}
     EntitlementsService,
     CatalogService,
     ScopeService,
+    QuestionsService,
+    QuestionReportsService,
     GoogleVerifier,
   ],
 })
@@ -169,6 +179,8 @@ export class DomainModule {}
     AdminCoursesController,
     CatalogController,
     LearningController,
+    AdminQuestionsController,
+    QuestionReportsController,
   ],
   providers: [
     // Order matters: rate limit → maintenance → authentication → permissions.

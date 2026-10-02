@@ -4,5 +4,6 @@ export * from './common.js';
 export * from './content.js';
 export * from './errors.js';
 export * from './permissions.js';
+export * from './questions.js';
 export * from './rich-text.js';
 export * from './settings.js';

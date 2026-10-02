@@ -4,6 +4,18 @@ All notable changes to this project. Format based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Added — 2026-10-03 (Phase 7: question bank, backend)
+- Scoring engine in `@tk/domain`: all question types, configurable partial credit, negative marking, optional zero
+  floor, exact centimark arithmetic (D-044, T-030).
+- Question schemas in `@tk/contracts` with answer-key validation per type; `richDocText`.
+- Migration `question_bank`: questions, immutable question versions (trigger), passages, tags, PYQ sources,
+  question reports. New permissions for questions, reports, assessments and grading.
+- Admin question API (versions, workflow, scopes, tags, passages, reports) and student question reports.
+
+### Fixed
+- Images used only inside course descriptions could be deleted from the media library; rich-text usage now also
+  covers course descriptions, passages and question versions.
+
 ### Added — 2026-10-02 (Phase 6: content API)
 - S3-compatible object storage (SeaweedFS locally and in CI, Cloudflare R2 in production) and a media library with
   server-validated uploads (WebP image variants, private PDFs, signed URLs).

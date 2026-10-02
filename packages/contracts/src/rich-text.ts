@@ -169,3 +169,17 @@ export function richDocMediaIds(doc: unknown): string[] {
   walk(doc as Node);
   return [...ids];
 }
+
+/** Plain text of a document (text nodes joined; blocks separated by newlines). For search and placeholder checks. */
+export function richDocText(doc: unknown): string {
+  const out: string[] = [];
+  const walk = (node: Node, block: boolean) => {
+    if (node?.type === 'text' && typeof node.text === 'string') out.push(node.text);
+    if (node?.type === 'hardBreak') out.push('\n');
+    if (Array.isArray(node?.content)) node.content.forEach((c) => walk(c as Node, false));
+    if (block) out.push('\n');
+  };
+  const root = doc as Node;
+  if (Array.isArray(root?.content)) root.content.forEach((c) => walk(c as Node, true));
+  return out.join('').trim();
+}
