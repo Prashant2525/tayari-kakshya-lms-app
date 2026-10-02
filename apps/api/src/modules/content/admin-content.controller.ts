@@ -36,7 +36,13 @@ export class AdminContentController {
   // ───────────── Subjects ─────────────
 
   @Get('subjects')
-  @RequireAnyPermission('content:edit', 'content:publish', 'courses:edit')
+  @RequireAnyPermission(
+    'content:edit',
+    'content:publish',
+    'courses:edit',
+    'questions:edit',
+    'assessments:edit',
+  )
   subjects(@ZodQuery(AdminListQuery) query: AdminListQuery, @StaffActor() a: ContentActor) {
     return this.content.listSubjects(query, a);
   }
@@ -49,7 +55,7 @@ export class AdminContentController {
   }
 
   @Get('subjects/:id/tree')
-  @RequireAnyPermission('content:edit', 'content:publish')
+  @RequireAnyPermission('content:edit', 'content:publish', 'questions:edit', 'assessments:edit')
   tree(@Param('id', uuid()) id: string, @StaffActor() a: ContentActor) {
     return this.content.subjectTree(id, a);
   }

@@ -19,6 +19,9 @@ const CONTENT_PERMISSIONS = [
   'instructors:manage',
   'entitlements:grant',
   'users:read',
+  'questions:edit',
+  'questions:publish',
+  'question_reports:manage',
 ];
 
 /**

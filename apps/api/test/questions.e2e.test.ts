@@ -104,6 +104,10 @@ describe('question bank administration', () => {
     }
     const list = await call(ctx, 'GET', '/admin/questions?limit=50', { token });
     expect(list.body.data).toHaveLength(7);
+    // Previews show the question text only (no options), with blanks as ____.
+    const previews = list.body.data.map((q: { preview: string }) => q.preview);
+    expect(previews).toContain('Capital is ____.');
+    expect(previews).toContain('Q1');
   });
 
   it('rejects invalid answer keys, marks and topics from another subject', async () => {
@@ -400,5 +404,34 @@ describe('question reports', () => {
 
     // After resolution the student may report again.
     expect((await report(live.id)).status).toBe(201);
+  });
+});
+
+describe('reference data for course and question editors', () => {
+  it('lets course and question editors read categories, papers and subject outlines, but not change them', async () => {
+    const token = await publisher(ctx);
+    const { subjectId } = await subjectWithTopic(token);
+    for (const [email, permission] of [
+      ['qe@example.com', 'questions:edit'],
+      ['ce@example.com', 'courses:edit'],
+    ] as const) {
+      await createStaff(ctx, email, { permissions: [permission] });
+      const t = (await staffLogin(ctx, email)).token;
+      expect((await call(ctx, 'GET', '/admin/exam-nodes', { token: t })).status, permission).toBe(200);
+      expect((await call(ctx, 'GET', '/admin/papers', { token: t })).status, permission).toBe(200);
+      expect((await call(ctx, 'GET', '/admin/subjects', { token: t })).status, permission).toBe(200);
+      const create = await call(ctx, 'POST', '/admin/exam-nodes', {
+        token: t,
+        body: {
+          parentId: null,
+          nodeType: 'authority',
+          name: { en: 'X' },
+          slug: `x-${permission.split(':')[0]}`,
+        },
+      });
+      expect(create.status, permission).toBe(403);
+    }
+    const qe = (await staffLogin(ctx, 'qe@example.com')).token;
+    expect((await call(ctx, 'GET', `/admin/subjects/${subjectId}/tree`, { token: qe })).status).toBe(200);
   });
 });

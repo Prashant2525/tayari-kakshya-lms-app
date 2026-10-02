@@ -2,7 +2,7 @@ import { Controller, Delete, Get, HttpCode, Param, ParseUUIDPipe, Post, Put, Que
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { ExamNodeInput, PaperInput, PublishStatus } from '@tk/contracts';
 import { z } from 'zod';
-import { Audiences, RequirePermissions } from '../../common/auth/auth-context.js';
+import { Audiences, RequireAnyPermission, RequirePermissions } from '../../common/auth/auth-context.js';
 import { ApiZodBody, ZodBody } from '../../common/validation/zod.js';
 import { StaffActor } from './request-helpers.js';
 import type { ContentActor } from './scope.service.js';
@@ -15,23 +15,25 @@ const actor = (a: ContentActor) => ({ userId: a.userId, client: a.client });
 @ApiTags('admin-taxonomy')
 @ApiBearerAuth()
 @Audiences('staff')
-@RequirePermissions('taxonomy:manage')
 @Controller('admin')
 export class AdminTaxonomyController {
   constructor(private readonly taxonomy: TaxonomyService) {}
 
   @Get('exam-nodes')
+  @RequireAnyPermission('taxonomy:manage', 'courses:edit', 'questions:edit', 'assessments:edit')
   tree(@Query('includeDeleted') includeDeleted?: string) {
     return this.taxonomy.adminTree(includeDeleted === 'true');
   }
 
   @Post('exam-nodes')
+  @RequirePermissions('taxonomy:manage')
   @ApiZodBody(ExamNodeInput)
   createNode(@ZodBody(ExamNodeInput) body: ExamNodeInput, @StaffActor() a: ContentActor) {
     return this.taxonomy.createNode(body, actor(a));
   }
 
   @Put('exam-nodes/order')
+  @RequirePermissions('taxonomy:manage')
   @HttpCode(204)
   @ApiZodBody(NodeOrderInput)
   async reorder(
@@ -42,6 +44,7 @@ export class AdminTaxonomyController {
   }
 
   @Put('exam-nodes/:id')
+  @RequirePermissions('taxonomy:manage')
   @ApiZodBody(ExamNodeInput)
   updateNode(
     @Param('id', new ParseUUIDPipe()) id: string,
@@ -52,6 +55,7 @@ export class AdminTaxonomyController {
   }
 
   @Put('exam-nodes/:id/status')
+  @RequirePermissions('taxonomy:manage')
   @HttpCode(204)
   @ApiZodBody(StatusInput)
   async nodeStatus(
@@ -63,29 +67,34 @@ export class AdminTaxonomyController {
   }
 
   @Delete('exam-nodes/:id')
+  @RequirePermissions('taxonomy:manage')
   @HttpCode(204)
   async removeNode(@Param('id', new ParseUUIDPipe()) id: string, @StaffActor() a: ContentActor) {
     await this.taxonomy.removeNode(id, actor(a));
   }
 
   @Post('exam-nodes/:id/restore')
+  @RequirePermissions('taxonomy:manage')
   @HttpCode(204)
   async restoreNode(@Param('id', new ParseUUIDPipe()) id: string, @StaffActor() a: ContentActor) {
     await this.taxonomy.restoreNode(id, actor(a));
   }
 
   @Get('papers')
+  @RequireAnyPermission('taxonomy:manage', 'courses:edit', 'questions:edit', 'assessments:edit')
   papers(@Query('includeDeleted') includeDeleted?: string) {
     return this.taxonomy.listPapers(includeDeleted === 'true');
   }
 
   @Post('papers')
+  @RequirePermissions('taxonomy:manage')
   @ApiZodBody(PaperInput)
   createPaper(@ZodBody(PaperInput) body: PaperInput, @StaffActor() a: ContentActor) {
     return this.taxonomy.createPaper(body, actor(a));
   }
 
   @Put('papers/:id')
+  @RequirePermissions('taxonomy:manage')
   @ApiZodBody(PaperInput)
   updatePaper(
     @Param('id', new ParseUUIDPipe()) id: string,
@@ -96,6 +105,7 @@ export class AdminTaxonomyController {
   }
 
   @Put('papers/:id/status')
+  @RequirePermissions('taxonomy:manage')
   @HttpCode(204)
   @ApiZodBody(StatusInput)
   async paperStatus(
@@ -107,6 +117,7 @@ export class AdminTaxonomyController {
   }
 
   @Delete('papers/:id')
+  @RequirePermissions('taxonomy:manage')
   @HttpCode(204)
   async removePaper(@Param('id', new ParseUUIDPipe()) id: string, @StaffActor() a: ContentActor) {
     await this.taxonomy.removePaper(id, actor(a));

@@ -1,6 +1,6 @@
 # Project State
 
-Current Phase: **Phase 7 — Question bank + assessment CMS: IN PROGRESS** (backend of the question bank done)
+Current Phase: **Phase 7 — Question bank + assessment CMS: IN PROGRESS** (question bank done: API + admin screens)
 Current Milestone: content API on `feature/content-cms` → Admin CMS content screens
 Overall Status: **IN PROGRESS**
 Last updated: 2026-10-02
@@ -25,7 +25,7 @@ Last updated: 2026-10-02
     limits — verified in a real browser (E2E + screenshots in light, dark, mobile).
 
 ## In Progress
-- Phase 7 on `feature/question-bank`: question bank admin screens next, then import and assessments.
+- Phase 7 on `feature/question-bank`: CSV/XLSX import next, then assessments.
 - Phase 6 merged (PR #5, #6). Owner action: enable Bunny **CDN** token authentication (KI-023).
 
 ## Remaining
@@ -48,7 +48,7 @@ Last updated: 2026-10-02
 - Not started (Phase 8 / Phase 11).
 
 ## Tests
-- Unit/integration 250 · browser E2E 12 — all passing locally (see `TEST_STATUS.md`).
+- Unit/integration 261 · browser E2E 15 — all passing locally (see `TEST_STATUS.md`).
 
 ## Known Issues
 - See `KNOWN_ISSUES.md` (KI-021 CI storage flake under investigation, KI-022 per-request PDF watermarking, KI-023 Bunny token auth).
@@ -77,4 +77,4 @@ and `pnpm --filter @tk/admin dev` → create your Super Admin:
 (code in Mailpit http://localhost:8025) → set password at http://localhost:5173/set-password → sign in → enrol 2FA.
 
 ## Exact Next Task
-- Admin question bank screens (list with filters, editor for all 7 types, passages, reports queue).
+- Question import from CSV/XLSX with a validation preview (needs an import template agreed with the owner).

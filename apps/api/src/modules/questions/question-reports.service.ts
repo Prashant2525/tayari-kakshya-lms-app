@@ -1,11 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { ErrorCode, type LocalizedText } from '@tk/contracts';
+import { ErrorCode, type LocalizedText, type QuestionContent } from '@tk/contracts';
 import type { z } from 'zod';
 import type { ClientInfo } from '../../common/auth/auth-context.js';
 import { AppError, Errors } from '../../common/errors/app-error.js';
 import { Prisma } from '../../generated/prisma/client.js';
 import { PrismaService } from '../../infra/prisma/prisma.service.js';
 import { AuditService } from '../audit/audit.service.js';
+import { stemPreview } from './questions.service.js';
 import type { QuestionReportInput, ResolveReportInput } from '@tk/contracts';
 
 /** Students flag problems in questions; content staff resolve or reject them. */
@@ -44,7 +45,14 @@ export class QuestionReportsService {
       orderBy: { id: 'desc' },
       take: limit + 1,
       include: {
-        question: { select: { id: true, type: true, searchText: true, subject: { select: { name: true } } } },
+        question: {
+          select: {
+            id: true,
+            type: true,
+            subject: { select: { name: true } },
+            currentVersion: { select: { content: true } },
+          },
+        },
         user: { select: { fullName: true } },
         resolvedBy: { select: { fullName: true } },
       },
@@ -61,7 +69,7 @@ export class QuestionReportsService {
         question: {
           id: r.question.id,
           type: r.question.type,
-          preview: r.question.searchText.slice(0, 200),
+          preview: stemPreview(r.question.currentVersion?.content as QuestionContent | undefined),
           subject: r.question.subject.name as LocalizedText,
         },
         resolvedBy: r.resolvedBy?.fullName ?? null,

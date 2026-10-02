@@ -82,7 +82,7 @@ student read APIs for all of the above with access checks. Tests: CRUD, publish 
 **§7 Question bank + assessment CMS** (branch `feature/question-bank`) — ◐ IN PROGRESS
 - ☑ Scoring engine (`@tk/domain`), question schemas (`@tk/contracts`), migration `question_bank`, admin question API,
   passages, tags, PYQ sources, reports (+ tests)
-- ☐ Admin screens: question bank list/editor (all types), passages, reports queue
+- ☑ Admin screens: question bank list/editor (all types), passages, reports queue (+ E2E)
 - ☐ CSV/XLSX import with validation preview
 - ☐ Assessments: schema, builder (sections, fixed/random blueprints, rules per D-021/D-044), admin screens
 - ☐ Grading queue and results release (with the attempt engine, §10)

@@ -57,6 +57,17 @@ function searchTextOf(content: QuestionContent): string {
     .slice(0, 4000);
 }
 
+/** Question text only (English, else Nepali), blanks shown as "____", for lists. */
+export function stemPreview(content: QuestionContent | undefined): string {
+  const stem = content?.stem;
+  const text = stem ? richDocText(stem.en ?? stem.ne) : '';
+  return text
+    .replace(/\[\[[a-z0-9]{1,8}\]\]/g, '____')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 200);
+}
+
 const STRUCTURAL: ReadonlySet<PublishStatus> = new Set(['draft', 'in_review', 'published', 'archived']);
 
 /** Question bank (D-016, D-020): metadata on `questions`, content in immutable `question_versions`. */
@@ -95,6 +106,7 @@ export class QuestionsService {
         subject: { select: { name: true } },
         topic: { select: { title: true } },
         tags: { include: { tag: true } },
+        currentVersion: { select: { content: true } },
         _count: { select: { reports: { where: { status: 'open' } } } },
       },
     });
@@ -107,7 +119,7 @@ export class QuestionsService {
         status: q.status,
         accessLevel: q.accessLevel,
         isPyq: q.isPyq,
-        preview: q.searchText.slice(0, 200),
+        preview: stemPreview(q.currentVersion?.content as QuestionContent | undefined),
         subject: q.subject.name as LocalizedText,
         topic: (q.topic?.title as LocalizedText | undefined) ?? null,
         tags: q.tags.map((t) => t.tag.name).sort(),
