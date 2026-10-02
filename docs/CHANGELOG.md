@@ -12,6 +12,9 @@ All notable changes to this project. Format based on Keep a Changelog.
 - **Question import template** (`docs/templates/question-import-template.xlsx`, also downloadable from the Question
   bank with live dropdowns) and the row parser the importer will use.
 
+### Fixed
+- Concurrent free-course enrol requests could create duplicate access rows (race on the start time).
+
 ### Changed
 - Signed Bunny embed links last 5 minutes (was 4 hours) — verified safe for long videos.
 - Course editor checkboxes keep type hints out of the accessible name.

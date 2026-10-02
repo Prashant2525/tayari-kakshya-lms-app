@@ -64,7 +64,7 @@ Current task: Phase 7 — dynamic-admin audit applied; XLSX import next (branch 
 - Migration `content_catalog`; endpoints in `API_DOCUMENTATION.md` §1b.
 
 ## Tests run
-- `pnpm format:check && pnpm build && pnpm lint && pnpm typecheck && pnpm test` → all passing, 272 tests; `pnpm --filter @tk/admin e2e` → 17 passing.
+- `pnpm format:check && pnpm build && pnpm lint && pnpm typecheck && pnpm test` → all passing, 273 tests; `pnpm --filter @tk/admin e2e` → 17 passing.
 
 ## Known issues / blockers
 - KI-021 (CI-only media failure — fix pending CI confirmation), KI-022 (per-request watermark cost). No blockers.

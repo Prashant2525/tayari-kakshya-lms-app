@@ -10,12 +10,15 @@ Last updated: 2026-10-03 (Phase 7, question bank backend). `pnpm test` runs unit
 | `@tk/design-tokens` | 39 | WCAG contrast for every text/background pair (light + dark), CSS generation |
 | `@tk/domain` | 39 | BS calendar, Kathmandu day boundary, fiscal year, money/VAT/discounts, access validity |
 | `@tk/contracts` | 21 | Schema behaviour (localized text, email normalisation, mass assignment, settings defaults, rich-text validation) |
-| `@tk/api` | 140 | Integration against real PostgreSQL + Redis + S3 (SeaweedFS) through the HTTP stack; TOTP RFC 6238 vectors; RBAC, video, watermark unit |
+| `@tk/api` | 141 | Integration against real PostgreSQL + Redis + S3 (SeaweedFS) through the HTTP stack; TOTP RFC 6238 vectors; RBAC, video, watermark unit |
 | `@tk/admin` (unit) | 33 | API client (headers, refresh single-flight, retry, session loss, error mapping), BS formatting, Button `asChild` regression |
 | `@tk/admin` (E2E, Playwright) | 17 | Real browser + real API + `*_e2e` database |
-| **Total** | **289** | |
+| **Total** | **290** | |
 
 ### Added with the dynamic admin audit
+- **Bug caught by CI:** concurrent free-enrol taps could create two entitlements — the request that waited on the
+  lock checked with an earlier timestamp than the new row's start. Fixed (any active, unexpired access counts) with a
+  deterministic regression test that fails on the old check.
 - **API:** PSC-style tree with sub-group and exam stage; hierarchy rules read from the types table; papers on exam
   stages; type rank/flag changes refused when existing categories would break; in-use types cannot be deleted; off
   types unusable for new categories; only taxonomy managers edit types; disabled question types refused; labels in

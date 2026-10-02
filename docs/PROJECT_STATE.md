@@ -49,7 +49,7 @@ Last updated: 2026-10-02
 - Not started (Phase 8 / Phase 11).
 
 ## Tests
-- Unit/integration 272 · browser E2E 17 — all passing locally (see `TEST_STATUS.md`).
+- Unit/integration 273 · browser E2E 17 — all passing locally (see `TEST_STATUS.md`).
 
 ## Known Issues
 - See `KNOWN_ISSUES.md` (KI-021 CI storage flake under investigation, KI-022 per-request PDF watermarking, KI-023 Bunny token auth).

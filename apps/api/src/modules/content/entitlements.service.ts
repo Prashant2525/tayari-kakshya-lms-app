@@ -110,8 +110,10 @@ export class EntitlementsService {
     return this.prisma.$transaction(async (tx) => {
       // Serialise concurrent enrol taps by the same student for the same course.
       await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${`enrol:${userId}:${courseId}`}))`;
+      // Any active access that has not ended counts, whatever its start time: a request that waited on the lock
+      // holds an earlier `now` than the one that just enrolled (regression: duplicate rows under concurrent taps).
       const existing = await tx.entitlement.findFirst({
-        where: { userId, courseId, ...activeEntitlementWhere(now) },
+        where: { userId, courseId, status: 'active', OR: [{ endsAt: null }, { endsAt: { gt: now } }] },
         orderBy: { endsAt: { sort: 'desc', nulls: 'first' } },
       });
       if (existing) return { enrolled: false, endsAt: existing.endsAt?.toISOString() ?? null };
