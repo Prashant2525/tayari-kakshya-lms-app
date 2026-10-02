@@ -12,8 +12,8 @@ Last updated: 2026-10-02 (Phase 6, content API + first admin content screens). `
 | `@tk/contracts` | 16 | Schema behaviour (localized text, email normalisation, mass assignment, settings defaults, rich-text validation) |
 | `@tk/api` | 120 | Integration against real PostgreSQL + Redis + S3 (SeaweedFS) through the HTTP stack; TOTP RFC 6238 vectors; RBAC, video, watermark unit |
 | `@tk/admin` (unit) | 23 | API client (headers, refresh single-flight, retry, session loss, error mapping), BS formatting, Button `asChild` regression |
-| `@tk/admin` (E2E, Playwright) | 9 | Real browser + real API + `*_e2e` database |
-| **Total** | **231** | |
+| `@tk/admin` (E2E, Playwright) | 12 | Real browser + real API + `*_e2e` database |
+| **Total** | **234** | |
 
 ### Added in Phase 6 (content API)
 - **Media:** real-type sniffing rejects disguised files; images re-encoded to WebP variants with metadata stripped;
@@ -48,7 +48,11 @@ Last updated: 2026-10-02 (Phase 6, content API + first admin content screens). `
   with marks validation, post links and status persisted; subject → chapter → topic → bilingual note (bold, image
   from the media library, Nepali tab) with required-field errors, unsaved-changes guard, reload persistence and
   publishing; video items (YouTube-for-premium warning, Bunny-not-configured error, duration validation), PDF item
-  with download flag, scheduling in Nepal time shown in BS.
+  with download flag, scheduling in Nepal time shown in BS; courses (create with auto URL name, details + thumbnail
+  + featured, price validation and rupee formatting, sale price, 365-day validity, subject with paper and marks
+  validation, exam post and instructor links, publish, values persisted after reload, list shows price/sale/status);
+  instructor profile; student course access granted with the course's validity (expiry previewed) and a note, then
+  revoked with a required reason.
 - **Unit (editor):** real TipTap output for every toolbar feature passes the server's rich-text allow-list after
   `toStoredDoc`; unsafe links and non-library images are dropped (mutation check: without the converter 3 tests
   fail — TipTap emits `orderedList.type` and table `align`). Duration and Nepal-time helpers.
@@ -71,5 +75,5 @@ Last updated: 2026-10-02 (Phase 6, content API + first admin content screens). `
 - Watermark label contained a double space after stripping non-ASCII characters → whitespace collapsed.
 
 ## Not yet covered
-- Admin screens for courses, instructors, staff scopes and access grants (next).
+- Staff content scopes dialog (covered by API tests, not yet by browser E2E); preview-as-student.
 - Load testing (Phase 16); content, exams, payments (later phases); student mobile app (Phase 8).

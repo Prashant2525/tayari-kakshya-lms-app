@@ -215,3 +215,78 @@ export function isoToNepalLocal(iso: string | null | undefined): string {
   const shifted = new Date(new Date(iso).getTime() + (5 * 60 + 45) * 60_000);
   return shifted.toISOString().slice(0, 16);
 }
+
+export interface CourseRow {
+  id: string;
+  slug: string;
+  title: LocalizedText;
+  thumbnailUrl: string | null;
+  status: PublishStatus;
+  publishAt: string | null;
+  pricePaisa: number;
+  salePricePaisa: number | null;
+  isFeatured: boolean;
+  subjectCount: number;
+  deletedAt: string | null;
+  updatedAt: string;
+}
+
+export interface CoursePricing {
+  pricePaisa: number;
+  salePricePaisa: number | null;
+  saleStartsAt: string | null;
+  saleEndsAt: string | null;
+  validityType: 'days' | 'fixed_date' | 'lifetime';
+  validityDays: number | null;
+  validityEndsOn: string | null;
+}
+
+export interface CourseSubjectLink {
+  subjectId: string;
+  name: LocalizedText;
+  subjectStatus: PublishStatus;
+  paperId: string | null;
+  paperName: LocalizedText | null;
+  displayFullMarks: number | null;
+  displayPassMarks: number | null;
+  displayDurationMinutes: number | null;
+}
+
+export interface CourseDetail {
+  id: string;
+  slug: string;
+  title: LocalizedText;
+  shortDescription: LocalizedText | null;
+  description: { en?: unknown; ne?: unknown } | null;
+  thumbnailMediaId: string | null;
+  thumbnailUrl: string | null;
+  language: 'en' | 'ne' | 'both';
+  isFeatured: boolean;
+  popularityRank: number | null;
+  status: PublishStatus;
+  publishAt: string | null;
+  pricing: CoursePricing;
+  subjects: CourseSubjectLink[];
+  examNodes: Array<{ id: string; name: LocalizedText; nodeType: string }>;
+  instructors: Array<{ id: string; fullName: string }>;
+  activeStudents: number;
+}
+
+export interface InstructorRow {
+  userId: string;
+  fullName: string;
+  email: string;
+  profile: {
+    displayName: LocalizedText;
+    bio: LocalizedText | null;
+    photoMediaId: string | null;
+    photoUrl: string | null;
+    isPublic: boolean;
+  } | null;
+}
+
+/** "3000" / "2999.50" for a rupee input, from paisa. */
+export function paisaToRupeesInput(paisa: number | null | undefined): string {
+  if (paisa === null || paisa === undefined) return '';
+  return paisa % 100 === 0 ? String(paisa / 100) : (paisa / 100).toFixed(2);
+}

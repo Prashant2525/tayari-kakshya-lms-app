@@ -1,6 +1,6 @@
 # Project State
 
-Current Phase: **Phase 6 — Academic/content CMS: IN PROGRESS** (API done; admin: media, categories, papers, subjects + item editor done)
+Current Phase: **Phase 6 — Academic/content CMS: COMPLETE (verified locally + CI)** — PR into `main` for owner review
 Current Milestone: content API on `feature/content-cms` → Admin CMS content screens
 Overall Status: **IN PROGRESS**
 Last updated: 2026-10-02
@@ -21,14 +21,14 @@ Last updated: 2026-10-02
     learning items with server-side locking, watermarked PDF stream, video playback (YouTube nocookie / signed Bunny),
     free-course enrolment (D-043).
   - Admin CMS: media library + picker, exam categories tree, papers, subjects outline and item editor (TipTap notes
-    in en/ne, PDFs, videos, publishing/scheduling) — verified in a real browser (E2E + screenshots in light, dark,
-    mobile).
+    in en/ne, PDFs, videos, publishing/scheduling), courses, instructors, student course access, staff content
+    limits — verified in a real browser (E2E + screenshots in light, dark, mobile).
 
 ## In Progress
-- Phase 6 Admin CMS screens: courses, instructors, staff scopes, student access grants.
+- Owner review of the Phase 6 PR. Owner action: enable Bunny token authentication (KI-023).
 
 ## Remaining
-- Phase 6 admin screens + E2E; Phases 7–18 (`IMPLEMENTATION_PLAN.md`).
+- Phases 7–18 (`IMPLEMENTATION_PLAN.md`).
 
 ## Database Changes (Phase 6)
 - Migration `content_catalog`: `media_assets`, `exam_nodes`, `papers`, `post_papers`, `subjects`, `chapters`, `topics`,
@@ -47,7 +47,7 @@ Last updated: 2026-10-02
 - Not started (Phase 8 / Phase 11).
 
 ## Tests
-- Unit/integration 222 · browser E2E 9 — all passing locally (see `TEST_STATUS.md`).
+- Unit/integration 222 · browser E2E 12 — all passing locally (see `TEST_STATUS.md`).
 
 ## Known Issues
 - See `KNOWN_ISSUES.md` (KI-021 CI storage flake under investigation, KI-022 per-request PDF watermarking, KI-023 Bunny token auth).
@@ -76,5 +76,4 @@ and `pnpm --filter @tk/admin dev` → create your Super Admin:
 (code in Mailpit http://localhost:8025) → set password at http://localhost:5173/set-password → sign in → enrol 2FA.
 
 ## Exact Next Task
-- Admin CMS: courses (details, pricing, subjects, exam links, instructors, publishing), then access grants on the
-  student page, instructor profiles and staff scopes.
+- After the PR is merged: Phase 7 — question bank + assessment CMS (branch `feature/question-bank`).

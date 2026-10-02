@@ -122,6 +122,27 @@ const routes = [
   }),
   createRoute({
     getParentRoute: () => appRoute,
+    path: '/courses',
+    component: lazyRouteComponent(() => import('./features/courses/courses-page'), 'CoursesPage'),
+  }),
+  createRoute({
+    getParentRoute: () => appRoute,
+    path: '/courses/$courseId',
+    validateSearch: (s: Record<string, unknown>): { tab?: 'details' | 'pricing' | 'subjects' | 'links' } => ({
+      tab:
+        s['tab'] === 'pricing' || s['tab'] === 'subjects' || s['tab'] === 'links' || s['tab'] === 'details'
+          ? s['tab']
+          : undefined,
+    }),
+    component: lazyRouteComponent(() => import('./features/courses/course-page'), 'CoursePage'),
+  }),
+  createRoute({
+    getParentRoute: () => appRoute,
+    path: '/instructors',
+    component: lazyRouteComponent(() => import('./features/courses/instructors-page'), 'InstructorsPage'),
+  }),
+  createRoute({
+    getParentRoute: () => appRoute,
     path: '/media',
     component: lazyRouteComponent(() => import('./features/media/media-page'), 'MediaPage'),
   }),

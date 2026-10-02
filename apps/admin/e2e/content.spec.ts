@@ -282,3 +282,124 @@ test('video and PDF items: provider checks, YouTube warning, scheduling', async 
   await expect(video).toContainText('12:30');
   await expect(video).toContainText('Free');
 });
+
+test('courses: create, describe, price, add subjects and exams, publish', async () => {
+  await page.getByRole('link', { name: 'Courses' }).click();
+  await page.getByRole('button', { name: 'New course' }).click();
+  const dialog = page.getByRole('dialog');
+  await dialog.getByLabel('Title (English)').fill('Kharidar Complete Course');
+  await expect(dialog.getByLabel('URL name')).toHaveValue('kharidar-complete-course');
+  await dialog.getByRole('button', { name: 'Create' }).click();
+  await expect(page.getByRole('heading', { name: 'Kharidar Complete Course' })).toBeVisible();
+
+  await page.getByLabel('Short description (English)').fill('Everything for the Kharidar written exam.');
+  await page.getByRole('button', { name: 'Choose' }).click();
+  await page
+    .getByRole('dialog', { name: 'Choose an image' })
+    .getByRole('button', { name: /police-emblem\.png/ })
+    .click();
+  await page.getByLabel('Featured').click();
+  await page.getByRole('button', { name: 'Save', exact: true }).click();
+  await expect(page.getByText('Details saved')).toBeVisible();
+
+  await page.getByRole('tab', { name: 'Pricing & validity' }).click();
+  await page.getByLabel('Price (Rs)', { exact: true }).fill('abc');
+  await page.getByRole('button', { name: 'Save', exact: true }).click();
+  await expect(page.getByText('Enter the price in rupees')).toBeVisible();
+  await page.getByLabel('Price (Rs)', { exact: true }).fill('3,000');
+  await expect(page.getByText('Rs 3,000', { exact: true })).toBeVisible();
+  await page.getByLabel('Sale price (Rs)').fill('2500');
+  await page.getByLabel('Access lasts').selectOption('days');
+  await page.getByLabel('Days').fill('365');
+  await page.getByRole('button', { name: 'Save', exact: true }).click();
+  await expect(page.getByText('Pricing saved')).toBeVisible();
+
+  await page.getByRole('tab', { name: 'Subjects' }).click();
+  await page.getByLabel('Add a subject').selectOption({ label: 'General Knowledge' });
+  await page.getByRole('button', { name: 'Add', exact: true }).click();
+  await page.getByLabel('Paper').selectOption({ label: 'Paper I: General Awareness' });
+  await page.getByLabel('Full marks').fill('50');
+  await page.getByLabel('Pass marks').fill('60');
+  await page.getByRole('button', { name: 'Save', exact: true }).click();
+  await expect(page.getByText('General Knowledge: pass marks cannot exceed full marks')).toBeVisible();
+  await page.getByLabel('Pass marks').fill('20');
+  await page.getByRole('button', { name: 'Save', exact: true }).click();
+  await expect(page.getByText('Subjects saved')).toBeVisible();
+
+  await page.getByRole('tab', { name: 'Exams & instructors' }).click();
+  await page.getByLabel('Nepal Police › Constable').check();
+  await page.getByLabel('E2E Editor').check();
+  await page.getByRole('button', { name: 'Save', exact: true }).click();
+  await expect(page.getByText('Links saved')).toBeVisible();
+
+  await page.getByLabel('Course status').selectOption('published');
+  await page.getByRole('button', { name: 'Update status' }).click();
+  await expect(page.getByText('Status: Published')).toBeVisible();
+
+  // Saved values come back from the server after a reload.
+  await page.reload();
+  await page.getByRole('tab', { name: 'Pricing & validity' }).click();
+  await expect(page.getByLabel('Price (Rs)', { exact: true })).toHaveValue('3000');
+  await expect(page.getByLabel('Sale price (Rs)')).toHaveValue('2500');
+  await expect(page.getByLabel('Days')).toHaveValue('365');
+  await page.getByRole('tab', { name: 'Exams & instructors' }).click();
+  await expect(page.getByLabel('Nepal Police › Constable')).toBeChecked();
+
+  await page.getByRole('link', { name: 'Courses', exact: true }).first().click();
+  const row = page.getByRole('row', { name: /Kharidar Complete Course/ });
+  await expect(row).toContainText('Rs 3,000');
+  await expect(row).toContainText('Sale Rs 2,500');
+  await expect(row).toContainText('Published');
+  await expect(row.getByLabel('Featured')).toBeVisible();
+});
+
+test('instructor profiles', async () => {
+  await page.getByRole('link', { name: 'Instructors' }).click();
+  await page.getByRole('button', { name: 'Edit profile of E2E Editor' }).click();
+  const dialog = page.getByRole('dialog');
+  await dialog.getByLabel('Display name (English)').fill('Sita Sharma');
+  await dialog.getByLabel('Bio (English)').fill('Ten years of Lok Sewa coaching.');
+  await dialog.getByRole('button', { name: 'Save' }).click();
+  await expect(page.getByText('Profile saved')).toBeVisible();
+  const row = page.getByRole('listitem').filter({ hasText: E2E_EDITOR_EMAIL });
+  await expect(row).toContainText('Sita Sharma');
+  await expect(row).toContainText('Public');
+});
+
+test('student access: grant with the course validity, then revoke with a reason', async () => {
+  const register = await page.request.post('/api/v1/auth/register', {
+    data: {
+      fullName: 'Asha Rai',
+      email: 'asha.e2e@example.com',
+      password: 'correct horse battery',
+      acceptTerms: true,
+      device: { deviceId: 'e2e-device-0001', deviceName: 'E2E phone', platform: 'android' },
+    },
+  });
+  expect(register.status()).toBe(201);
+
+  await page.getByRole('link', { name: 'Students' }).click();
+  await page.getByRole('link', { name: /Asha Rai/ }).click();
+  await expect(page.getByText('No course access')).toBeVisible();
+  await page.getByRole('button', { name: 'Grant access' }).click();
+  const dialog = page.getByRole('dialog');
+  await dialog.getByLabel('Course', { exact: true }).selectOption({ label: 'Kharidar Complete Course' });
+  // 365-day validity from the course, shown before granting.
+  await expect(dialog.getByText(/^Ends .*\(Nepal time\)$/)).toBeVisible();
+  await dialog.getByLabel('Note').fill('Paid at the counter, receipt 1042');
+  await dialog.getByRole('button', { name: 'Grant access' }).click();
+  await expect(page.getByText('Access granted')).toBeVisible();
+  const access = page.getByRole('listitem').filter({ hasText: 'Kharidar Complete Course' });
+  await expect(access).toContainText('Granted by staff by E2E Editor');
+  await expect(access).toContainText('receipt 1042');
+  await expect(access).toContainText('Active');
+
+  await access.getByRole('button', { name: 'Revoke' }).click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Revoke access' }).click();
+  await expect(page.getByText('Give a short reason')).toBeVisible();
+  await page.getByRole('dialog').getByLabel('Reason').fill('Refunded');
+  await page.getByRole('dialog').getByRole('button', { name: 'Revoke access' }).click();
+  await expect(page.getByText('Access revoked')).toBeVisible();
+  await expect(access).toContainText('Revoked');
+  await expect(access).toContainText('revoked: Refunded');
+});

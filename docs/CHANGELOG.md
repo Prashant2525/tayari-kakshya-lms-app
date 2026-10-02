@@ -23,6 +23,10 @@ All notable changes to this project. Format based on Keep a Changelog.
   **item editor** for notes (TipTap rich text in English and Nepali, images from the media library, tables, links),
   PDFs (download flag) and videos (Bunny or YouTube, duration), access level, language, publishing and scheduling in
   Nepal time, unsaved-changes guard.
+- Admin CMS: **Courses** list and course editor (details with rich description and thumbnail, pricing in rupees with
+  sale window and validity, ordered subjects with paper and display marks, exam categories and instructors,
+  publishing/scheduling, delete), **Instructors** profiles, **Course access** on the student page (grant with the
+  course's validity / a date / lifetime, revoke with reason, history) and **Limit content access** for staff.
 
 ### Fixed
 - CI: SeaweedFS readiness wait and volume settings; server errors now logged in CI test output.
