@@ -1,47 +1,56 @@
 # Session Handoff
 
-Session date: 2026-10-02 (session 3)
-Current phase: **Phase 5 complete (verified) — awaiting PR review**
-Current task: none in progress
+Session date: 2026-10-02 (session 4 — resumed after a VS Code crash)
+Current phase: **Phase 6 — content CMS, API layer complete and verified locally**
+Current task: Phase 6 Admin CMS screens (not started)
 
 ## Completed this session
-- Confirmed PR #3 merged and CI green (owner). Built Phase 5 on `feature/admin-foundation`:
-  staff 2FA + education levels + dashboard API; design-tokens package; Admin CMS app; unit + Playwright E2E tests; CI job.
-- Verified with a scripted browser walkthrough (light, dark, mobile) and screenshots; fixed 4 defects it found
-  (see TEST_STATUS "Bugs caught").
+- Recovered the interrupted work from the repository (nothing lost). Verified the uncommitted content API:
+  fixed the Bunny token test (independent SHA-256 vector), replaced the watermark test with a content-stream check
+  (and fixed a double-space bug it found), removed a brittle PDF-producer assertion.
+- Mutation check: forcing `hasSubjectAccess` to return true makes 3 catalog tests fail (access tests are real).
+- CI `verify` failed on `aeef198` (media PDF upload returned 500 in CI only). Hardened CI: SeaweedFS started with
+  `-volume.max=0 -master.volumeSizeLimitMB=256`, readiness wait on `/dir/assign` (fails with container logs),
+  `TEST_LOG_LEVEL=error` so server errors appear in CI output (KI-021).
 
 ## Decisions taken during implementation
-- T-021 admin chrome English (content bilingual) · T-022 staff 2FA design · T-023 E2E approach · T-024 design tokens.
-- Client `can()` returns false while 2FA setup is required (mirrors server).
-- Command palette and generic data-table framework deferred to Phase 6 (built with the first content module).
+- T-020 resolved (SeaweedFS), T-025 (API-validated uploads), T-026 (live-edit rule), T-027 (archived courses stay
+  visible to entitled students), T-028 (instructor scopes). See `DECISIONS.md`.
 
 ## In progress / unfinished
-- Nothing partially implemented.
+- Nothing partially implemented. Admin screens for Phase 6 not started.
 
 ## Exact next steps
-1. Owner merges the Phase 5 PR; confirm CI jobs `verify` and `admin-e2e` are green.
-2. `git checkout main && git pull && git checkout -b feature/content-cms`.
-3. Phase 6: choose a maintained local S3-compatible service (T-020), add media upload (presigned) + R2 driver, then the
-   exam taxonomy → papers → courses → subjects/chapters/topics → learning items (notes/PDF/video) with publish
-   workflow, plus matching admin screens and student read APIs.
+1. `gh run list --branch feature/content-cms` — confirm `verify` and `admin-e2e` pass. If `verify` still fails, the
+   API error is now logged in the job output (KI-021).
+2. Admin CMS: media library page + reusable media picker.
+3. Exam taxonomy tree + papers; subjects → chapters → topics → items with TipTap note editor; courses (details,
+   pricing, subjects, links, publishing); student access grants on the student detail page. Command palette and the
+   generic data table (deferred from Phase 5).
+4. Playwright E2E for the content flow; browser walkthrough with screenshots.
+5. Open the PR `feature/content-cms` → `main` once the screens are done.
 
 ## Files changed
-- See `CHANGELOG.md` → Phase 5.
+- See `CHANGELOG.md` → Phase 6.
 
 ## Database / API changes
-- Migration `staff_mfa`; new endpoints listed in `API_DOCUMENTATION.md` §1a.
+- Migration `content_catalog`; endpoints in `API_DOCUMENTATION.md` §1b.
 
 ## Tests run
-- `pnpm test` → 145 passing; `pnpm --filter @tk/admin e2e` → 3 passing (run twice to confirm repeatability).
+- `pnpm format:check && pnpm build && pnpm lint && pnpm typecheck && pnpm test` → all passing, 198 tests.
 
 ## Known issues / blockers
-- KI-018 (admin bundle size), KI-019 (gh not authenticated in agent shell), KI-020 (expected 401 console line). No blockers.
+- KI-021 (CI-only media failure — fix pending CI confirmation), KI-022 (per-request watermark cost). No blockers.
 
 ## Credentials still required
-- None for local Phase 6 work.
+- Bunny Stream (library ID, API key, token key, CDN hostname) for premium video; R2 before staging.
+
+## Questions for the owner
+- L6: free (price 0) courses — open to all or enrol step?
 
 ## Local environment notes
 - Dev DB has Super Admin `owner@example.test` (dev-only password `Dev-only password 1`, 2FA reset — enrol on first sign-in).
-  Prefer creating your own account with the CLI.
-- E2E uses database `tayari_kakshya_e2e` and Redis DB 14 (auto-created/reset by `apps/admin/e2e/start-api.mjs`).
+- SeaweedFS S3 on :8333 (dev keys in `infra/docker/seaweedfs/s3.json`). Public media is served by the API proxy in dev.
+- If Docker isn't running after a reboot, start Docker Desktop, then `pnpm infra:up`.
+- Git Bash mangles `/paths` in docker args — prefix with `MSYS_NO_PATHCONV=1`.
 - If the Bash heredoc tool fails on long scripts, write the script to the scratchpad and run it.

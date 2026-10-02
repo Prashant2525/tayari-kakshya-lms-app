@@ -11,6 +11,7 @@ import { AppError, Errors } from '../errors/app-error.js';
 import {
   AUDIENCES,
   IS_PUBLIC,
+  OPTIONAL_AUTH,
   PERMISSIONS_ANY,
   PERMISSIONS_REQUIRED,
   type Audience,
@@ -36,9 +37,21 @@ export class AuthGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const targets = [context.getHandler(), context.getClass()];
-    if (this.reflector.getAllAndOverride<boolean>(IS_PUBLIC, targets)) return true;
-
     const req = context.switchToHttp().getRequest<FastifyRequest>();
+    if (this.reflector.getAllAndOverride<boolean>(IS_PUBLIC, targets)) {
+      if (this.reflector.getAllAndOverride<boolean>(OPTIONAL_AUTH, targets) && req.headers.authorization) {
+        await this.authenticate(req, targets).catch(() => undefined);
+      }
+      return true;
+    }
+    await this.authenticate(req, targets);
+    return true;
+  }
+
+  private async authenticate(
+    req: FastifyRequest,
+    targets: Parameters<Reflector['getAllAndOverride']>[1],
+  ): Promise<void> {
     const header = req.headers.authorization;
     if (!header?.startsWith('Bearer ')) throw Errors.unauthenticated();
     const claims = await this.tokens.verifyAccessToken(header.slice('Bearer '.length).trim());
@@ -71,7 +84,6 @@ export class AuthGuard implements CanActivate {
     if (allowed && !allowed.includes(claims.audience)) throw Errors.forbidden();
 
     req.auth = { userId: claims.userId, sessionId: claims.sessionId, audience: claims.audience };
-    return true;
   }
 }
 

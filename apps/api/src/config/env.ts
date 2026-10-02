@@ -65,6 +65,15 @@ export const EnvSchema = z
     MEDIA_MAX_IMAGE_MB: z.coerce.number().int().min(1).max(50).default(10),
     MEDIA_MAX_PDF_MB: z.coerce.number().int().min(1).max(500).default(100),
 
+    // Video (D-015). Bunny values come from the owner's Bunny Stream library; all optional until provided.
+    BUNNY_STREAM_LIBRARY_ID: optional,
+    BUNNY_STREAM_API_KEY: optional,
+    BUNNY_STREAM_TOKEN_KEY: optional,
+    BUNNY_CDN_HOSTNAME: optional,
+    YOUTUBE_API_KEY: optional,
+    /** Lifetime of signed playback URLs. */
+    VIDEO_PLAYBACK_TTL_SECONDS: z.coerce.number().int().min(300).max(86_400).default(14_400),
+
     GOOGLE_OAUTH_WEB_CLIENT_ID: optional,
     GOOGLE_OAUTH_ANDROID_CLIENT_ID: optional,
     GOOGLE_OAUTH_IOS_CLIENT_ID: optional,

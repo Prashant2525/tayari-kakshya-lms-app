@@ -1,35 +1,40 @@
 # Project State
 
-Current Phase: **Phase 5 — Admin CMS foundation: COMPLETE (verified locally, incl. browser E2E)**
-Current Milestone: PR review for `feature/admin-foundation` → Phase 6 Academic/content CMS
+Current Phase: **Phase 6 — Academic/content CMS: IN PROGRESS** (API layer done and verified; admin screens next)
+Current Milestone: content API on `feature/content-cms` → Admin CMS content screens
 Overall Status: **IN PROGRESS**
 Last updated: 2026-10-02
 
 ## Completed
 - Phases 0–3: discovery, PDF extraction, decisions, approved architecture.
-- Phase 4 (merged, PR #3): monorepo, local infra, domain/contracts packages, API foundation (auth, RBAC, settings,
-  audit, worker, CLI), CI.
-- Phase 5 (branch `feature/admin-foundation`):
-  - API: staff two-factor (TOTP + recovery codes, encrypted secrets, replay protection, policy `auth.staffMfa`),
-    education levels, dashboard counts, audit actor enrichment, e2e seed script.
-  - `@tk/design-tokens` package (WCAG-tested light/dark tokens, generated CSS variables).
-  - `@tk/domain` BS date module made browser-compatible.
-  - `apps/admin` Admin CMS (see IMPLEMENTATION_PLAN §5), verified by a browser walkthrough and Playwright E2E.
-  - 145 unit/integration tests + 3 browser E2E tests passing.
+- Phase 4 (merged, PR #3): monorepo, local infra, domain/contracts packages, API foundation, CI.
+- Phase 5 (merged, PR #4): staff 2FA, education levels, design tokens, Admin CMS foundation, Playwright E2E.
+- Phase 6 so far (branch `feature/content-cms`):
+  - Object storage (S3-compatible: SeaweedFS locally/CI, Cloudflare R2 in production) and media library with
+    server-side validated uploads (T-025): real file type sniffing, images re-encoded to WebP variants, PDFs private.
+  - Content schema migration `content_catalog` (taxonomy, papers, subjects → chapters → topics → learning items,
+    videos, courses, instructors, entitlements).
+  - Content API: exam taxonomy + papers, subjects/chapters/topics/items with reorder, soft delete/restore and the
+    publish workflow (D-036), courses (details, pricing, subjects, exam links, instructors, publishing), instructor
+    profiles, staff scopes, admin access grants/revokes.
+  - Student/public API: catalog (exam tree, course list/detail with platform-aware prices), my courses, subject outline,
+    learning items with server-side locking, watermarked PDF stream, video playback (YouTube nocookie / signed Bunny).
 
 ## In Progress
-- Owner review of the Phase 5 PR; first run of the new CI job `admin-e2e`.
+- Phase 6 Admin CMS screens (media library, taxonomy, content tree + TipTap editor, courses, access grants).
 
 ## Remaining
-- Phases 6–18 (`IMPLEMENTATION_PLAN.md`).
+- Phase 6 admin screens + E2E; Phases 7–18 (`IMPLEMENTATION_PLAN.md`).
 
-## Database Changes (Phase 5)
-- Migration `staff_mfa`: `users.mfa_secret_enc`, `users.mfa_enabled_at`, `users.mfa_last_used_step`; table `mfa_recovery_codes`.
+## Database Changes (Phase 6)
+- Migration `content_catalog`: `media_assets`, `exam_nodes`, `papers`, `post_papers`, `subjects`, `chapters`, `topics`,
+  `learning_items`, `video_assets`, `courses`, `course_exam_nodes`, `course_subjects`, `course_instructors`,
+  `instructor_profiles`, `entitlements` (`staff_scopes` already existed from Phase 4). Partial unique slugs, CHECK constraints, trigram index.
 
-## API Changes (Phase 5)
-- `POST /admin/auth/login/mfa`, `/admin/me/mfa*`, `/admin/dashboard`, `/education-levels`, `/admin/education-levels*`;
-  `/me` adds `mfaEnabled`, `mfaSetupRequired`, `isSuperAdmin`; staff list adds `mfaEnabled`; audit entries add `actor`.
-- New permission `education_levels:manage`; new setting `auth.staffMfa` (default: required for Super Admins).
+## API Changes (Phase 6)
+- See `API_DOCUMENTATION.md` §1b. New permissions: `media:manage`, `taxonomy:manage`, `content:edit`,
+  `content:publish`, `courses:edit`, `courses:publish`, `courses:pricing`, `instructors:manage`, `entitlements:grant`.
+- New error codes: `VIDEO_PROVIDER_NOT_CONFIGURED`, `CONTENT_LOCKED`, `VERIFICATION_REQUIRED`.
 
 ## Admin CMS
 - `apps/admin` — run `pnpm --filter @tk/admin dev` (http://localhost:5173, proxies `/api` to the API on :4000).
@@ -38,20 +43,21 @@ Last updated: 2026-10-02
 - Not started (Phase 8 / Phase 11).
 
 ## Tests
-- Unit/integration 145 · browser E2E 3 — all passing locally (see `TEST_STATUS.md`).
+- Unit/integration 198 · browser E2E 3 — all passing locally (see `TEST_STATUS.md`).
 
 ## Known Issues
-- See `KNOWN_ISSUES.md` (KI-014, KI-016, KI-017 resolved; KI-018…KI-020 added).
+- See `KNOWN_ISSUES.md` (KI-021 CI storage flake under investigation, KI-022 per-request PDF watermarking).
 
 ## Blockers
-- None.
+- None for local work.
 
 ## User Decisions Required
-- None blocking. Later questions L1–L5 in `OPEN_QUESTIONS.md`.
+- **L6** — free (price 0) courses: open premium items to everyone, or require an "enrol" step? (`OPEN_QUESTIONS.md`)
 
 ## Credentials Required
-- None for Phase 6 locally. Bunny Stream / Cloudflare R2 accounts will be needed when media upload goes beyond local
-  development (Phase 6 end).
+- **Bunny Stream** (library ID, API key, token security key, CDN hostname) — premium video returns
+  `VIDEO_PROVIDER_NOT_CONFIGURED` until provided. Optional: `YOUTUBE_API_KEY` for automatic title/duration.
+- Cloudflare R2 bucket + keys before staging/production (local dev uses SeaweedFS).
 
 ## Launch configuration checklist (owner enters in CMS before go-live)
 Taxonomy & courses · prices/sale prices/validity · plans & inclusions · coupons · VAT/PAN/invoice prefix · refund policy text ·
@@ -59,10 +65,12 @@ device limit · verification channels · staff 2FA policy · purchase channels p
 contact options · legal pages (reviewed drafts) · education level list · notification templates review.
 
 ## Local quick start
-`pnpm install` → `pnpm infra:up` → `.env` from `.env.example` (generate secrets incl. `ENCRYPTION_KEY`) →
-`pnpm build` → `pnpm --filter @tk/api db:deploy` → `pnpm --filter @tk/api dev` and `pnpm --filter @tk/admin dev` →
-create your Super Admin: `pnpm --filter @tk/api cli create-super-admin --email you@example.com --name "Your Name"`
+`pnpm install` → `pnpm infra:up` → `.env` from `.env.example` (generate secrets incl. `ENCRYPTION_KEY`; S3 dev keys are
+in `infra/docker/seaweedfs/s3.json`) → `pnpm build` → `pnpm --filter @tk/api db:deploy` → `pnpm --filter @tk/api dev`
+and `pnpm --filter @tk/admin dev` → create your Super Admin:
+`pnpm --filter @tk/api cli create-super-admin --email you@example.com --name "Your Name"`
 (code in Mailpit http://localhost:8025) → set password at http://localhost:5173/set-password → sign in → enrol 2FA.
 
 ## Exact Next Task
-- After the Phase 5 PR is merged: branch `feature/content-cms` from `main` and start Phase 6.
+- Confirm CI is green for the content API commit, then build the Phase 6 Admin CMS screens, starting with the media
+  library and the exam taxonomy tree.

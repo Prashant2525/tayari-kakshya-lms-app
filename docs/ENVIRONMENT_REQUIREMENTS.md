@@ -44,9 +44,9 @@ Verified against official docs on 2026-10-02 (summary; full re-check required at
 
 | Variable | Kind | Phase | Notes |
 |---|---|---|---|
-| `STORAGE_DRIVER`, `S3_ENDPOINT`, `S3_REGION`, `S3_BUCKET_PUBLIC`, `S3_BUCKET_PRIVATE`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`, `CDN_BASE_URL` | 🔐 | 6 | R2/S3 (pending approval); local dev uses MinIO or filesystem driver |
+| `STORAGE_DRIVER`, `S3_ENDPOINT`, `S3_REGION`, `S3_BUCKET_PUBLIC`, `S3_BUCKET_PRIVATE`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`, `CDN_BASE_URL` | 🔐 | 6 | Cloudflare R2 in staging/production. Local dev + CI use SeaweedFS (dev-only keys in `infra/docker/seaweedfs/s3.json`); also `S3_FORCE_PATH_STYLE`, `PUBLIC_MEDIA_BASE_URL`, `PUBLIC_MEDIA_PROXY` (dev only), `STORAGE_AUTO_CREATE_BUCKETS` (dev only), `MEDIA_MAX_IMAGE_MB`, `MEDIA_MAX_PDF_MB` |
 | `YOUTUBE_API_KEY` (optional — import title/duration/thumbnail for YouTube-hosted free videos) | 🔐 | 6 | owner's Google Cloud project |
-| `VIDEO_PROVIDER`, `BUNNY_STREAM_LIBRARY_ID`, `BUNNY_STREAM_API_KEY`, `BUNNY_STREAM_TOKEN_KEY`, `BUNNY_CDN_HOSTNAME` (or `CF_STREAM_*`) | 🔐 | 6 | Bunny Stream for premium video (D-015) |
+| `VIDEO_PROVIDER`, `BUNNY_STREAM_LIBRARY_ID`, `BUNNY_STREAM_API_KEY`, `BUNNY_STREAM_TOKEN_KEY`, `BUNNY_CDN_HOSTNAME` (or `CF_STREAM_*`) | 🔐 | 6 | Bunny Stream for premium video (D-015). **Needed from owner.** Until set, Bunny items return `VIDEO_PROVIDER_NOT_CONFIGURED`. `VIDEO_PLAYBACK_TTL_SECONDS` sets signed-embed lifetime. |
 | `EXPO_ACCESS_TOKEN` (push), FCM service account (`FIREBASE_SERVICE_ACCOUNT_JSON`), APNs key (`APNS_KEY_ID`, `APNS_TEAM_ID`, `.p8`) | 🔐 | 12 | Android + iOS both in scope (D-004) |
 | `SENTRY_DSN_API`, `SENTRY_DSN_ADMIN`, `EXPO_PUBLIC_SENTRY_DSN`, `SENTRY_AUTH_TOKEN` | 🔐/🔓 | 4 | DSNs are semi-public; auth token is secret |
 | `POSTHOG_API_KEY`, `POSTHOG_HOST` | 🔓 | 8 | approved (D-039) |

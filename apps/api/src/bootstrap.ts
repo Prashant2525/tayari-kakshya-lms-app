@@ -46,7 +46,14 @@ export async function configureApp(app: NestFastifyApplication, env: Env): Promi
   app.enableCors({
     origin: env.CORS_ALLOWED_ORIGINS,
     credentials: true,
-    allowedHeaders: ['Authorization', 'Content-Type', 'Accept-Language', 'X-Request-Id', ADMIN_CLIENT_HEADER],
+    allowedHeaders: [
+      'Authorization',
+      'Content-Type',
+      'Accept-Language',
+      'X-Request-Id',
+      'X-TK-Platform',
+      ADMIN_CLIENT_HEADER,
+    ],
     exposedHeaders: ['X-Request-Id', 'Retry-After'],
     maxAge: 600,
   });

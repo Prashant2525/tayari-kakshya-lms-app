@@ -1,4 +1,4 @@
-import { createParamDecorator, ExecutionContext, SetMetadata } from '@nestjs/common';
+import { applyDecorators, createParamDecorator, ExecutionContext, SetMetadata } from '@nestjs/common';
 import type { Permission } from '@tk/contracts';
 import type { FastifyRequest } from 'fastify';
 
@@ -20,9 +20,14 @@ export const IS_PUBLIC = 'tk:isPublic';
 export const AUDIENCES = 'tk:audiences';
 export const PERMISSIONS_REQUIRED = 'tk:permissions';
 export const PERMISSIONS_ANY = 'tk:permissionsAny';
+export const OPTIONAL_AUTH = 'tk:optionalAuth';
 
 /** Route needs no access token (default is deny). */
 export const Public = () => SetMetadata(IS_PUBLIC, true);
+
+/** Public route that still recognises a valid access token (e.g. catalog pages showing "you own this"). */
+export const OptionalAuth = () =>
+  applyDecorators(SetMetadata(IS_PUBLIC, true), SetMetadata(OPTIONAL_AUTH, true));
 
 /** Restricts a route/controller to tokens of the given audience(s). */
 export const Audiences = (...audiences: Audience[]) => SetMetadata(AUDIENCES, audiences);

@@ -19,7 +19,7 @@ const secret = () => randomBytes(48).toString('base64url');
 Object.assign(process.env, {
   NODE_ENV: 'test',
   APP_ENV: 'test',
-  LOG_LEVEL: 'silent',
+  LOG_LEVEL: process.env['TEST_LOG_LEVEL'] ?? 'silent',
   DATABASE_URL: testDb,
   REDIS_URL: `${redisBase}/15`,
   EMAIL_PROVIDER: 'log',
