@@ -22,6 +22,12 @@ export const PERMISSIONS = {
   'courses:pricing': 'Change course prices, sales and validity',
   'instructors:manage': 'Manage public instructor profiles',
   'entitlements:grant': "Grant or revoke a student's access to courses",
+  'questions:edit': 'Create and edit questions in the question bank (drafts), import questions',
+  'questions:publish': 'Publish, archive and delete questions',
+  'question_reports:manage': 'Review and resolve question reports from students',
+  'assessments:edit': 'Create and edit quizzes, tests and mock exams (drafts)',
+  'assessments:publish': 'Publish, schedule, archive and delete assessments; release results',
+  'grading:manage': 'Grade subjective answers',
 } as const;
 
 export type Permission = keyof typeof PERMISSIONS;

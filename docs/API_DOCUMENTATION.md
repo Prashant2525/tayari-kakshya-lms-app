@@ -91,6 +91,20 @@ courses/subjects. Every write is audited.
 | GET | `/learning-items/:id/pdf` | student | streamed PDF, watermarked per student (T-029) |
 | GET | `/learning-items/:id/playback` | student | YouTube nocookie embed or signed, expiring Bunny embed; `VIDEO_PROVIDER_NOT_CONFIGURED` (503) without Bunny credentials |
 
+## 1c. Implemented endpoints (Phase 7 — question bank) ✅
+
+| Method | Path | Auth | Notes |
+|---|---|---|---|
+| GET | `/admin/questions` | `questions:edit` / `questions:publish` / `assessments:edit` | filters `q` (stem/options text), `subjectId`, `topicId`, `type`, `difficulty`, `status`, `tag`, `pyq`, cursor; scoped staff see their subjects only |
+| POST / PUT | `/admin/questions` · `/admin/questions/:id` | `questions:edit` | body `QuestionInput` (metadata + `content` per type); content change ⇒ new immutable version; type cannot change; editing a published question needs `questions:publish` |
+| GET | `/admin/questions/:id` · `/admin/questions/:id/versions` | as list | current content + version history |
+| PUT | `/admin/questions/:id/status` | `questions:edit` (+ `questions:publish` for published/archived) | draft / in_review / published / archived |
+| DELETE / POST | `/admin/questions/:id` · `…/restore` | `questions:publish` | soft delete |
+| GET | `/admin/question-tags?q=` | as list | tag suggestions with counts |
+| GET / POST / PUT | `/admin/question-groups` · `/admin/question-groups/:id` | `questions:edit` | passages for comprehension questions |
+| GET / PUT | `/admin/question-reports?status=` · `/admin/question-reports/:id` | `question_reports:manage` | resolve or reject with a note |
+| POST | `/questions/:id/reports` | student | published questions only; one open report per student per question (409) |
+
 ## 2. Public / app bootstrap
 | Method | Path | Notes |
 |---|---|---|

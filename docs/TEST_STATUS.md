@@ -1,6 +1,6 @@
 # Test Status
 
-Last updated: 2026-10-02 (Phase 6, content API + first admin content screens). `pnpm test` runs unit + integration suites (needs `pnpm infra:up`);
+Last updated: 2026-10-03 (Phase 7, question bank backend). `pnpm test` runs unit + integration suites (needs `pnpm infra:up`);
 `pnpm build && pnpm --filter @tk/admin e2e` runs the browser suite.
 
 ## Current results — all passing locally
@@ -8,12 +8,31 @@ Last updated: 2026-10-02 (Phase 6, content API + first admin content screens). `
 | Package | Tests | Kind |
 |---|---|---|
 | `@tk/design-tokens` | 39 | WCAG contrast for every text/background pair (light + dark), CSS generation |
-| `@tk/domain` | 24 | BS calendar, Kathmandu day boundary, fiscal year, money/VAT/discounts, access validity |
-| `@tk/contracts` | 16 | Schema behaviour (localized text, email normalisation, mass assignment, settings defaults, rich-text validation) |
-| `@tk/api` | 120 | Integration against real PostgreSQL + Redis + S3 (SeaweedFS) through the HTTP stack; TOTP RFC 6238 vectors; RBAC, video, watermark unit |
-| `@tk/admin` (unit) | 23 | API client (headers, refresh single-flight, retry, session loss, error mapping), BS formatting, Button `asChild` regression |
-| `@tk/admin` (E2E, Playwright) | 12 | Real browser + real API + `*_e2e` database |
-| **Total** | **234** | |
+| `@tk/domain` | 39 | BS calendar, Kathmandu day boundary, fiscal year, money/VAT/discounts, access validity |
+| `@tk/contracts` | 21 | Schema behaviour (localized text, email normalisation, mass assignment, settings defaults, rich-text validation) |
+| `@tk/api` | 129 | Integration against real PostgreSQL + Redis + S3 (SeaweedFS) through the HTTP stack; TOTP RFC 6238 vectors; RBAC, video, watermark unit |
+| `@tk/admin` (unit) | 33 | API client (headers, refresh single-flight, retry, session loss, error mapping), BS formatting, Button `asChild` regression |
+| `@tk/admin` (E2E, Playwright) | 15 | Real browser + real API + `*_e2e` database |
+| **Total** | **276** | |
+
+### Added in Phase 7 (question bank admin screens)
+- **Unit:** every question type round-trips API → editor → API unchanged; readable validation messages; blank and
+  id helpers.
+- **Browser E2E:** single-choice question (required-field errors, options, correct answer, Nepali stem, explanation,
+  marks, tags, PYQ year), reload persistence, content edits create versions 2 and 3, publish, list filters/search;
+  fill-in-the-blank via "Insert blank"; a student report resolved (rejected with a note) in the reports queue.
+- **API:** course/question editors can read categories, papers and subject outlines but not change them.
+- Bugs caught: list previews showed option text and raw `[[b1]]` placeholders → stem-only previews with ____.
+
+### Added in Phase 7 (question bank backend)
+- **Scoring unit tests:** every type; all-or-nothing vs proportional partial credit with half-up rounding; negative
+  marks only for wrong answers; skipped vs pending; fill-blank normalisation (case, spacing, Nepali digits,
+  case-sensitive blanks); numeric tolerance with floating-point error; zero floor; centimark sums.
+- **Schema tests:** valid content per type; answer keys must match options/pairs/blanks; unsafe rich text in options.
+- **API:** create all 7 types; invalid keys/marks/topic rejected; new version only on content change; DB refuses
+  UPDATE/DELETE of versions; review workflow and live-edit rule; staff scopes; text/tag/type/PYQ filters; private
+  images rejected and in-use images protected (incl. course descriptions); student reports (published only, one
+  open per student, resolve once, re-report after resolution).
 
 ### Added in Phase 6 (content API)
 - **Media:** real-type sniffing rejects disguised files; images re-encoded to WebP variants with metadata stripped;

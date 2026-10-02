@@ -79,7 +79,15 @@ courses (pricing fields, validity, instructors, subjects, exam links), instructo
 PDFs, videos via Bunny upload or YouTube link), media library, publish/schedule/soft delete, preview-as-student;
 student read APIs for all of the above with access checks. Tests: CRUD, publish rules, access control.
 
-**§7 Question bank + assessment CMS** — all question type engines + versioning, PYQ metadata, tags, CSV/XLSX import with
+**§7 Question bank + assessment CMS** (branch `feature/question-bank`) — ◐ IN PROGRESS
+- ☑ Scoring engine (`@tk/domain`), question schemas (`@tk/contracts`), migration `question_bank`, admin question API,
+  passages, tags, PYQ sources, reports (+ tests)
+- ☑ Admin screens: question bank list/editor (all types), passages, reports queue (+ E2E)
+- ☐ CSV/XLSX import with validation preview
+- ☐ Assessments: schema, builder (sections, fixed/random blueprints, rules per D-021/D-044), admin screens
+- ☐ Grading queue and results release (with the attempt engine, §10)
+
+Original scope: all question type engines + versioning, PYQ metadata, tags, CSV/XLSX import with
 validation preview, reports queue, assessment builder (all types, blueprints, rules), grading queue, results release.
 Tests: scoring per type, negative marking, blueprint generation.
 

@@ -2,7 +2,7 @@
 
 Session date: 2026-10-02 (session 4 — resumed after a VS Code crash)
 Current phase: **Phase 6 — content CMS, API layer complete and verified locally**
-Current task: Phase 6 complete — PR `feature/content-cms` → `main` awaiting owner review
+Current task: Phase 7 — question bank done (API + admin + E2E); import next (branch `feature/question-bank`)
 
 ## Completed this session
 - Recovered the interrupted work from the repository (nothing lost). Verified the uncommitted content API:
@@ -28,6 +28,15 @@ Current task: Phase 6 complete — PR `feature/content-cms` → `main` awaiting 
 - Admin CMS: courses (tabs: details, pricing & validity, subjects, exams & instructors; publishing card),
   instructors, course access card on the student page, staff "Limit content access" dialog.
 
+## Session 5 (2026-10-03)
+- PR #6 merged by the owner. Owner enabled Bunny embed token auth → verified (forged/expired/unsigned 403);
+  CDN token auth still off (KI-023).
+- Phase 7 started: scoring engine (D-044: every scoring rule is a CMS choice), question schemas, migration
+  `question_bank` (versions immutable by trigger, T-030), question API, reports. Media usage now includes course
+  descriptions/passages/question versions (bug fix).
+- Reports to the owner end with a **"What you need to do"** checklist (owner request).
+- Question bank admin screens + reports queue; taxonomy/subject reads opened to course/question editors (bug fix).
+
 ## Decisions taken during implementation
 - T-020 resolved (SeaweedFS), T-025 (API-validated uploads), T-026 (live-edit rule), T-027 (archived courses stay
   visible to entitled students), T-028 (instructor scopes). See `DECISIONS.md`.
@@ -37,10 +46,9 @@ Current task: Phase 6 complete — PR `feature/content-cms` → `main` awaiting 
 
 ## Exact next steps
 1. Confirm CI for the latest commit (`gh run list --branch feature/content-cms`).
-2. Owner reviews and merges the Phase 6 PR; confirm CI on `main`.
-3. After the owner enables Bunny token auth, re-run the signed-playback check (KI-023).
-4. Phase 7: question bank + assessment CMS on `feature/question-bank` (ask the owner the open assessment rules
-   first if any are missing in `DECISIONS.md`).
+2. CSV/XLSX import with validation preview (owner to share a sample of their existing question sheets).
+3. Assessments schema + builder (D-021/D-044), then grading/results with the attempt engine.
+4. When the owner enables Bunny CDN token auth, re-run the stream check (KI-023).
 
 ## Files changed
 - See `CHANGELOG.md` → Phase 6.
@@ -49,7 +57,7 @@ Current task: Phase 6 complete — PR `feature/content-cms` → `main` awaiting 
 - Migration `content_catalog`; endpoints in `API_DOCUMENTATION.md` §1b.
 
 ## Tests run
-- `pnpm format:check && pnpm build && pnpm lint && pnpm typecheck && pnpm test` → all passing, 222 tests; `pnpm --filter @tk/admin e2e` → 12 passing.
+- `pnpm format:check && pnpm build && pnpm lint && pnpm typecheck && pnpm test` → all passing, 261 tests; `pnpm --filter @tk/admin e2e` → 15 passing.
 
 ## Known issues / blockers
 - KI-021 (CI-only media failure — fix pending CI confirmation), KI-022 (per-request watermark cost). No blockers.

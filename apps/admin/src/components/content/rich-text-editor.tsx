@@ -33,7 +33,7 @@ import {
   Undo2,
   type LucideIcon,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { api } from '@/lib/api';
 import { imageVariant, type MediaView } from '@/lib/content';
 import { toStoredDoc, type JsonNode } from '@/lib/rich-doc';
@@ -161,7 +161,15 @@ function LinkDialog({ editor, onClose }: { editor: Editor; onClose: () => void }
   );
 }
 
-function Toolbar({ editor }: { editor: Editor }) {
+function Toolbar({
+  editor,
+  compact,
+  extra,
+}: {
+  editor: Editor;
+  compact?: boolean;
+  extra?: (editor: Editor) => ReactNode;
+}) {
   const [linkOpen, setLinkOpen] = useState(false);
   const [imageOpen, setImageOpen] = useState(false);
   const s = useEditorState({
@@ -196,22 +204,26 @@ function Toolbar({ editor }: { editor: Editor }) {
       aria-label="Formatting"
       className="flex flex-wrap items-center gap-0.5 border-b border-border bg-surface-muted/50 px-2 py-1.5"
     >
-      <ToolButton icon={Undo2} label="Undo" disabled={!s.canUndo} onClick={() => c().undo().run()} />
-      <ToolButton icon={Redo2} label="Redo" disabled={!s.canRedo} onClick={() => c().redo().run()} />
-      {sep}
-      <ToolButton
-        icon={Heading2}
-        label="Heading"
-        active={s.h2}
-        onClick={() => c().toggleHeading({ level: 2 }).run()}
-      />
-      <ToolButton
-        icon={Heading3}
-        label="Subheading"
-        active={s.h3}
-        onClick={() => c().toggleHeading({ level: 3 }).run()}
-      />
-      {sep}
+      {!compact ? (
+        <>
+          <ToolButton icon={Undo2} label="Undo" disabled={!s.canUndo} onClick={() => c().undo().run()} />
+          <ToolButton icon={Redo2} label="Redo" disabled={!s.canRedo} onClick={() => c().redo().run()} />
+          {sep}
+          <ToolButton
+            icon={Heading2}
+            label="Heading"
+            active={s.h2}
+            onClick={() => c().toggleHeading({ level: 2 }).run()}
+          />
+          <ToolButton
+            icon={Heading3}
+            label="Subheading"
+            active={s.h3}
+            onClick={() => c().toggleHeading({ level: 3 }).run()}
+          />
+          {sep}
+        </>
+      ) : null}
       <ToolButton icon={Bold} label="Bold" active={s.bold} onClick={() => c().toggleBold().run()} />
       <ToolButton icon={Italic} label="Italic" active={s.italic} onClick={() => c().toggleItalic().run()} />
       <ToolButton
@@ -220,19 +232,28 @@ function Toolbar({ editor }: { editor: Editor }) {
         active={s.underline}
         onClick={() => c().toggleUnderline().run()}
       />
-      <ToolButton
-        icon={Strikethrough}
-        label="Strikethrough"
-        active={s.strike}
-        onClick={() => c().toggleStrike().run()}
-      />
-      <ToolButton
-        icon={Highlighter}
-        label="Highlight"
-        active={s.highlight}
-        onClick={() => c().toggleHighlight().run()}
-      />
-      <ToolButton icon={Code} label="Inline code" active={s.code} onClick={() => c().toggleCode().run()} />
+      {!compact ? (
+        <>
+          <ToolButton
+            icon={Strikethrough}
+            label="Strikethrough"
+            active={s.strike}
+            onClick={() => c().toggleStrike().run()}
+          />
+          <ToolButton
+            icon={Highlighter}
+            label="Highlight"
+            active={s.highlight}
+            onClick={() => c().toggleHighlight().run()}
+          />
+          <ToolButton
+            icon={Code}
+            label="Inline code"
+            active={s.code}
+            onClick={() => c().toggleCode().run()}
+          />
+        </>
+      ) : null}
       <ToolButton
         icon={Subscript}
         label="Subscript"
@@ -245,46 +266,59 @@ function Toolbar({ editor }: { editor: Editor }) {
         active={s.sup}
         onClick={() => c().toggleSuperscript().run()}
       />
-      <ToolButton icon={Link2} label="Link" active={s.link} onClick={() => setLinkOpen(true)} />
-      {sep}
-      <ToolButton
-        icon={List}
-        label="Bulleted list"
-        active={s.bullet}
-        onClick={() => c().toggleBulletList().run()}
-      />
-      <ToolButton
-        icon={ListOrdered}
-        label="Numbered list"
-        active={s.ordered}
-        onClick={() => c().toggleOrderedList().run()}
-      />
-      <ToolButton icon={Quote} label="Quote" active={s.quote} onClick={() => c().toggleBlockquote().run()} />
-      <ToolButton icon={Minus} label="Divider" onClick={() => c().setHorizontalRule().run()} />
-      {sep}
-      <ToolButton icon={AlignLeft} label="Align left" onClick={() => c().unsetTextAlign().run()} />
-      <ToolButton
-        icon={AlignCenter}
-        label="Align centre"
-        active={s.center}
-        onClick={() => c().setTextAlign('center').run()}
-      />
-      <ToolButton
-        icon={AlignRight}
-        label="Align right"
-        active={s.right}
-        onClick={() => c().setTextAlign('right').run()}
-      />
-      {sep}
+      {!compact ? (
+        <>
+          <ToolButton icon={Link2} label="Link" active={s.link} onClick={() => setLinkOpen(true)} />
+          {sep}
+          <ToolButton
+            icon={List}
+            label="Bulleted list"
+            active={s.bullet}
+            onClick={() => c().toggleBulletList().run()}
+          />
+          <ToolButton
+            icon={ListOrdered}
+            label="Numbered list"
+            active={s.ordered}
+            onClick={() => c().toggleOrderedList().run()}
+          />
+          <ToolButton
+            icon={Quote}
+            label="Quote"
+            active={s.quote}
+            onClick={() => c().toggleBlockquote().run()}
+          />
+          <ToolButton icon={Minus} label="Divider" onClick={() => c().setHorizontalRule().run()} />
+          {sep}
+          <ToolButton icon={AlignLeft} label="Align left" onClick={() => c().unsetTextAlign().run()} />
+          <ToolButton
+            icon={AlignCenter}
+            label="Align centre"
+            active={s.center}
+            onClick={() => c().setTextAlign('center').run()}
+          />
+          <ToolButton
+            icon={AlignRight}
+            label="Align right"
+            active={s.right}
+            onClick={() => c().setTextAlign('right').run()}
+          />
+          {sep}
+        </>
+      ) : null}
       <ToolButton icon={ImagePlus} label="Insert image" onClick={() => setImageOpen(true)} />
-      <ToolButton
-        icon={Table}
-        label={s.table ? 'Delete table' : 'Insert table'}
-        active={s.table}
-        onClick={() =>
-          s.table ? c().deleteTable().run() : c().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()
-        }
-      />
+      {!compact ? (
+        <ToolButton
+          icon={Table}
+          label={s.table ? 'Delete table' : 'Insert table'}
+          active={s.table}
+          onClick={() =>
+            s.table
+              ? c().deleteTable().run()
+              : c().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()
+          }
+        />
+      ) : null}
       {s.table ? (
         <>
           <Button
@@ -321,6 +355,7 @@ function Toolbar({ editor }: { editor: Editor }) {
           </Button>
         </>
       ) : null}
+      {extra?.(editor)}
       {linkOpen ? <LinkDialog editor={editor} onClose={() => setLinkOpen(false)} /> : null}
       {imageOpen ? (
         <MediaPickerDialog
@@ -352,12 +387,18 @@ export function RichTextEditor({
   label,
   lang,
   invalid,
+  compact,
+  toolbarExtra,
 }: {
   value: JsonNode | null;
   onChange: (doc: JsonNode) => void;
   label: string;
   lang?: 'en' | 'ne';
   invalid?: boolean;
+  /** Small editor for answer options: basic marks and images only. */
+  compact?: boolean;
+  /** Extra toolbar controls, e.g. "Insert blank" for fill-in-the-blank questions. */
+  toolbarExtra?: (editor: Editor) => ReactNode;
 }) {
   const editor = useEditor({
     extensions: richTextExtensions(EditorImage),
@@ -369,7 +410,7 @@ export function RichTextEditor({
         'aria-multiline': 'true',
         role: 'textbox',
         lang: lang ?? 'en',
-        class: 'tk-prose min-h-64 px-4 py-3 focus:outline-none',
+        class: cn('tk-prose focus:outline-none', compact ? 'min-h-10 px-3 py-2' : 'min-h-64 px-4 py-3'),
       },
     },
     onUpdate: ({ editor: e }) => onChange(toStoredDoc(e.getJSON() as JsonNode)),
@@ -381,7 +422,7 @@ export function RichTextEditor({
         invalid && 'border-danger',
       )}
     >
-      <Toolbar editor={editor} />
+      <Toolbar editor={editor} compact={compact} extra={toolbarExtra} />
       <EditorContent editor={editor} />
     </div>
   );
