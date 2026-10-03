@@ -55,3 +55,31 @@ export async function codeFromEmail(request: APIRequestContext, to: string, sinc
   }
   throw new Error(`No code emailed to ${to} (is Mailpit running at ${MAILPIT_URL}?)`);
 }
+
+/** JSON call to the API as the given staff/student token; fails the test on any non-2xx response. */
+export async function apiCall<T = { id: string }>(
+  request: APIRequestContext,
+  token: string,
+  method: 'GET' | 'POST' | 'PUT',
+  path: string,
+  data?: unknown,
+): Promise<T> {
+  const res = await request.fetch(api(path), {
+    method,
+    headers: { Authorization: `Bearer ${token}`, 'X-TK-Client': 'admin' },
+    ...(data === undefined ? {} : { data }),
+  });
+  expect(res.ok(), `${method} ${path}: ${await res.text()}`).toBe(true);
+  return (res.status() === 204 ? undefined : await res.json()) as T;
+}
+
+/** Uploads a private PDF to the media library (as the content team does) and returns its id. */
+export async function uploadPdf(request: APIRequestContext, token: string, buffer: Buffer): Promise<string> {
+  const res = await request.post(api('/admin/media'), {
+    headers: { Authorization: `Bearer ${token}`, 'X-TK-Client': 'admin' },
+    // Fields before the file: the API reads them from the multipart stream in order.
+    multipart: { visibility: 'private', file: { name: 'lesson.pdf', mimeType: 'application/pdf', buffer } },
+  });
+  expect(res.ok(), await res.text()).toBe(true);
+  return ((await res.json()) as { id: string }).id;
+}

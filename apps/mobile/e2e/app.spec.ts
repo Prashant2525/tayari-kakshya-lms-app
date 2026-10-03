@@ -94,7 +94,7 @@ test('sign up: validation, email code, onboarding, then Home with the BS date', 
   await expect(text(formatBs(instantToBs(new Date()), 'en'))).toBeVisible();
   await expect(text(/Preparing for · Nepal Army/)).toBeVisible();
   await expect(text('Sainey Likhit')).toBeVisible();
-  await expect(text('You have no courses yet').first()).toBeVisible();
+  await expect(heading('Courses for you')).toBeVisible();
 });
 
 test('profile: Nepali and dark theme apply at once and survive a reload', async () => {

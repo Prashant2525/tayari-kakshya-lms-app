@@ -92,6 +92,7 @@ function RootNavigator() {
         </Stack.Protected>
         <Stack.Protected guard={signedIn && !mustVerify && !needsOnboarding}>
           <Stack.Screen name="(tabs)" />
+          <Stack.Screen name="(learn)" />
         </Stack.Protected>
         <Stack.Protected guard={signedIn && !mustVerify}>
           <Stack.Screen name="onboarding" />

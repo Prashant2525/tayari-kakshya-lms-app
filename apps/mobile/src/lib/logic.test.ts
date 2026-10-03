@@ -5,6 +5,7 @@ import { defaultLocale, localized, translate } from '@/i18n/translate';
 import { appGate, compareVersions, type AppConfig } from './app-gate';
 import { countdown, kathmanduWeekday, todayLabel } from './dates';
 import { devApiOrigin } from './dev-api';
+import { formatDuration, percent, price } from './format';
 import { initialsOf } from './names';
 import { checkCode, checkEmail, checkPassword, toNepalE164 } from './validation';
 
@@ -133,5 +134,18 @@ describe('development API address', () => {
     expect(devApiOrigin('android', undefined, '192.168.1.20:8081')).toBe('http://192.168.1.20:4000');
     expect(devApiOrigin('ios', undefined, '10.0.0.5:8081')).toBe('http://10.0.0.5:4000');
     expect(devApiOrigin('android', undefined, undefined)).toBe('http://localhost:4000');
+  });
+});
+
+describe('learning formats', () => {
+  it('formats video lengths, percentages and prices', () => {
+    expect(formatDuration(629, 'en')).toBe('10:29');
+    expect(formatDuration(3725, 'en')).toBe('1:02:05');
+    expect(formatDuration(629, 'ne')).toBe('१०:२९');
+    expect(percent(1, 3)).toBe(33);
+    expect(percent(0, 0)).toBe(0);
+    expect(percent(5, 4)).toBe(100);
+    expect(price(300_000, 'en')).toBe('Rs 3,000');
+    expect(price(10_000_000, 'en')).toBe('Rs 1,00,000');
   });
 });

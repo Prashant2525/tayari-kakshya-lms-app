@@ -2,7 +2,7 @@
 
 Session date: 2026-10-02 (session 4 — resumed after a VS Code crash)
 Current phase: **Phase 6 — content CMS, API layer complete and verified locally**
-Current task: Phase 8 — student app foundation done; PR next (branch `feature/mobile-foundation`)
+Current task: Phase 9 part 1 done; PR next (branch `feature/student-learning`)
 
 ## Completed this session
 - Recovered the interrupted work from the repository (nothing lost). Verified the uncommitted content API:
@@ -64,6 +64,11 @@ Current task: Phase 8 — student app foundation done; PR next (branch `feature/
   with a locked model answer, full-screen exam mode, result, Home in Nepali + dark theme with BS dates, profile,
   notices (D-019). All content on the screens is sample data; the app renders CMS data.
 
+## Session 11 (2026-10-03, resumed after a usage-limit interruption)
+- PR #9 / #10 merged. Branch `feature/student-learning`. API part committed first (`485f5f7`): progress, Continue,
+  self-hosted PDF reader. Then the app: Courses tab, course page, Home current course, subject outline, lessons.
+- Verified with 8 browser tests (real API, PDF rendered by pdf.js) and screenshots; four defects fixed (TEST_STATUS).
+
 ## Session 10 (2026-10-03)
 - Owner approved the design (D-047). Built the student app foundation (`apps/mobile`, T-034…T-037), the
   `/me/target-posts` API and `app.storeLinks`, the shared E2E harness and the student browser suite.
@@ -89,10 +94,9 @@ Current task: Phase 8 — student app foundation done; PR next (branch `feature/
 - Nothing partially implemented. Admin screens for Phase 6 not started.
 
 ## Exact next steps
-1. Open the Phase 8 PR `feature/mobile-foundation` → `main`; confirm CI (`verify`, `admin-e2e`, `mobile-e2e`).
-2. §9 student learning: Home CMS sections + course switcher, catalog/categories, course detail (Enrol, D-027 iOS
-   rules), subject outline, note reader, PDF viewer, video (signed Bunny embed in a WebView, T-031), practice
-   questions with locked answers, bookmarks, report question, search, profile editing, account deletion.
+1. Open the §9 part 1 PR `feature/student-learning` → `main`; confirm CI (`verify`, `admin-e2e`, `mobile-e2e`).
+2. §9 part 2: practice questions (student question API with answers withheld when locked), bookmarks, report
+   question (API exists), unified search, profile edit, settings (sessions, change password, delete account).
 3. When the owner sends keys: Sentry + PostHog (KI-028), Google client ids (KI-029).
 
 ## Files changed
