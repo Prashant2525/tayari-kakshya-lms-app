@@ -6,6 +6,7 @@ import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useItem, useOutline, useSaveProgress, type ItemContent, type OutlineItem } from '@/api/learning';
 import { PdfReader } from '@/features/learn/pdf-reader';
+import { BookmarkButton } from '@/features/practice/bookmark-button';
 import { RichText } from '@/features/learn/rich-text';
 import { VideoPlayer } from '@/features/learn/video-player';
 import { localized, type Locale } from '@/i18n/translate';
@@ -87,6 +88,7 @@ export default function LearnScreen() {
           {title}
         </Text>
         {item.data?.type === 'note' ? <TextSizeButtons /> : null}
+        {item.data ? <BookmarkButton type="learning_item" id={item.data.id} /> : null}
       </View>
 
       {item.isPending ? (

@@ -9,12 +9,13 @@ import { useT } from '@/i18n/use-t';
 import { formatDuration } from '@/lib/format';
 import { useTheme } from '@/theme/theme';
 import { StatusChip } from '@/ui/chip';
+import { PracticeList } from '@/features/practice/practice-list';
 import { BackButton, Screen, Skeleton } from '@/ui/layout';
 import { Segmented } from '@/ui/segmented';
 import { EmptyState, ErrorState } from '@/ui/states';
 import { Text } from '@/ui/text';
 
-type Tab = 'notes' | 'videos';
+type Tab = 'notes' | 'videos' | 'questions';
 const inTab = (item: OutlineItem, tab: Tab) =>
   tab === 'videos' ? item.type === 'video' : item.type !== 'video';
 
@@ -60,10 +61,13 @@ export default function SubjectScreen() {
         options={[
           { value: 'notes', label: t('subject.notes') },
           { value: 'videos', label: t('subject.videos') },
+          { value: 'questions', label: t('subject.questions') },
         ]}
         onChange={setTab}
       />
-      {outline.isPending ? (
+      {tab === 'questions' ? (
+        <PracticeList courseId={courseId} subjectId={subjectId} courseSlug={slug} />
+      ) : outline.isPending ? (
         <View style={{ gap: 10, marginTop: 14 }} aria-busy>
           <Skeleton height={64} />
           <Skeleton height={64} />

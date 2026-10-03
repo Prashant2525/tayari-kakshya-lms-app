@@ -1,7 +1,15 @@
 import { radius } from '@tk/design-tokens';
 import { Eye, EyeOff } from 'lucide-react-native';
 import { forwardRef, useState } from 'react';
-import { Pressable, StyleSheet, TextInput, View, type TextInputProps } from 'react-native';
+import {
+  Platform,
+  Pressable,
+  StyleSheet,
+  TextInput,
+  View,
+  type TextInputProps,
+  type TextStyle,
+} from 'react-native';
 import { useT } from '@/i18n/use-t';
 import { fontFamilies, useTheme } from '@/theme/theme';
 import { Text } from './text';
@@ -45,6 +53,7 @@ export const TextField = forwardRef<TextInput, TextFieldProps>(function TextFiel
           }}
           style={[
             styles.input,
+            noFocusRing,
             {
               color: colors.text,
               backgroundColor: colors.surface,
@@ -81,6 +90,16 @@ export const TextField = forwardRef<TextInput, TextFieldProps>(function TextFiel
       ) : null}
     </View>
   );
+});
+
+/**
+ * Inputs show focus with their own primary border. On the web build the browser would also draw its focus ring
+ * (`outline-style: auto`, which ignores `outlineWidth`), so it is turned off there. React Native's types only list
+ * solid/dotted/dashed, hence the cast.
+ */
+export const noFocusRing = Platform.select<TextStyle>({
+  web: { outlineStyle: 'none' } as unknown as TextStyle,
+  default: {},
 });
 
 const styles = StyleSheet.create({

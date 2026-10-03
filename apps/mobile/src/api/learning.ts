@@ -206,3 +206,137 @@ export function useSaveProgress(itemId: string) {
     },
   });
 }
+
+// ───────────── Practice questions, bookmarks, search ─────────────
+
+type Choice = { id: string; content: LocalizedDoc };
+
+/** The question part (always sent). */
+export type PracticeQuestionBody =
+  | { type: 'single_choice' | 'multiple_choice'; stem: LocalizedDoc; options: Choice[] }
+  | { type: 'true_false' | 'subjective'; stem: LocalizedDoc }
+  | { type: 'fill_blank'; stem: LocalizedDoc; blanks: Array<{ id: string }> }
+  | { type: 'match'; stem: LocalizedDoc; left: Choice[]; right: Choice[] }
+  | { type: 'numeric'; stem: LocalizedDoc; unit: LocalizedText | null };
+
+type Explanation = LocalizedDoc | null;
+/** The answer part — null when the question is locked (never sent by the API). */
+export type PracticeAnswer =
+  | { type: 'single_choice'; correctOptionId: string; explanation: Explanation }
+  | { type: 'multiple_choice'; correctOptionIds: string[]; explanation: Explanation }
+  | { type: 'true_false'; correct: boolean; explanation: Explanation }
+  | {
+      type: 'fill_blank';
+      blanks: Array<{ id: string; accepted: string[]; caseSensitive: boolean }>;
+      explanation: Explanation;
+    }
+  | { type: 'match'; pairs: Record<string, string>; explanation: Explanation }
+  | { type: 'numeric'; value: number; tolerance: number; explanation: Explanation }
+  | { type: 'subjective'; modelAnswer: LocalizedDoc; explanation: Explanation };
+
+export interface PracticeQuestion {
+  id: string;
+  subjectId: string;
+  topicId: string | null;
+  difficulty: 'easy' | 'medium' | 'hard';
+  marks: number;
+  accessLevel: 'free' | 'premium';
+  locked: boolean;
+  isPyq: boolean;
+  sources: Array<{ yearBs: number | null; examNode: { id: string; name: LocalizedText } | null }>;
+  passage: { id: string; title: LocalizedText | null; content: LocalizedDoc } | null;
+  question: PracticeQuestionBody;
+  answer: PracticeAnswer | null;
+}
+
+export type Bookmark =
+  | {
+      targetType: 'learning_item';
+      id: string;
+      createdAt: string;
+      itemType: ItemType;
+      title: LocalizedText;
+      subject: { id: string; name: LocalizedText };
+    }
+  | {
+      targetType: 'question';
+      id: string;
+      createdAt: string;
+      preview: string;
+      subject: { id: string; name: LocalizedText };
+    };
+export type BookmarkTarget = Bookmark['targetType'];
+
+export interface SearchResults {
+  courses: CatalogCourse[];
+  items: Array<{
+    id: string;
+    type: ItemType;
+    title: LocalizedText;
+    accessLevel: 'free' | 'premium';
+    subject: { id: string; name: LocalizedText };
+  }>;
+  questions: Array<{
+    id: string;
+    preview: string;
+    accessLevel: 'free' | 'premium';
+    subject: { id: string; name: LocalizedText };
+  }>;
+}
+
+export const practiceKeys = {
+  list: (courseId: string, subjectId: string) => ['practice', courseId, subjectId] as const,
+  one: (id: string) => ['practice-question', id] as const,
+  bookmarks: ['me', 'bookmarks'] as const,
+  search: (q: string) => ['search', q] as const,
+};
+
+export function usePracticeQuestions(courseId: string, subjectId: string, enabled = true) {
+  return useInfiniteQuery({
+    queryKey: practiceKeys.list(courseId, subjectId),
+    queryFn: ({ pageParam }) =>
+      api.get<{ data: PracticeQuestion[]; nextCursor: string | null; media: MediaMap }>(
+        `/courses/${courseId}/subjects/${subjectId}/questions?limit=20${pageParam ? `&cursor=${pageParam}` : ''}`,
+      ),
+    initialPageParam: '',
+    getNextPageParam: (last) => last.nextCursor ?? undefined,
+    enabled,
+  });
+}
+
+export function usePracticeQuestion(id: string) {
+  return useQuery({
+    queryKey: practiceKeys.one(id),
+    queryFn: () => api.get<PracticeQuestion & { media: MediaMap }>(`/practice-questions/${id}`),
+  });
+}
+
+export function useBookmarks() {
+  return useQuery({ queryKey: practiceKeys.bookmarks, queryFn: () => api.get<Bookmark[]>('/me/bookmarks') });
+}
+
+/** Adds or removes a bookmark; the list refreshes afterwards. */
+export function useToggleBookmark() {
+  return useMutation({
+    mutationFn: ({ type, id, on }: { type: BookmarkTarget; id: string; on: boolean }) =>
+      on ? api.put(`/me/bookmarks/${type}/${id}`) : api.delete(`/me/bookmarks/${type}/${id}`),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: practiceKeys.bookmarks }),
+  });
+}
+
+export function useSearch(q: string) {
+  return useQuery({
+    queryKey: practiceKeys.search(q),
+    queryFn: () => api.get<SearchResults>(`/search?q=${encodeURIComponent(q)}`),
+    enabled: q.length >= 2,
+  });
+}
+
+export type ReportReason = 'wrong_answer' | 'typo' | 'unclear' | 'outdated' | 'other';
+
+export function useReportQuestion(id: string) {
+  return useMutation({
+    mutationFn: (input: { reason: ReportReason; message: string | null }) =>
+      api.post(`/questions/${id}/reports`, input),
+  });
+}

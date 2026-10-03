@@ -1,5 +1,6 @@
 import { palette, radius } from '@tk/design-tokens';
 import { router } from 'expo-router';
+import { Search } from 'lucide-react-native';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useMe, useTargetPosts } from '@/api/queries';
@@ -48,6 +49,17 @@ export default function HomeScreen() {
         </View>
       </SafeAreaView>
       <ScrollView contentContainerStyle={styles.body}>
+        <Pressable
+          role="button"
+          aria-label={t('search.placeholder')}
+          onPress={() => router.push('/search')}
+          style={[styles.searchBar, { backgroundColor: colors.surface, borderColor: colors.border }]}
+        >
+          <Search size={20} color={colors.textMuted} strokeWidth={1.75} />
+          <Text variant="body" color="textMuted">
+            {t('search.placeholder')}
+          </Text>
+        </Pressable>
         <Card style={{ gap: 10 }}>
           {target ? (
             <>
@@ -120,5 +132,14 @@ const styles = StyleSheet.create({
   overline: { textTransform: 'uppercase', letterSpacing: 0.4 },
   targetRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   sectionHead: { flexDirection: 'row', alignItems: 'center', marginTop: 4 },
+  searchBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    minHeight: 50,
+    paddingHorizontal: 14,
+    borderWidth: 1,
+    borderRadius: radius.md,
+  },
   seeAll: { minHeight: 44, justifyContent: 'center' },
 });

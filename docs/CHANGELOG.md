@@ -4,6 +4,19 @@ All notable changes to this project. Format based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Added — 2026-10-04 (Phase 9, part 2: practice, bookmarks, search, profile)
+- Student app: Questions tab on the subject screen (all question types, Check answer / Try again, explanation,
+  model answer, passages, Premium lock with a link to the course), report a question, save lessons and questions,
+  Saved list, search from Home (courses, lessons, questions), Profile links, Edit profile (date of birth in BS,
+  gender, education level), Change / Set password, Signed-in devices (sign out others), Delete account with the
+  scheduled date and "Keep my account".
+- API: migration `bookmarks`; `GET /courses/:courseId/subjects/:subjectId/questions`, `GET /practice-questions/:id`
+  (answers withheld when locked), `GET /me/bookmarks`, `PUT/DELETE /me/bookmarks/:type/:id`, `GET /search`.
+
+### Fixed — 2026-10-04
+- Web build: text inputs no longer draw the browser's square focus ring over the rounded focus border.
+- `format:check` ignores the student E2E web build output (`dist-e2e`, `expo-env.d.ts`).
+
 ### Fixed — 2026-10-03
 - YouTube lessons did not play ("Video player configuration error", error 153): YouTube embeds now send a Referer
   (T-040); Bunny embeds still send none.

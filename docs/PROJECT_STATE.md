@@ -1,9 +1,9 @@
 # Project State
 
-Current Phase: **Phase 9 — Student learning: IN PROGRESS** (part 1 done on `feature/student-learning`; Phase 8 merged)
+Current Phase: **Phase 9 — Student learning: COMPLETE pending merge** (part 1 merged, PR #11/#12; part 2 on `feature/student-learning-2`)
 Current Milestone: content API on `feature/content-cms` → Admin CMS content screens
 Overall Status: **IN PROGRESS**
-Last updated: 2026-10-03
+Last updated: 2026-10-04
 
 ## Completed
 - Phases 0–3: discovery, PDF extraction, decisions, approved architecture.
@@ -27,9 +27,11 @@ Last updated: 2026-10-03
 ## In Progress
 - Phase 7 builder merged (PR #8). Grading queue and result release move to §10 (they need attempts).
 - Phase 8 merged (PR #9, #10). Still open from it: Sentry/PostHog (keys, KI-028), a run on a real phone (KI-031).
-- Phase 9 part 1 on `feature/student-learning`: catalog, course page + Enrol, Home current course + Continue, subject
-  outline, note / PDF / video lessons with progress (T-038, T-039). Part 2 next: practice questions, bookmarks,
-  report question, search, profile & settings.
+- Phase 9 part 1 merged (PR #11, YouTube fix PR #12): catalog, course page + Enrol, Home current course + Continue,
+  subject outline, note / PDF / video lessons with progress (T-038, T-039).
+- Phase 9 part 2 on `feature/student-learning-2`: practice questions with Check answer and locked Premium answers
+  (T-041), report a question, bookmarks + Saved, unified search, edit profile (BS date of birth), change password,
+  signed-in devices, delete account (request / keep). Migration `bookmarks`.
 - Dynamic admin audit done (`DYNAMIC_ADMIN_AUDIT.md`, D-045): category types and question types are now admin-managed.
 - Phase 6 merged (PR #5, #6). Bunny security verified (KI-023 resolved).
 
@@ -53,7 +55,7 @@ Last updated: 2026-10-03
 - Mobile: `apps/mobile` — `pnpm --filter @tk/mobile dev` (Expo; press `w` for web, or scan with Expo Go). Website: not started (Phase 11).
 
 ## Tests
-- Unit/integration 322 · browser E2E 19 (admin) + 8 (student app) — all passing locally (see `TEST_STATUS.md`).
+- Unit/integration 342 · browser E2E 19 (admin) + 12 (student app) — all passing locally (see `TEST_STATUS.md`).
 
 ## Known Issues
 - See `KNOWN_ISSUES.md` (KI-021 CI storage flake under investigation, KI-022 per-request PDF watermarking, KI-023 Bunny token auth).
@@ -81,5 +83,5 @@ and `pnpm --filter @tk/admin dev` → create your Super Admin:
 (code in Mailpit http://localhost:8025) → set password at http://localhost:5173/set-password → sign in → enrol 2FA.
 
 ## Exact Next Task
-- Open the Phase 9 part 1 PR, then §9 part 2 (practice questions, bookmarks, report question, search, profile &
-  settings) — see SESSION_HANDOFF.
+- Owner merges the §9 part 2 PR; then §10 exam engine + engagement (assessments list, exam mode, results, history,
+  daily challenge, leaderboards, certificates, mistake notebook) — see SESSION_HANDOFF.
