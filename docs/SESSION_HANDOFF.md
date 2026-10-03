@@ -2,7 +2,7 @@
 
 Session date: 2026-10-02 (session 4 — resumed after a VS Code crash)
 Current phase: **Phase 6 — content CMS, API layer complete and verified locally**
-Current task: Phase 9 part 2 done; PR open from `feature/student-learning-2`
+Current task: monitoring + analytics (T-042) done; PR open from `feature/monitoring-analytics`; next §10
 
 ## Completed this session
 - Recovered the interrupted work from the repository (nothing lost). Verified the uncommitted content API:
@@ -69,6 +69,19 @@ Current task: Phase 9 part 2 done; PR open from `feature/student-learning-2`
   self-hosted PDF reader. Then the app: Courses tab, course page, Home current course, subject outline, lessons.
 - Verified with 8 browser tests (real API, PDF rendered by pdf.js) and screenshots; four defects fixed (TEST_STATUS).
 
+## Session 13 (2026-10-04)
+- PR #13 merged by the owner. Owner sent Sentry (API DSN + auth token), PostHog (project key, US host) and a Google
+  OAuth web client (id + secret). Stored only in the git-ignored root `.env` and `apps/mobile/.env` (public values).
+  The client secret is not used (the app's Google flow is ID-token only).
+- Branch `feature/monitoring-analytics`: Sentry 11 in the API + worker (T-042 — Sentry 11 collects bodies, cookies,
+  headers and local variables **by default**, all switched off), `cli monitoring-test`, PostHog in the app with the
+  API's `analyticsId` pseudonym, screens by route pattern, 11 events, no flags/surveys/replay, URL properties removed
+  (found by reviewing the captured payload). Test/CI builds point PostHog at a fake host and blank Google ids.
+- A test error was sent to the owner's Sentry project; the token cannot read issues, so the owner confirms.
+- Google: the button shows with the web id; the app sends `redirect_uri` = its own origin → the OAuth client needs
+  `http://localhost:8081` as JavaScript origin and redirect URI. The owner's running Expo / API were not restarted
+  (they read the env files at start).
+
 ## Session 12 (2026-10-03 → 04)
 - Owner reported YouTube lessons not playing → fixed (T-040, PR #12, merged) and explained running the app on the
   Android emulator.
@@ -112,12 +125,11 @@ Current task: Phase 9 part 2 done; PR open from `feature/student-learning-2`
 - Nothing partially implemented. Admin screens for Phase 6 not started.
 
 ## Exact next steps
-1. Owner reviews and merges the §9 part 2 PR (`feature/student-learning-2` → `main`); CI `verify`, `admin-e2e`,
-   `mobile-e2e` must be green.
-2. §10 exam engine + engagement on a new `feature/exam-engine` branch: student assessments list, exam mode (timer,
-   palette, autosave, resume, submit / auto-submit), results & solutions, attempt history, then daily challenge,
+1. Owner reviews and merges the monitoring PR (`feature/monitoring-analytics` → `main`); CI must be green.
+2. §10 exam engine + engagement on `feature/exam-engine`: student assessments list, exam mode (timer, palette,
+   autosave, resume, submit / auto-submit), results & solutions, attempt history, then daily challenge,
    leaderboards, certificates, mistake notebook. Grading queue + result release (moved from §7).
-3. When the owner sends keys: Sentry + PostHog (KI-028), Google client ids (KI-029).
+3. When the owner sends them: Sentry DSNs for the app + admin (KI-028); Google Android/iOS clients after L5 (KI-029).
 
 ## Files changed
 - See `CHANGELOG.md` → Phase 6.
@@ -126,7 +138,7 @@ Current task: Phase 9 part 2 done; PR open from `feature/student-learning-2`
 - Migration `content_catalog`; endpoints in `API_DOCUMENTATION.md` §1b.
 
 ## Tests run
-- `pnpm format:check && pnpm build && pnpm lint && pnpm typecheck && pnpm test` → all passing, 342 tests; `pnpm --filter @tk/admin e2e` → 19 passing; `pnpm --filter @tk/mobile e2e` → 12 passing.
+- `pnpm format:check && pnpm build && pnpm lint && pnpm typecheck && pnpm test` → all passing, 348 tests; `pnpm --filter @tk/admin e2e` → 19 passing; `pnpm --filter @tk/mobile e2e` → 13 passing.
 
 ## Known issues / blockers
 - KI-021 (CI-only media failure — fix pending CI confirmation), KI-022 (per-request watermark cost). No blockers.

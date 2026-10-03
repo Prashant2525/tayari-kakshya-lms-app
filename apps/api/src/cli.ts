@@ -4,6 +4,8 @@ import { NestFactory } from '@nestjs/core';
 import { Email } from '@tk/contracts';
 import { parseArgs } from 'node:util';
 import { DomainModule } from './app.module.js';
+import { loadEnv } from './config/env.js';
+import { flushMonitoring, initMonitoring, reportError } from './infra/monitoring/sentry.js';
 import { PrismaService } from './infra/prisma/prisma.service.js';
 import { AuditService } from './modules/audit/audit.service.js';
 import { OtpService } from './modules/auth/otp.service.js';
@@ -13,7 +15,27 @@ const USAGE = `Usage:
   pnpm --filter @tk/api cli create-super-admin --email <email> --name "<full name>"
 
 Creates (or promotes) a staff account with the protected Super Admin role. No password is accepted on the
-command line: a password-setup code is emailed and the person sets their own password.`;
+command line: a password-setup code is emailed and the person sets their own password.
+
+  pnpm --filter @tk/api cli monitoring-test
+
+Sends one test error to Sentry (SENTRY_DSN_API) to confirm error monitoring works in this environment.`;
+
+async function monitoringTest(): Promise<void> {
+  const env = loadEnv();
+  if (!initMonitoring(env, 'api')) {
+    console.error('SENTRY_DSN_API is not set: error monitoring is off in this environment.');
+    process.exitCode = 1;
+    return;
+  }
+  reportError(new Error(`Monitoring test from the API command line (${env.APP_ENV})`), {
+    job: 'monitoring-test',
+  });
+  await flushMonitoring(5000);
+  console.log(
+    `Test error sent to Sentry (environment "${env.APP_ENV}"). It should appear under Issues shortly.`,
+  );
+}
 
 async function createSuperAdmin(args: string[]): Promise<void> {
   const { values } = parseArgs({ args, options: { email: { type: 'string' }, name: { type: 'string' } } });
@@ -76,6 +98,7 @@ async function createSuperAdmin(args: string[]): Promise<void> {
 async function main(): Promise<void> {
   const [command, ...args] = process.argv.slice(2);
   if (command === 'create-super-admin') return createSuperAdmin(args);
+  if (command === 'monitoring-test') return monitoringTest();
   console.error(USAGE);
   process.exitCode = 1;
 }

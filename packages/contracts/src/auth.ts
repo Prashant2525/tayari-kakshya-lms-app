@@ -134,6 +134,8 @@ export const MeView = z.object({
   mfaEnabled: z.boolean(),
   mfaSetupRequired: z.boolean(),
   isSuperAdmin: z.boolean(),
+  /** Pseudonymous id for product analytics (never the account id; ARCHITECTURE §Observability). */
+  analyticsId: z.string(),
 });
 export type MeView = z.infer<typeof MeView>;
 

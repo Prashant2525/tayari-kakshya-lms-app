@@ -2,6 +2,7 @@ import { Logger, type INestApplicationContext } from '@nestjs/common';
 import { Queue, Worker } from 'bullmq';
 import { Redis } from 'ioredis';
 import type { Env } from '../config/env.js';
+import { reportError } from '../infra/monitoring/sentry.js';
 import { AccountDeletionService } from '../modules/auth/account-deletion.service.js';
 import { AuthCleanupService } from '../modules/auth/auth-cleanup.service.js';
 
@@ -37,7 +38,10 @@ export async function startMaintenanceJobs(
     { connection, concurrency: 1 },
   );
   worker.on('completed', (job, result) => logger.log({ job: job.name, result }, 'Job completed'));
-  worker.on('failed', (job, err) => logger.error({ job: job?.name, err }, 'Job failed'));
+  worker.on('failed', (job, err) => {
+    logger.error({ job: job?.name, err }, 'Job failed');
+    reportError(err, { job: job?.name });
+  });
 
   return async () => {
     await worker.close();

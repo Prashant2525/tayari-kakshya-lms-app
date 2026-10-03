@@ -68,6 +68,7 @@ export function createE2eEnv({ name, apiPort, webOrigin, redisDb, email = 'log' 
     GOOGLE_OAUTH_WEB_CLIENT_ID: '',
     GOOGLE_OAUTH_ANDROID_CLIENT_ID: '',
     GOOGLE_OAUTH_IOS_CLIENT_ID: '',
+    SENTRY_DSN_API: '',
     E2E_ADMIN_EMAIL,
     E2E_EDITOR_EMAIL,
     E2E_ADMIN_PASSWORD,

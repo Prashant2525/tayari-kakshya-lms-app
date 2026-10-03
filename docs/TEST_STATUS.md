@@ -1,6 +1,6 @@
 # Test Status
 
-Last updated: 2026-10-04 (Phase 9 part 2: practice, bookmarks, search, profile). `pnpm test` runs unit + integration suites (needs `pnpm infra:up`);
+Last updated: 2026-10-04 (monitoring + analytics, T-042). `pnpm test` runs unit + integration suites (needs `pnpm infra:up`);
 `pnpm build && pnpm --filter @tk/admin e2e` and `pnpm build && pnpm --filter @tk/mobile e2e` run the browser suites
 (the student suite also needs Mailpit, part of `pnpm infra:up`).
 
@@ -11,12 +11,26 @@ Last updated: 2026-10-04 (Phase 9 part 2: practice, bookmarks, search, profile).
 | `@tk/design-tokens` | 39 | WCAG contrast for every text/background pair (light + dark), CSS generation |
 | `@tk/domain` | 39 | BS calendar, Kathmandu day boundary, fiscal year, money/VAT/discounts, access validity |
 | `@tk/contracts` | 21 | Schema behaviour (localized text, email normalisation, mass assignment, settings defaults, rich-text validation) |
-| `@tk/api` | 182 | Integration against real PostgreSQL + Redis + S3 (SeaweedFS) through the HTTP stack; TOTP RFC 6238 vectors; RBAC, video, watermark unit |
+| `@tk/api` | 186 | Integration against real PostgreSQL + Redis + S3 (SeaweedFS) through the HTTP stack; TOTP RFC 6238 vectors; RBAC, video, watermark unit |
 | `@tk/admin` (unit) | 33 | API client (headers, refresh single-flight, retry, session loss, error mapping), BS formatting, Button `asChild` regression |
 | `@tk/admin` (E2E, Playwright) | 19 | Real browser + real API + `*_e2e` database |
-| `@tk/mobile` (unit) | 28 | API client (single-flight refresh, early refresh, session end, maintenance), translations complete in both languages, BS dates and Kathmandu weekday, force-update/maintenance gate, form checks, Nepali phone numbers |
-| `@tk/mobile` (E2E, Playwright, phone viewport) | 12 | Web build + real API + `*_mobile_e2e` database + Mailpit |
-| **Total** | **373** | |
+| `@tk/mobile` (unit) | 30 | API client (single-flight refresh, early refresh, session end, maintenance), translations complete in both languages, BS dates and Kathmandu weekday, force-update/maintenance gate, form checks, Nepali phone numbers |
+| `@tk/mobile` (E2E, Playwright, phone viewport) | 13 | Web build + real API + `*_mobile_e2e` database + Mailpit |
+| **Total** | **380** | |
+
+### Added with monitoring and analytics (T-042)
+- **API (Sentry):** a local stand-in for Sentry receives the real SDK's envelopes. Unexpected errors arrive with the
+  request id, route pattern, job name and environment; deliberate `AppError`s and 4xx do not; the password, bearer
+  token, cookie, query string and email of the failing request are absent. Scrubber unit test; nothing is sent
+  without a DSN. Analytics pseudonym: stable, different per account, contains no id, email or name.
+- **App unit:** screen names by route pattern; analytics scrubber drops URLs, referrers and person properties.
+- **Browser E2E:** the test build sends analytics to a fake host, intercepted: `logged_in`, `$identify` with the API's
+  pseudonym, `$screen` names (`/login`, `/onboarding`, `/`, `/search`), `search_performed` with a count only; no
+  name, email, account id, search text, password or URL properties anywhere in the payload (the URL check failed
+  before the scrubber was added). The real PostHog key and Google client id are absent from the test build.
+- **Manual:** a test error was sent to the real Sentry project with `cli monitoring-test` (owner to confirm it
+  arrived — the provided token cannot read issues). Google sign-in: the button appears with the web client id;
+  Google answers `redirect_uri_mismatch` for an unregistered address (the app returns to its own origin).
 
 ### Added with student learning, part 2 (Phase 9)
 - **API:** practice questions — free answers sent, locked premium answers absent from the whole response (checked

@@ -46,4 +46,6 @@ Object.assign(process.env, {
   BUNNY_STREAM_TOKEN_KEY: '',
   BUNNY_CDN_HOSTNAME: '',
   YOUTUBE_API_KEY: '',
+  // …and never report test errors to the real Sentry project.
+  SENTRY_DSN_API: '',
 });

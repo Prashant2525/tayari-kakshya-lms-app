@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import {
   ErrorCode,
   type AuthTokens,
@@ -16,6 +16,8 @@ import {
 import { randomUUID } from 'node:crypto';
 import type { AuthContext, ClientInfo } from '../../common/auth/auth-context.js';
 import { AppError, Errors } from '../../common/errors/app-error.js';
+import { analyticsIdFor } from '../../common/security/analytics-id.js';
+import { ENV, type Env } from '../../config/env.js';
 import { Prisma, type User } from '../../generated/prisma/client.js';
 import { PrismaService } from '../../infra/prisma/prisma.service.js';
 import { SmsService } from '../../infra/messaging/sms.service.js';
@@ -46,6 +48,7 @@ export class AuthService {
     private readonly rbac: RbacService,
     private readonly audit: AuditService,
     private readonly mfa: MfaService,
+    @Inject(ENV) private readonly env: Env,
   ) {}
 
   // ───────────── Students ─────────────
@@ -358,6 +361,7 @@ export class AuthService {
       mfaEnabled: Boolean(user.mfaEnabledAt),
       mfaSetupRequired,
       isSuperAdmin: access?.isSuperAdmin ?? false,
+      analyticsId: analyticsIdFor(user.id, this.env.ENCRYPTION_KEY),
     };
   }
 

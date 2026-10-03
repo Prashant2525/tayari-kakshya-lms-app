@@ -2,6 +2,7 @@ import { ArgumentsHost, Catch, ExceptionFilter, HttpException, Logger } from '@n
 import { ErrorCode, type ApiErrorBody } from '@tk/contracts';
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import { Prisma } from '../../generated/prisma/client.js';
+import { reportError } from '../../infra/monitoring/sentry.js';
 import { AppError } from './app-error.js';
 
 const STATUS_CODES: Record<number, ErrorCode> = {
@@ -36,6 +37,8 @@ export class HttpExceptionFilter implements ExceptionFilter {
         { err: exception, requestId: request.id, url: request.url },
         'Unhandled error while processing request',
       );
+      // Route pattern, not the URL: no ids or query strings leave the server.
+      reportError(exception, { requestId: String(request.id), route: request.routeOptions?.url });
     }
     if (headers) void reply.headers(headers);
     void reply.status(status).send(body);

@@ -8,6 +8,7 @@ import type { LocalizedDoc, MediaMap, PracticeQuestion, RichNode } from '@/api/l
 import { RichText } from '@/features/learn/rich-text';
 import { localized, type Locale } from '@/i18n/translate';
 import { useT } from '@/i18n/use-t';
+import { track } from '@/lib/analytics';
 import { markBlanks, practiceOutcome } from '@/lib/practice';
 import { useTheme } from '@/theme/theme';
 import { Button } from '@/ui/button';
@@ -87,7 +88,10 @@ export function QuestionCard({
   const check = () => {
     if (!answer) return;
     const response = toResponse(q, draft);
-    setOutcome(response ? practiceOutcome(answer, response) : 'skipped');
+    const result = response ? practiceOutcome(answer, response) : 'skipped';
+    setOutcome(result);
+    if (result !== 'skipped')
+      track('practice_answer_checked', { question_type: q.question.type, outcome: result });
   };
   const reset = () => {
     setDraft(EMPTY);

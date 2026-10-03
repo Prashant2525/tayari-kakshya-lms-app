@@ -4,6 +4,15 @@ All notable changes to this project. Format based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Added — 2026-10-04 (monitoring and analytics, T-042)
+- API + worker report unexpected errors to Sentry when `SENTRY_DSN_API` is set, with personal data switched off and
+  scrubbed; `pnpm --filter @tk/api cli monitoring-test` sends a test error.
+- Student app sends product analytics to PostHog when `EXPO_PUBLIC_POSTHOG_KEY` is set: screens by route pattern and
+  11 events (sign-up, login, enrol, lesson opened / finished, practice check, report, bookmark, search, deletion
+  request), identified only by a pseudonym. `GET /me` returns `analyticsId`.
+- Google sign-in button appears on the web build once `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` is set (owner's client id).
+- Browser test builds never use the developer's real Google or PostHog values.
+
 ### Added — 2026-10-04 (Phase 9, part 2: practice, bookmarks, search, profile)
 - Student app: Questions tab on the subject screen (all question types, Check answer / Try again, explanation,
   model answer, passages, Premium lock with a link to the course), report a question, save lessons and questions,

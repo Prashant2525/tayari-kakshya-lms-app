@@ -1,12 +1,13 @@
 import { radius } from '@tk/design-tokens';
 import { Search } from 'lucide-react-native';
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { useSearch } from '@/api/learning';
 import { CourseRow } from '@/features/courses/course-card';
 import { ResultRow } from '@/features/practice/result-rows';
 import { localized } from '@/i18n/translate';
 import { useT } from '@/i18n/use-t';
+import { track } from '@/lib/analytics';
 import { fontFamilies, useTheme } from '@/theme/theme';
 import { BackButton, Screen, Skeleton } from '@/ui/layout';
 import { EmptyState, ErrorState } from '@/ui/states';
@@ -27,6 +28,14 @@ export default function SearchScreen() {
   const results = useSearch(q);
   const data = results.data;
   const empty = data && !data.courses.length && !data.items.length && !data.questions.length;
+
+  // Counted once per search; the search text itself is never sent (it can contain anything).
+  const tracked = useRef<string | null>(null);
+  useEffect(() => {
+    if (!data || tracked.current === q) return;
+    tracked.current = q;
+    track('search_performed', { results: data.courses.length + data.items.length + data.questions.length });
+  }, [data, q]);
 
   return (
     <Screen edges={['top']} contentStyle={styles.content}>

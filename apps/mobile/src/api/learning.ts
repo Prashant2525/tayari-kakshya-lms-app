@@ -1,5 +1,6 @@
 import { useInfiniteQuery, useMutation, useQuery } from '@tanstack/react-query';
 import type { LearningProgressInput, LocalizedText } from '@tk/contracts';
+import { track } from '@/lib/analytics';
 import { api, queryClient } from './client';
 import { keys as accountKeys, type CourseCardView } from './queries';
 
@@ -185,7 +186,8 @@ export function fetchPlayback(itemId: string) {
 export function useEnrol(slug: string) {
   return useMutation({
     mutationFn: (courseId: string) => api.post(`/courses/${courseId}/enrol`),
-    onSuccess: async () => {
+    onSuccess: async (_, courseId) => {
+      track('course_enrolled', { course_id: courseId });
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: learningKeys.course(slug) }),
         queryClient.invalidateQueries({ queryKey: accountKeys.myCourses }),
@@ -199,7 +201,8 @@ export function useSaveProgress(itemId: string) {
   return useMutation({
     mutationFn: (input: LearningProgressInput) =>
       api.put<{ position: number | null; completed: boolean }>(`/learning-items/${itemId}/progress`, input),
-    onSuccess: () => {
+    onSuccess: (_, input) => {
+      if (input.completed) track('lesson_completed', { item_id: itemId });
       void queryClient.invalidateQueries({ queryKey: ['outline'] });
       void queryClient.invalidateQueries({ queryKey: learningKeys.continue });
       void queryClient.invalidateQueries({ queryKey: accountKeys.myCourses });
@@ -320,7 +323,10 @@ export function useToggleBookmark() {
   return useMutation({
     mutationFn: ({ type, id, on }: { type: BookmarkTarget; id: string; on: boolean }) =>
       on ? api.put(`/me/bookmarks/${type}/${id}`) : api.delete(`/me/bookmarks/${type}/${id}`),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: practiceKeys.bookmarks }),
+    onSuccess: (_, { type, on }) => {
+      track(on ? 'bookmark_added' : 'bookmark_removed', { target_type: type });
+      return queryClient.invalidateQueries({ queryKey: practiceKeys.bookmarks });
+    },
   });
 }
 
@@ -338,5 +344,6 @@ export function useReportQuestion(id: string) {
   return useMutation({
     mutationFn: (input: { reason: ReportReason; message: string | null }) =>
       api.post(`/questions/${id}/reports`, input),
+    onSuccess: (_, input) => track('question_reported', { reason: input.reason }),
   });
 }

@@ -1,6 +1,6 @@
 # Project State
 
-Current Phase: **Phase 9 — Student learning: COMPLETE pending merge** (part 1 merged, PR #11/#12; part 2 on `feature/student-learning-2`)
+Current Phase: **Phase 9 complete (PR #13 merged)** · monitoring + analytics on `feature/monitoring-analytics` (T-042) · next §10
 Current Milestone: content API on `feature/content-cms` → Admin CMS content screens
 Overall Status: **IN PROGRESS**
 Last updated: 2026-10-04
@@ -29,7 +29,10 @@ Last updated: 2026-10-04
 - Phase 8 merged (PR #9, #10). Still open from it: Sentry/PostHog (keys, KI-028), a run on a real phone (KI-031).
 - Phase 9 part 1 merged (PR #11, YouTube fix PR #12): catalog, course page + Enrol, Home current course + Continue,
   subject outline, note / PDF / video lessons with progress (T-038, T-039).
-- Phase 9 part 2 on `feature/student-learning-2`: practice questions with Check answer and locked Premium answers
+- Monitoring on `feature/monitoring-analytics` (T-042): Sentry in the API + worker, PostHog in the app with a
+  pseudonymous id, Google web client id configured. Still open: Sentry DSNs for the app and admin (KI-028), Google
+  redirect registration + Android/iOS clients (KI-029).
+- Phase 9 part 2 merged (PR #13): practice questions with Check answer and locked Premium answers
   (T-041), report a question, bookmarks + Saved, unified search, edit profile (BS date of birth), change password,
   signed-in devices, delete account (request / keep). Migration `bookmarks`.
 - Dynamic admin audit done (`DYNAMIC_ADMIN_AUDIT.md`, D-045): category types and question types are now admin-managed.
@@ -55,7 +58,7 @@ Last updated: 2026-10-04
 - Mobile: `apps/mobile` — `pnpm --filter @tk/mobile dev` (Expo; press `w` for web, or scan with Expo Go). Website: not started (Phase 11).
 
 ## Tests
-- Unit/integration 342 · browser E2E 19 (admin) + 12 (student app) — all passing locally (see `TEST_STATUS.md`).
+- Unit/integration 348 · browser E2E 19 (admin) + 13 (student app) — all passing locally (see `TEST_STATUS.md`).
 
 ## Known Issues
 - See `KNOWN_ISSUES.md` (KI-021 CI storage flake under investigation, KI-022 per-request PDF watermarking, KI-023 Bunny token auth).
@@ -83,5 +86,5 @@ and `pnpm --filter @tk/admin dev` → create your Super Admin:
 (code in Mailpit http://localhost:8025) → set password at http://localhost:5173/set-password → sign in → enrol 2FA.
 
 ## Exact Next Task
-- Owner merges the §9 part 2 PR; then §10 exam engine + engagement (assessments list, exam mode, results, history,
+- Owner merges the monitoring PR; then §10 exam engine + engagement (assessments list, exam mode, results, history,
   daily challenge, leaderboards, certificates, mistake notebook) — see SESSION_HANDOFF.
