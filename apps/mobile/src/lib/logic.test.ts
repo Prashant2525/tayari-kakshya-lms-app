@@ -128,7 +128,8 @@ describe('form checks', () => {
 
 describe('development API address', () => {
   it('uses the computer that serves the app', () => {
-    expect(devApiOrigin('web', 'localhost', undefined)).toBe('http://localhost:4000');
+    expect(devApiOrigin('web', 'localhost', undefined)).toBe('http://127.0.0.1:4000');
+    expect(devApiOrigin('web', '192.168.1.20', undefined)).toBe('http://192.168.1.20:4000');
     expect(devApiOrigin('android', undefined, '192.168.1.20:8081')).toBe('http://192.168.1.20:4000');
     expect(devApiOrigin('ios', undefined, '10.0.0.5:8081')).toBe('http://10.0.0.5:4000');
     expect(devApiOrigin('android', undefined, undefined)).toBe('http://localhost:4000');

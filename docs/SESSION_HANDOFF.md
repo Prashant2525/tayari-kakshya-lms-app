@@ -70,12 +70,16 @@ Current task: Phase 8 — student app foundation done; PR next (branch `feature/
 - Verified in a phone-sized browser with screenshots; fixed four layout/navigation defects (TEST_STATUS).
 - Run the app: `pnpm infra:up`, API on :4000, then `pnpm --filter @tk/mobile dev` (`w` = web, `a` = Android).
   No `apps/mobile/.env` is needed in development: the app calls port 4000 on the computer running Expo (browser →
-  localhost, Expo Go / emulator → the dev server's network address). `CORS_ALLOWED_ORIGINS` must include
-  `http://localhost:8081` for the web version; a phone needs port 4000 allowed in the Windows firewall.
+  127.0.0.1, Expo Go / emulator → the dev server's network address). With `APP_ENV=development` the API accepts any
+  `http://localhost:<port>` origin, so no CORS edits are needed locally; a phone needs port 4000 allowed in the
+  Windows firewall.
 - Owner report: sign-up in the browser failed with "Could not reach the server" — `apps/mobile/.env` held the
   emulator-only address (from my instructions) and CORS lacked :8081. Fixed by automatic dev address detection
-  (`src/lib/dev-api.ts`, unit-tested) and the CORS setting; verified the web app calls localhost:4000 and the API
-  allows :8081.
+  (`src/lib/dev-api.ts`, unit-tested). Second report: CORS still blocked :8081 — the running API had an old
+  `CORS_ALLOWED_ORIGINS` from its terminal environment (an identical fresh process allowed it). Fixed for good with a
+  development-only rule (`isAllowedOrigin`, unit-tested; staging/production use the list only). Also: `localhost`
+  can resolve to IPv6 `::1` while the API listens on IPv4, so the web dev app calls `127.0.0.1`. Verified against the
+  owner's running servers: `/app/config` 200, register preflight allowed, no failed requests.
 
 ## Decisions taken during implementation
 - T-020 resolved (SeaweedFS), T-025 (API-validated uploads), T-026 (live-edit rule), T-027 (archived courses stay
