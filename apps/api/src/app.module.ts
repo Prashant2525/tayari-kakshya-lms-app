@@ -31,6 +31,7 @@ import { AdminContentController } from './modules/content/admin-content.controll
 import { AdminCoursesController } from './modules/content/admin-courses.controller.js';
 import { AdminTaxonomyController } from './modules/content/admin-taxonomy.controller.js';
 import { CatalogController, LearningController } from './modules/content/catalog.controller.js';
+import { PdfViewerController } from './modules/content/pdf-viewer/pdf-viewer.controller.js';
 import { CatalogService } from './modules/content/catalog.service.js';
 import { ContentService } from './modules/content/content.service.js';
 import { CoursesService } from './modules/content/courses.service.js';
@@ -186,6 +187,7 @@ export class DomainModule {}
     AdminCoursesController,
     CatalogController,
     LearningController,
+    PdfViewerController,
     AdminQuestionsController,
     QuestionReportsController,
     AdminAssessmentsController,

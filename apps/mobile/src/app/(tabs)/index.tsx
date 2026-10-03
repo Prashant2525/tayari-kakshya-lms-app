@@ -1,9 +1,10 @@
 import { palette, radius } from '@tk/design-tokens';
 import { router } from 'expo-router';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useMe, useTargetPosts } from '@/api/queries';
-import { MyCourses } from '@/features/courses/my-courses';
+import { CurrentCourse } from '@/features/courses/current-course';
+import { CatalogList } from '@/features/courses/my-courses';
 import { localized } from '@/i18n/translate';
 import { useT } from '@/i18n/use-t';
 import { todayLabel } from '@/lib/dates';
@@ -15,8 +16,8 @@ import { OfflineBanner } from '@/ui/states';
 import { Text } from '@/ui/text';
 
 /**
- * Home — foundation version: greeting with today's BS date, the exam being prepared for and My courses.
- * CMS-driven sections (daily challenge, shortcuts, banners, popular courses) are added in §9.
+ * Home: greeting with today's BS date, the exam being prepared for, the current course with Continue, and courses
+ * for that exam. CMS-managed home sections and banners come with §12 (DYNAMIC_ADMIN_AUDIT §2.3).
  */
 export default function HomeScreen() {
   const { t, locale } = useT();
@@ -73,10 +74,23 @@ export default function HomeScreen() {
             />
           )}
         </Card>
-        <Text variant="h3" role="heading">
-          {t('home.myCourses')}
-        </Text>
-        <MyCourses />
+        <CurrentCourse />
+        <View style={styles.sectionHead}>
+          <Text variant="h3" role="heading" style={{ flex: 1 }}>
+            {target ? t('home.forYou') : t('courses.all')}
+          </Text>
+          <Pressable
+            role="link"
+            onPress={() => router.navigate('/courses')}
+            style={styles.seeAll}
+            hitSlop={8}
+          >
+            <Text variant="label" color="link">
+              {t('home.seeAll')}
+            </Text>
+          </Pressable>
+        </View>
+        <CatalogList examNodeId={target?.id ?? null} q="" limit={5} />
       </ScrollView>
     </View>
   );
@@ -105,4 +119,6 @@ const styles = StyleSheet.create({
   body: { padding: 20, gap: 16, width: '100%', maxWidth: 640, alignSelf: 'center' },
   overline: { textTransform: 'uppercase', letterSpacing: 0.4 },
   targetRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  sectionHead: { flexDirection: 'row', alignItems: 'center', marginTop: 4 },
+  seeAll: { minHeight: 44, justifyContent: 'center' },
 });

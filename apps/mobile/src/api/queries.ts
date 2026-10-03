@@ -81,10 +81,6 @@ export function useTargetPosts(enabled = true) {
   });
 }
 
-export function useMyCourses() {
-  return useQuery({ queryKey: keys.myCourses, queryFn: () => api.get<CourseCardView[]>('/me/courses') });
-}
-
 export function useNodeTypes() {
   return useQuery({
     queryKey: keys.nodeTypes,

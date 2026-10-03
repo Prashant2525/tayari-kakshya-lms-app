@@ -66,7 +66,7 @@ export function Screen({
   );
 }
 
-export function BackButton({ onPress }: { onPress?: () => void }) {
+export function BackButton({ onPress, style }: { onPress?: () => void; style?: StyleProp<ViewStyle> }) {
   const { colors } = useTheme();
   const { t } = useT();
   return (
@@ -74,7 +74,7 @@ export function BackButton({ onPress }: { onPress?: () => void }) {
       role="button"
       aria-label={t('common.back')}
       onPress={onPress ?? (() => (router.canGoBack() ? router.back() : router.replace('/')))}
-      style={styles.back}
+      style={[styles.back, style]}
       hitSlop={4}
     >
       <ArrowLeft size={24} color={colors.text} strokeWidth={1.75} />

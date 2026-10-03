@@ -86,7 +86,10 @@ courses/subjects. Every write is audited.
 | GET / PUT | `/me/target-posts` | student | onboarding (S1): PUT `{ examNodeIds }` (≤ 5, unique, published with published ancestors) replaces the list; returns each with its ancestor `path`; unpublished choices are hidden |
 | GET | `/courses` · `/courses/:slug` | public (optional auth) | prices hidden for `X-TK-Platform: ios` and for `android` unless the in-app channel is on (D-027); detail adds `access: { entitled }` when signed in; archived courses visible only to entitled students |
 | POST | `/courses/:courseId/enrol` | student | free (price 0) live courses only (D-043): 201 `{ enrolled: true, endsAt }`, 200 if already enrolled; 409 `ENROLMENT_NOT_AVAILABLE` (`reason: not_free \| access_period_ended`); course detail exposes `access.canEnrol` |
-| GET | `/me/courses` | student | courses with an active entitlement, incl. archived ones (T-027) |
+| GET | `/me/courses` | student | courses with an active entitlement, incl. archived ones (T-027), each with `progress { completed, total }` (T-039) |
+| GET | `/me/continue` | student | `{ next }`: the last unfinished item the student can still open, with its subject and the course it was opened from (or `null`) |
+| PUT | `/learning-items/:id/progress` | student | `{ courseId?, position?, completed?: true }` — same access rules as opening the item; completion is permanent; the subject outline now includes `progress` per item |
+| GET | `/viewer/pdf` · `/viewer/assets/*` | public (no data) | self-hosted PDF reader page and allow-listed pdf.js files (T-038); the PDF itself still needs the student's token |
 | GET | `/courses/:courseId/subjects/:subjectId/outline` | student | chapters/topics/items with `locked` flags; no premium bodies |
 | GET | `/learning-items/:id` | student | `CONTENT_LOCKED` (403) without access; `VERIFICATION_REQUIRED` when the setting demands it |
 | GET | `/learning-items/:id/pdf` | student | streamed PDF, watermarked per student (T-029) |

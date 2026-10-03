@@ -104,9 +104,14 @@ Tests: scoring per type, negative marking, blueprint generation.
 - ☑ Tests: unit (21) + browser E2E against the real API (4) + screenshots light/dark/Nepali/tablet
 - ☐ Sentry + PostHog (KI-028, needs keys) · ☐ run on a phone/emulator (KI-031)
 
-**§9 Student learning** — Home (CMS sections, course switcher), categories/posts, course list & detail, my courses,
-subject outline, notes reader, PDF viewer + watermarked download, video player (Bunny/YouTube) with progress, practice
-questions & model answers, bookmarks, report question, unified search, locked states, profile & edit profile, settings.
+**§9 Student learning** (branch `feature/student-learning`) — ◐ IN PROGRESS
+- ☑ Part 1: catalog for the student's exam + search, course detail (Enrol, prices / iOS rule), my courses with progress,
+  Home current course + switcher + Continue, subject outline with states, note reader (rich text, A−/A+, language),
+  PDF reader (self-hosted pdf.js, watermark, T-038), video (signed Bunny / YouTube embed) with progress (T-039),
+  locked and verify-first states — API `learning_progress`, `/me/continue`, `/viewer/pdf`
+- ☐ Part 2: practice questions & model answers (locked answers), bookmarks, report question, unified search,
+  profile & edit profile, settings (sessions, change password, delete account)
+- Home CMS sections / banners are §12 (DYNAMIC_ADMIN_AUDIT §2.3); PDF download to the device is §14 (offline).
 
 **§10 Exam engine + engagement** — assessments list, exam mode (timer, palette, autosave queue, resume, submit,
 auto-submit), results & solutions, attempt history, subjective self-grading, daily challenge + streaks, leaderboards,

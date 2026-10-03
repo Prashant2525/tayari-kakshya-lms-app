@@ -81,6 +81,7 @@ model User {
   questionImports     QuestionImport[]         @relation("QuestionImportCreator")
   uploadedMedia       MediaAsset[]
   targetPosts         UserTargetPost[]
+  learningProgress    LearningProgress[]
 
   @@index([kind, status])
   @@map("users")
@@ -561,6 +562,8 @@ model LearningItem {
   pdf   MediaAsset? @relation(fields: [pdfMediaId], references: [id], onDelete: Restrict)
   video VideoAsset? @relation(fields: [videoAssetId], references: [id], onDelete: Restrict)
 
+  progress LearningProgress[]
+
   @@index([topicId, sortOrder])
   @@index([status, publishAt])
   @@map("learning_items")
@@ -637,6 +640,7 @@ model Course {
   entitlements Entitlement[]
 
   assessments Assessment[]
+  progress    LearningProgress[]
 
   @@index([status, isFeatured, popularityRank])
   @@map("courses")
@@ -667,6 +671,27 @@ model UserTargetPost {
   @@id([userId, examNodeId])
   @@index([examNodeId])
   @@map("user_target_posts")
+}
+
+/// Where a student is in a learning item (video seconds / PDF page) and whether it is finished. Items are shared
+/// between courses, so progress belongs to the item; `courseId` only remembers where it was opened (Continue).
+model LearningProgress {
+  userId         String    @map("user_id") @db.Uuid
+  learningItemId String    @map("learning_item_id") @db.Uuid
+  courseId       String?   @map("course_id") @db.Uuid
+  position       Int?
+  completedAt    DateTime? @map("completed_at") @db.Timestamptz(6)
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  learningItem LearningItem @relation(fields: [learningItemId], references: [id], onDelete: Cascade)
+  course       Course?      @relation(fields: [courseId], references: [id], onDelete: SetNull)
+
+  @@id([userId, learningItemId])
+  @@index([userId, updatedAt(sort: Desc)])
+  @@index([learningItemId])
+  @@map("learning_progress")
 }
 
 model CourseSubject {

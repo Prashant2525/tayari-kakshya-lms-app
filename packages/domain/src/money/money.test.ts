@@ -80,5 +80,6 @@ describe('formatNpr', () => {
     expect(formatNpr(10_000_000, 'en')).toBe('Rs 1,00,000');
     expect(formatNpr(300_050, 'en')).toBe('Rs 3,000.50');
     expect(formatNpr(300_000, 'ne')).toBe('रु ३,०००');
+    expect(formatNpr(10_000_050, 'ne')).toBe('रु १,००,०००.५०');
   });
 });

@@ -12,7 +12,13 @@ import {
   Res,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { CursorQuery, ExamNodeType, type Platform, TargetPostsInput } from '@tk/contracts';
+import {
+  CursorQuery,
+  ExamNodeType,
+  LearningProgressInput,
+  type Platform,
+  TargetPostsInput,
+} from '@tk/contracts';
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import { z } from 'zod';
 import {
@@ -123,6 +129,23 @@ export class LearningController {
   @Get('me/courses')
   myCourses(@CurrentAuth() auth: AuthContext) {
     return this.catalog.myCourses({ userId: auth.userId });
+  }
+
+  /** The last unfinished item, for Home → Continue (`next` is null when there is none). */
+  @Get('me/continue')
+  async continueLearning(@CurrentAuth() auth: AuthContext) {
+    return { next: await this.catalog.continueLearning({ userId: auth.userId }) };
+  }
+
+  @Put('learning-items/:id/progress')
+  @RateLimit({ name: 'learning.progress', limit: 600, windowSeconds: 3600, by: ['user'] })
+  @ApiZodBody(LearningProgressInput)
+  progress(
+    @Param('id', uuid()) id: string,
+    @ZodBody(LearningProgressInput) body: LearningProgressInput,
+    @CurrentAuth() auth: AuthContext,
+  ) {
+    return this.catalog.recordProgress(id, { userId: auth.userId }, body);
   }
 
   @Get('courses/:courseId/subjects/:subjectId/outline')

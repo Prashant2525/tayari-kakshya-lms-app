@@ -4,6 +4,15 @@ All notable changes to this project. Format based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Added — 2026-10-03 (Phase 9, part 1: student learning)
+- Student app: Courses tab (my courses with progress, catalog for my exam or all, search), course page (subjects,
+  counts, description, teachers, Enrol for free / price / iOS without prices), Home current course with switcher and
+  Continue, subject outline (Notes / Videos, chapters, states), lesson screen (note reader with A−/A+ and language,
+  PDF reader, video), Mark as finished, previous / next lesson, locked and verify-first states.
+- API: migration `learning_progress`, `PUT /learning-items/:id/progress`, `GET /me/continue`, progress in the outline
+  and `/me/courses`, self-hosted PDF reader `/viewer/pdf` (pdfjs-dist 6.3.289).
+- `formatNpr` shows Devanagari digits for Nepali in every JavaScript engine.
+
 ### Added — 2026-10-03 (Phase 8: student app foundation)
 - `apps/mobile`: Expo SDK 57 + Expo Router student app — sign up, login (device-limit choice), forgot/reset password
   by code, email/SMS verification, onboarding target post, tabs (Home, Courses, Notices, Profile), language (en/ne)

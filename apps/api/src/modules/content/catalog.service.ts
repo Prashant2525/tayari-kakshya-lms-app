@@ -1,5 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { ErrorCode, type LocalizedRichDoc, type LocalizedText, type Platform } from '@tk/contracts';
+import {
+  ErrorCode,
+  type LearningProgressInput,
+  type LocalizedRichDoc,
+  type LocalizedText,
+  type Platform,
+} from '@tk/contracts';
 import { AppError, Errors } from '../../common/errors/app-error.js';
 import { Prisma, type Course, type MediaAsset } from '../../generated/prisma/client.js';
 import { PrismaService } from '../../infra/prisma/prisma.service.js';
@@ -160,7 +166,14 @@ export class CatalogService {
       include: { thumbnail: true },
       orderBy: { updatedAt: 'desc' },
     });
-    return courses.map((c) => this.courseCard(c, false));
+    const progress = await this.courseProgress(
+      viewer.userId,
+      courses.map((c) => c.id),
+    );
+    return courses.map((c) => ({
+      ...this.courseCard(c, false),
+      progress: progress.get(c.id) ?? { completed: 0, total: 0 },
+    }));
   }
 
   /** Chapters → topics → items with lock state, for one subject of one course. */
@@ -194,6 +207,11 @@ export class CatalogService {
     });
     if (!subject) throw Errors.notFound('Subject');
     const hasAccess = await this.entitlements.hasSubjectAccess(viewer.userId, subjectId);
+    const itemIds = subject.chapters.flatMap((c) => c.topics.flatMap((t) => t.items.map((i) => i.id)));
+    const progressRows = await this.prisma.learningProgress.findMany({
+      where: { userId: viewer.userId, learningItemId: { in: itemIds } },
+    });
+    const progressOf = new Map(progressRows.map((r) => [r.learningItemId, r]));
     return {
       id: subject.id,
       name: subject.name as LocalizedText,
@@ -216,6 +234,12 @@ export class CatalogService {
             locked: i.accessLevel === 'premium' && !hasAccess,
             durationSeconds: i.durationSeconds,
             pageCount: i.pdf?.pageCount ?? null,
+            progress: progressOf.has(i.id)
+              ? {
+                  position: progressOf.get(i.id)!.position,
+                  completed: progressOf.get(i.id)!.completedAt !== null,
+                }
+              : null,
           })),
         })),
       })),
@@ -272,6 +296,110 @@ export class CatalogService {
       );
     }
     return this.video.playback(item.video);
+  }
+
+  // ───────────── Progress ─────────────
+
+  /**
+   * Saves where the student is in an item (video seconds / PDF page) and/or that it is finished. Finishing is
+   * permanent; positions keep moving. The same access rules as opening the item apply.
+   */
+  async recordProgress(itemId: string, viewer: Viewer, input: LearningProgressInput) {
+    const { item } = await this.accessibleItem(itemId, viewer);
+    if (input.courseId) {
+      const linked = await this.prisma.courseSubject.findFirst({
+        where: {
+          courseId: input.courseId,
+          subjectId: item.topic.chapter.subjectId,
+          course: { deletedAt: null },
+        },
+      });
+      if (!linked) {
+        throw Errors.validation([{ path: 'courseId', message: 'This item is not part of that course' }]);
+      }
+    }
+    const key = { userId: viewer.userId, learningItemId: item.id };
+    const existing = await this.prisma.learningProgress.findUnique({ where: { userId_learningItemId: key } });
+    const completedAt = existing?.completedAt ?? (input.completed ? new Date() : null);
+    const data = {
+      ...(input.courseId ? { courseId: input.courseId } : {}),
+      ...(input.position !== undefined ? { position: input.position } : {}),
+      completedAt,
+    };
+    const row = existing
+      ? await this.prisma.learningProgress.update({ where: { userId_learningItemId: key }, data })
+      : await this.prisma.learningProgress.create({ data: { ...key, ...data } });
+    return { position: row.position, completed: row.completedAt !== null };
+  }
+
+  /** The most recently opened unfinished item the student can still open, with where it was opened from. */
+  async continueLearning(viewer: Viewer) {
+    const recent = await this.prisma.learningProgress.findMany({
+      where: { userId: viewer.userId, completedAt: null },
+      orderBy: { updatedAt: 'desc' },
+      take: 10,
+      include: { course: true },
+    });
+    const entitled = await this.entitlements.activeCourseIds(viewer.userId);
+    for (const row of recent) {
+      const item = await this.accessibleItem(row.learningItemId, viewer)
+        .then((r) => r.item)
+        .catch(() => null);
+      if (!item) continue;
+      const subject = await this.prisma.subject.findUniqueOrThrow({
+        where: { id: item.topic.chapter.subjectId },
+      });
+      const course = row.course && (isLive(row.course) || entitled.has(row.course.id)) ? row.course : null;
+      return {
+        item: {
+          id: item.id,
+          type: item.type,
+          title: item.title as LocalizedText,
+          position: row.position,
+          durationSeconds: item.durationSeconds,
+          pageCount: item.pdf?.pageCount ?? null,
+        },
+        subject: { id: subject.id, name: subject.name as LocalizedText },
+        course: course ? { id: course.id, slug: course.slug, title: course.title as LocalizedText } : null,
+      };
+    }
+    return null;
+  }
+
+  /** Finished / total live items per course (subjects are shared, so an item counts in every course it is in). */
+  private async courseProgress(userId: string, courseIds: string[]) {
+    const links = await this.prisma.courseSubject.findMany({
+      where: { courseId: { in: courseIds }, subject: publishedWhere },
+      select: { courseId: true, subjectId: true },
+    });
+    const items = await this.prisma.learningItem.findMany({
+      where: {
+        ...liveWhere(),
+        topic: {
+          ...publishedWhere,
+          chapter: { ...publishedWhere, subjectId: { in: [...new Set(links.map((l) => l.subjectId))] } },
+        },
+      },
+      select: { id: true, topic: { select: { chapter: { select: { subjectId: true } } } } },
+    });
+    const done = new Set(
+      (
+        await this.prisma.learningProgress.findMany({
+          where: { userId, completedAt: { not: null }, learningItemId: { in: items.map((i) => i.id) } },
+          select: { learningItemId: true },
+        })
+      ).map((r) => r.learningItemId),
+    );
+    const result = new Map<string, { completed: number; total: number }>();
+    for (const courseId of courseIds) {
+      const subjects = new Set(links.filter((l) => l.courseId === courseId).map((l) => l.subjectId));
+      const inCourse = items.filter((i) => subjects.has(i.topic.chapter.subjectId));
+      result.set(courseId, {
+        completed: inCourse.filter((i) => done.has(i.id)).length,
+        total: inCourse.length,
+      });
+    }
+    return result;
   }
 
   // ───────────── helpers ─────────────

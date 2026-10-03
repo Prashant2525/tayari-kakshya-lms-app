@@ -11,12 +11,25 @@ Last updated: 2026-10-03 (Phase 8, student app foundation). `pnpm test` runs uni
 | `@tk/design-tokens` | 39 | WCAG contrast for every text/background pair (light + dark), CSS generation |
 | `@tk/domain` | 39 | BS calendar, Kathmandu day boundary, fiscal year, money/VAT/discounts, access validity |
 | `@tk/contracts` | 21 | Schema behaviour (localized text, email normalisation, mass assignment, settings defaults, rich-text validation) |
-| `@tk/api` | 161 | Integration against real PostgreSQL + Redis + S3 (SeaweedFS) through the HTTP stack; TOTP RFC 6238 vectors; RBAC, video, watermark unit |
+| `@tk/api` | 167 | Integration against real PostgreSQL + Redis + S3 (SeaweedFS) through the HTTP stack; TOTP RFC 6238 vectors; RBAC, video, watermark unit |
 | `@tk/admin` (unit) | 33 | API client (headers, refresh single-flight, retry, session loss, error mapping), BS formatting, Button `asChild` regression |
 | `@tk/admin` (E2E, Playwright) | 19 | Real browser + real API + `*_e2e` database |
-| `@tk/mobile` (unit) | 22 | API client (single-flight refresh, early refresh, session end, maintenance), translations complete in both languages, BS dates and Kathmandu weekday, force-update/maintenance gate, form checks, Nepali phone numbers |
-| `@tk/mobile` (E2E, Playwright, phone viewport) | 4 | Web build + real API + `*_mobile_e2e` database + Mailpit |
-| **Total** | **331** | |
+| `@tk/mobile` (unit) | 23 | API client (single-flight refresh, early refresh, session end, maintenance), translations complete in both languages, BS dates and Kathmandu weekday, force-update/maintenance gate, form checks, Nepali phone numbers |
+| `@tk/mobile` (E2E, Playwright, phone viewport) | 8 | Web build + real API + `*_mobile_e2e` database + Mailpit |
+| **Total** | **349** | |
+
+### Added with student learning, part 1 (Phase 9)
+- **API:** progress positions and permanent completion (mutation-checked), same access rules as opening the item
+  (locked premium refused), invalid inputs and wrong course refused, outline progress, Continue (latest unfinished,
+  course context, skips unpublished items), finished / total per course; PDF reader page CSP, framing and file
+  allow-list (path traversal and unlisted files → 404).
+- **Browser E2E (student app):** catalog for my exam with prices, paid course shows price and no Enrol, free course
+  Enrol → access; outline → note (heading, bold, list) → Mark as finished → Next lesson → PDF rendered by pdf.js in
+  the reader (3 pages, page indicator, watermark notice) → outline shows Done; video embed URL; Home current course
+  33 % and Continue reopens the PDF.
+- **Screenshots reviewed** (light, dark, Nepali). Fixed: PDF not recorded as started until scrolled (Continue missing),
+  Nepali prices with Latin digits in Chromium (`formatNpr` now converts digits itself), missing chapter chevron,
+  oval back button on the course page.
 
 ### Added with the student app foundation (Phase 8)
 - **API:** `/me/target-posts` (order, path, replace, empty), refused unpublished/unknown/duplicate/too many, hidden
