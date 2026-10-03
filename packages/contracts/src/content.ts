@@ -99,6 +99,18 @@ export const TargetPostsInput = z.object({
 });
 export type TargetPostsInput = z.infer<typeof TargetPostsInput>;
 
+/** Student progress in a learning item: video seconds or PDF page, and/or finished. */
+export const LearningProgressInput = z
+  .object({
+    /** The course the item was opened from (remembered for "Continue"). */
+    courseId: z.uuid().optional(),
+    position: z.number().int().min(0).max(1_000_000).optional(),
+    completed: z.literal(true).optional(),
+  })
+  .strict()
+  .refine((v) => v.position !== undefined || v.completed !== undefined, 'Send a position or completed');
+export type LearningProgressInput = z.infer<typeof LearningProgressInput>;
+
 export const PaperInput = z
   .object({
     name: LocalizedText,
