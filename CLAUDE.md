@@ -74,7 +74,8 @@ Windows 11; PowerShell + Git Bash. Node 24, pnpm 12.8.1, Docker Desktop (WSL2). 
 - Verify everything: `pnpm format:check && pnpm build && pnpm lint && pnpm typecheck && pnpm test`.
 - API: `pnpm --filter @tk/api dev` (needs root `.env`); migrations: `pnpm --filter @tk/api exec prisma migrate dev --name <x>`.
 - Admin CMS: `pnpm --filter @tk/admin dev` (:5173, proxies `/api` → :4000). Browser E2E: `pnpm build && pnpm --filter @tk/admin e2e`.
-- Student app: `pnpm --filter @tk/mobile dev` (Expo; `w` = web). Browser E2E (web build, phone viewport, Mailpit for
+- Student app: `pnpm --filter @tk/mobile dev` (Expo; `w` = web); Android emulator: `pnpm --filter @tk/mobile android`
+  (needs `ANDROID_HOME`; see SESSION_HANDOFF). Browser E2E (web build, phone viewport, Mailpit for
   codes): `pnpm build && pnpm --filter @tk/mobile e2e`. Pin Expo packages to the versions in Expo's bundledNativeModules.
 - After UI changes, verify in a real browser (Playwright) — screenshots caught defects that tests missed.
 - TypeScript is pinned to 6.0 (T-016). Do not add SWC or other unsigned native binaries without checking they load on

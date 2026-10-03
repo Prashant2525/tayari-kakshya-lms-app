@@ -133,7 +133,9 @@ describe('development API address', () => {
     expect(devApiOrigin('web', '192.168.1.20', undefined)).toBe('http://192.168.1.20:4000');
     expect(devApiOrigin('android', undefined, '192.168.1.20:8081')).toBe('http://192.168.1.20:4000');
     expect(devApiOrigin('ios', undefined, '10.0.0.5:8081')).toBe('http://10.0.0.5:4000');
-    expect(devApiOrigin('android', undefined, undefined)).toBe('http://localhost:4000');
+    expect(devApiOrigin('android', undefined, undefined)).toBe('http://10.0.2.2:4000');
+    expect(devApiOrigin('android', undefined, '127.0.0.1:8081')).toBe('http://10.0.2.2:4000');
+    expect(devApiOrigin('ios', undefined, undefined)).toBe('http://localhost:4000');
   });
 });
 

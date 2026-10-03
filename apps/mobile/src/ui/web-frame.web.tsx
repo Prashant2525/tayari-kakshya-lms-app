@@ -6,7 +6,7 @@ export type { WebFrameHandle, WebFrameProps } from './web-frame';
 
 /** Web build (development and browser tests): an iframe; messages go through `postMessage`. */
 export const WebFrame = forwardRef<WebFrameHandle, WebFrameProps>(function WebFrame(
-  { uri, title, onMessage, style },
+  { uri, title, onMessage, sendReferrer = false, style },
   ref,
 ) {
   const frame = useRef<HTMLIFrameElement | null>(null);
@@ -34,7 +34,7 @@ export const WebFrame = forwardRef<WebFrameHandle, WebFrameProps>(function WebFr
         title={title}
         allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
         allowFullScreen
-        referrerPolicy="no-referrer"
+        referrerPolicy={sendReferrer ? 'strict-origin-when-cross-origin' : 'no-referrer'}
         style={{ border: 0, width: '100%', height: '100%', flex: 1 }}
       />
     </View>

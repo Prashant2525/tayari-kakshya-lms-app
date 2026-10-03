@@ -16,5 +16,9 @@ export function devApiOrigin(
     return `http://${host}:${DEV_API_PORT}`;
   }
   const host = devServerHostUri?.split(':')[0];
+  // An Android emulator reached through `adb reverse` sees the computer as 10.0.2.2, not localhost.
+  if (platform === 'android' && (!host || host === 'localhost' || host === '127.0.0.1')) {
+    return `http://10.0.2.2:${DEV_API_PORT}`;
+  }
   return `http://${host || 'localhost'}:${DEV_API_PORT}`;
 }

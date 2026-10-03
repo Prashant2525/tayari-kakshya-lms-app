@@ -81,6 +81,7 @@ export function VideoPlayer({
         title={title}
         onMessage={onMessage}
         injectedJavaScript={trackingScript(resumeAt)}
+        sendReferrer={playback.data.provider === 'youtube'}
       />
     </View>
   );

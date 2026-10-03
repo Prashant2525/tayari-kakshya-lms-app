@@ -4,6 +4,12 @@ All notable changes to this project. Format based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Fixed — 2026-10-03
+- YouTube lessons did not play ("Video player configuration error", error 153): YouTube embeds now send a Referer
+  (T-040); Bunny embeds still send none.
+- Android emulator: the app finds the API at `10.0.2.2` when served through `adb reverse`; new
+  `pnpm --filter @tk/mobile android` script (IPv4 Metro + localhost mode).
+
 ### Added — 2026-10-03 (Phase 9, part 1: student learning)
 - Student app: Courses tab (my courses with progress, catalog for my exam or all, search), course page (subjects,
   counts, description, teachers, Enrol for free / price / iOS without prices), Home current course with switcher and
