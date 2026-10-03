@@ -4,7 +4,7 @@
  * CMS settings (D-026) — nothing here hard-codes a business value.
  * Rounding policy: half-up to the nearest paisa.
  */
-import type { DisplayLocale } from '../bs-date/bs-date.js';
+import { toDevanagariDigits, type DisplayLocale } from '../bs-date/bs-date.js';
 
 export type Paisa = number;
 export type BasisPoints = number;
@@ -102,9 +102,11 @@ export function rupeesToPaisa(rupees: string): Paisa {
 export function formatNpr(paisa: Paisa, locale: DisplayLocale): string {
   assertPaisa(paisa);
   const hasPaisa = paisa % 100 !== 0;
-  const number = new Intl.NumberFormat(locale === 'ne' ? 'ne-NP' : 'en-IN', {
+  // South Asian grouping from en-IN; Nepali digits are applied explicitly because not every JS engine's ne-NP
+  // data uses Devanagari digits (Chromium does not), so the result is the same in Node, browsers and Hermes.
+  const number = new Intl.NumberFormat('en-IN', {
     minimumFractionDigits: hasPaisa ? 2 : 0,
     maximumFractionDigits: 2,
   }).format(paisa / 100);
-  return `${locale === 'ne' ? 'रु' : 'Rs'} ${number}`;
+  return locale === 'ne' ? `रु ${toDevanagariDigits(number)}` : `Rs ${number}`;
 }
