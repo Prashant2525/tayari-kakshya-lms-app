@@ -1,6 +1,6 @@
 # Test Status
 
-Last updated: 2026-10-03 (Phase 8, student app foundation). `pnpm test` runs unit + integration suites (needs `pnpm infra:up`);
+Last updated: 2026-10-04 (Phase 9 part 2: practice, bookmarks, search, profile). `pnpm test` runs unit + integration suites (needs `pnpm infra:up`);
 `pnpm build && pnpm --filter @tk/admin e2e` and `pnpm build && pnpm --filter @tk/mobile e2e` run the browser suites
 (the student suite also needs Mailpit, part of `pnpm infra:up`).
 
@@ -11,12 +11,27 @@ Last updated: 2026-10-03 (Phase 8, student app foundation). `pnpm test` runs uni
 | `@tk/design-tokens` | 39 | WCAG contrast for every text/background pair (light + dark), CSS generation |
 | `@tk/domain` | 39 | BS calendar, Kathmandu day boundary, fiscal year, money/VAT/discounts, access validity |
 | `@tk/contracts` | 21 | Schema behaviour (localized text, email normalisation, mass assignment, settings defaults, rich-text validation) |
-| `@tk/api` | 167 | Integration against real PostgreSQL + Redis + S3 (SeaweedFS) through the HTTP stack; TOTP RFC 6238 vectors; RBAC, video, watermark unit |
+| `@tk/api` | 182 | Integration against real PostgreSQL + Redis + S3 (SeaweedFS) through the HTTP stack; TOTP RFC 6238 vectors; RBAC, video, watermark unit |
 | `@tk/admin` (unit) | 33 | API client (headers, refresh single-flight, retry, session loss, error mapping), BS formatting, Button `asChild` regression |
 | `@tk/admin` (E2E, Playwright) | 19 | Real browser + real API + `*_e2e` database |
-| `@tk/mobile` (unit) | 23 | API client (single-flight refresh, early refresh, session end, maintenance), translations complete in both languages, BS dates and Kathmandu weekday, force-update/maintenance gate, form checks, Nepali phone numbers |
-| `@tk/mobile` (E2E, Playwright, phone viewport) | 8 | Web build + real API + `*_mobile_e2e` database + Mailpit |
-| **Total** | **349** | |
+| `@tk/mobile` (unit) | 28 | API client (single-flight refresh, early refresh, session end, maintenance), translations complete in both languages, BS dates and Kathmandu weekday, force-update/maintenance gate, form checks, Nepali phone numbers |
+| `@tk/mobile` (E2E, Playwright, phone viewport) | 12 | Web build + real API + `*_mobile_e2e` database + Mailpit |
+| **Total** | **373** | |
+
+### Added with student learning, part 2 (Phase 9)
+- **API:** practice questions — free answers sent, locked premium answers absent from the whole response (checked
+  for the model-answer text; forcing answers into locked questions makes 2 tests fail), unlocked after access is
+  granted, paging and chapter / topic filters, subject outside the course and drafts → 404, verification required;
+  bookmarks (save twice, remove, unpublished hidden, erased with the account); search (courses, lessons, questions;
+  premium bodies and model answers absent, drafts excluded, 1-letter query refused); `splitQuestion` for all 7 types (unit).
+- **App unit:** practice feedback (single / multiple / match / blank / numeric / written), numbered blanks, BS ↔ AD
+  date of birth.
+- **Browser E2E (student app):** subject → Questions → wrong answer → explanation → Try again → correct; Premium
+  answer locked and absent from every `/questions` response; report a question; save; search finds the lesson and
+  the question; Saved lists it; edit profile (name, gender) shows on Profile; delete account → scheduled BS date →
+  Keep my account.
+- **Screenshots reviewed** (light, dark, Nepali): practice, report sheet, search, Saved, edit profile, password,
+  devices, deletion. Fixed: browser focus ring drawn over the design's focus border on web inputs.
 
 ### Added with the YouTube fix
 - Reproduced error 153 without a Referer and normal playback with one, in Chromium and on the Android emulator

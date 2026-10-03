@@ -1,4 +1,12 @@
-import { formatBs, instantToBs, kathmanduDate, toDevanagariDigits } from '@tk/domain';
+import {
+  adToBs,
+  bsToAd,
+  formatBs,
+  instantToBs,
+  kathmanduDate,
+  toDevanagariDigits,
+  type BsDate,
+} from '@tk/domain';
 import type { Locale } from '@/i18n/translate';
 
 const WEEKDAYS: Record<Locale, readonly string[]> = {
@@ -28,4 +36,15 @@ export function countdown(seconds: number, locale: Locale): string {
   const s = Math.max(0, Math.ceil(seconds));
   const text = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
   return locale === 'ne' ? toDevanagariDigits(text) : text;
+}
+
+/** The API stores dates of birth as AD `YYYY-MM-DD` (D-009); students pick them in BS. */
+export function adIsoToBs(iso: string): BsDate {
+  const [year, month, day] = iso.split('-').map(Number) as [number, number, number];
+  return adToBs({ year, month, day });
+}
+
+export function bsToAdIso(bs: BsDate): string {
+  const ad = bsToAd(bs);
+  return `${ad.year}-${String(ad.month).padStart(2, '0')}-${String(ad.day).padStart(2, '0')}`;
 }

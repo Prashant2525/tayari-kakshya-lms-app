@@ -14,7 +14,7 @@ Scope = approved decisions only (`DECISIONS.md`). Each phase ends with tests, do
 | 6 | Academic/content CMS | see §6 | ☐ |
 | 7 | Question bank + assessment CMS | see §7 | ☐ |
 | 8 | Student mobile foundation | see §8 (includes design preview gate) | ☐ |
-| 9 | Student learning | see §9 | ☐ |
+| 9 | Student learning | see §9 | ☑ (part 2 in PR) |
 | 10 | Exam engine + engagement | see §10 | ☐ |
 | 11 | Commerce + website checkout | see §11 | ☐ |
 | 12 | Communication & CMS content | see §12 | ☐ |
@@ -104,13 +104,16 @@ Tests: scoring per type, negative marking, blueprint generation.
 - ☑ Tests: unit (21) + browser E2E against the real API (4) + screenshots light/dark/Nepali/tablet
 - ☐ Sentry + PostHog (KI-028, needs keys) · ☐ run on a phone/emulator (KI-031)
 
-**§9 Student learning** (branch `feature/student-learning`) — ◐ IN PROGRESS
+**§9 Student learning** (branches `feature/student-learning`, `feature/student-learning-2`) — ☑ DONE (on merge)
 - ☑ Part 1: catalog for the student's exam + search, course detail (Enrol, prices / iOS rule), my courses with progress,
   Home current course + switcher + Continue, subject outline with states, note reader (rich text, A−/A+, language),
   PDF reader (self-hosted pdf.js, watermark, T-038), video (signed Bunny / YouTube embed) with progress (T-039),
   locked and verify-first states — API `learning_progress`, `/me/continue`, `/viewer/pdf`
-- ☐ Part 2: practice questions & model answers (locked answers), bookmarks, report question, unified search,
-  profile & edit profile, settings (sessions, change password, delete account)
+- ☑ Part 2 (branch `feature/student-learning-2`): practice questions on the subject screen (all 7 types, Check
+  answer, explanation / model answer, locked Premium answers never sent — T-041), report a question, bookmarks
+  (lessons + questions) and Saved, unified search (courses, lessons, questions), profile: edit (BS date of birth,
+  gender, education level), change / set password, signed-in devices, delete account (request + keep) — API
+  migration `bookmarks`, `/courses/:c/subjects/:s/questions`, `/practice-questions/:id`, `/me/bookmarks`, `/search`
 - Home CMS sections / banners are §12 (DYNAMIC_ADMIN_AUDIT §2.3); PDF download to the device is §14 (offline).
 
 **§10 Exam engine + engagement** — assessments list, exam mode (timer, palette, autosave queue, resume, submit,

@@ -1,8 +1,19 @@
 import { palette, radius } from '@tk/design-tokens';
 import { router } from 'expo-router';
-import { BadgeCheck, ChevronRight, LogOut, ShieldAlert } from 'lucide-react-native';
+import {
+  BadgeCheck,
+  Bookmark,
+  ChevronRight,
+  KeyRound,
+  LogOut,
+  ShieldAlert,
+  Smartphone,
+  UserPen,
+  type LucideIcon,
+} from 'lucide-react-native';
 import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { useCancelDeletion, useRequestDeletion } from '@/api/account';
 import { appVersion } from '@/api/client';
 import { logout, useMe, useTargetPosts } from '@/api/queries';
 import { localized } from '@/i18n/translate';
@@ -10,10 +21,12 @@ import { useT } from '@/i18n/use-t';
 import { usePrefs, type ThemePref } from '@/state/prefs';
 import { useTheme } from '@/theme/theme';
 import { Button } from '@/ui/button';
-import { Card, Screen } from '@/ui/layout';
+import { Banner, Card, Screen } from '@/ui/layout';
 import { Segmented } from '@/ui/segmented';
 import { Text } from '@/ui/text';
 import { initialsOf } from '@/lib/names';
+import { bsDate } from '@/lib/dates';
+import { errorMessageKey } from '@/lib/error-message';
 
 /** Foundation version: account summary, language, theme, verification and log out. Editing etc. come in §9. */
 export default function ProfileScreen() {
@@ -119,6 +132,16 @@ export default function ProfileScreen() {
             <ChevronRight size={18} color={colors.textMuted} strokeWidth={1.75} />
           </Pressable>
         ) : null}
+        <Card style={styles.linkGroup}>
+          <LinkRow icon={UserPen} label={t('profile.edit')} href="/profile/edit" />
+          <LinkRow
+            icon={KeyRound}
+            label={user?.hasPassword === false ? t('profile.setPassword') : t('profile.changePassword')}
+            href="/profile/password"
+          />
+          <LinkRow icon={Smartphone} label={t('profile.devices')} href="/profile/devices" />
+          <LinkRow icon={Bookmark} label={t('profile.saved.list')} href="/bookmarks" last />
+        </Card>
         <Button
           label={t('profile.logout')}
           variant="secondary"
@@ -129,6 +152,7 @@ export default function ProfileScreen() {
             void logout();
           }}
         />
+        <DeleteAccount scheduledFor={user?.deletionScheduledFor ?? null} />
         <Text variant="caption" color="textMuted" align="center">
           {t('profile.version', { version: appVersion })}
         </Text>
@@ -137,9 +161,88 @@ export default function ProfileScreen() {
   );
 }
 
+function LinkRow({
+  icon: Icon,
+  label,
+  href,
+  last = false,
+}: {
+  icon: LucideIcon;
+  label: string;
+  href: '/profile/edit' | '/profile/password' | '/profile/devices' | '/bookmarks';
+  last?: boolean;
+}) {
+  const { colors } = useTheme();
+  return (
+    <Pressable
+      role="link"
+      aria-label={label}
+      onPress={() => router.push(href)}
+      style={[
+        styles.link,
+        !last && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border },
+      ]}
+    >
+      <Icon size={20} color={colors.textSecondary} strokeWidth={1.75} />
+      <Text variant="body" style={{ flex: 1 }}>
+        {label}
+      </Text>
+      <ChevronRight size={18} color={colors.textMuted} strokeWidth={1.75} />
+    </Pressable>
+  );
+}
+
+/** Account deletion (store requirement; D-032): asks once, then shows the date and lets the student keep it. */
+function DeleteAccount({ scheduledFor }: { scheduledFor: string | null }) {
+  const { t, locale } = useT();
+  const request = useRequestDeletion();
+  const cancel = useCancelDeletion();
+  const [confirming, setConfirming] = useState(false);
+  if (scheduledFor) {
+    return (
+      <Card style={{ gap: 10 }}>
+        <Banner message={t('delete.scheduled', { date: bsDate(scheduledFor, locale) })} />
+        <Button
+          label={t('delete.keep')}
+          variant="secondary"
+          size="md"
+          loading={cancel.isPending}
+          onPress={() => cancel.mutate()}
+        />
+      </Card>
+    );
+  }
+  if (!confirming) {
+    return (
+      <Button label={t('profile.delete')} variant="tertiary" size="md" onPress={() => setConfirming(true)} />
+    );
+  }
+  return (
+    <Card style={{ gap: 10 }}>
+      <Text variant="h4" role="heading">
+        {t('delete.title')}
+      </Text>
+      <Text variant="bodySm" color="textSecondary">
+        {t('delete.body')}
+      </Text>
+      {request.isError ? <Banner message={t(errorMessageKey(request.error))} /> : null}
+      <Button
+        label={t('delete.confirm')}
+        variant="destructive"
+        size="md"
+        loading={request.isPending}
+        onPress={() => request.mutate(undefined, { onSuccess: () => setConfirming(false) })}
+      />
+      <Button label={t('common.cancel')} variant="tertiary" size="md" onPress={() => setConfirming(false)} />
+    </Card>
+  );
+}
+
 const styles = StyleSheet.create({
   content: { paddingHorizontal: 0 },
   scroll: { padding: 20, gap: 14 },
+  linkGroup: { paddingVertical: 4, paddingHorizontal: 14 },
+  link: { flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 52 },
   headerCard: { flexDirection: 'row', alignItems: 'center', gap: 14 },
   avatar: {
     width: 56,

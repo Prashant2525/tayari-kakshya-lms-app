@@ -95,6 +95,16 @@ courses/subjects. Every write is audited.
 | GET | `/learning-items/:id/pdf` | student | streamed PDF, watermarked per student (T-029) |
 | GET | `/learning-items/:id/playback` | student | YouTube nocookie embed or signed, expiring Bunny embed; `VIDEO_PROVIDER_NOT_CONFIGURED` (503) without Bunny credentials |
 
+## 1b-2. Implemented endpoints (Phase 9 part 2 — practice, bookmarks, search) ✅
+
+| Method | Path | Auth | Notes |
+|---|---|---|---|
+| GET | `/courses/:courseId/subjects/:subjectId/questions?chapterId=&topicId=&cursor=&limit=` | student | published practice questions of a subject the course contains, paged by id: `{ id, type, marks, difficulty, isPyq, year, accessLevel, locked, question, answer, passage, media }`. `question` never contains answer keys; `answer` (keys, model answer, explanation) is **`null` when locked** (premium without access — rule 5). 404 for a subject outside the course; `VERIFICATION_REQUIRED` when the setting demands it |
+| GET | `/practice-questions/:id` | student | one question with the same lock rule (404 if unpublished) |
+| GET | `/me/bookmarks` | student | saved lessons and questions, newest first: `{ targetType, targetId, createdAt, item? \| question? }`; unpublished targets are left out |
+| PUT / DELETE | `/me/bookmarks/:type/:id` | student | `type` = `learning_item` \| `question`; save (idempotent) / remove; only published targets can be saved |
+| GET | `/search?q=` | student | `q` 2–120 chars: `{ courses, items, questions }` — published courses (platform-aware prices), lessons by title (en/ne), questions by text; no premium bodies or answers |
+
 ## 1c. Implemented endpoints (Phase 7 — question bank) ✅
 
 | Method | Path | Auth | Notes |
@@ -173,9 +183,9 @@ courses/subjects. Every write is audited.
 | GET | `/learning-items/:id/pdf` | short-lived signed URL (watermarked stream for download) |
 | GET | `/learning-items/:id/playback` | Bunny signed HLS URL or YouTube id |
 | PUT | `/learning-items/:id/progress` | position, pct, completed |
-| GET | `/topics/:id/questions?type=` | practice questions (answers only if entitled) |
+| GET | `/courses/:courseId/subjects/:subjectId/questions` | practice questions (answers only if entitled) — implemented, §1b-2 |
 | POST | `/questions/:id/reports` | |
-| GET/POST/DELETE | `/me/bookmarks` | |
+| GET · PUT/DELETE | `/me/bookmarks` · `/me/bookmarks/:type/:id` | implemented, §1b-2 |
 | GET | `/me/mistakes`, PATCH `/me/mistakes/:id` | |
 | GET/POST | `/discussions?anchorType=&anchorId=`, `/discussions/:id/posts` | |
 

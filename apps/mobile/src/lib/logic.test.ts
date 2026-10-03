@@ -3,7 +3,7 @@ import { en } from '@/i18n/en';
 import { ne } from '@/i18n/ne';
 import { defaultLocale, localized, translate } from '@/i18n/translate';
 import { appGate, compareVersions, type AppConfig } from './app-gate';
-import { countdown, kathmanduWeekday, todayLabel } from './dates';
+import { adIsoToBs, bsToAdIso, countdown, kathmanduWeekday, todayLabel } from './dates';
 import { devApiOrigin } from './dev-api';
 import { formatDuration, percent, price } from './format';
 import { initialsOf } from './names';
@@ -149,5 +149,13 @@ describe('learning formats', () => {
     expect(percent(5, 4)).toBe(100);
     expect(price(300_000, 'en')).toBe('Rs 3,000');
     expect(price(10_000_000, 'en')).toBe('Rs 1,00,000');
+  });
+});
+
+describe('date of birth (BS picker ⇄ AD storage)', () => {
+  it('converts both ways', () => {
+    expect(adIsoToBs('2026-10-03')).toEqual({ year: 2083, month: 6, day: 17 });
+    expect(bsToAdIso({ year: 2083, month: 6, day: 17 })).toBe('2026-10-03');
+    expect(bsToAdIso(adIsoToBs('2001-01-05'))).toBe('2001-01-05');
   });
 });

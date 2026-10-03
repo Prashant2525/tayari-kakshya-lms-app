@@ -2,7 +2,7 @@
 
 Session date: 2026-10-02 (session 4 — resumed after a VS Code crash)
 Current phase: **Phase 6 — content CMS, API layer complete and verified locally**
-Current task: Phase 9 part 1 done; PR next (branch `feature/student-learning`)
+Current task: Phase 9 part 2 done; PR open from `feature/student-learning-2`
 
 ## Completed this session
 - Recovered the interrupted work from the repository (nothing lost). Verified the uncommitted content API:
@@ -69,6 +69,19 @@ Current task: Phase 9 part 1 done; PR next (branch `feature/student-learning`)
   self-hosted PDF reader. Then the app: Courses tab, course page, Home current course, subject outline, lessons.
 - Verified with 8 browser tests (real API, PDF rendered by pdf.js) and screenshots; four defects fixed (TEST_STATUS).
 
+## Session 12 (2026-10-03 → 04)
+- Owner reported YouTube lessons not playing → fixed (T-040, PR #12, merged) and explained running the app on the
+  Android emulator.
+- §9 part 2 on `feature/student-learning-2`. API first (`70c4fcf`): migration `bookmarks`, student practice
+  questions (answers withheld when locked — mutation-checked), single question, bookmarks, unified search; erasure
+  removes bookmarks. App: Questions tab on the subject screen (all 7 types, Check answer / Try again, explanation,
+  model answer, passage, Premium lock), report sheet, bookmark buttons, Saved, Search (from Home), Profile links,
+  Edit profile (BS date of birth, gender, education level), Change / Set password, Signed-in devices, Delete
+  account (confirm → scheduled date → Keep my account). T-041 records the practice-check rules.
+- Verified: 4 new browser tests (12 in the student suite) + screenshots in light, dark and Nepali. Fixed: web
+  inputs drew the browser's square focus ring next to the design's focus border (`noFocusRing`). `.prettierignore`
+  now skips the E2E web build output so `format:check` passes after a local E2E run.
+
 ## Session 10 (2026-10-03)
 - Owner approved the design (D-047). Built the student app foundation (`apps/mobile`, T-034…T-037), the
   `/me/target-posts` API and `app.storeLinks`, the shared E2E harness and the student browser suite.
@@ -99,9 +112,11 @@ Current task: Phase 9 part 1 done; PR next (branch `feature/student-learning`)
 - Nothing partially implemented. Admin screens for Phase 6 not started.
 
 ## Exact next steps
-1. Open the §9 part 1 PR `feature/student-learning` → `main`; confirm CI (`verify`, `admin-e2e`, `mobile-e2e`).
-2. §9 part 2: practice questions (student question API with answers withheld when locked), bookmarks, report
-   question (API exists), unified search, profile edit, settings (sessions, change password, delete account).
+1. Owner reviews and merges the §9 part 2 PR (`feature/student-learning-2` → `main`); CI `verify`, `admin-e2e`,
+   `mobile-e2e` must be green.
+2. §10 exam engine + engagement on a new `feature/exam-engine` branch: student assessments list, exam mode (timer,
+   palette, autosave, resume, submit / auto-submit), results & solutions, attempt history, then daily challenge,
+   leaderboards, certificates, mistake notebook. Grading queue + result release (moved from §7).
 3. When the owner sends keys: Sentry + PostHog (KI-028), Google client ids (KI-029).
 
 ## Files changed
@@ -111,7 +126,7 @@ Current task: Phase 9 part 1 done; PR next (branch `feature/student-learning`)
 - Migration `content_catalog`; endpoints in `API_DOCUMENTATION.md` §1b.
 
 ## Tests run
-- `pnpm format:check && pnpm build && pnpm lint && pnpm typecheck && pnpm test` → all passing, 311 tests; `pnpm --filter @tk/admin e2e` → 19 passing; `pnpm --filter @tk/mobile e2e` → 4 passing.
+- `pnpm format:check && pnpm build && pnpm lint && pnpm typecheck && pnpm test` → all passing, 342 tests; `pnpm --filter @tk/admin e2e` → 19 passing; `pnpm --filter @tk/mobile e2e` → 12 passing.
 
 ## Known issues / blockers
 - KI-021 (CI-only media failure — fix pending CI confirmation), KI-022 (per-request watermark cost). No blockers.
