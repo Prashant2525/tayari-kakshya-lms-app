@@ -73,6 +73,11 @@ Current task: Phase 9 part 1 done; PR next (branch `feature/student-learning`)
 - Owner approved the design (D-047). Built the student app foundation (`apps/mobile`, T-034…T-037), the
   `/me/target-posts` API and `app.storeLinks`, the shared E2E harness and the student browser suite.
 - Verified in a phone-sized browser with screenshots; fixed four layout/navigation defects (TEST_STATUS).
+- Android emulator: start it in Android Studio (Device Manager), set `ANDROID_HOME` once, then
+  `pnpm --filter @tk/mobile android`. The script uses `--localhost` (adb reverse, no firewall) and
+  `--dns-result-order=ipv4first` because Metro otherwise listens on IPv6 `::1` only and `adb reverse` reaches
+  IPv4 — Expo Go then fails with "Failed to download remote update". The app calls the API at `10.0.2.2:4000`.
+  If `adb` hangs (`adb devices` never returns), end the adb process and run `adb start-server`.
 - Run the app: `pnpm infra:up`, API on :4000, then `pnpm --filter @tk/mobile dev` (`w` = web, `a` = Android).
   No `apps/mobile/.env` is needed in development: the app calls port 4000 on the computer running Expo (browser →
   127.0.0.1, Expo Go / emulator → the dev server's network address). With `APP_ENV=development` the API accepts any

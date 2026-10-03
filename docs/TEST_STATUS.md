@@ -18,6 +18,10 @@ Last updated: 2026-10-03 (Phase 8, student app foundation). `pnpm test` runs uni
 | `@tk/mobile` (E2E, Playwright, phone viewport) | 8 | Web build + real API + `*_mobile_e2e` database + Mailpit |
 | **Total** | **349** | |
 
+### Added with the YouTube fix
+- Reproduced error 153 without a Referer and normal playback with one, in Chromium and on the Android emulator
+  (WebView). Browser E2E now checks the YouTube iframe's referrer policy; unit tests cover the emulator API address.
+
 ### Added with student learning, part 1 (Phase 9)
 - **API:** progress positions and permanent completion (mutation-checked), same access rules as opening the item
   (locked premium refused), invalid inputs and wrong course refused, outline progress, Continue (latest unfinished,

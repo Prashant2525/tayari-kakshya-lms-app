@@ -210,6 +210,11 @@ test('video lessons use the signed / privacy-enhanced embed', async () => {
     'src',
     /^https:\/\/www\.youtube-nocookie\.com\/embed\/dQw4w9WgXcQ/,
   );
+  // YouTube refuses to play without a Referer (player error 153); Bunny embeds keep sending none.
+  await expect(visible(page.locator('iframe[title="Rights explained"]'))).toHaveAttribute(
+    'referrerpolicy',
+    'strict-origin-when-cross-origin',
+  );
 });
 
 test('Home shows the current course with progress and continues the last unfinished lesson', async () => {

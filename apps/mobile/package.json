@@ -6,7 +6,7 @@
   "main": "expo-router/entry",
   "scripts": {
     "dev": "expo start",
-    "android": "expo start --android",
+    "android": "node --dns-result-order=ipv4first ./node_modules/expo/bin/cli start --android --localhost",
     "ios": "expo start --ios",
     "web": "expo start --web",
     "build": "expo export --platform web --output-dir dist",

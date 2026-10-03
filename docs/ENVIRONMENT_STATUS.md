@@ -16,7 +16,7 @@ Last checked: 2026-10-02 (Phase 4). Requirements inventory: `ENVIRONMENT_REQUIRE
 | Docker Desktop | ✅ 29.8.1, Compose v5.5.1 |
 | PostgreSQL / Redis / Mailpit | ✅ `pnpm infra:up` (Postgres 17.11 + test DB, Redis 7.4, Mailpit UI :8025) |
 | Smart App Control | ⚠️ blocks unsigned native Node binaries (KI-011) |
-| Android SDK | ✅ present (`%LOCALAPPDATA%\Android\Sdk`); Android Studio installed per owner |
+| Android SDK | ✅ present (`%LOCALAPPDATA%\Android\Sdk`); Android Studio + emulator `Pixel_10` (API 37) — the app runs on it in Expo Go (`pnpm --filter @tk/mobile android`, needs `ANDROID_HOME`) |
 | Playwright Chromium | ✅ installed (`pnpm --filter @tk/admin exec playwright install chromium`) |
 | Python 3.14 + PyMuPDF | ✅ (discovery tooling only) |
 
