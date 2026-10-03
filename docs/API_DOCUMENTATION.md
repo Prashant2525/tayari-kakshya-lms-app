@@ -23,7 +23,7 @@ Authoritative shapes: OpenAPI at `/api/docs` (local) and `packages/contracts`. W
 | Method | Path | Auth | Notes |
 |---|---|---|---|
 | GET | `/health/live`, `/health/ready` | public | ready checks PostgreSQL + Redis |
-| GET | `/app/config` | public | maintenance, min versions, purchase channels, verification channels, enabled question types + display names |
+| GET | `/app/config` | public | maintenance, min versions, store links (`app.storeLinks`), purchase channels, verification channels, enabled question types + display names |
 | POST | `/auth/register` | public | → tokens; sends email verification code if enabled |
 | POST | `/auth/login` | public | optional `replaceSessionId` when `DEVICE_LIMIT_REACHED` |
 | POST | `/auth/google` | public | ID token verified server-side |
@@ -82,7 +82,8 @@ courses/subjects. Every write is audited.
 | GET / PUT | `/admin/instructors` · `/admin/instructors/:userId` | `instructors:manage` | public instructor profile |
 | GET / PUT | `/admin/staff/:id/scopes` | `staff:read` / `staff:manage` | course/subject scopes (T-028) |
 | GET / POST | `/admin/users/:id/entitlements` · POST `/admin/entitlements/:id/revoke` | `entitlements:grant` (read: `users:read`) | admin grants until payments (Phase 13); never deleted |
-| GET | `/exam-nodes` | public | live taxonomy tree |
+| GET | `/exam-nodes?parentId=&type=` | public | published children of a category (roots without `parentId`), each with `childCount` (published children) for level-by-level browsing |
+| GET / PUT | `/me/target-posts` | student | onboarding (S1): PUT `{ examNodeIds }` (≤ 5, unique, published with published ancestors) replaces the list; returns each with its ancestor `path`; unpublished choices are hidden |
 | GET | `/courses` · `/courses/:slug` | public (optional auth) | prices hidden for `X-TK-Platform: ios` and for `android` unless the in-app channel is on (D-027); detail adds `access: { entitled }` when signed in; archived courses visible only to entitled students |
 | POST | `/courses/:courseId/enrol` | student | free (price 0) live courses only (D-043): 201 `{ enrolled: true, endsAt }`, 200 if already enrolled; 409 `ENROLMENT_NOT_AVAILABLE` (`reason: not_free \| access_period_ended`); course detail exposes `access.canEnrol` |
 | GET | `/me/courses` | student | courses with an active entitlement, incl. archived ones (T-027) |

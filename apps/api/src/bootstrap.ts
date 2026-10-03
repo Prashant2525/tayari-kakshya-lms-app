@@ -52,6 +52,7 @@ export async function configureApp(app: NestFastifyApplication, env: Env): Promi
       'Accept-Language',
       'X-Request-Id',
       'X-TK-Platform',
+      'X-TK-App-Version',
       ADMIN_CLIENT_HEADER,
     ],
     exposedHeaders: ['X-Request-Id', 'Retry-After'],

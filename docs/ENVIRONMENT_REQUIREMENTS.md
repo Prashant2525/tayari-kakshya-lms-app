@@ -60,7 +60,9 @@ Verified against official docs on 2026-10-02 (summary; full re-check required at
 | Android upload keystore | 20 | generated, stored in EAS/secret store | never committed |
 | Google Play Console account (organisation) | 20 | owner | org account requires D-U-N-S; personal accounts have testing requirements |
 | Apple Developer Program + App Store Connect | 18 | owner | required (iOS in scope) |
-| `EXPO_PUBLIC_API_URL` | 8 | me | `EXPO_PUBLIC_*` values are embedded in the app — **never secrets** |
+| `EXPO_PUBLIC_API_URL` | 8 | me | `EXPO_PUBLIC_*` values are embedded in the app — **never secrets**. Emulator: `http://10.0.2.2:4000`; phone: the computer's LAN address |
+| `EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID`, `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID`, `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` | 8 | owner (same Google Cloud project as `GOOGLE_OAUTH_*`) | public client ids; Google button hidden until set (KI-029) |
+| `EXPO_PUBLIC_SENTRY_DSN`, PostHog project key | 8 | owner | app crash reports / analytics (KI-028) |
 
 ## 6. CI/CD & hosting
 

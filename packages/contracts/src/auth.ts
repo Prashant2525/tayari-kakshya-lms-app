@@ -58,6 +58,14 @@ export type RefreshInput = z.infer<typeof RefreshInput>;
 export const OtpPurpose = z.enum(['verify_email', 'verify_phone', 'reset_password']);
 export type OtpPurpose = z.infer<typeof OtpPurpose>;
 
+/** Technical security parameters (not business rules). Shared so apps show the same resend timer. */
+export const OTP_POLICY = {
+  ttlMinutes: 10,
+  maxAttempts: 5,
+  resendCooldownSeconds: 60,
+  maxPerHour: 5,
+} as const;
+
 export const OtpCode = z.string().regex(/^\d{6}$/, 'Code must be 6 digits');
 
 export const SendVerificationOtpInput = z.discriminatedUnion('channel', [

@@ -2,7 +2,7 @@
 
 Session date: 2026-10-02 (session 4 — resumed after a VS Code crash)
 Current phase: **Phase 6 — content CMS, API layer complete and verified locally**
-Current task: Phase 8 — design preview published, waiting for owner sign-off (branch `feature/mobile-foundation`)
+Current task: Phase 8 — student app foundation done; PR next (branch `feature/mobile-foundation`)
 
 ## Completed this session
 - Recovered the interrupted work from the repository (nothing lost). Verified the uncommitted content API:
@@ -64,6 +64,14 @@ Current task: Phase 8 — design preview published, waiting for owner sign-off (
   with a locked model answer, full-screen exam mode, result, Home in Nepali + dark theme with BS dates, profile,
   notices (D-019). All content on the screens is sample data; the app renders CMS data.
 
+## Session 10 (2026-10-03)
+- Owner approved the design (D-047). Built the student app foundation (`apps/mobile`, T-034…T-037), the
+  `/me/target-posts` API and `app.storeLinks`, the shared E2E harness and the student browser suite.
+- Verified in a phone-sized browser with screenshots; fixed four layout/navigation defects (TEST_STATUS).
+- Run the app: `pnpm infra:up`, API on :4000, then `pnpm --filter @tk/mobile dev` (`w` = web). On an Android
+  emulator set `EXPO_PUBLIC_API_URL=http://10.0.2.2:4000` in `apps/mobile/.env`; on a phone with Expo Go use the
+  computer's LAN address (and allow port 4000 in the firewall).
+
 ## Decisions taken during implementation
 - T-020 resolved (SeaweedFS), T-025 (API-validated uploads), T-026 (live-edit rule), T-027 (archived courses stay
   visible to entitled students), T-028 (instructor scopes). See `DECISIONS.md`.
@@ -72,11 +80,11 @@ Current task: Phase 8 — design preview published, waiting for owner sign-off (
 - Nothing partially implemented. Admin screens for Phase 6 not started.
 
 ## Exact next steps
-1. Wait for the owner's design sign-off (or apply the requested changes to the canvas and re-publish).
-2. Then §8: scaffold `apps/mobile` (Expo SDK + Expo Router; check native binaries load on this machine, KI-011),
-   theme from `@tk/design-tokens` (light/dark), Mukta, i18n en/ne + toggle + BS dates, API client with secure
-   token storage, auth flows (sign up / login / Google / OTP / reset), loading/empty/error/offline states,
-   `/app/config` (force update, maintenance), onboarding target post. Sentry/PostHog keys are needed later.
+1. Open the Phase 8 PR `feature/mobile-foundation` → `main`; confirm CI (`verify`, `admin-e2e`, `mobile-e2e`).
+2. §9 student learning: Home CMS sections + course switcher, catalog/categories, course detail (Enrol, D-027 iOS
+   rules), subject outline, note reader, PDF viewer, video (signed Bunny embed in a WebView, T-031), practice
+   questions with locked answers, bookmarks, report question, search, profile editing, account deletion.
+3. When the owner sends keys: Sentry + PostHog (KI-028), Google client ids (KI-029).
 
 ## Files changed
 - See `CHANGELOG.md` → Phase 6.
@@ -85,7 +93,7 @@ Current task: Phase 8 — design preview published, waiting for owner sign-off (
 - Migration `content_catalog`; endpoints in `API_DOCUMENTATION.md` §1b.
 
 ## Tests run
-- `pnpm format:check && pnpm build && pnpm lint && pnpm typecheck && pnpm test` → all passing, 283 tests; `pnpm --filter @tk/admin e2e` → 19 passing.
+- `pnpm format:check && pnpm build && pnpm lint && pnpm typecheck && pnpm test` → all passing, 311 tests; `pnpm --filter @tk/admin e2e` → 19 passing; `pnpm --filter @tk/mobile e2e` → 4 passing.
 
 ## Known issues / blockers
 - KI-021 (CI-only media failure — fix pending CI confirmation), KI-022 (per-request watermark cost). No blockers.

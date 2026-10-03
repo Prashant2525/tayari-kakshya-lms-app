@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { ErrorCode } from '@tk/contracts';
+import { ErrorCode, OTP_POLICY } from '@tk/contracts';
 import { randomInt } from 'node:crypto';
 import { AppError, Errors } from '../../common/errors/app-error.js';
 import type { OtpChannel, OtpPurpose } from '../../generated/prisma/client.js';
@@ -8,14 +8,6 @@ import { MailService } from '../../infra/messaging/mail.service.js';
 import { SmsService } from '../../infra/messaging/sms.service.js';
 import { TokenService } from './token.service.js';
 import { otpMessage } from './otp-messages.js';
-
-/** Technical security parameters (not business rules). */
-export const OTP_POLICY = {
-  ttlMinutes: 10,
-  maxAttempts: 5,
-  resendCooldownSeconds: 60,
-  maxPerHour: 5,
-} as const;
 
 @Injectable()
 export class OtpService {
