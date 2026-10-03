@@ -93,7 +93,8 @@ Original scope: all question type engines + versioning, PYQ metadata, tags, CSV/
 validation preview, reports queue, assessment builder (all types, blueprints, rules), grading queue, results release.
 Tests: scoring per type, negative marking, blueprint generation.
 
-**§8 Student mobile foundation** — **design preview published for owner sign-off first**; Expo app, Expo Router structure,
+**§8 Student mobile foundation** — **design preview published for owner sign-off first** (☑ published 2026-10-03,
+☐ signed off); Expo app, Expo Router structure,
 tokens/theme (light/dark), Mukta font, i18n (en/ne) + toggle, BS dates, components library, API client, auth flows
 (sign up/login/Google/OTP/reset), secure storage, error/empty/loading/offline states, `/app/config` (force update,
 maintenance), Sentry, PostHog, onboarding target-post selection.

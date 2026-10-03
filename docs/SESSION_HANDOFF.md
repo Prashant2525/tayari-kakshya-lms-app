@@ -2,7 +2,7 @@
 
 Session date: 2026-10-02 (session 4 — resumed after a VS Code crash)
 Current phase: **Phase 6 — content CMS, API layer complete and verified locally**
-Current task: Phase 7 — assessment builder done; PR next (branch `feature/question-bank`)
+Current task: Phase 8 — design preview published, waiting for owner sign-off (branch `feature/mobile-foundation`)
 
 ## Completed this session
 - Recovered the interrupted work from the repository (nothing lost). Verified the uncommitted content API:
@@ -54,6 +54,16 @@ Current task: Phase 7 — assessment builder done; PR next (branch `feature/ques
 - Assessment builder (migration `assessments`, API, readiness, admin list/editor/sections, E2E). Scoring choices are
   required per assessment; prefill only for D-017 values. Questions in live assessments cannot be deleted.
 
+## Session 9 (2026-10-03)
+- PR #8 (Phase 7 builder) merged by the owner. Branch `feature/mobile-foundation` created from `main` (`5bb58e8`).
+- Design preview for the student app published as a private claude.ai design canvas (link given to the owner in
+  the session report): tokens and components, loading/offline/empty/error/update states, login, OTP verify
+  (email or SMS, D-029), target-post onboarding, Home (current course, daily challenge + streak, shortcuts,
+  popular courses), course detail on Android (price as a CMS value) and on iOS (no price or purchase UI, D-027),
+  subject outline with status chips, note reader (A−/A+, bookmark, watermark notice), video, practice questions
+  with a locked model answer, full-screen exam mode, result, Home in Nepali + dark theme with BS dates, profile,
+  notices (D-019). All content on the screens is sample data; the app renders CMS data.
+
 ## Decisions taken during implementation
 - T-020 resolved (SeaweedFS), T-025 (API-validated uploads), T-026 (live-edit rule), T-027 (archived courses stay
   visible to entitled students), T-028 (instructor scopes). See `DECISIONS.md`.
@@ -62,10 +72,11 @@ Current task: Phase 7 — assessment builder done; PR next (branch `feature/ques
 - Nothing partially implemented. Admin screens for Phase 6 not started.
 
 ## Exact next steps
-1. Confirm CI for the latest commit (`gh run list --branch feature/content-cms`).
-2. Open the Phase 7 PR `feature/question-bank` → `main` (grading queue + result release move to §10, where attempts
-   exist).
-3. Next phase per plan: §8 student mobile foundation — publish the design preview for owner sign-off first.
+1. Wait for the owner's design sign-off (or apply the requested changes to the canvas and re-publish).
+2. Then §8: scaffold `apps/mobile` (Expo SDK + Expo Router; check native binaries load on this machine, KI-011),
+   theme from `@tk/design-tokens` (light/dark), Mukta, i18n en/ne + toggle + BS dates, API client with secure
+   token storage, auth flows (sign up / login / Google / OTP / reset), loading/empty/error/offline states,
+   `/app/config` (force update, maintenance), onboarding target post. Sentry/PostHog keys are needed later.
 
 ## Files changed
 - See `CHANGELOG.md` → Phase 6.
