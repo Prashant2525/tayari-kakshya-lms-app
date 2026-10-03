@@ -13,6 +13,7 @@ import type {
   VerifyOtpInput,
 } from '@tk/contracts';
 import type { AppConfig } from '@/lib/app-gate';
+import { track } from '@/lib/analytics';
 import { deviceInfo } from '@/lib/device';
 import { useSession } from '@/state/session';
 import { api, queryClient } from './client';
@@ -108,7 +109,10 @@ export function useLogin() {
   return useMutation({
     mutationFn: async (input: Omit<LoginInput, 'device'>) =>
       api.post<AuthTokens>('/auth/login', { ...input, device: await deviceInfo() }, { auth: false }),
-    onSuccess: signedIn,
+    onSuccess: async (tokens) => {
+      track('logged_in', { method: 'password' });
+      await signedIn(tokens);
+    },
   });
 }
 
@@ -117,6 +121,7 @@ export function useRegister() {
     mutationFn: async (input: Omit<RegisterInput, 'device'>) =>
       api.post<AuthTokens>('/auth/register', { ...input, device: await deviceInfo() }, { auth: false }),
     onSuccess: async (tokens) => {
+      track('signed_up', { method: 'email' });
       useSession.getState().setVerifyPrompt(true);
       await signedIn(tokens);
     },
@@ -127,7 +132,10 @@ export function useGoogleLogin() {
   return useMutation({
     mutationFn: async (input: Omit<GoogleLoginInput, 'device'>) =>
       api.post<AuthTokens>('/auth/google', { ...input, device: await deviceInfo() }, { auth: false }),
-    onSuccess: signedIn,
+    onSuccess: async (tokens) => {
+      track('logged_in', { method: 'google' });
+      await signedIn(tokens);
+    },
   });
 }
 

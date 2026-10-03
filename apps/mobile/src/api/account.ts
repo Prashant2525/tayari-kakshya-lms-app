@@ -1,6 +1,7 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import type { ChangePasswordInput, LocalizedText, SessionView } from '@tk/contracts';
 import { api, queryClient } from './client';
+import { track } from '@/lib/analytics';
 import { keys } from './queries';
 
 export const accountKeys = {
@@ -40,7 +41,10 @@ export function useChangePassword() {
 export function useRequestDeletion() {
   return useMutation({
     mutationFn: () => api.post<{ scheduledFor: string }>('/me/deletion'),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: keys.me }),
+    onSuccess: () => {
+      track('account_deletion_requested');
+      return queryClient.invalidateQueries({ queryKey: keys.me });
+    },
   });
 }
 

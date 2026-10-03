@@ -81,6 +81,13 @@ export const EnvSchema = z
     GOOGLE_OAUTH_WEB_CLIENT_ID: optional,
     GOOGLE_OAUTH_ANDROID_CLIENT_ID: optional,
     GOOGLE_OAUTH_IOS_CLIENT_ID: optional,
+
+    // Error monitoring (D-039): off when unset. APP_RELEASE (e.g. the git commit) groups errors by deployment.
+    SENTRY_DSN_API: z
+      .url()
+      .optional()
+      .or(z.literal('').transform(() => undefined)),
+    APP_RELEASE: optional,
   })
   .superRefine((env, ctx) => {
     const prodLike = env.APP_ENV === 'production' || env.APP_ENV === 'staging';

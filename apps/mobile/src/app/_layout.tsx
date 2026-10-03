@@ -16,6 +16,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { api, queryClient } from '@/api/client';
 import { AppGate } from '@/features/app-gate';
 import { useGuards } from '@/features/guards';
+import { useAnalyticsIdentity, useScreenTracking } from '@/lib/analytics';
 import { usePrefs } from '@/state/prefs';
 import { useSession } from '@/state/session';
 import { ThemeProvider, useTheme } from '@/theme/theme';
@@ -74,6 +75,8 @@ function RootNavigator() {
   const locale = usePrefs((s) => s.locale);
   const { signedIn, mustVerify, needsOnboarding, me, targets } = useGuards();
   const { colors } = useTheme();
+  useScreenTracking();
+  useAnalyticsIdentity(me.data?.analyticsId, signedIn);
 
   // Keep the account's language (used for emails and notifications) in step with the app.
   useEffect(() => {

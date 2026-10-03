@@ -40,6 +40,20 @@ describe('registration', () => {
     expect(user.passwordHash).toMatch(/^\$argon2id\$/);
   });
 
+  it('gives each account a stable analytics pseudonym that reveals nothing about it', async () => {
+    const asha = await registerStudent(ctx, 'asha@example.com');
+    const ram = await registerStudent(ctx, 'ram@example.com');
+    const first = (await call(ctx, 'GET', '/me', { token: asha.accessToken })).body;
+    const again = (await call(ctx, 'GET', '/me', { token: asha.accessToken })).body;
+    const other = (await call(ctx, 'GET', '/me', { token: ram.accessToken })).body;
+    expect(first.analyticsId).toMatch(/^[A-Za-z0-9_-]{43}$/);
+    expect(again.analyticsId).toBe(first.analyticsId);
+    expect(other.analyticsId).not.toBe(first.analyticsId);
+    for (const value of [first.id, first.id.replaceAll('-', ''), first.email, first.fullName]) {
+      expect(first.analyticsId).not.toContain(value);
+    }
+  });
+
   it('rejects a duplicate email regardless of case', async () => {
     await registerStudent(ctx, 'asha@example.com');
     const res = await call(ctx, 'POST', '/auth/register', {

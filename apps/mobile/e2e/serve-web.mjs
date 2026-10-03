@@ -5,7 +5,7 @@ import { createReadStream, existsSync, statSync } from 'node:fs';
 import http from 'node:http';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { E2E_API_PORT, E2E_WEB_PORT } from './constants.mjs';
+import { E2E_API_PORT, E2E_POSTHOG_HOST, E2E_POSTHOG_KEY, E2E_WEB_PORT } from './constants.mjs';
 
 const appDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const outDir = path.join(appDir, 'dist-e2e');
@@ -13,8 +13,19 @@ const outDir = path.join(appDir, 'dist-e2e');
 if (!process.env.E2E_SKIP_WEB_BUILD) {
   execSync('pnpm exec expo export --platform web --output-dir dist-e2e --clear', {
     cwd: appDir,
-    // Same-origin API: requests go to /api/v1 on this server and are proxied below.
-    env: { ...process.env, EXPO_PUBLIC_API_URL: '', CI: '1' },
+    // Same-origin API: requests go to /api/v1 on this server and are proxied below. Public keys from the
+    // developer's apps/mobile/.env are replaced (values already in the environment win over .env files): no real
+    // Google client and no real analytics project in test builds.
+    env: {
+      ...process.env,
+      EXPO_PUBLIC_API_URL: '',
+      EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID: '',
+      EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID: '',
+      EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID: '',
+      EXPO_PUBLIC_POSTHOG_KEY: E2E_POSTHOG_KEY,
+      EXPO_PUBLIC_POSTHOG_HOST: E2E_POSTHOG_HOST,
+      CI: '1',
+    },
     stdio: 'inherit',
   });
 }

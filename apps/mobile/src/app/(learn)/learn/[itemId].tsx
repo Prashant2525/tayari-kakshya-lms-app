@@ -11,6 +11,7 @@ import { RichText } from '@/features/learn/rich-text';
 import { VideoPlayer } from '@/features/learn/video-player';
 import { localized, type Locale } from '@/i18n/translate';
 import { useT } from '@/i18n/use-t';
+import { track } from '@/lib/analytics';
 import { ApiError } from '@/lib/api-client';
 import { READER_SCALES, usePrefs } from '@/state/prefs';
 import { useTheme } from '@/theme/theme';
@@ -55,6 +56,12 @@ export default function LearnScreen() {
       ),
     [save, courseId],
   );
+
+  const openedId = item.data?.id;
+  const openedType = item.data?.type;
+  useEffect(() => {
+    if (openedId && openedType) track('lesson_opened', { item_id: openedId, type: openedType });
+  }, [openedId, openedType]);
 
   // Opening a note counts as starting it (Home → Continue). PDFs and videos report positions themselves.
   const started = useRef(false);

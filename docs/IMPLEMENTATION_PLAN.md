@@ -102,7 +102,8 @@ Tests: scoring per type, negative marking, blueprint generation.
 - ☑ Auth: sign up, login (device-limit choice), forgot/reset by code, email/SMS verification; Google button (KI-029)
 - ☑ `/app/config`: maintenance + force update with CMS store links; onboarding target post (API `/me/target-posts`)
 - ☑ Tests: unit (21) + browser E2E against the real API (4) + screenshots light/dark/Nepali/tablet
-- ☐ Sentry + PostHog (KI-028, needs keys) · ☐ run on a phone/emulator (KI-031)
+- ◐ Monitoring (T-042, `feature/monitoring-analytics`): ☑ Sentry in the API + worker · ☑ PostHog in the app (pseudonymous,
+  no personal data) · ☐ Sentry in the app and the admin CMS (needs their DSNs, KI-028) · ◐ run on a phone/emulator (KI-031)
 
 **§9 Student learning** (branches `feature/student-learning`, `feature/student-learning-2`) — ☑ DONE (on merge)
 - ☑ Part 1: catalog for the student's exam + search, course detail (Enrol, prices / iOS rule), my courses with progress,

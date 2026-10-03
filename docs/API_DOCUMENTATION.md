@@ -31,7 +31,7 @@ Authoritative shapes: OpenAPI at `/api/docs` (local) and `packages/contracts`. W
 | POST | `/auth/logout` | student | revokes current session |
 | POST | `/auth/password/forgot` | public | always 202 |
 | POST | `/auth/password/reset` | public | `{ email, code, newPassword }`; revokes all sessions; also used by invited staff to set a password |
-| GET / PATCH | `/me` | any | profile + `permissions` (staff) + `deletionScheduledFor` |
+| GET / PATCH | `/me` | any | profile + `permissions` (staff) + `deletionScheduledFor` + `analyticsId` (pseudonym for product analytics, T-042) |
 | GET | `/me/sessions` · DELETE `/me/sessions/:id` | any | |
 | POST | `/me/password` | any | change password (replaces planned `/auth/password/change`) |
 | POST | `/me/verification/send` · `/me/verification/verify` | student | `channel: email | phone` (phone requires setting + SMS provider) |
