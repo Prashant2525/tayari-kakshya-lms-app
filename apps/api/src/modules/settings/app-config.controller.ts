@@ -12,16 +12,19 @@ export class AppConfigController {
   @Public()
   @Get('config')
   async config() {
-    const [maintenance, minVersions, purchaseChannels, verification, questionTypes] = await Promise.all([
-      this.settings.get('app.maintenance'),
-      this.settings.get('app.minVersions'),
-      this.settings.get('purchase.channels'),
-      this.settings.get('auth.verification'),
-      this.settings.get('questions.types'),
-    ]);
+    const [maintenance, minVersions, storeLinks, purchaseChannels, verification, questionTypes] =
+      await Promise.all([
+        this.settings.get('app.maintenance'),
+        this.settings.get('app.minVersions'),
+        this.settings.get('app.storeLinks'),
+        this.settings.get('purchase.channels'),
+        this.settings.get('auth.verification'),
+        this.settings.get('questions.types'),
+      ]);
     return {
       maintenance,
       minVersions,
+      storeLinks,
       purchaseChannels,
       verification: {
         channels: verification.channels,

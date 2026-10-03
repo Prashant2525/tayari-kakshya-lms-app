@@ -59,6 +59,21 @@ export const SETTINGS = {
     default: { android: null, ios: null },
     public: true,
   },
+  /** S24: where the "Update now" button sends students (Play Store / App Store pages). */
+  'app.storeLinks': {
+    schema: z.object({
+      android: z
+        .url({ protocol: /^https$/ })
+        .max(500)
+        .nullable(),
+      ios: z
+        .url({ protocol: /^https$/ })
+        .max(500)
+        .nullable(),
+    }),
+    default: { android: null, ios: null },
+    public: true,
+  },
   /** D-027. Purchase channel per platform — switchable without an app release. */
   'purchase.channels': {
     schema: z.object({

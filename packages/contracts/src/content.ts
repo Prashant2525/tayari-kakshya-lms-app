@@ -89,6 +89,16 @@ export const ExamNodeInput = z.object({
 });
 export type ExamNodeInput = z.infer<typeof ExamNodeInput>;
 
+/** Onboarding (S1): the exams a student is preparing for. Any published category can be chosen. */
+export const TARGET_POSTS_MAX = 5;
+export const TargetPostsInput = z.object({
+  examNodeIds: z
+    .array(z.uuid())
+    .max(TARGET_POSTS_MAX)
+    .refine((ids) => new Set(ids).size === ids.length, 'Each category can be chosen once'),
+});
+export type TargetPostsInput = z.infer<typeof TargetPostsInput>;
+
 export const PaperInput = z
   .object({
     name: LocalizedText,

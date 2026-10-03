@@ -85,6 +85,7 @@ export class AccountDeletionService {
         await tx.authIdentity.deleteMany({ where: { userId: request.userId } });
         await tx.authSession.deleteMany({ where: { userId: request.userId } });
         await tx.otpCode.deleteMany({ where: { userId: request.userId } });
+        await tx.userTargetPost.deleteMany({ where: { userId: request.userId } });
         await tx.user.update({
           where: { id: request.userId },
           data: {

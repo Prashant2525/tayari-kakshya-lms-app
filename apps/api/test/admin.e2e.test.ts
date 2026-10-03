@@ -276,6 +276,26 @@ describe('settings and maintenance mode', () => {
     expect((await call(ctx, 'GET', '/health/live')).status).toBe(200);
     expect((await call(ctx, 'GET', '/admin/settings', { token })).status).toBe(200);
   });
+
+  it('publishes minimum versions and store links for the force-update screen (S24)', async () => {
+    await createStaff(ctx, 'admin@example.com', { superAdmin: true });
+    const { token } = await staffLogin(ctx, 'admin@example.com');
+    expect((await call(ctx, 'GET', '/app/config')).body.storeLinks).toEqual({ android: null, ios: null });
+    const insecure = await call(ctx, 'PUT', '/admin/settings/app.storeLinks', {
+      token,
+      body: { value: { android: 'http://play.google.com/x', ios: null } },
+    });
+    expect(insecure.status).toBe(400);
+    const links = { android: 'https://play.google.com/store/apps/details?id=example', ios: null };
+    await call(ctx, 'PUT', '/admin/settings/app.storeLinks', { token, body: { value: links } });
+    await call(ctx, 'PUT', '/admin/settings/app.minVersions', {
+      token,
+      body: { value: { android: '1.2.0', ios: null } },
+    });
+    const config = (await call(ctx, 'GET', '/app/config')).body;
+    expect(config.storeLinks).toEqual(links);
+    expect(config.minVersions).toEqual({ android: '1.2.0', ios: null });
+  });
 });
 
 describe('dashboard and audit enrichment', () => {

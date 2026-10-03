@@ -407,6 +407,41 @@ export function SettingsPage() {
         </SettingCard>
 
         <SettingCard
+          row={row('app.storeLinks')}
+          title="App store links"
+          description="Where the “Update now” button opens when an app is older than the minimum version (https links)."
+        >
+          {(d, set, disabled) => (
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field label="Google Play page">
+                {(a) => (
+                  <Input
+                    {...a}
+                    type="url"
+                    value={d.android ?? ''}
+                    placeholder="https://play.google.com/store/apps/details?id=…"
+                    disabled={disabled}
+                    onChange={(e) => set({ ...d, android: e.target.value || null })}
+                  />
+                )}
+              </Field>
+              <Field label="App Store page">
+                {(a) => (
+                  <Input
+                    {...a}
+                    type="url"
+                    value={d.ios ?? ''}
+                    placeholder="https://apps.apple.com/app/…"
+                    disabled={disabled}
+                    onChange={(e) => set({ ...d, ios: e.target.value || null })}
+                  />
+                )}
+              </Field>
+            </div>
+          )}
+        </SettingCard>
+
+        <SettingCard
           row={row('app.maintenance')}
           title="Maintenance mode"
           description="Temporarily closes the student app and website. This admin panel stays available."

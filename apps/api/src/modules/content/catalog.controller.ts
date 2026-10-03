@@ -6,12 +6,13 @@ import {
   Param,
   ParseUUIDPipe,
   Post,
+  Put,
   Query,
   Req,
   Res,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { CursorQuery, ExamNodeType, type Platform } from '@tk/contracts';
+import { CursorQuery, ExamNodeType, type Platform, TargetPostsInput } from '@tk/contracts';
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import { z } from 'zod';
 import {
@@ -24,7 +25,7 @@ import {
   type AuthContext,
 } from '../../common/auth/auth-context.js';
 import { RateLimit } from '../../common/security/rate-limit.js';
-import { ZodQuery } from '../../common/validation/zod.js';
+import { ApiZodBody, ZodBody, ZodQuery } from '../../common/validation/zod.js';
 import { CatalogService } from './catalog.service.js';
 import { EntitlementsService } from './entitlements.service.js';
 import { ClientPlatform } from './request-helpers.js';
@@ -88,7 +89,21 @@ export class LearningController {
   constructor(
     private readonly catalog: CatalogService,
     private readonly entitlements: EntitlementsService,
+    private readonly taxonomy: TaxonomyService,
   ) {}
+
+  /** Onboarding (S1): the categories the student is preparing for. */
+  @Get('me/target-posts')
+  targetPosts(@CurrentAuth() auth: AuthContext) {
+    return this.taxonomy.targetPosts(auth.userId);
+  }
+
+  @Put('me/target-posts')
+  @RateLimit({ name: 'learning.targets', limit: 60, windowSeconds: 3600, by: ['user'] })
+  @ApiZodBody(TargetPostsInput)
+  setTargetPosts(@CurrentAuth() auth: AuthContext, @ZodBody(TargetPostsInput) body: TargetPostsInput) {
+    return this.taxonomy.setTargetPosts(auth.userId, body.examNodeIds);
+  }
 
   /** Enrol in a free (price 0) course. 201 when access was created, 200 when the student already has it. */
   @Post('courses/:courseId/enrol')

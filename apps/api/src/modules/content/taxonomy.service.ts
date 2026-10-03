@@ -193,7 +193,7 @@ export class TaxonomyService {
   async publicNodes(parentId: string | null, nodeType?: string) {
     const nodes = await this.prisma.examNode.findMany({
       where: { ...publishedWhere, parentId, ...(nodeType ? { nodeType } : {}) },
-      include: { icon: true },
+      include: { icon: true, _count: { select: { children: { where: publishedWhere } } } },
       orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
     });
     // Hide nodes whose ancestors are unpublished: only reachable through a published parent.
@@ -201,7 +201,61 @@ export class TaxonomyService {
       const parent = await this.prisma.examNode.findFirst({ where: { id: parentId, ...publishedWhere } });
       if (!parent) return [];
     }
-    return nodes.map((n) => this.nodeView(n));
+    // childCount lets apps drill down level by level without knowing the category types.
+    return nodes.map((n) => ({ ...this.nodeView(n), childCount: n._count.children }));
+  }
+
+  // ───────────── Student target posts (onboarding, S1) ─────────────
+
+  /** The student's chosen categories that are still reachable (published, with published ancestors). */
+  async targetPosts(userId: string) {
+    const rows = await this.prisma.userTargetPost.findMany({
+      where: { userId },
+      orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
+      select: { examNodeId: true },
+    });
+    const views = await Promise.all(rows.map((r) => this.publishedPath(r.examNodeId)));
+    return views.filter((v): v is NonNullable<typeof v> => v !== null);
+  }
+
+  /** Replaces the student's target posts. Every id must be a reachable published category. */
+  async setTargetPosts(userId: string, examNodeIds: string[]) {
+    const paths = await Promise.all(examNodeIds.map((id) => this.publishedPath(id)));
+    const unknown = examNodeIds.filter((_, i) => paths[i] === null);
+    if (unknown.length > 0) {
+      throw Errors.validation(
+        unknown.map((id) => ({ path: 'examNodeIds', message: `Category ${id} is not available` })),
+      );
+    }
+    await this.prisma.$transaction([
+      this.prisma.userTargetPost.deleteMany({ where: { userId } }),
+      this.prisma.userTargetPost.createMany({
+        data: examNodeIds.map((examNodeId, sortOrder) => ({ userId, examNodeId, sortOrder })),
+      }),
+    ]);
+    return this.targetPosts(userId);
+  }
+
+  /** A published node with the names of its ancestors (root first), or null if it or an ancestor is not live. */
+  private async publishedPath(id: string) {
+    const path: Array<{ id: string; nodeType: string; name: LocalizedText }> = [];
+    let node = await this.prisma.examNode.findFirst({
+      where: { id, ...publishedWhere },
+      include: { icon: true },
+    });
+    const leaf = node;
+    // Bounded walk: category trees are a handful of levels deep.
+    for (let depth = 0; node && depth < 20; depth++) {
+      path.unshift({ id: node.id, nodeType: node.nodeType, name: node.name as LocalizedText });
+      if (!node.parentId) break;
+      const parentId: string = node.parentId;
+      node = await this.prisma.examNode.findFirst({
+        where: { id: parentId, ...publishedWhere },
+        include: { icon: true },
+      });
+    }
+    if (!leaf || !node || node.parentId !== null) return null;
+    return { ...this.nodeView(leaf), path: path.slice(0, -1) };
   }
 
   async createNode(input: ExamNodeInput, actor: Actor) {
