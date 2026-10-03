@@ -10,6 +10,18 @@ import type { Env } from './config/env.js';
 import { ADMIN_CLIENT_HEADER } from './modules/auth/admin-auth.controller.js';
 
 const REQUEST_ID = /^[A-Za-z0-9._-]{8,128}$/;
+const LOCAL_ORIGIN = /^http:\/\/(localhost|127\.0\.0\.1):\d{1,5}$/;
+
+/**
+ * Browser origins allowed to call the API: the configured list, plus — on a developer machine only
+ * (APP_ENV=development) — any http://localhost:<port>, so local tools (admin :5173, Expo web :8081, …) work
+ * without editing CORS_ALLOWED_ORIGINS. Staging and production use the list alone.
+ */
+export function isAllowedOrigin(origin: string, env: Pick<Env, 'APP_ENV' | 'CORS_ALLOWED_ORIGINS'>): boolean {
+  return (
+    env.CORS_ALLOWED_ORIGINS.includes(origin) || (env.APP_ENV === 'development' && LOCAL_ORIGIN.test(origin))
+  );
+}
 
 export function createFastifyAdapter(env: Env): FastifyAdapter {
   return new FastifyAdapter({
@@ -44,7 +56,9 @@ export async function configureApp(app: NestFastifyApplication, env: Env): Promi
     },
   });
   app.enableCors({
-    origin: env.CORS_ALLOWED_ORIGINS,
+    // No Origin header (native apps, curl) is not a browser request: CORS does not apply.
+    origin: (origin: string | undefined, cb: (err: Error | null, allow: boolean) => void) =>
+      cb(null, origin === undefined || isAllowedOrigin(origin, env)),
     credentials: true,
     allowedHeaders: [
       'Authorization',
