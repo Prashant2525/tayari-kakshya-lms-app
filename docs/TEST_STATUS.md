@@ -14,9 +14,9 @@ Last updated: 2026-10-03 (Phase 8, student app foundation). `pnpm test` runs uni
 | `@tk/api` | 158 | Integration against real PostgreSQL + Redis + S3 (SeaweedFS) through the HTTP stack; TOTP RFC 6238 vectors; RBAC, video, watermark unit |
 | `@tk/admin` (unit) | 33 | API client (headers, refresh single-flight, retry, session loss, error mapping), BS formatting, Button `asChild` regression |
 | `@tk/admin` (E2E, Playwright) | 19 | Real browser + real API + `*_e2e` database |
-| `@tk/mobile` (unit) | 21 | API client (single-flight refresh, early refresh, session end, maintenance), translations complete in both languages, BS dates and Kathmandu weekday, force-update/maintenance gate, form checks, Nepali phone numbers |
+| `@tk/mobile` (unit) | 22 | API client (single-flight refresh, early refresh, session end, maintenance), translations complete in both languages, BS dates and Kathmandu weekday, force-update/maintenance gate, form checks, Nepali phone numbers |
 | `@tk/mobile` (E2E, Playwright, phone viewport) | 4 | Web build + real API + `*_mobile_e2e` database + Mailpit |
-| **Total** | **327** | |
+| **Total** | **328** | |
 
 ### Added with the student app foundation (Phase 8)
 - **API:** `/me/target-posts` (order, path, replace, empty), refused unpublished/unknown/duplicate/too many, hidden

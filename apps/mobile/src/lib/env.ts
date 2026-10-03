@@ -1,11 +1,19 @@
+import Constants from 'expo-constants';
+import { Platform } from 'react-native';
+import { devApiOrigin } from './dev-api';
+
 /**
  * Build-time public configuration. EXPO_PUBLIC_* values are embedded in the app binary: never put secrets here.
  * Each variable must be read as `process.env.EXPO_PUBLIC_X` (literally) so Expo can inline it.
  *
- * EXPO_PUBLIC_API_URL: API origin, e.g. https://api.example.com. Empty = same origin (web builds behind a proxy).
- * On an Android emulator use http://10.0.2.2:4000; on a phone use your computer's LAN address.
+ * EXPO_PUBLIC_API_URL: API origin for builds, e.g. https://api.example.com. Empty in a release web build = same
+ * origin (served behind a proxy). In development it can be left unset: see `devApiOrigin`.
  */
-const apiOrigin = (process.env.EXPO_PUBLIC_API_URL ?? '').replace(/\/+$/, '');
+const configured = (process.env.EXPO_PUBLIC_API_URL ?? '').replace(/\/+$/, '');
+
+const apiOrigin =
+  configured ||
+  (__DEV__ ? devApiOrigin(Platform.OS, globalThis.location?.hostname, Constants.expoConfig?.hostUri) : '');
 
 export const env = {
   apiBaseUrl: `${apiOrigin}/api/v1`,

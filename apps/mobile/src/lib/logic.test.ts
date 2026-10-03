@@ -4,6 +4,7 @@ import { ne } from '@/i18n/ne';
 import { defaultLocale, localized, translate } from '@/i18n/translate';
 import { appGate, compareVersions, type AppConfig } from './app-gate';
 import { countdown, kathmanduWeekday, todayLabel } from './dates';
+import { devApiOrigin } from './dev-api';
 import { initialsOf } from './names';
 import { checkCode, checkEmail, checkPassword, toNepalE164 } from './validation';
 
@@ -122,5 +123,14 @@ describe('form checks', () => {
     expect(initialsOf('Ram Bahadur Thapa')).toBe('RT');
     expect(initialsOf('Sita')).toBe('SI');
     expect(initialsOf('  ')).toBe('');
+  });
+});
+
+describe('development API address', () => {
+  it('uses the computer that serves the app', () => {
+    expect(devApiOrigin('web', 'localhost', undefined)).toBe('http://localhost:4000');
+    expect(devApiOrigin('android', undefined, '192.168.1.20:8081')).toBe('http://192.168.1.20:4000');
+    expect(devApiOrigin('ios', undefined, '10.0.0.5:8081')).toBe('http://10.0.0.5:4000');
+    expect(devApiOrigin('android', undefined, undefined)).toBe('http://localhost:4000');
   });
 });

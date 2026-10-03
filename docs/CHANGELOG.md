@@ -11,6 +11,8 @@ All notable changes to this project. Format based on Keep a Changelog.
   states. All content comes from the API/CMS.
 - API: migration `user_target_posts`, `GET/PUT /me/target-posts`, `childCount` on `/exam-nodes`, setting
   `app.storeLinks` (admin settings page + `/app/config`); `X-TK-App-Version` allowed by CORS.
+- Development: the app finds the local API automatically (no `apps/mobile/.env`); `.env.example` allows the Expo web
+  origin `http://localhost:8081` in CORS.
 - `@tk/e2e-support`: shared browser-test harness (admin suite now uses it); student-app Playwright suite + CI job
   `mobile-e2e` with Mailpit. OTP policy constants moved to `@tk/contracts`.
 

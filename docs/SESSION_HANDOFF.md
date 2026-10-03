@@ -68,9 +68,14 @@ Current task: Phase 8 — student app foundation done; PR next (branch `feature/
 - Owner approved the design (D-047). Built the student app foundation (`apps/mobile`, T-034…T-037), the
   `/me/target-posts` API and `app.storeLinks`, the shared E2E harness and the student browser suite.
 - Verified in a phone-sized browser with screenshots; fixed four layout/navigation defects (TEST_STATUS).
-- Run the app: `pnpm infra:up`, API on :4000, then `pnpm --filter @tk/mobile dev` (`w` = web). On an Android
-  emulator set `EXPO_PUBLIC_API_URL=http://10.0.2.2:4000` in `apps/mobile/.env`; on a phone with Expo Go use the
-  computer's LAN address (and allow port 4000 in the firewall).
+- Run the app: `pnpm infra:up`, API on :4000, then `pnpm --filter @tk/mobile dev` (`w` = web, `a` = Android).
+  No `apps/mobile/.env` is needed in development: the app calls port 4000 on the computer running Expo (browser →
+  localhost, Expo Go / emulator → the dev server's network address). `CORS_ALLOWED_ORIGINS` must include
+  `http://localhost:8081` for the web version; a phone needs port 4000 allowed in the Windows firewall.
+- Owner report: sign-up in the browser failed with "Could not reach the server" — `apps/mobile/.env` held the
+  emulator-only address (from my instructions) and CORS lacked :8081. Fixed by automatic dev address detection
+  (`src/lib/dev-api.ts`, unit-tested) and the CORS setting; verified the web app calls localhost:4000 and the API
+  allows :8081.
 
 ## Decisions taken during implementation
 - T-020 resolved (SeaweedFS), T-025 (API-validated uploads), T-026 (live-edit rule), T-027 (archived courses stay
