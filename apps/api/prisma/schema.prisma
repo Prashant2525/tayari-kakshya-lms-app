@@ -82,6 +82,7 @@ model User {
   uploadedMedia       MediaAsset[]
   targetPosts         UserTargetPost[]
   learningProgress    LearningProgress[]
+  bookmarks           Bookmark[]
 
   @@index([kind, status])
   @@map("users")
@@ -692,6 +693,26 @@ model LearningProgress {
   @@index([userId, updatedAt(sort: Desc)])
   @@index([learningItemId])
   @@map("learning_progress")
+}
+
+enum BookmarkTarget {
+  learning_item
+  question
+}
+
+/// A lesson or practice question the student saved for later. The target is checked when listed (it may have been
+/// unpublished since), so there is no foreign key to two tables; rows go when the user is erased.
+model Bookmark {
+  userId     String         @map("user_id") @db.Uuid
+  targetType BookmarkTarget @map("target_type")
+  targetId   String         @map("target_id") @db.Uuid
+  createdAt  DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, targetType, targetId])
+  @@index([userId, createdAt(sort: Desc)])
+  @@map("bookmarks")
 }
 
 model CourseSubject {

@@ -19,6 +19,8 @@ import { VideoService } from './video.service.js';
 
 const num = (d: Prisma.Decimal | null) => (d === null ? null : Number(d));
 const locked = () => new AppError(403, ErrorCode.CONTENT_LOCKED, 'This content is part of a premium course');
+const verificationRequired = () =>
+  new AppError(403, ErrorCode.VERIFICATION_REQUIRED, 'Verify your email or phone to start learning');
 
 export interface Viewer {
   userId: string;
@@ -178,11 +180,7 @@ export class CatalogService {
 
   /** Chapters → topics → items with lock state, for one subject of one course. */
   async subjectOutline(courseId: string, subjectId: string, viewer: Viewer) {
-    const course = await this.prisma.course.findFirst({
-      where: { id: courseId, deletedAt: null, subjects: { some: { subjectId } } },
-    });
-    const entitledCourses = await this.entitlements.activeCourseIds(viewer.userId);
-    if (!course || (!isLive(course) && !entitledCourses.has(courseId))) throw Errors.notFound('Subject');
+    await this.assertSubjectInCourse(courseId, subjectId, viewer);
     const subject = await this.prisma.subject.findFirst({
       where: { id: subjectId, ...publishedWhere },
       include: {
@@ -404,6 +402,26 @@ export class CatalogService {
 
   // ───────────── helpers ─────────────
 
+  /** The subject is part of a course the viewer may browse (live, or archived but still entitled). */
+  async assertSubjectInCourse(courseId: string, subjectId: string, viewer: Viewer): Promise<void> {
+    const course = await this.prisma.course.findFirst({
+      where: { id: courseId, deletedAt: null, subjects: { some: { subjectId } } },
+    });
+    const entitledCourses = await this.entitlements.activeCourseIds(viewer.userId);
+    if (!course || (!isLive(course) && !entitledCourses.has(courseId))) throw Errors.notFound('Subject');
+  }
+
+  /** When the CMS requires verification for learning (D-029), unverified students cannot open content. */
+  async assertVerifiedForLearning(viewer: Viewer): Promise<void> {
+    const [user, verification] = await Promise.all([
+      this.prisma.user.findUniqueOrThrow({ where: { id: viewer.userId } }),
+      this.settings.get('auth.verification'),
+    ]);
+    if (verification.requiredForLearning && !user.emailVerifiedAt && !user.phoneVerifiedAt) {
+      throw verificationRequired();
+    }
+  }
+
   /** Loads a live item in a live chain and enforces verification + premium access. */
   private async accessibleItem(itemId: string, viewer: Viewer) {
     const [item, user, verification] = await Promise.all([
@@ -420,11 +438,7 @@ export class CatalogService {
     ]);
     if (!item) throw Errors.notFound('Item');
     if (verification.requiredForLearning && !user.emailVerifiedAt && !user.phoneVerifiedAt) {
-      throw new AppError(
-        403,
-        ErrorCode.VERIFICATION_REQUIRED,
-        'Verify your email or phone to start learning',
-      );
+      throw verificationRequired();
     }
     if (item.accessLevel === 'premium') {
       const ok = await this.entitlements.hasSubjectAccess(viewer.userId, item.topic.chapter.subjectId);

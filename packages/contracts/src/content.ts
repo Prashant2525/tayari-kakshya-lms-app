@@ -111,6 +111,21 @@ export const LearningProgressInput = z
   .refine((v) => v.position !== undefined || v.completed !== undefined, 'Send a position or completed');
 export type LearningProgressInput = z.infer<typeof LearningProgressInput>;
 
+/** Things a student can bookmark. */
+export const BookmarkTarget = z.enum(['learning_item', 'question']);
+export type BookmarkTarget = z.infer<typeof BookmarkTarget>;
+
+/** Practice questions of a subject, optionally narrowed to a chapter or topic. */
+export const PracticeQuery = CursorQuery.extend({
+  cursor: z.uuid().optional(),
+  chapterId: z.uuid().optional(),
+  topicId: z.uuid().optional(),
+});
+export type PracticeQuery = z.infer<typeof PracticeQuery>;
+
+export const SearchQuery = z.object({ q: z.string().trim().min(2).max(120) });
+export type SearchQuery = z.infer<typeof SearchQuery>;
+
 export const PaperInput = z
   .object({
     name: LocalizedText,
