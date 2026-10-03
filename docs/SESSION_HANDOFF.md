@@ -2,7 +2,7 @@
 
 Session date: 2026-10-02 (session 4 — resumed after a VS Code crash)
 Current phase: **Phase 6 — content CMS, API layer complete and verified locally**
-Current task: monitoring + analytics (T-042) done; PR open from `feature/monitoring-analytics`; next §10
+Current task: Sentry for the app + admin done; PR open from `feature/sentry-app-admin`; next §10
 
 ## Completed this session
 - Recovered the interrupted work from the repository (nothing lost). Verified the uncommitted content API:
@@ -69,6 +69,17 @@ Current task: monitoring + analytics (T-042) done; PR open from `feature/monitor
   self-hosted PDF reader. Then the app: Courses tab, course page, Home current course, subject outline, lessons.
 - Verified with 8 browser tests (real API, PDF rendered by pdf.js) and screenshots; four defects fixed (TEST_STATUS).
 
+## Session 13b (2026-10-04)
+- PR #14 merged. Owner created Sentry projects for the app (React Native) and admin (React), sent their DSNs, a new
+  auth token (the old one was pasted again — use the new one) and a **new** Google web client (id + secret). Stored in
+  the root `.env`, `apps/mobile/.env` (`EXPO_PUBLIC_SENTRY_DSN`, Google id) and new `apps/admin/.env`
+  (`VITE_SENTRY_DSN`); the old Google client id and token were removed from the files.
+- Branch `feature/sentry-app-admin`: `@sentry/react` 11.1.0 in the admin, `@sentry/react-native` 7.11.0 (Expo SDK 57
+  pin) in the app + Expo config plugin; no user, breadcrumbs, screenshots, replay, tracing; E2E servers use a fake
+  Sentry host; mutation-checked. `@sentry/cli` install script disallowed (KI-011).
+- Google: Google shows the sign-in page for the new client with `http://localhost:8081` (registered correctly). The
+  owner's running Expo still had no Google button — it reads `apps/mobile/.env` only at start.
+
 ## Session 13 (2026-10-04)
 - PR #13 merged by the owner. Owner sent Sentry (API DSN + auth token), PostHog (project key, US host) and a Google
   OAuth web client (id + secret). Stored only in the git-ignored root `.env` and `apps/mobile/.env` (public values).
@@ -125,11 +136,11 @@ Current task: monitoring + analytics (T-042) done; PR open from `feature/monitor
 - Nothing partially implemented. Admin screens for Phase 6 not started.
 
 ## Exact next steps
-1. Owner reviews and merges the monitoring PR (`feature/monitoring-analytics` → `main`); CI must be green.
+1. Owner reviews and merges the Sentry app/admin PR (`feature/sentry-app-admin` → `main`); CI must be green.
 2. §10 exam engine + engagement on `feature/exam-engine`: student assessments list, exam mode (timer, palette,
    autosave, resume, submit / auto-submit), results & solutions, attempt history, then daily challenge,
    leaderboards, certificates, mistake notebook. Grading queue + result release (moved from §7).
-3. When the owner sends them: Sentry DSNs for the app + admin (KI-028); Google Android/iOS clients after L5 (KI-029).
+3. Google Android/iOS clients after the app identifiers (L5, KI-029); Sentry source maps with the first EAS build.
 
 ## Files changed
 - See `CHANGELOG.md` → Phase 6.
@@ -138,7 +149,7 @@ Current task: monitoring + analytics (T-042) done; PR open from `feature/monitor
 - Migration `content_catalog`; endpoints in `API_DOCUMENTATION.md` §1b.
 
 ## Tests run
-- `pnpm format:check && pnpm build && pnpm lint && pnpm typecheck && pnpm test` → all passing, 348 tests; `pnpm --filter @tk/admin e2e` → 19 passing; `pnpm --filter @tk/mobile e2e` → 13 passing.
+- `pnpm format:check && pnpm build && pnpm lint && pnpm typecheck && pnpm test` → all passing, 352 tests; `pnpm --filter @tk/admin e2e` → 20 passing; `pnpm --filter @tk/mobile e2e` → 14 passing.
 
 ## Known issues / blockers
 - KI-021 (CI-only media failure — fix pending CI confirmation), KI-022 (per-request watermark cost). No blockers.

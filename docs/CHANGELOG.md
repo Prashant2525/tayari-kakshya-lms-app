@@ -4,6 +4,12 @@ All notable changes to this project. Format based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Added — 2026-10-04 (Sentry in the student app and Admin CMS)
+- Student app and Admin CMS report unexpected errors to their own Sentry projects (`EXPO_PUBLIC_SENTRY_DSN`,
+  `VITE_SENTRY_DSN`) with no user, breadcrumbs, screenshots, replay or tracing; only the page path is kept.
+  Expo config plugin added for native crash reports in development / store builds.
+- `@sentry/cli` is not allowed to run install scripts (native binary, KI-011).
+
 ### Added — 2026-10-04 (monitoring and analytics, T-042)
 - API + worker report unexpected errors to Sentry when `SENTRY_DSN_API` is set, with personal data switched off and
   scrubbed; `pnpm --filter @tk/api cli monitoring-test` sends a test error.

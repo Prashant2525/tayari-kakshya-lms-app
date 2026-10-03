@@ -5,7 +5,13 @@ import { createReadStream, existsSync, statSync } from 'node:fs';
 import http from 'node:http';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { E2E_API_PORT, E2E_POSTHOG_HOST, E2E_POSTHOG_KEY, E2E_WEB_PORT } from './constants.mjs';
+import {
+  E2E_API_PORT,
+  E2E_POSTHOG_HOST,
+  E2E_POSTHOG_KEY,
+  E2E_SENTRY_DSN,
+  E2E_WEB_PORT,
+} from './constants.mjs';
 
 const appDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const outDir = path.join(appDir, 'dist-e2e');
@@ -15,7 +21,7 @@ if (!process.env.E2E_SKIP_WEB_BUILD) {
     cwd: appDir,
     // Same-origin API: requests go to /api/v1 on this server and are proxied below. Public keys from the
     // developer's apps/mobile/.env are replaced (values already in the environment win over .env files): no real
-    // Google client and no real analytics project in test builds.
+    // Google client, analytics or Sentry project in test builds.
     env: {
       ...process.env,
       EXPO_PUBLIC_API_URL: '',
@@ -24,6 +30,7 @@ if (!process.env.E2E_SKIP_WEB_BUILD) {
       EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID: '',
       EXPO_PUBLIC_POSTHOG_KEY: E2E_POSTHOG_KEY,
       EXPO_PUBLIC_POSTHOG_HOST: E2E_POSTHOG_HOST,
+      EXPO_PUBLIC_SENTRY_DSN: E2E_SENTRY_DSN,
       CI: '1',
     },
     stdio: 'inherit',

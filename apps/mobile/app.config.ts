@@ -22,7 +22,16 @@ const config: ExpoConfig = {
     allowBackup: false,
   },
   web: { output: 'single', bundler: 'metro' },
-  plugins: ['expo-router', 'expo-secure-store', 'expo-font', 'expo-localization', 'expo-web-browser'],
+  plugins: [
+    'expo-router',
+    'expo-secure-store',
+    'expo-font',
+    'expo-localization',
+    'expo-web-browser',
+    // Native crash reporting in development / store builds (T-042). Source maps are uploaded by release builds
+    // with SENTRY_AUTH_TOKEN (+ SENTRY_ORG / SENTRY_PROJECT) set as EAS secrets.
+    '@sentry/react-native/expo',
+  ],
   experiments: { typedRoutes: true },
 };
 

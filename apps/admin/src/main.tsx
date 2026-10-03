@@ -6,9 +6,11 @@ import { createRoot } from 'react-dom/client';
 import { Toaster } from 'sonner';
 import { ApiError } from './lib/api';
 import { AuthProvider } from './lib/auth';
+import { initMonitoring } from './lib/monitoring';
 import { initTheme } from './lib/theme';
 import { router } from './router';
 
+initMonitoring();
 initTheme();
 
 const queryClient = new QueryClient({

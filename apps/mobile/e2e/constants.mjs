@@ -10,3 +10,6 @@ export const MAILPIT_URL = process.env.E2E_MAILPIT_URL ?? 'http://localhost:8025
  */
 export const E2E_POSTHOG_KEY = 'phc_e2e_test_key';
 export const E2E_POSTHOG_HOST = 'https://posthog.e2e.invalid';
+/** Same for crash reports: a fake Sentry host (monitoring.spec.ts). */
+export const E2E_SENTRY_HOST = 'https://sentry.e2e.invalid';
+export const E2E_SENTRY_DSN = 'https://e2epublickey@sentry.e2e.invalid/1';

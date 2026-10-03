@@ -1,6 +1,6 @@
 # Environment Requirements
 
-Status (2026-10-04): **received** — Bunny Stream (Phase 6), Sentry API DSN + auth token, PostHog project key + host, Google OAuth **web** client id (+ secret, unused). All in local `.env` files only. **Still needed:** Sentry DSNs for the app and the admin CMS, Google Android/iOS client ids (need the app identifiers, L5), Cloudflare R2, payment sandboxes, push credentials.
+Status (2026-10-04): **received** — Bunny Stream (Phase 6), Sentry DSNs for the API, app and admin + auth token, PostHog project key + host, Google OAuth **web** client (id + secret, secret unused; `http://localhost:8081` registered — checked). All in local `.env` files only (root, `apps/mobile/.env`, `apps/admin/.env`). **Still needed:** Google Android/iOS client ids (need the app identifiers, L5), Cloudflare R2, payment sandboxes, push credentials.
 None are needed until the matching phase begins. Launch gateways: eSewa + Khalti (D-003); ConnectIPS later (Phase 14). Analytics: PostHog (D-039).
 Rules: never commit real values; `.env*` files are git-ignored except `.env.example`; production secrets live in the
 hosting provider's secret manager / GitHub Actions secrets; sandbox/test credentials are used until production
@@ -49,7 +49,7 @@ Verified against official docs on 2026-10-02 (summary; full re-check required at
 | `YOUTUBE_API_KEY` (optional — import title/duration/thumbnail for YouTube-hosted free videos) | 🔐 | 6 | owner's Google Cloud project |
 | `VIDEO_PROVIDER`, `BUNNY_STREAM_LIBRARY_ID`, `BUNNY_STREAM_API_KEY`, `BUNNY_STREAM_TOKEN_KEY`, `BUNNY_CDN_HOSTNAME` (or `CF_STREAM_*`) | 🔐 | 6 | Bunny Stream for premium video (D-015). **Provided** (local `.env`). Until set, Bunny items return `VIDEO_PROVIDER_NOT_CONFIGURED`. `VIDEO_PLAYBACK_TTL_SECONDS` sets signed-embed lifetime (default 300 s; T-031). |
 | `EXPO_ACCESS_TOKEN` (push), FCM service account (`FIREBASE_SERVICE_ACCOUNT_JSON`), APNs key (`APNS_KEY_ID`, `APNS_TEAM_ID`, `.p8`) | 🔐 | 12 | Android + iOS both in scope (D-004) |
-| `SENTRY_DSN_API`, `SENTRY_DSN_ADMIN`, `EXPO_PUBLIC_SENTRY_DSN`, `SENTRY_AUTH_TOKEN`, `APP_RELEASE` | 🔐/🔓 | 4 | DSNs are semi-public; auth token is secret (release builds only). **API DSN + token provided**; app (React Native) and admin (React) DSNs still needed — one Sentry project each. Check with `cli monitoring-test` |
+| `SENTRY_DSN_API`, `SENTRY_DSN_ADMIN`, `EXPO_PUBLIC_SENTRY_DSN`, `SENTRY_AUTH_TOKEN`, `APP_RELEASE` | 🔐/🔓 | 4 | DSNs are semi-public; auth token is secret (release builds only). **All provided** (projects: API = Node.js, app = React Native, admin = React). Admin reads `VITE_SENTRY_DSN` (`apps/admin/.env`), app `EXPO_PUBLIC_SENTRY_DSN`. Check the API with `cli monitoring-test` |
 | `POSTHOG_API_KEY`, `POSTHOG_HOST` | 🔓 | 8 | approved (D-039). **Provided** (US cloud). Server-side use comes with the website |
 
 ## 5. Mobile build & release
@@ -62,8 +62,8 @@ Verified against official docs on 2026-10-02 (summary; full re-check required at
 | Google Play Console account (organisation) | 20 | owner | org account requires D-U-N-S; personal accounts have testing requirements |
 | Apple Developer Program + App Store Connect | 18 | owner | required (iOS in scope) |
 | `EXPO_PUBLIC_API_URL` | 8 | me | `EXPO_PUBLIC_*` values are embedded in the app — **never secrets**. Builds only: in development it is left empty and the app uses port 4000 on the computer running Expo |
-| `EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID`, `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID`, `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` | 8 | owner (same Google Cloud project as `GOOGLE_OAUTH_*`) | public client ids; Google button hidden until set (KI-029). **Web id provided** — its OAuth client must list `http://localhost:8081` as an authorized JavaScript origin **and** redirect URI (the app returns to its own origin). Android/iOS clients need the package / bundle id (L5) and, for Android, the signing key's SHA-1 |
-| `EXPO_PUBLIC_SENTRY_DSN`, `EXPO_PUBLIC_POSTHOG_KEY`, `EXPO_PUBLIC_POSTHOG_HOST` | 8 | owner | app crash reports / analytics (KI-028). PostHog **provided** (in `apps/mobile/.env`); app Sentry DSN still needed |
+| `EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID`, `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID`, `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` | 8 | owner (same Google Cloud project as `GOOGLE_OAUTH_*`) | public client ids; Google button hidden until set (KI-029). **Web id provided** — its OAuth client lists `http://localhost:8081` (authorized JavaScript origin **and** redirect URI — the app returns to its own origin; verified 2026-10-04). Android/iOS clients need the package / bundle id (L5) and, for Android, the signing key's SHA-1 |
+| `EXPO_PUBLIC_SENTRY_DSN`, `EXPO_PUBLIC_POSTHOG_KEY`, `EXPO_PUBLIC_POSTHOG_HOST` | 8 | owner | app crash reports / analytics (KI-028). PostHog and Sentry **provided** (in `apps/mobile/.env`) |
 
 ## 6. CI/CD & hosting
 
