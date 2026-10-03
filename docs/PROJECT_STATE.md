@@ -1,9 +1,9 @@
 # Project State
 
-Current Phase: **Phase 7 — Question bank + assessment CMS: IN PROGRESS** (question bank, import and assessment builder done)
+Current Phase: **Phase 8 — Student mobile foundation: IN PROGRESS** (design approved D-047; app foundation built and tested)
 Current Milestone: content API on `feature/content-cms` → Admin CMS content screens
 Overall Status: **IN PROGRESS**
-Last updated: 2026-10-02
+Last updated: 2026-10-03
 
 ## Completed
 - Phases 0–3: discovery, PDF extraction, decisions, approved architecture.
@@ -25,8 +25,10 @@ Last updated: 2026-10-02
     limits — verified in a real browser (E2E + screenshots in light, dark, mobile).
 
 ## In Progress
-- Phase 7 on `feature/question-bank`: remaining — grading queue and result release, which need the attempt engine;
-  plan: open the Phase 7 PR now and build them with §10.
+- Phase 7 builder merged (PR #8). Grading queue and result release move to §10 (they need attempts).
+- Phase 8 on `feature/mobile-foundation`: design approved; app foundation done (auth, verification, onboarding,
+  tabs, language/theme, BS dates, app gate, states) with unit + browser E2E. Remaining: Sentry/PostHog (keys),
+  a run on a real phone/emulator (KI-031).
 - Dynamic admin audit done (`DYNAMIC_ADMIN_AUDIT.md`, D-045): category types and question types are now admin-managed.
 - Phase 6 merged (PR #5, #6). Bunny security verified (KI-023 resolved).
 
@@ -47,10 +49,10 @@ Last updated: 2026-10-02
 - `apps/admin` — run `pnpm --filter @tk/admin dev` (http://localhost:5173, proxies `/api` to the API on :4000).
 
 ## Mobile / Website
-- Not started (Phase 8 / Phase 11).
+- Mobile: `apps/mobile` — `pnpm --filter @tk/mobile dev` (Expo; press `w` for web, or scan with Expo Go). Website: not started (Phase 11).
 
 ## Tests
-- Unit/integration 283 · browser E2E 19 — all passing locally (see `TEST_STATUS.md`).
+- Unit/integration 311 · browser E2E 19 (admin) + 4 (student app) — all passing locally (see `TEST_STATUS.md`).
 
 ## Known Issues
 - See `KNOWN_ISSUES.md` (KI-021 CI storage flake under investigation, KI-022 per-request PDF watermarking, KI-023 Bunny token auth).
@@ -59,7 +61,7 @@ Last updated: 2026-10-02
 - None for local work.
 
 ## User Decisions Required
-- None open. L6 answered: free courses use an Enrol step (D-043, implemented).
+- None blocking. App identifiers (L5) are needed before the first store build. L6 answered: free courses use an Enrol step (D-043, implemented).
 
 ## Credentials Required
 - Bunny Stream: **provided** (local `.env` only). Embed + CDN token authentication on and verified (T-031). Optional: `YOUTUBE_API_KEY` for automatic title/duration.
@@ -78,5 +80,5 @@ and `pnpm --filter @tk/admin dev` → create your Super Admin:
 (code in Mailpit http://localhost:8025) → set password at http://localhost:5173/set-password → sign in → enrol 2FA.
 
 ## Exact Next Task
-- Open the Phase 7 PR. Then Phase 8 (student mobile foundation, design preview for owner sign-off first) or the
-  attempt engine — see SESSION_HANDOFF.
+- Open the Phase 8 PR. Then §9 student learning (Home CMS sections, catalog, course detail, subject outline,
+  reader, video, practice questions) — see SESSION_HANDOFF.

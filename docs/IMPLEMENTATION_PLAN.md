@@ -93,10 +93,16 @@ Original scope: all question type engines + versioning, PYQ metadata, tags, CSV/
 validation preview, reports queue, assessment builder (all types, blueprints, rules), grading queue, results release.
 Tests: scoring per type, negative marking, blueprint generation.
 
-**§8 Student mobile foundation** — **design preview published for owner sign-off first**; Expo app, Expo Router structure,
-tokens/theme (light/dark), Mukta font, i18n (en/ne) + toggle, BS dates, components library, API client, auth flows
-(sign up/login/Google/OTP/reset), secure storage, error/empty/loading/offline states, `/app/config` (force update,
-maintenance), Sentry, PostHog, onboarding target-post selection.
+**§8 Student mobile foundation** (branch `feature/mobile-foundation`) — ◐ IN PROGRESS
+- ☑ Design preview published and **approved** (D-047)
+- ☑ Expo SDK 57 app, Expo Router (auth / verify / onboarding / tabs), route guards (T-037)
+- ☑ Theme from `@tk/design-tokens` (light/dark/auto), Mukta, i18n en/ne + toggle, BS dates, Devanagari digits
+- ☑ Components (Text, Button, TextField, OTP input, Segmented, Checkbox, Card, Banner, Skeleton, Empty/Error/Loading/Offline states)
+- ☑ API client (single-flight refresh, typed errors), secure token storage, install id for the device limit
+- ☑ Auth: sign up, login (device-limit choice), forgot/reset by code, email/SMS verification; Google button (KI-029)
+- ☑ `/app/config`: maintenance + force update with CMS store links; onboarding target post (API `/me/target-posts`)
+- ☑ Tests: unit (21) + browser E2E against the real API (4) + screenshots light/dark/Nepali/tablet
+- ☐ Sentry + PostHog (KI-028, needs keys) · ☐ run on a phone/emulator (KI-031)
 
 **§9 Student learning** — Home (CMS sections, course switcher), categories/posts, course list & detail, my courses,
 subject outline, notes reader, PDF viewer + watermarked download, video player (Bunny/YouTube) with progress, practice

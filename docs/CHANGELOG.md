@@ -4,6 +4,16 @@ All notable changes to this project. Format based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Added — 2026-10-03 (Phase 8: student app foundation)
+- `apps/mobile`: Expo SDK 57 + Expo Router student app — sign up, login (device-limit choice), forgot/reset password
+  by code, email/SMS verification, onboarding target post, tabs (Home, Courses, Notices, Profile), language (en/ne)
+  and theme (auto/light/dark), BS dates, maintenance and force-update screens, offline banner, empty/error/loading
+  states. All content comes from the API/CMS.
+- API: migration `user_target_posts`, `GET/PUT /me/target-posts`, `childCount` on `/exam-nodes`, setting
+  `app.storeLinks` (admin settings page + `/app/config`); `X-TK-App-Version` allowed by CORS.
+- `@tk/e2e-support`: shared browser-test harness (admin suite now uses it); student-app Playwright suite + CI job
+  `mobile-e2e` with Mailpit. OTP policy constants moved to `@tk/contracts`.
+
 ### Added — 2026-10-03 (Phase 7: assessment builder)
 - Migration `assessments`: assessments, sections (fixed / random), section questions; DB rules for windows, one
   daily challenge per day, section shapes and non-negative marks.

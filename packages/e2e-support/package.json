@@ -1,0 +1,35 @@
+{
+  "name": "@tk/e2e-support",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Browser end-to-end test harness shared by the admin CMS and the student app: test-only API environment, database reset and API launcher.",
+  "exports": {
+    "./accounts": {
+      "types": "./src/accounts.d.mts",
+      "default": "./src/accounts.mjs"
+    },
+    "./env": {
+      "types": "./src/env.d.mts",
+      "default": "./src/env.mjs"
+    },
+    "./start-api": {
+      "types": "./src/start-api.d.mts",
+      "default": "./src/start-api.mjs"
+    }
+  },
+  "scripts": {
+    "lint": "eslint src"
+  },
+  "dependencies": {
+    "dotenv": "18.0.5",
+    "pg": "8.23.1"
+  },
+  "devDependencies": {
+    "@tk/config": "workspace:*",
+    "@types/node": "24.19.0",
+    "@types/pg": "8.23.1",
+    "eslint": "10.11.0",
+    "globals": "17.13.0"
+  }
+}

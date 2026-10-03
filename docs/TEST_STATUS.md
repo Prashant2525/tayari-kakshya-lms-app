@@ -1,7 +1,8 @@
 # Test Status
 
-Last updated: 2026-10-03 (Phase 7, question bank backend). `pnpm test` runs unit + integration suites (needs `pnpm infra:up`);
-`pnpm build && pnpm --filter @tk/admin e2e` runs the browser suite.
+Last updated: 2026-10-03 (Phase 8, student app foundation). `pnpm test` runs unit + integration suites (needs `pnpm infra:up`);
+`pnpm build && pnpm --filter @tk/admin e2e` and `pnpm build && pnpm --filter @tk/mobile e2e` run the browser suites
+(the student suite also needs Mailpit, part of `pnpm infra:up`).
 
 ## Current results — all passing locally
 
@@ -10,10 +11,24 @@ Last updated: 2026-10-03 (Phase 7, question bank backend). `pnpm test` runs unit
 | `@tk/design-tokens` | 39 | WCAG contrast for every text/background pair (light + dark), CSS generation |
 | `@tk/domain` | 39 | BS calendar, Kathmandu day boundary, fiscal year, money/VAT/discounts, access validity |
 | `@tk/contracts` | 21 | Schema behaviour (localized text, email normalisation, mass assignment, settings defaults, rich-text validation) |
-| `@tk/api` | 151 | Integration against real PostgreSQL + Redis + S3 (SeaweedFS) through the HTTP stack; TOTP RFC 6238 vectors; RBAC, video, watermark unit |
+| `@tk/api` | 158 | Integration against real PostgreSQL + Redis + S3 (SeaweedFS) through the HTTP stack; TOTP RFC 6238 vectors; RBAC, video, watermark unit |
 | `@tk/admin` (unit) | 33 | API client (headers, refresh single-flight, retry, session loss, error mapping), BS formatting, Button `asChild` regression |
 | `@tk/admin` (E2E, Playwright) | 19 | Real browser + real API + `*_e2e` database |
-| **Total** | **302** | |
+| `@tk/mobile` (unit) | 21 | API client (single-flight refresh, early refresh, session end, maintenance), translations complete in both languages, BS dates and Kathmandu weekday, force-update/maintenance gate, form checks, Nepali phone numbers |
+| `@tk/mobile` (E2E, Playwright, phone viewport) | 4 | Web build + real API + `*_mobile_e2e` database + Mailpit |
+| **Total** | **327** | |
+
+### Added with the student app foundation (Phase 8)
+- **API:** `/me/target-posts` (order, path, replace, empty), refused unpublished/unknown/duplicate/too many, hidden
+  once an ancestor is unpublished, students only; `childCount` in the public category list; erasure clears target
+  posts (mutation-checked); `app.storeLinks` https-only and published in `/app/config`.
+- **App unit:** single-flight refresh mutation-checked (3 refreshes without it).
+- **Browser E2E:** sign-up validation → email code (wrong code refused, real code from Mailpit) → onboarding with
+  CMS categories (search, choose) → Home with today's BS date; Nepali + dark applied and kept after reload; log out,
+  wrong password refused, log in; forgot password → code → new password → log in.
+- **Screenshots reviewed** (light, dark, Nepali, tablet). Defects found and fixed: verify skipped after sign-up and
+  “Continue” stuck after verifying (navigation raced the route guards), stretched category chip row, clipped tab
+  labels (Nepali vowel signs cut off), header not centred on tablets.
 
 ### Added with the assessment builder
 - **API:** fixed + random sections; readiness problems (no sections, unpublished question, pool too small) and

@@ -80,6 +80,7 @@ model User {
   resolvedReports     QuestionReport[]         @relation("QuestionReportResolver")
   questionImports     QuestionImport[]         @relation("QuestionImportCreator")
   uploadedMedia       MediaAsset[]
+  targetPosts         UserTargetPost[]
 
   @@index([kind, status])
   @@map("users")
@@ -412,6 +413,7 @@ model ExamNode {
   questionSources QuestionSource[]
 
   assessments Assessment[]
+  targetedBy  UserTargetPost[]
 
   @@index([parentId, sortOrder])
   @@index([nodeType])
@@ -650,6 +652,21 @@ model CourseExamNode {
   @@id([courseId, examNodeId])
   @@index([examNodeId])
   @@map("course_exam_nodes")
+}
+
+/// Onboarding (S1): categories a student is preparing for, in the order they chose them.
+model UserTargetPost {
+  userId     String   @map("user_id") @db.Uuid
+  examNodeId String   @map("exam_node_id") @db.Uuid
+  sortOrder  Int      @default(0) @map("sort_order")
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  examNode ExamNode @relation(fields: [examNodeId], references: [id], onDelete: Cascade)
+
+  @@id([userId, examNodeId])
+  @@index([examNodeId])
+  @@map("user_target_posts")
 }
 
 model CourseSubject {

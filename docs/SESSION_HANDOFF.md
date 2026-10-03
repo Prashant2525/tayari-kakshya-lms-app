@@ -2,7 +2,7 @@
 
 Session date: 2026-10-02 (session 4 — resumed after a VS Code crash)
 Current phase: **Phase 6 — content CMS, API layer complete and verified locally**
-Current task: Phase 7 — assessment builder done; PR next (branch `feature/question-bank`)
+Current task: Phase 8 — student app foundation done; PR next (branch `feature/mobile-foundation`)
 
 ## Completed this session
 - Recovered the interrupted work from the repository (nothing lost). Verified the uncommitted content API:
@@ -54,6 +54,24 @@ Current task: Phase 7 — assessment builder done; PR next (branch `feature/ques
 - Assessment builder (migration `assessments`, API, readiness, admin list/editor/sections, E2E). Scoring choices are
   required per assessment; prefill only for D-017 values. Questions in live assessments cannot be deleted.
 
+## Session 9 (2026-10-03)
+- PR #8 (Phase 7 builder) merged by the owner. Branch `feature/mobile-foundation` created from `main` (`5bb58e8`).
+- Design preview for the student app published as a private claude.ai design canvas (link given to the owner in
+  the session report): tokens and components, loading/offline/empty/error/update states, login, OTP verify
+  (email or SMS, D-029), target-post onboarding, Home (current course, daily challenge + streak, shortcuts,
+  popular courses), course detail on Android (price as a CMS value) and on iOS (no price or purchase UI, D-027),
+  subject outline with status chips, note reader (A−/A+, bookmark, watermark notice), video, practice questions
+  with a locked model answer, full-screen exam mode, result, Home in Nepali + dark theme with BS dates, profile,
+  notices (D-019). All content on the screens is sample data; the app renders CMS data.
+
+## Session 10 (2026-10-03)
+- Owner approved the design (D-047). Built the student app foundation (`apps/mobile`, T-034…T-037), the
+  `/me/target-posts` API and `app.storeLinks`, the shared E2E harness and the student browser suite.
+- Verified in a phone-sized browser with screenshots; fixed four layout/navigation defects (TEST_STATUS).
+- Run the app: `pnpm infra:up`, API on :4000, then `pnpm --filter @tk/mobile dev` (`w` = web). On an Android
+  emulator set `EXPO_PUBLIC_API_URL=http://10.0.2.2:4000` in `apps/mobile/.env`; on a phone with Expo Go use the
+  computer's LAN address (and allow port 4000 in the firewall).
+
 ## Decisions taken during implementation
 - T-020 resolved (SeaweedFS), T-025 (API-validated uploads), T-026 (live-edit rule), T-027 (archived courses stay
   visible to entitled students), T-028 (instructor scopes). See `DECISIONS.md`.
@@ -62,10 +80,11 @@ Current task: Phase 7 — assessment builder done; PR next (branch `feature/ques
 - Nothing partially implemented. Admin screens for Phase 6 not started.
 
 ## Exact next steps
-1. Confirm CI for the latest commit (`gh run list --branch feature/content-cms`).
-2. Open the Phase 7 PR `feature/question-bank` → `main` (grading queue + result release move to §10, where attempts
-   exist).
-3. Next phase per plan: §8 student mobile foundation — publish the design preview for owner sign-off first.
+1. Open the Phase 8 PR `feature/mobile-foundation` → `main`; confirm CI (`verify`, `admin-e2e`, `mobile-e2e`).
+2. §9 student learning: Home CMS sections + course switcher, catalog/categories, course detail (Enrol, D-027 iOS
+   rules), subject outline, note reader, PDF viewer, video (signed Bunny embed in a WebView, T-031), practice
+   questions with locked answers, bookmarks, report question, search, profile editing, account deletion.
+3. When the owner sends keys: Sentry + PostHog (KI-028), Google client ids (KI-029).
 
 ## Files changed
 - See `CHANGELOG.md` → Phase 6.
@@ -74,7 +93,7 @@ Current task: Phase 7 — assessment builder done; PR next (branch `feature/ques
 - Migration `content_catalog`; endpoints in `API_DOCUMENTATION.md` §1b.
 
 ## Tests run
-- `pnpm format:check && pnpm build && pnpm lint && pnpm typecheck && pnpm test` → all passing, 283 tests; `pnpm --filter @tk/admin e2e` → 19 passing.
+- `pnpm format:check && pnpm build && pnpm lint && pnpm typecheck && pnpm test` → all passing, 311 tests; `pnpm --filter @tk/admin e2e` → 19 passing; `pnpm --filter @tk/mobile e2e` → 4 passing.
 
 ## Known issues / blockers
 - KI-021 (CI-only media failure — fix pending CI confirmation), KI-022 (per-request watermark cost). No blockers.
