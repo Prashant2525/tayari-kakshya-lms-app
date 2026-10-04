@@ -1,4 +1,5 @@
 import { defineConfig, devices } from '@playwright/test';
+import { E2E_SENTRY_DSN } from './e2e/e2e-env.mjs';
 
 /**
  * Browser end-to-end tests: real API (built) + real admin dev server + a dedicated `*_e2e` PostgreSQL database.
@@ -35,7 +36,8 @@ export default defineConfig({
       url: `http://localhost:${E2E_ADMIN_PORT}`,
       reuseExistingServer: false,
       timeout: 60_000,
-      env: { VITE_API_PROXY: `http://localhost:${E2E_API_PORT}` },
+      // Values already in the environment win over apps/admin/.env: the real DSN is never used by tests.
+      env: { VITE_API_PROXY: `http://localhost:${E2E_API_PORT}`, VITE_SENTRY_DSN: E2E_SENTRY_DSN },
     },
   ],
 });

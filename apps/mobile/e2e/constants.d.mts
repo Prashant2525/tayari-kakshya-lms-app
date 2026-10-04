@@ -4,3 +4,5 @@ export declare const E2E_WEB_ORIGIN: string;
 export declare const MAILPIT_URL: string;
 export declare const E2E_POSTHOG_KEY: string;
 export declare const E2E_POSTHOG_HOST: string;
+export declare const E2E_SENTRY_HOST: string;
+export declare const E2E_SENTRY_DSN: string;

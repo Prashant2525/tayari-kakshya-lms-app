@@ -4,6 +4,8 @@ packages:
 allowBuilds:
   '@prisma/engines': true
   '@scarf/scarf': false
+  # Source-map upload tool (native binary) for release builds only; not run on developer machines (KI-011).
+  '@sentry/cli': false
   argon2: true
   msgpackr-extract: true
   prisma: true

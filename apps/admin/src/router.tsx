@@ -12,12 +12,14 @@ import {
   Link,
   Outlet,
 } from '@tanstack/react-router';
+import { useEffect } from 'react';
 import { AppShell } from './components/layout/app-shell';
 import { Button } from './components/ui/button';
 import { EmptyState, ErrorState } from './components/ui/primitives';
 import { LoginPage } from './features/auth/login-page';
 import { ForgotPasswordPage, SetPasswordPage } from './features/auth/password-pages';
 import { DashboardPage } from './features/dashboard/dashboard-page';
+import { reportError } from './lib/monitoring';
 
 function NotFound() {
   return (
@@ -34,6 +36,7 @@ function NotFound() {
 }
 
 function RouteError({ error, reset }: { error: unknown; reset: () => void }) {
+  useEffect(() => reportError(error), [error]);
   return <ErrorState error={error} onRetry={reset} />;
 }
 

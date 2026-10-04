@@ -1,6 +1,6 @@
 # Test Status
 
-Last updated: 2026-10-04 (monitoring + analytics, T-042). `pnpm test` runs unit + integration suites (needs `pnpm infra:up`);
+Last updated: 2026-10-04 (Sentry in the app and admin, T-042). `pnpm test` runs unit + integration suites (needs `pnpm infra:up`);
 `pnpm build && pnpm --filter @tk/admin e2e` and `pnpm build && pnpm --filter @tk/mobile e2e` run the browser suites
 (the student suite also needs Mailpit, part of `pnpm infra:up`).
 
@@ -12,11 +12,20 @@ Last updated: 2026-10-04 (monitoring + analytics, T-042). `pnpm test` runs unit 
 | `@tk/domain` | 39 | BS calendar, Kathmandu day boundary, fiscal year, money/VAT/discounts, access validity |
 | `@tk/contracts` | 21 | Schema behaviour (localized text, email normalisation, mass assignment, settings defaults, rich-text validation) |
 | `@tk/api` | 186 | Integration against real PostgreSQL + Redis + S3 (SeaweedFS) through the HTTP stack; TOTP RFC 6238 vectors; RBAC, video, watermark unit |
-| `@tk/admin` (unit) | 33 | API client (headers, refresh single-flight, retry, session loss, error mapping), BS formatting, Button `asChild` regression |
-| `@tk/admin` (E2E, Playwright) | 19 | Real browser + real API + `*_e2e` database |
-| `@tk/mobile` (unit) | 30 | API client (single-flight refresh, early refresh, session end, maintenance), translations complete in both languages, BS dates and Kathmandu weekday, force-update/maintenance gate, form checks, Nepali phone numbers |
-| `@tk/mobile` (E2E, Playwright, phone viewport) | 13 | Web build + real API + `*_mobile_e2e` database + Mailpit |
-| **Total** | **380** | |
+| `@tk/admin` (unit) | 35 | API client (headers, refresh single-flight, retry, session loss, error mapping), BS formatting, Button `asChild` regression |
+| `@tk/admin` (E2E, Playwright) | 20 | Real browser + real API + `*_e2e` database |
+| `@tk/mobile` (unit) | 32 | API client (single-flight refresh, early refresh, session end, maintenance), translations complete in both languages, BS dates and Kathmandu weekday, force-update/maintenance gate, form checks, Nepali phone numbers |
+| `@tk/mobile` (E2E, Playwright, phone viewport) | 14 | Web build + real API + `*_mobile_e2e` database + Mailpit |
+| **Total** | **386** | |
+
+### Added with Sentry in the app and admin (T-042)
+- **Browser E2E (admin + app):** the test servers use a fake Sentry host; a real uncaught error reaches it tagged
+  with the service, and the email in the query string, typed email and password, and console output are absent.
+  Mutation-checked: without the scrubber and breadcrumb blocking, both tests fail (the query-string email leaks).
+- **Unit:** admin and app scrubbers keep only the page path (and device context in the app); admin monitoring is off
+  without a DSN.
+- **Google (manual):** Google accepts the owner's new web client with `http://localhost:8081` (sign-in page shown)
+  and refuses an unregistered address.
 
 ### Added with monitoring and analytics (T-042)
 - **API (Sentry):** a local stand-in for Sentry receives the real SDK's envelopes. Unexpected errors arrive with the

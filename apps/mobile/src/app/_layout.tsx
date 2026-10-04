@@ -17,11 +17,13 @@ import { api, queryClient } from '@/api/client';
 import { AppGate } from '@/features/app-gate';
 import { useGuards } from '@/features/guards';
 import { useAnalyticsIdentity, useScreenTracking } from '@/lib/analytics';
+import { initMonitoring } from '@/lib/monitoring';
 import { usePrefs } from '@/state/prefs';
 import { useSession } from '@/state/session';
 import { ThemeProvider, useTheme } from '@/theme/theme';
 import { ErrorState, LoadingState } from '@/ui/states';
 
+initMonitoring();
 void SplashScreen.preventAutoHideAsync().catch(() => undefined);
 
 // React Query pauses requests while offline and resumes when the connection returns.
