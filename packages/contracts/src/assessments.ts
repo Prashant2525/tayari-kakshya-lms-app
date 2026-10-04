@@ -18,6 +18,22 @@ export type AssessmentType = z.infer<typeof AssessmentType>;
 export const ResultRelease = z.enum(['immediate', 'after_close', 'manual']);
 export const SubjectiveGrading = z.enum(['none', 'self', 'instructor']);
 
+/**
+ * Attempt rules chosen per assessment in the CMS (D-048); defaults come from the `assessments.defaults` setting.
+ * - premiumAccess — who may take a Premium assessment: `linked` = students with access to its course, or (without a
+ *   course) to a course containing its subject or linked to its exam category; `any_course` = any active course
+ *   access; `plans_only` = only through plans (§11).
+ * - lateStart — a timed attempt started late in a window ends when the window closes (`until_close`) or runs its full
+ *   duration (`full_duration`).
+ * - countedAttempt — which submitted attempt is the official result, pass/fail and rank.
+ */
+export const PremiumAccessRule = z.enum(['linked', 'any_course', 'plans_only']);
+export type PremiumAccessRule = z.infer<typeof PremiumAccessRule>;
+export const LateStartRule = z.enum(['until_close', 'full_duration']);
+export type LateStartRule = z.infer<typeof LateStartRule>;
+export const CountedAttemptRule = z.enum(['first', 'best', 'latest']);
+export type CountedAttemptRule = z.infer<typeof CountedAttemptRule>;
+
 /** Scoring choices made per assessment in the CMS (D-044); the engine in @tk/domain applies them. */
 export const ScoringRulesInput = z.object({
   /** Off: question/section negative marks are ignored. */
@@ -57,6 +73,10 @@ export const AssessmentInput = z
     showExplanations: z.boolean(),
     leaderboardEnabled: z.boolean(),
     subjectiveGrading: SubjectiveGrading,
+    /** Omitted = the default from the `assessments.defaults` setting (D-048). */
+    premiumAccess: PremiumAccessRule.optional(),
+    lateStart: LateStartRule.optional(),
+    countedAttempt: CountedAttemptRule.optional(),
     /** Daily challenge only: the Nepal calendar day it belongs to (AD date, shown in BS). */
     challengeDate: z.iso.date().nullable().optional(),
   })
@@ -182,3 +202,57 @@ export const AssessmentListQuery = CursorQuery.extend({
   courseId: z.uuid().optional(),
 });
 export type AssessmentListQuery = z.infer<typeof AssessmentListQuery>;
+
+// ───────────── Taking assessments (students, §10) ─────────────
+
+const ItemId = z.string().regex(/^[a-z0-9]{1,8}$/);
+
+/** A student's answer, per question type (the shape `scoreQuestion` in @tk/domain scores). */
+export const AnswerResponseInput = z.discriminatedUnion('type', [
+  z.object({ type: z.literal('single_choice'), optionId: ItemId.nullable() }),
+  z.object({ type: z.literal('multiple_choice'), optionIds: z.array(ItemId).max(26) }),
+  z.object({ type: z.literal('true_false'), value: z.boolean().nullable() }),
+  z.object({ type: z.literal('fill_blank'), blanks: z.record(ItemId, z.string().max(200)) }),
+  z.object({ type: z.literal('match'), pairs: z.record(ItemId, ItemId) }),
+  z.object({ type: z.literal('numeric'), value: z.number().finite().nullable() }),
+  z.object({ type: z.literal('subjective'), text: z.string().max(20_000) }),
+]);
+export type AnswerResponseInput = z.infer<typeof AnswerResponseInput>;
+
+/** Autosave: the latest state of some questions (sent in batches; the newest save wins). */
+export const SaveAnswersInput = z.object({
+  answers: z
+    .array(
+      z.object({
+        questionId: z.uuid(),
+        response: AnswerResponseInput.nullable(),
+        markedForReview: z.boolean(),
+      }),
+    )
+    .min(1)
+    .max(500),
+});
+export type SaveAnswersInput = z.infer<typeof SaveAnswersInput>;
+
+/** Self-evaluation of written answers against the model answer (subjective grading `self`). */
+export const SelfGradeInput = z.object({
+  grades: z
+    .array(z.object({ questionId: z.uuid(), awarded: Marks }))
+    .min(1)
+    .max(500),
+});
+export type SelfGradeInput = z.infer<typeof SelfGradeInput>;
+
+/** Assessments a student can see: in a course (optionally one subject), or for the exams they prepare for. */
+export const StudentAssessmentQuery = z
+  .object({
+    courseId: z.uuid().optional(),
+    subjectId: z.uuid().optional(),
+    mine: z.enum(['true', 'false']).optional(),
+    type: AssessmentType.optional(),
+  })
+  .refine((q) => Boolean(q.courseId) !== (q.mine === 'true'), {
+    message: 'Ask for a course, or for my exams (mine=true)',
+  })
+  .refine((q) => !q.subjectId || q.courseId, { message: 'A subject needs its course', path: ['subjectId'] });
+export type StudentAssessmentQuery = z.infer<typeof StudentAssessmentQuery>;

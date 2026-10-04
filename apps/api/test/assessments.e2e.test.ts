@@ -219,6 +219,10 @@ describe('assessment builder', () => {
       resultRelease: 'immediate',
       showExplanations: true,
       maxAttempts: null,
+      // D-048 (owner, 2026-10-04): editable in Settings → Assessment defaults.
+      premiumAccess: 'linked',
+      lateStart: 'until_close',
+      countedAttempt: 'first',
       scoring: {
         negativeMarking: null,
         multipleChoice: null,

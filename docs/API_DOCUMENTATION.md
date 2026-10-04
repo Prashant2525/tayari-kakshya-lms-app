@@ -105,6 +105,22 @@ courses/subjects. Every write is audited.
 | PUT / DELETE | `/me/bookmarks/:type/:id` | student | `type` = `learning_item` \| `question`; save (idempotent) / remove; only published targets can be saved |
 | GET | `/search?q=` | student | `q` 2–120 chars: `{ courses, items, questions }` — published courses (platform-aware prices), lessons by title (en/ne), questions by text; no premium bodies or answers |
 
+## 1b-3. Implemented endpoints (§10 part 1 — taking assessments) ✅
+
+| Method | Path | Auth | Notes |
+|---|---|---|---|
+| GET | `/assessments?courseId=&subjectId=&type=` · `/assessments?mine=true` | student | live assessments of a course (course-level or its subjects'), one subject, or the student's exams (target categories and their parents) and courses; daily challenges excluded. Each: `locked` (D-048 premium access), `state` (upcoming/open/closed), `questionCount`, `totalMarks` (centimarks; null when random questions differ), `attemptsUsed`, `inProgressAttemptId`, `result` (official attempt, when released) |
+| GET | `/assessments/:id` | student | the same plus `instructions`, `rules` (negative marking, pass marks, result release + date, explanations, written-answer grading, official attempt, late start) and `attempts` (`counted` = official) |
+| POST | `/assessments/:id/attempts` | student | start, or resume the unfinished attempt (200 either way; concurrent starts get the same attempt). 403 `CONTENT_LOCKED` / `VERIFICATION_REQUIRED`; 409 `ASSESSMENT_NOT_AVAILABLE` (`reason`: not_open, closed, no_attempts_left, not_ready). Returns the attempt view |
+| GET | `/attempts/:id` | owner | questions without answers, saved responses, `deadlineAt`, `serverNow`; finishes the attempt first when its time (+ grace) is over |
+| PUT | `/attempts/:id/answers` | owner | `{ answers: [{ questionId, response \| null, markedForReview }] }` (≤ 500); the response type must match the question; 409 `ATTEMPT_CLOSED` once submitted or after deadline + grace (which also submits it) |
+| POST | `/attempts/:id/submit` | owner | idempotent; returns the result |
+| GET | `/attempts/:id/result` | owner | `released` false → no scores, answers or solutions (`releaseAt` when known); released → `summary` (centimarks), per-section breakdown, every question with response, `answer` (keys; explanation only if the assessment shows explanations), `outcome`, `awarded`; `counted`; `canSelfGrade` |
+| POST | `/attempts/:id/self-grade` | owner | `{ grades: [{ questionId, awarded }] }` for written answers awaiting marks (self-graded assessments, after release); ≤ the question's marks |
+| GET | `/me/attempts?cursor=&limit=` | student | history, newest first; scores only when released |
+
+Admin: `AssessmentInput` gains optional `premiumAccess` (linked/any_course/plans_only), `lateStart` (until_close/full_duration), `countedAttempt` (first/best/latest) — omitted = the `assessments.defaults` setting; detail returns them. Settings: `assessments.defaults` gains the three defaults; new `assessments.timing { graceSeconds }`.
+
 ## 1c. Implemented endpoints (Phase 7 — question bank) ✅
 
 | Method | Path | Auth | Notes |

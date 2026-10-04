@@ -83,6 +83,8 @@ model User {
   targetPosts         UserTargetPost[]
   learningProgress    LearningProgress[]
   bookmarks           Bookmark[]
+  attempts            Attempt[]
+  gradedAnswers       AttemptAnswer[]          @relation("AttemptAnswerGrader")
 
   @@index([kind, status])
   @@map("users")
@@ -880,6 +882,7 @@ model Question {
   reports        QuestionReport[]
 
   assessmentLinks AssessmentQuestion[]
+  attemptAnswers  AttemptAnswer[]
 
   @@index([subjectId, topicId, type, difficulty, status])
   @@index([groupId])
@@ -896,8 +899,9 @@ model QuestionVersion {
   createdById String?  @map("created_by") @db.Uuid
   createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 
-  question  Question  @relation("QuestionVersions", fields: [questionId], references: [id], onDelete: Restrict)
-  currentOf Question? @relation("QuestionCurrentVersion")
+  question       Question        @relation("QuestionVersions", fields: [questionId], references: [id], onDelete: Restrict)
+  currentOf      Question?       @relation("QuestionCurrentVersion")
+  attemptAnswers AttemptAnswer[]
 
   @@unique([questionId, versionNo])
   @@map("question_versions")
@@ -1026,6 +1030,38 @@ enum ResultRelease {
   manual
 }
 
+enum PremiumAccessRule {
+  linked
+  any_course
+  plans_only
+}
+
+enum LateStartRule {
+  until_close
+  full_duration
+}
+
+enum CountedAttemptRule {
+  first
+  best
+  latest
+}
+
+enum AttemptStatus {
+  in_progress
+  pending_grading
+  completed
+  voided
+}
+
+enum AnswerOutcome {
+  correct
+  partial
+  wrong
+  skipped
+  pending
+}
+
 enum SubjectiveGrading {
   none
   self
@@ -1064,6 +1100,10 @@ model Assessment {
   showExplanations   Boolean                @map("show_explanations")
   leaderboardEnabled Boolean                @map("leaderboard_enabled")
   subjectiveGrading  SubjectiveGrading      @map("subjective_grading")
+  /// D-048: who may take it when Premium, how a late start is timed, which attempt is the official result.
+  premiumAccess      PremiumAccessRule      @default(linked) @map("premium_access")
+  lateStart          LateStartRule          @default(until_close) @map("late_start")
+  countedAttempt     CountedAttemptRule     @default(first) @map("counted_attempt")
   challengeDate      DateTime?              @map("challenge_date") @db.Date
   status             PublishStatus          @default(draft)
   publishAt          DateTime?              @map("publish_at") @db.Timestamptz(6)
@@ -1080,6 +1120,7 @@ model Assessment {
   examNode  ExamNode?            @relation(fields: [examNodeId], references: [id], onDelete: Restrict)
   sections  AssessmentSection[]
   questions AssessmentQuestion[]
+  attempts  Attempt[]
 
   @@index([type, status])
   @@index([courseId])
@@ -1123,4 +1164,66 @@ model AssessmentQuestion {
   @@index([sectionId, sortOrder])
   @@index([questionId])
   @@map("assessment_questions")
+}
+
+/// A student's attempt at an assessment (§10). The plan pins question versions, marks and option order at start, so
+/// later edits never change an attempt. Scores are centimarks.
+model Attempt {
+  id               String        @id @default(uuid(7)) @db.Uuid
+  assessmentId     String        @map("assessment_id") @db.Uuid
+  userId           String        @map("user_id") @db.Uuid
+  attemptNo        Int           @map("attempt_no")
+  status           AttemptStatus @default(in_progress)
+  autoSubmitted    Boolean       @default(false) @map("auto_submitted")
+  startedAt        DateTime      @default(now()) @map("started_at") @db.Timestamptz(6)
+  deadlineAt       DateTime?     @map("deadline_at") @db.Timestamptz(6)
+  submittedAt      DateTime?     @map("submitted_at") @db.Timestamptz(6)
+  /// AttemptPlan: sections → questions (question id, version id, marks, negative marks, option order).
+  plan             Json
+  maxScore         Int           @map("max_score")
+  score            Int?
+  correctCount     Int           @default(0) @map("correct_count")
+  partialCount     Int           @default(0) @map("partial_count")
+  wrongCount       Int           @default(0) @map("wrong_count")
+  skippedCount     Int           @default(0) @map("skipped_count")
+  pendingCount     Int           @default(0) @map("pending_count")
+  passed           Boolean?
+  timeTakenSeconds Int?          @map("time_taken_seconds")
+  createdAt        DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  assessment Assessment      @relation(fields: [assessmentId], references: [id], onDelete: Restrict)
+  user       User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  answers    AttemptAnswer[]
+
+  @@unique([assessmentId, userId, attemptNo])
+  @@index([userId, startedAt(sort: Desc)])
+  @@index([assessmentId, status])
+  @@index([status, deadlineAt])
+  @@map("attempts")
+}
+
+/// One row per planned question, created at start; `response` is the latest autosaved answer.
+model AttemptAnswer {
+  attemptId         String         @map("attempt_id") @db.Uuid
+  questionId        String         @map("question_id") @db.Uuid
+  questionVersionId String         @map("question_version_id") @db.Uuid
+  response          Json?
+  markedForReview   Boolean        @default(false) @map("marked_for_review")
+  answeredAt        DateTime?      @map("answered_at") @db.Timestamptz(6)
+  outcome           AnswerOutcome?
+  /// Centimarks awarded (negative with negative marking).
+  awarded           Int?
+  gradedById        String?        @map("graded_by") @db.Uuid
+  gradedAt          DateTime?      @map("graded_at") @db.Timestamptz(6)
+  graderComment     String?        @map("grader_comment")
+
+  attempt         Attempt         @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  question        Question        @relation(fields: [questionId], references: [id], onDelete: Restrict)
+  questionVersion QuestionVersion @relation(fields: [questionVersionId], references: [id], onDelete: Restrict)
+  gradedBy        User?           @relation("AttemptAnswerGrader", fields: [gradedById], references: [id], onDelete: SetNull)
+
+  @@id([attemptId, questionId])
+  @@index([questionId])
+  @@map("attempt_answers")
 }

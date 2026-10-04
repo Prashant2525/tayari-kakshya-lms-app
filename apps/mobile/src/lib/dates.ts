@@ -31,6 +31,14 @@ export function bsDate(iso: string, locale: Locale): string {
   return formatBs(instantToBs(new Date(iso)), locale);
 }
 
+/** BS date and Nepal time (24-hour) for an ISO timestamp, e.g. "17 Asoj 2083, 10:00". */
+export function bsDateTime(iso: string, locale: Locale): string {
+  // Nepal is UTC+5:45 all year (no daylight saving).
+  const npt = new Date(new Date(iso).getTime() + 345 * 60_000);
+  const time = `${String(npt.getUTCHours()).padStart(2, '0')}:${String(npt.getUTCMinutes()).padStart(2, '0')}`;
+  return `${bsDate(iso, locale)}, ${locale === 'ne' ? toDevanagariDigits(time) : time}`;
+}
+
 /** "0:42" style countdown, in Devanagari digits for Nepali. */
 export function countdown(seconds: number, locale: Locale): string {
   const s = Math.max(0, Math.ceil(seconds));

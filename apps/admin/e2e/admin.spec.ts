@@ -119,8 +119,19 @@ test('signing in again requires the authenticator code, and the session survives
   await deletion.getByRole('button', { name: 'Save' }).click();
   await expect(page.getByText('Account deletion grace period saved')).toBeVisible();
 
+  // Attempt rules are CMS defaults (D-048): a changed default prefills every new assessment.
+  const defaults = page.getByRole('region', { name: 'Assessment defaults' });
+  await expect(defaults.getByLabel('Official attempt (with retakes)')).toHaveValue('first');
+  await defaults.getByLabel('Official attempt (with retakes)').selectOption('best');
+  await defaults.getByRole('button', { name: 'Save' }).click();
+  await expect(page.getByText('Assessment defaults saved')).toBeVisible();
+  await page.goto('/assessments/new?type=quiz');
+  await expect(page.getByLabel('Official attempt')).toHaveValue('best');
+  await expect(page.getByLabel('Premium access')).toHaveValue('linked');
+  await page.getByRole('link', { name: 'System settings' }).click();
+
   await page.getByRole('link', { name: 'Audit log' }).click();
-  await expect(page.getByText('settings.update')).toBeVisible();
+  await expect(page.getByText('settings.update').first()).toBeVisible();
   await expect(page.getByText('staff.create')).toBeVisible();
   await expect(page.getByText('auth.mfa_enabled')).toBeVisible();
 

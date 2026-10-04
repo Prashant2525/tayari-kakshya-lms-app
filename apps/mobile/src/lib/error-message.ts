@@ -21,6 +21,9 @@ const BY_CODE: Record<string, MessageKey> = {
   REFRESH_TOKEN_REUSED: 'error.sessionExpired',
   MAINTENANCE_MODE: 'error.maintenance',
   VALIDATION_FAILED: 'error.fixFields',
+  ASSESSMENT_NOT_AVAILABLE: 'error.assessmentNotAvailable',
+  ATTEMPT_CLOSED: 'error.attemptClosed',
+  CONTENT_LOCKED: 'error.contentLocked',
 };
 
 export function errorMessageKey(error: unknown): MessageKey {

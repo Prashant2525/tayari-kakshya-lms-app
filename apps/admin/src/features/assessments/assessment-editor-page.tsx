@@ -13,6 +13,10 @@ import { Alert, Card, CardHeader, ErrorState, Spinner, Switch } from '@/componen
 import { api, errorMessage } from '@/lib/api';
 import {
   ASSESSMENT_TYPE_LABEL,
+  COUNTED_ATTEMPT_LABEL,
+  LATE_START_LABEL,
+  PREMIUM_ACCESS_HINT,
+  PREMIUM_ACCESS_LABEL,
   RESULT_RELEASE_LABEL,
   SUBJECTIVE_GRADING_LABEL,
   type AssessmentDefaults,
@@ -63,6 +67,9 @@ interface Draft {
   showExplanations: boolean;
   leaderboardEnabled: boolean;
   subjectiveGrading: string;
+  premiumAccess: string;
+  lateStart: string;
+  countedAttempt: string;
   challengeDate: string;
 }
 
@@ -99,6 +106,9 @@ function draftOf(a: AssessmentDetail | null, d: AssessmentDefaults | undefined):
     showExplanations: a?.showExplanations ?? d?.showExplanations ?? true,
     leaderboardEnabled: a?.leaderboardEnabled ?? false,
     subjectiveGrading: a?.subjectiveGrading ?? 'none',
+    premiumAccess: a?.premiumAccess ?? d?.premiumAccess ?? '',
+    lateStart: a?.lateStart ?? d?.lateStart ?? '',
+    countedAttempt: a?.countedAttempt ?? d?.countedAttempt ?? '',
     challengeDate: a?.challengeDate ?? '',
   };
 }
@@ -142,6 +152,9 @@ function toInput(type: AssessmentType, d: Draft): unknown {
     showExplanations: d.showExplanations,
     leaderboardEnabled: d.leaderboardEnabled,
     subjectiveGrading: d.subjectiveGrading,
+    premiumAccess: d.premiumAccess || undefined,
+    lateStart: d.lateStart || undefined,
+    countedAttempt: d.countedAttempt || undefined,
     challengeDate: type === 'daily_challenge' ? d.challengeDate || null : null,
   };
 }
@@ -158,6 +171,9 @@ const LABELS: Record<string, string> = {
   match: 'Match scoring',
   fillBlank: 'Fill-in-the-blank scoring',
   scoreFloor: 'Lowest total',
+  premiumAccess: 'Premium access',
+  lateStart: 'Late start',
+  countedAttempt: 'Official attempt',
   resultRelease: 'Results',
   challengeDate: 'Challenge day',
   chapterId: 'Chapter',
@@ -633,6 +649,15 @@ function AssessmentEditor({
                   </Select>
                 )}
               </Field>
+              {d.accessLevel === 'premium' ? (
+                <ChoiceSelect
+                  label="Premium access"
+                  hint={PREMIUM_ACCESS_HINT}
+                  value={d.premiumAccess}
+                  onChange={(v) => set('premiumAccess', v)}
+                  options={Object.entries(PREMIUM_ACCESS_LABEL)}
+                />
+              ) : null}
             </div>
           </Card>
 
@@ -691,6 +716,13 @@ function AssessmentEditor({
                       />
                     )}
                   </Field>
+                  <ChoiceSelect
+                    label="Late start"
+                    hint="A student who starts shortly before the close."
+                    value={d.lateStart}
+                    onChange={(v) => set('lateStart', v)}
+                    options={Object.entries(LATE_START_LABEL)}
+                  />
                 </>
               ) : null}
               <Field label="Duration (minutes)" hint="Blank = untimed.">
@@ -804,6 +836,13 @@ function AssessmentEditor({
                   </Select>
                 )}
               </Field>
+              <ChoiceSelect
+                label="Official attempt"
+                hint="With retakes: which attempt counts for the result, pass/fail and rank."
+                value={d.countedAttempt}
+                onChange={(v) => set('countedAttempt', v)}
+                options={Object.entries(COUNTED_ATTEMPT_LABEL)}
+              />
               <Toggle
                 label="Show explanations"
                 hint="After results are released."

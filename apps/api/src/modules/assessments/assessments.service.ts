@@ -12,6 +12,7 @@ import { AppError, Errors } from '../../common/errors/app-error.js';
 import { Prisma, type Assessment } from '../../generated/prisma/client.js';
 import { PrismaService } from '../../infra/prisma/prisma.service.js';
 import { AuditService } from '../audit/audit.service.js';
+import { SettingsService } from '../settings/settings.service.js';
 import { assertCanSetStatus, assertSchedule } from '../content/publishing.js';
 import { assertCanEditLive, ScopeService, type ContentActor } from '../content/scope.service.js';
 import { stemPreview } from '../questions/questions.service.js';
@@ -50,6 +51,7 @@ export class AssessmentsService {
     private readonly prisma: PrismaService,
     private readonly audit: AuditService,
     private readonly scope: ScopeService,
+    private readonly settings: SettingsService,
   ) {}
 
   async list(query: AssessmentListQuery, actor: ContentActor) {
@@ -120,10 +122,12 @@ export class AssessmentsService {
 
   async create(input: AssessmentInput, actor: ContentActor) {
     await this.validateLinks(input, actor);
+    // Attempt rules left out by the client take the CMS defaults (D-048).
+    const defaults = await this.settings.get('assessments.defaults');
     const id = await this.uniqueChallenge(() =>
       this.prisma.$transaction(async (tx) => {
         const a = await tx.assessment.create({
-          data: { ...this.data(input), createdById: actor.userId, updatedById: actor.userId },
+          data: { ...this.data(input, defaults), createdById: actor.userId, updatedById: actor.userId },
         });
         await this.log(tx, actor, 'assessment.create', a.id, {
           after: { type: input.type, title: input.title },
@@ -148,7 +152,7 @@ export class AssessmentsService {
       this.prisma.$transaction(async (tx) => {
         await tx.assessment.update({
           where: { id },
-          data: { ...this.data(input), updatedById: actor.userId },
+          data: { ...this.data(input, before), updatedById: actor.userId },
         });
         await this.log(tx, actor, 'assessment.update', id, { after: input });
       }),
@@ -399,7 +403,11 @@ export class AssessmentsService {
 
   // ───────────── helpers ─────────────
 
-  private data(input: AssessmentInput) {
+  /** `fallback`: the CMS defaults for a new assessment, or the current values when an update leaves them out. */
+  private data(
+    input: AssessmentInput,
+    fallback: Pick<Assessment, 'premiumAccess' | 'lateStart' | 'countedAttempt'>,
+  ) {
     return {
       type: input.type,
       title: input.title,
@@ -423,6 +431,9 @@ export class AssessmentsService {
       showExplanations: input.showExplanations,
       leaderboardEnabled: input.leaderboardEnabled,
       subjectiveGrading: input.subjectiveGrading,
+      premiumAccess: input.premiumAccess ?? fallback.premiumAccess,
+      lateStart: input.lateStart ?? fallback.lateStart,
+      countedAttempt: input.countedAttempt ?? fallback.countedAttempt,
       challengeDate: input.challengeDate ? new Date(`${input.challengeDate}T00:00:00Z`) : null,
     };
   }
@@ -551,6 +562,9 @@ export class AssessmentsService {
       showExplanations: a.showExplanations,
       leaderboardEnabled: a.leaderboardEnabled,
       subjectiveGrading: a.subjectiveGrading,
+      premiumAccess: a.premiumAccess,
+      lateStart: a.lateStart,
+      countedAttempt: a.countedAttempt,
       challengeDate: a.challengeDate?.toISOString().slice(0, 10) ?? null,
       status: a.status,
       publishAt: a.publishAt?.toISOString() ?? null,

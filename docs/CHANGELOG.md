@@ -4,6 +4,15 @@ All notable changes to this project. Format based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Added — 2026-10-04 (§10 part 1: taking tests)
+- Student app: Tests tab on the subject screen, Tests on the course page, "Tests for your exam" on Home, test page
+  with the rules, exam mode (timer from the server's deadline, question palette, mark for review, autosave with an
+  offline copy, confirm submit, automatic submit when time runs out), result (score ring, pass/fail, counts,
+  sections), answer review with explanations, self-marking of written answers, Profile → My test results.
+- API: migration `attempts` (attempts, attempt answers, three attempt rules per assessment); student assessment and
+  attempt endpoints; worker job submits attempts whose time ran out.
+- CMS: Premium access, Late start and Official attempt per assessment; Settings → Assessment defaults and Exam timing.
+
 ### Added — 2026-10-04 (Sentry in the student app and Admin CMS)
 - Student app and Admin CMS report unexpected errors to their own Sentry projects (`EXPO_PUBLIC_SENTRY_DSN`,
   `VITE_SENTRY_DSN`) with no user, breadcrumbs, screenshots, replay or tracing; only the page path is kept.

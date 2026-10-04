@@ -4,6 +4,7 @@ import {
   BadgeCheck,
   Bookmark,
   ChevronRight,
+  ClipboardList,
   KeyRound,
   LogOut,
   ShieldAlert,
@@ -140,7 +141,8 @@ export default function ProfileScreen() {
             href="/profile/password"
           />
           <LinkRow icon={Smartphone} label={t('profile.devices')} href="/profile/devices" />
-          <LinkRow icon={Bookmark} label={t('profile.saved.list')} href="/bookmarks" last />
+          <LinkRow icon={Bookmark} label={t('profile.saved.list')} href="/bookmarks" />
+          <LinkRow icon={ClipboardList} label={t('history.title')} href="/attempts" last />
         </Card>
         <Button
           label={t('profile.logout')}
@@ -169,7 +171,7 @@ function LinkRow({
 }: {
   icon: LucideIcon;
   label: string;
-  href: '/profile/edit' | '/profile/password' | '/profile/devices' | '/bookmarks';
+  href: '/profile/edit' | '/profile/password' | '/profile/devices' | '/bookmarks' | '/attempts';
   last?: boolean;
 }) {
   const { colors } = useTheme();

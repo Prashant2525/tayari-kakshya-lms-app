@@ -41,6 +41,10 @@ export const ErrorCode = {
   CONTENT_LOCKED: 'CONTENT_LOCKED',
   VERIFICATION_REQUIRED: 'VERIFICATION_REQUIRED',
   ENROLMENT_NOT_AVAILABLE: 'ENROLMENT_NOT_AVAILABLE',
+  /** details.reason: not_open | closed | no_attempts_left | not_ready */
+  ASSESSMENT_NOT_AVAILABLE: 'ASSESSMENT_NOT_AVAILABLE',
+  /** The attempt is finished (submitted, or its time is over) and cannot change. */
+  ATTEMPT_CLOSED: 'ATTEMPT_CLOSED',
 } as const;
 export type ErrorCode = (typeof ErrorCode)[keyof typeof ErrorCode];
 

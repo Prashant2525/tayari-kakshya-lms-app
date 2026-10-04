@@ -10,12 +10,13 @@ import { formatDuration } from '@/lib/format';
 import { useTheme } from '@/theme/theme';
 import { StatusChip } from '@/ui/chip';
 import { PracticeList } from '@/features/practice/practice-list';
+import { TestList } from '@/features/tests/test-list';
 import { BackButton, Screen, Skeleton } from '@/ui/layout';
 import { Segmented } from '@/ui/segmented';
 import { EmptyState, ErrorState } from '@/ui/states';
 import { Text } from '@/ui/text';
 
-type Tab = 'notes' | 'videos' | 'questions';
+type Tab = 'notes' | 'videos' | 'questions' | 'tests';
 const inTab = (item: OutlineItem, tab: Tab) =>
   tab === 'videos' ? item.type === 'video' : item.type !== 'video';
 
@@ -62,11 +63,16 @@ export default function SubjectScreen() {
           { value: 'notes', label: t('subject.notes') },
           { value: 'videos', label: t('subject.videos') },
           { value: 'questions', label: t('subject.questions') },
+          { value: 'tests', label: t('subject.tests') },
         ]}
         onChange={setTab}
       />
       {tab === 'questions' ? (
         <PracticeList courseId={courseId} subjectId={subjectId} courseSlug={slug} />
+      ) : tab === 'tests' ? (
+        <ScrollView contentContainerStyle={{ paddingBottom: 24 }}>
+          <TestList scope={{ courseId, subjectId }} />
+        </ScrollView>
       ) : outline.isPending ? (
         <View style={{ gap: 10, marginTop: 14 }} aria-busy>
           <Skeleton height={64} />

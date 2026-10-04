@@ -1,6 +1,6 @@
 # Test Status
 
-Last updated: 2026-10-04 (Sentry in the app and admin, T-042). `pnpm test` runs unit + integration suites (needs `pnpm infra:up`);
+Last updated: 2026-10-04 (§10 part 1: attempt engine, exam mode). `pnpm test` runs unit + integration suites (needs `pnpm infra:up`);
 `pnpm build && pnpm --filter @tk/admin e2e` and `pnpm build && pnpm --filter @tk/mobile e2e` run the browser suites
 (the student suite also needs Mailpit, part of `pnpm infra:up`).
 
@@ -9,14 +9,35 @@ Last updated: 2026-10-04 (Sentry in the app and admin, T-042). `pnpm test` runs 
 | Package | Tests | Kind |
 |---|---|---|
 | `@tk/design-tokens` | 39 | WCAG contrast for every text/background pair (light + dark), CSS generation |
-| `@tk/domain` | 39 | BS calendar, Kathmandu day boundary, fiscal year, money/VAT/discounts, access validity |
+| `@tk/domain` | 45 | BS calendar, Kathmandu day boundary, fiscal year, money/VAT/discounts, access validity |
 | `@tk/contracts` | 21 | Schema behaviour (localized text, email normalisation, mass assignment, settings defaults, rich-text validation) |
-| `@tk/api` | 186 | Integration against real PostgreSQL + Redis + S3 (SeaweedFS) through the HTTP stack; TOTP RFC 6238 vectors; RBAC, video, watermark unit |
+| `@tk/api` | 196 | Integration against real PostgreSQL + Redis + S3 (SeaweedFS) through the HTTP stack; TOTP RFC 6238 vectors; RBAC, video, watermark unit |
 | `@tk/admin` (unit) | 35 | API client (headers, refresh single-flight, retry, session loss, error mapping), BS formatting, Button `asChild` regression |
 | `@tk/admin` (E2E, Playwright) | 20 | Real browser + real API + `*_e2e` database |
-| `@tk/mobile` (unit) | 32 | API client (single-flight refresh, early refresh, session end, maintenance), translations complete in both languages, BS dates and Kathmandu weekday, force-update/maintenance gate, form checks, Nepali phone numbers |
-| `@tk/mobile` (E2E, Playwright, phone viewport) | 14 | Web build + real API + `*_mobile_e2e` database + Mailpit |
-| **Total** | **386** | |
+| `@tk/mobile` (unit) | 33 | API client (single-flight refresh, early refresh, session end, maintenance), translations complete in both languages, BS dates and Kathmandu weekday, force-update/maintenance gate, form checks, Nepali phone numbers |
+| `@tk/mobile` (E2E, Playwright, phone viewport) | 17 | Web build + real API + `*_mobile_e2e` database + Mailpit |
+| **Total** | **406** | |
+
+### Added with the attempt engine (§10 part 1)
+- **API (10 integration tests):** start → autosave (newest wins) → resume → submit with negative marking and partial
+  credit (exact score); no answer key, explanation or model answer in the running attempt (rule 5); wrong answer
+  types and foreign questions refused; double submit harmless; saves after submit refused; five simultaneous starts
+  create one attempt; grace period accepts a late save, later saves submit automatically with the deadline as the
+  submit time; the worker finishes abandoned attempts; window not open / closed, late-start rule both ways, attempt
+  limit; Premium access rule (course, category, parent category, subject, any course, plans only); results hidden
+  until after close / manual release; written answers self-graded (marks capped) → pass/fail; official attempt
+  first/best; random sections pick distinct questions; an edit after start does not change the attempt (version
+  pinned); other students get 404; verification required; erasure removes attempts. **Mutation-checked:** sending
+  answers during the attempt, opening Premium to all, or never expiring each makes tests fail.
+- **Domain (unit):** window state, deadline with late start (all four cases), result release, official attempt.
+- **Browser E2E (student app, 3 new):** subject Tests tab → rules → exam: answer, mark for review, **reload resumes
+  every answer**, palette states, confirm counts, submit → 1.5/5 (−0.5 + 1 + 1) and Passed → review with explanation
+  → attempt listed; weekly exam from "Tests for your exam" waits for its window to close; a 1-minute test is
+  **submitted by the app when time runs out**. Practice questions still pass after sharing their answer inputs.
+- **Browser E2E (admin):** changing "Official attempt" in Settings → Assessment defaults prefills new assessments.
+- **Screenshots reviewed** (light, dark, Nepali): tests tab, test page, exam, palette, submit, result, review, waiting
+  result, CMS editor and settings. Fixed: "1 marks" (now "Marks 1"), "5 minutes left" shown for the whole last five
+  minutes (now "Less than 5 minutes left"), truncated option labels in the settings card.
 
 ### Added with Sentry in the app and admin (T-042)
 - **Browser E2E (admin + app):** the test servers use a fake Sentry host; a real uncaught error reaches it tagged

@@ -3,9 +3,9 @@ import { en } from '@/i18n/en';
 import { ne } from '@/i18n/ne';
 import { defaultLocale, localized, translate } from '@/i18n/translate';
 import { appGate, compareVersions, type AppConfig } from './app-gate';
-import { adIsoToBs, bsToAdIso, countdown, kathmanduWeekday, todayLabel } from './dates';
+import { adIsoToBs, bsDateTime, bsToAdIso, countdown, kathmanduWeekday, todayLabel } from './dates';
 import { devApiOrigin } from './dev-api';
-import { formatDuration, percent, price } from './format';
+import { formatDuration, marks, percent, price } from './format';
 import { initialsOf } from './names';
 import { checkCode, checkEmail, checkPassword, toNepalE164 } from './validation';
 
@@ -157,5 +157,16 @@ describe('date of birth (BS picker ⇄ AD storage)', () => {
     expect(adIsoToBs('2026-10-03')).toEqual({ year: 2083, month: 6, day: 17 });
     expect(bsToAdIso({ year: 2083, month: 6, day: 17 })).toBe('2026-10-03');
     expect(bsToAdIso(adIsoToBs('2001-01-05'))).toBe('2001-01-05');
+  });
+});
+
+describe('exam display helpers', () => {
+  it('shows window times in Nepal time and marks with Devanagari digits for Nepali', () => {
+    // 04:15 UTC = 10:00 in Nepal (UTC+5:45).
+    expect(bsDateTime('2026-10-10T04:15:00Z', 'en')).toMatch(/2083, 10:00$/);
+    expect(bsDateTime('2026-10-10T04:15:00Z', 'ne')).toMatch(/२०८३, १०:००$/);
+    expect(marks(1250, 'en')).toBe('12.5');
+    expect(marks(-50, 'en')).toBe('-0.5');
+    expect(marks(200, 'ne')).toBe('२');
   });
 });
