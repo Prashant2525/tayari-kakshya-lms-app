@@ -137,4 +137,5 @@ supported merchant locations (Nepal: developer ✔, merchant ✘); YouTube priva
 - **L6 (Phase 6, asked 2026-10-02):** A course priced at 0 — should its *premium* items open to every signed-in
   student, or should students tap "Enrol" (creating a free entitlement, so it appears in My courses and analytics)?
   **Answered 2026-10-02: Enrol step** (D-043).
+- **§10 (asked 2026-10-04):** (A) Who may take a Premium test not linked to a course? (B) A timed test started late in its window: until the close or the full duration? (C) With retakes, which attempt is official? **Answered 2026-10-04:** category/linked course owners, until it closes, first attempt — each changeable per assessment in the CMS (D-048).
 - **L5 (Phase 18):** App identifiers (`com.<org>.<app>`), store account ownership (Play Console organisation account, Apple Developer).

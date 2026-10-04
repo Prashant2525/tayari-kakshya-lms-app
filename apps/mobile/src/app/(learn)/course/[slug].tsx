@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useCourse, useEnrol, type CourseDetail } from '@/api/learning';
 import { CourseArt, PriceText } from '@/features/courses/course-card';
 import { RichText } from '@/features/learn/rich-text';
+import { TestsLink } from '@/features/tests/tests-link';
 import { localized } from '@/i18n/translate';
 import { useT } from '@/i18n/use-t';
 import { bsDate } from '@/lib/dates';
@@ -120,6 +121,8 @@ export default function CourseScreen() {
               <SubjectRow key={s.id} course={c} subject={s} index={i} />
             ))}
           </View>
+
+          <TestsLink title={t('tests.title')} courseId={c.id} />
 
           {description ? (
             <View style={{ gap: 8 }}>

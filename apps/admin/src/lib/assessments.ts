@@ -15,6 +15,25 @@ export const RESULT_RELEASE_LABEL = {
   manual: 'When staff release them',
 } as const;
 
+/** D-048: attempt rules chosen per assessment; defaults in Settings → Assessment defaults. */
+export const PREMIUM_ACCESS_LABEL = {
+  linked: 'Students with a linked course',
+  any_course: 'Students with any course',
+  plans_only: 'Only through a plan (later)',
+} as const;
+/** Shown under the Premium access choice. */
+export const PREMIUM_ACCESS_HINT =
+  'Linked course: its course — or, without one, any course with its subject or exam category.';
+export const LATE_START_LABEL = {
+  until_close: 'Ends when the window closes',
+  full_duration: 'Full duration, even past the close',
+} as const;
+export const COUNTED_ATTEMPT_LABEL = {
+  first: 'First attempt',
+  best: 'Best score (faster time breaks a tie)',
+  latest: 'Latest attempt',
+} as const;
+
 export const SUBJECTIVE_GRADING_LABEL = {
   none: 'No written answers',
   self: 'Students compare with the model answer',
@@ -94,6 +113,9 @@ export interface AssessmentDetail {
   showExplanations: boolean;
   leaderboardEnabled: boolean;
   subjectiveGrading: keyof typeof SUBJECTIVE_GRADING_LABEL;
+  premiumAccess: keyof typeof PREMIUM_ACCESS_LABEL;
+  lateStart: keyof typeof LATE_START_LABEL;
+  countedAttempt: keyof typeof COUNTED_ATTEMPT_LABEL;
   challengeDate: string | null;
   status: PublishStatus;
   publishAt: string | null;
@@ -123,5 +145,8 @@ export interface AssessmentDefaults {
   resultRelease: keyof typeof RESULT_RELEASE_LABEL;
   showExplanations: boolean;
   maxAttempts: number | null;
+  premiumAccess: keyof typeof PREMIUM_ACCESS_LABEL;
+  lateStart: keyof typeof LATE_START_LABEL;
+  countedAttempt: keyof typeof COUNTED_ATTEMPT_LABEL;
   scoring: { [K in keyof ScoringRules]: ScoringRules[K] | null };
 }

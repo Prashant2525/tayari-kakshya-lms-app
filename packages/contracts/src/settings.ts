@@ -117,6 +117,10 @@ export const SETTINGS = {
       resultRelease: z.enum(['immediate', 'after_close', 'manual']),
       showExplanations: z.boolean(),
       maxAttempts: z.number().int().min(1).max(100).nullable(),
+      /** D-048 (owner, 2026-10-04). Defaults keep earlier saved values valid. */
+      premiumAccess: z.enum(['linked', 'any_course', 'plans_only']).default('linked'),
+      lateStart: z.enum(['until_close', 'full_duration']).default('until_close'),
+      countedAttempt: z.enum(['first', 'best', 'latest']).default('first'),
       scoring: z.object({
         negativeMarking: z.boolean().nullable(),
         multipleChoice: z.enum(['all_or_nothing', 'partial_if_no_wrong']).nullable(),
@@ -129,6 +133,9 @@ export const SETTINGS = {
       resultRelease: 'immediate' as const,
       showExplanations: true,
       maxAttempts: null,
+      premiumAccess: 'linked' as const,
+      lateStart: 'until_close' as const,
+      countedAttempt: 'first' as const,
       scoring: {
         negativeMarking: null,
         multipleChoice: null,
@@ -137,6 +144,15 @@ export const SETTINGS = {
         scoreFloor: null,
       },
     },
+    public: false,
+  },
+  /**
+   * Attempt timing (§10). Answers that arrive up to `graceSeconds` after an attempt's deadline are still accepted (a
+   * slow network must not lose the last answers); after that the attempt is submitted automatically.
+   */
+  'assessments.timing': {
+    schema: z.object({ graceSeconds: z.number().int().min(0).max(300) }),
+    default: { graceSeconds: 30 },
     public: false,
   },
 } as const satisfies Record<string, { schema: z.ZodType; default: unknown; public: boolean }>;

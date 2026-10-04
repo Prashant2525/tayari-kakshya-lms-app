@@ -87,6 +87,8 @@ export class AccountDeletionService {
         await tx.otpCode.deleteMany({ where: { userId: request.userId } });
         await tx.userTargetPost.deleteMany({ where: { userId: request.userId } });
         await tx.bookmark.deleteMany({ where: { userId: request.userId } });
+        // Answers go with their attempts (cascade).
+        await tx.attempt.deleteMany({ where: { userId: request.userId } });
         await tx.user.update({
           where: { id: request.userId },
           data: {

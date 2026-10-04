@@ -16,6 +16,13 @@ import {
 } from '@/components/ui/primitives';
 import { api, errorMessage } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
+import {
+  COUNTED_ATTEMPT_LABEL,
+  LATE_START_LABEL,
+  PREMIUM_ACCESS_HINT,
+  PREMIUM_ACCESS_LABEL,
+  RESULT_RELEASE_LABEL,
+} from '@/lib/assessments';
 import { QUESTION_TYPE_LABEL } from '@/lib/questions';
 
 const QUESTION_TYPES = Object.keys(QUESTION_TYPE_LABEL) as Array<keyof typeof QUESTION_TYPE_LABEL>;
@@ -102,6 +109,40 @@ function SettingCard<K extends SettingKey>({
         </div>
       ) : null}
     </Card>
+  );
+}
+
+/** A select over a label map; `empty` adds a "no value" option. */
+function OptionSelect<V extends string>({
+  label,
+  value,
+  options,
+  onChange,
+  disabled,
+  empty,
+  hint,
+}: {
+  label: string;
+  hint?: string;
+  value: V | '';
+  options: Record<V, string>;
+  onChange: (v: V) => void;
+  disabled: boolean;
+  empty?: string;
+}) {
+  return (
+    <Field label={label} hint={hint}>
+      {(a) => (
+        <Select {...a} value={value} disabled={disabled} onChange={(e) => onChange(e.target.value as V)}>
+          {empty !== undefined ? <option value="">{empty}</option> : null}
+          {(Object.entries(options) as Array<[V, string]>).map(([v, l]) => (
+            <option key={v} value={v}>
+              {l}
+            </option>
+          ))}
+        </Select>
+      )}
+    </Field>
   );
 }
 
@@ -438,6 +479,134 @@ export function SettingsPage() {
                 )}
               </Field>
             </div>
+          )}
+        </SettingCard>
+
+        <SettingCard
+          row={row('assessments.defaults')}
+          title="Assessment defaults"
+          description="Prefilled on every new assessment; each assessment can still change them. Scoring left on “No default” must be chosen per assessment."
+        >
+          {(d, set, disabled) => (
+            <div className="grid gap-4 sm:grid-cols-2">
+              <OptionSelect
+                label="When students see results"
+                value={d.resultRelease}
+                options={RESULT_RELEASE_LABEL}
+                disabled={disabled}
+                onChange={(v) => set({ ...d, resultRelease: v })}
+              />
+              <Field label="Attempts allowed" hint="Blank = unlimited.">
+                {(a) => (
+                  <Input
+                    {...a}
+                    type="number"
+                    min={1}
+                    max={100}
+                    value={d.maxAttempts ?? ''}
+                    disabled={disabled}
+                    onChange={(e) =>
+                      set({ ...d, maxAttempts: e.target.value === '' ? null : Number(e.target.value) })
+                    }
+                  />
+                )}
+              </Field>
+              <OptionSelect
+                label="Premium access"
+                hint={PREMIUM_ACCESS_HINT}
+                value={d.premiumAccess}
+                options={PREMIUM_ACCESS_LABEL}
+                disabled={disabled}
+                onChange={(v) => set({ ...d, premiumAccess: v })}
+              />
+              <OptionSelect
+                label="Late start (time window)"
+                value={d.lateStart}
+                options={LATE_START_LABEL}
+                disabled={disabled}
+                onChange={(v) => set({ ...d, lateStart: v })}
+              />
+              <OptionSelect
+                label="Official attempt (with retakes)"
+                value={d.countedAttempt}
+                options={COUNTED_ATTEMPT_LABEL}
+                disabled={disabled}
+                onChange={(v) => set({ ...d, countedAttempt: v })}
+              />
+              <ToggleRow
+                label="Show explanations"
+                checked={d.showExplanations}
+                disabled={disabled}
+                onChange={(v) => set({ ...d, showExplanations: v })}
+              />
+              <OptionSelect
+                label="Negative marking"
+                value={d.scoring.negativeMarking === null ? '' : String(d.scoring.negativeMarking)}
+                options={{ true: 'On', false: 'Off' }}
+                empty="No default"
+                disabled={disabled}
+                onChange={(v) =>
+                  set({ ...d, scoring: { ...d.scoring, negativeMarking: v === '' ? null : v === 'true' } })
+                }
+              />
+              <OptionSelect
+                label="Lowest total"
+                value={d.scoring.scoreFloor ?? ''}
+                options={{ zero: 'Never below zero', none: 'Can go below zero' }}
+                empty="No default"
+                disabled={disabled}
+                onChange={(v) => set({ ...d, scoring: { ...d.scoring, scoreFloor: v || null } })}
+              />
+              <OptionSelect
+                label="Multiple-answer questions"
+                value={d.scoring.multipleChoice ?? ''}
+                options={{
+                  all_or_nothing: 'All or nothing',
+                  partial_if_no_wrong: 'Part marks if no wrong option',
+                }}
+                empty="No default"
+                disabled={disabled}
+                onChange={(v) => set({ ...d, scoring: { ...d.scoring, multipleChoice: v || null } })}
+              />
+              <OptionSelect
+                label="Match the following"
+                value={d.scoring.match ?? ''}
+                options={{ all_or_nothing: 'All or nothing', per_pair: 'Part marks per pair' }}
+                empty="No default"
+                disabled={disabled}
+                onChange={(v) => set({ ...d, scoring: { ...d.scoring, match: v || null } })}
+              />
+              <OptionSelect
+                label="Fill in the blank"
+                value={d.scoring.fillBlank ?? ''}
+                options={{ all_or_nothing: 'All or nothing', per_blank: 'Part marks per blank' }}
+                empty="No default"
+                disabled={disabled}
+                onChange={(v) => set({ ...d, scoring: { ...d.scoring, fillBlank: v || null } })}
+              />
+            </div>
+          )}
+        </SettingCard>
+
+        <SettingCard
+          row={row('assessments.timing')}
+          title="Exam timing"
+          description="Answers that arrive this many seconds after an attempt's time is up still count (slow connections). After that the attempt is submitted automatically."
+        >
+          {(d, set, disabled) => (
+            <Field label="Grace period (seconds)" className="sm:max-w-xs">
+              {(a) => (
+                <Input
+                  {...a}
+                  type="number"
+                  min={0}
+                  max={300}
+                  value={d.graceSeconds}
+                  disabled={disabled}
+                  onChange={(e) => set({ graceSeconds: Number(e.target.value) })}
+                />
+              )}
+            </Field>
           )}
         </SettingCard>
 

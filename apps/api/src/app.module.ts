@@ -32,6 +32,8 @@ import { AdminCoursesController } from './modules/content/admin-courses.controll
 import { AdminTaxonomyController } from './modules/content/admin-taxonomy.controller.js';
 import { CatalogController, LearningController } from './modules/content/catalog.controller.js';
 import { PdfViewerController } from './modules/content/pdf-viewer/pdf-viewer.controller.js';
+import { AttemptsController } from './modules/attempts/attempts.controller.js';
+import { AttemptsService } from './modules/attempts/attempts.service.js';
 import { PracticeController } from './modules/content/practice.controller.js';
 import { PracticeService } from './modules/content/practice.service.js';
 import { CatalogService } from './modules/content/catalog.service.js';
@@ -108,6 +110,7 @@ export class InfraModule {}
     EntitlementsService,
     CatalogService,
     PracticeService,
+    AttemptsService,
     ScopeService,
     QuestionsService,
     QuestionReportsService,
@@ -140,6 +143,7 @@ export class InfraModule {}
     EntitlementsService,
     CatalogService,
     PracticeService,
+    AttemptsService,
     ScopeService,
     QuestionsService,
     QuestionReportsService,
@@ -193,6 +197,7 @@ export class DomainModule {}
     LearningController,
     PdfViewerController,
     PracticeController,
+    AttemptsController,
     AdminQuestionsController,
     QuestionReportsController,
     AdminAssessmentsController,

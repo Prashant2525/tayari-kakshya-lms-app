@@ -1,4 +1,4 @@
-import { formatNpr, toDevanagariDigits } from '@tk/domain';
+import { formatMarks, formatNpr, toDevanagariDigits } from '@tk/domain';
 import type { Locale } from '@/i18n/translate';
 
 const digits = (text: string, locale: Locale) => (locale === 'ne' ? toDevanagariDigits(text) : text);
@@ -10,6 +10,16 @@ export function formatDuration(seconds: number, locale: Locale): string {
   const m = Math.floor((s % 3600) / 60);
   const rest = String(s % 60).padStart(2, '0');
   return digits(h > 0 ? `${h}:${String(m).padStart(2, '0')}:${rest}` : `${m}:${rest}`, locale);
+}
+
+/** Marks from centimarks: "12.5", "-0.25" (Devanagari digits for Nepali). */
+export function marks(centimarks: number, locale: Locale): string {
+  return digits(formatMarks(centimarks), locale);
+}
+
+/** A number in the reader's digits. */
+export function num(n: number, locale: Locale): string {
+  return digits(String(n), locale);
 }
 
 /** Whole-number percentage; 0 when there is nothing to complete. */

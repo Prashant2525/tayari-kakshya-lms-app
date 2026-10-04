@@ -20,11 +20,13 @@ export interface TextFieldProps extends Omit<TextInputProps, 'style'> {
   hint?: string;
   /** Adds a show/hide toggle and hides the value. */
   password?: boolean;
+  /** Multi-line: visible height in lines (text starts at the top). */
+  rows?: number;
 }
 
 /** Labelled input with hint and inline error (DESIGN_SYSTEM §7). */
 export const TextField = forwardRef<TextInput, TextFieldProps>(function TextField(
-  { label, error, hint, password = false, ...input },
+  { label, error, hint, password = false, rows, ...input },
   ref,
 ) {
   const { colors } = useTheme();
@@ -61,6 +63,9 @@ export const TextField = forwardRef<TextInput, TextFieldProps>(function TextFiel
               borderWidth: focused || error ? 2 : 1,
               paddingRight: password ? 52 : 14,
             },
+            rows
+              ? { minHeight: rows * 24 + 24, paddingTop: 12, paddingBottom: 12, textAlignVertical: 'top' }
+              : null,
           ]}
         />
         {password ? (
