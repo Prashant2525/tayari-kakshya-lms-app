@@ -1,6 +1,6 @@
 # Project State
 
-Current Phase: **Phase 10 — Exam engine: part 1 done** on `feature/exam-engine` (monitoring merged, PR #14/#15)
+Current Phase: **Phase 10 — Exam engine: part 1 merged (PR #16), part 2 done** on `feature/grading`
 Current Milestone: content API on `feature/content-cms` → Admin CMS content screens
 Overall Status: **IN PROGRESS**
 Last updated: 2026-10-04
@@ -29,8 +29,9 @@ Last updated: 2026-10-04
 - Phase 8 merged (PR #9, #10). Still open from it: Sentry/PostHog (keys, KI-028), a run on a real phone (KI-031).
 - Phase 9 part 1 merged (PR #11, YouTube fix PR #12): catalog, course page + Enrol, Home current course + Continue,
   subject outline, note / PDF / video lessons with progress (T-038, T-039).
-- §10 part 1 on `feature/exam-engine`: attempt engine (T-043) with the owner's attempt rules (D-048), exam mode,
-  results, review, history; CMS attempt rules + assessment defaults. Next: part 2 (grading queue, result release).
+- §10 part 1 merged (PR #16): attempt engine (T-043, D-048), exam mode, results, review, history.
+- §10 part 2 on `feature/grading` (T-044): CMS grading queue, results, manual release, teacher comments; scope fix
+  (KI-035). Next: part 3 (daily challenge, streaks, rankings/leaderboards, certificates, mistake notebook).
 - Monitoring (T-042) merged (PR #14, #15): Sentry in the API, worker, admin and app; PostHog in the app. Google web client registered for `http://localhost:8081` (checked); a real
   sign-in by the owner and Android/iOS clients remain (KI-029).
 - Phase 9 part 2 merged (PR #13): practice questions with Check answer and locked Premium answers
@@ -59,7 +60,7 @@ Last updated: 2026-10-04
 - Mobile: `apps/mobile` — `pnpm --filter @tk/mobile dev` (Expo; press `w` for web, or scan with Expo Go). Website: not started (Phase 11).
 
 ## Tests
-- Unit/integration 369 · browser E2E 20 (admin) + 17 (student app) — all passing locally (see `TEST_STATUS.md`).
+- Unit/integration 373 · browser E2E 21 (admin) + 18 (student app) — all passing locally (see `TEST_STATUS.md`).
 
 ## Known Issues
 - See `KNOWN_ISSUES.md` (KI-021 CI storage flake under investigation, KI-022 per-request PDF watermarking, KI-023 Bunny token auth).
@@ -87,5 +88,5 @@ and `pnpm --filter @tk/admin dev` → create your Super Admin:
 (code in Mailpit http://localhost:8025) → set password at http://localhost:5173/set-password → sign in → enrol 2FA.
 
 ## Exact Next Task
-- Owner merges the §10 part 1 PR; then §10 part 2 exam engine + engagement (assessments list, exam mode, results, history,
+- Owner merges the §10 part 2 PR; then §10 part 3 exam engine + engagement (assessments list, exam mode, results, history,
   daily challenge, leaderboards, certificates, mistake notebook) — see SESSION_HANDOFF.

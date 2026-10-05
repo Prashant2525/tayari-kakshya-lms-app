@@ -25,6 +25,7 @@ const CONTENT_PERMISSIONS = [
   'question_reports:manage',
   'assessments:edit',
   'assessments:publish',
+  'grading:manage',
 ];
 
 /**

@@ -2,7 +2,7 @@
 
 Session date: 2026-10-02 (session 4 — resumed after a VS Code crash)
 Current phase: **Phase 6 — content CMS, API layer complete and verified locally**
-Current task: §10 part 1 (attempt engine) done; PR open from `feature/exam-engine`; next §10 part 2
+Current task: §10 part 2 (grading + results) done; PR open from `feature/grading`; next §10 part 3
 
 ## Completed this session
 - Recovered the interrupted work from the repository (nothing lost). Verified the uncommitted content API:
@@ -68,6 +68,13 @@ Current task: §10 part 1 (attempt engine) done; PR open from `feature/exam-engi
 - PR #9 / #10 merged. Branch `feature/student-learning`. API part committed first (`485f5f7`): progress, Continue,
   self-hosted PDF reader. Then the app: Courses tab, course page, Home current course, subject outline, lessons.
 - Verified with 8 browser tests (real API, PDF rendered by pdf.js) and screenshots; four defects fixed (TEST_STATUS).
+
+## Session 15 (2026-10-06)
+- PR #16 merged by the owner. Branch `feature/grading`: §10 part 2 (T-044) — see IMPLEMENTATION_PLAN / TEST_STATUS.
+- Found while reading the admin assessment list: the staff-scope filter and the title search were both spread as
+  `OR`, so searching replaced the scope (KI-035) — fixed with AND, regression test fails without the fix.
+- Totals recalculation moved to `attempt-totals.ts` (shared by student self-grading and staff grading).
+- Admin got a read-only rich text view (`RichTextView`) for questions and model answers.
 
 ## Session 14 (2026-10-04)
 - PR #15 merged. Owner: Google sign-in works on the web; no button on Android (expected — needs an Android OAuth
@@ -146,9 +153,9 @@ Current task: §10 part 1 (attempt engine) done; PR open from `feature/exam-engi
 - Nothing partially implemented. Admin screens for Phase 6 not started.
 
 ## Exact next steps
-1. Owner reviews and merges the §10 part 1 PR (`feature/exam-engine` → `main`); CI must be green.
-2. §10 part 2: instructor grading queue for written answers, manual result release, attempt viewer in the CMS,
-   rankings computed at release. Then part 3: daily challenge + streaks, leaderboards, certificates, mistake notebook.
+1. Owner reviews and merges the §10 part 2 PR (`feature/grading` → `main`); CI must be green.
+2. §10 part 3: daily challenge + streaks, rankings + leaderboards (official attempt, D-048), certificates (issue +
+   public verify), mistake notebook & revision mode.
 3. Google Android/iOS clients after the app identifiers (L5, KI-029); Sentry source maps with the first EAS build.
 
 ## Files changed
@@ -158,7 +165,7 @@ Current task: §10 part 1 (attempt engine) done; PR open from `feature/exam-engi
 - Migration `content_catalog`; endpoints in `API_DOCUMENTATION.md` §1b.
 
 ## Tests run
-- `pnpm format:check && pnpm build && pnpm lint && pnpm typecheck && pnpm test` → all passing, 369 tests; `pnpm --filter @tk/admin e2e` → 20 passing; `pnpm --filter @tk/mobile e2e` → 17 passing.
+- `pnpm format:check && pnpm build && pnpm lint && pnpm typecheck && pnpm test` → all passing, 373 tests; `pnpm --filter @tk/admin e2e` → 21 passing; `pnpm --filter @tk/mobile e2e` → 18 passing.
 
 ## Known issues / blockers
 - KI-021 (CI-only media failure — fix pending CI confirmation), KI-022 (per-request watermark cost). No blockers.

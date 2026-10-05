@@ -280,6 +280,10 @@ describe('assessment builder', () => {
     await ctx.prisma.staffScope.create({ data: { userId: scoped.id, scopeType: 'subject', scopeId: other } });
     const s = (await staffLogin(ctx, 'scoped@example.com')).token;
     expect((await call(ctx, 'GET', '/admin/assessments', { token: s })).body.data).toHaveLength(0);
+    // Searching must not widen the scope (the search and the scope were once merged so the search replaced it).
+    expect(
+      (await call(ctx, 'GET', '/admin/assessments?q=Constitution', { token: s })).body.data,
+    ).toHaveLength(0);
     expect((await call(ctx, 'GET', `/admin/assessments/${a.id}`, { token: s })).status).toBe(403);
     expect((await create(s, quiz({ subjectId: subject }))).status).toBe(403);
     expect((await create(s, quiz({ subjectId: other }))).status).toBe(201);

@@ -54,19 +54,24 @@ export class AssessmentsService {
     private readonly settings: SettingsService,
   ) {}
 
-  async list(query: AssessmentListQuery, actor: ContentActor) {
+  /** Assessments a scoped staff member may see (null = unrestricted). */
+  async scopeFilter(actor: ContentActor): Promise<Prisma.AssessmentWhereInput | null> {
     const [subjects, courses] = await Promise.all([
       this.scope.allowedSubjectIds(actor),
       this.scope.allowedCourseIds(actor),
     ]);
-    const scoped: Prisma.AssessmentWhereInput | null =
-      subjects || courses
-        ? { OR: [{ subjectId: { in: [...(subjects ?? [])] } }, { courseId: { in: [...(courses ?? [])] } }] }
-        : null;
+    return subjects || courses
+      ? { OR: [{ subjectId: { in: [...(subjects ?? [])] } }, { courseId: { in: [...(courses ?? [])] } }] }
+      : null;
+  }
+
+  async list(query: AssessmentListQuery, actor: ContentActor) {
+    const scoped = await this.scopeFilter(actor);
     const rows = await this.prisma.assessment.findMany({
       where: {
         deletedAt: null,
-        ...(scoped ?? {}),
+        // AND: the staff scope and the title search are both OR clauses; spreading both would drop the scope.
+        AND: [scoped ?? {}],
         ...(query.type ? { type: query.type } : {}),
         ...(query.status ? { status: query.status } : {}),
         ...(query.courseId ? { courseId: query.courseId } : {}),
@@ -486,7 +491,8 @@ export class AssessmentsService {
     if (!input.courseId && !input.subjectId) await this.scope.assertUnscoped(actor);
   }
 
-  private async assertScope(actor: ContentActor, a: Assessment) {
+  /** Staff limited to some courses/subjects may only work on assessments inside them. */
+  async assertScope(actor: ContentActor, a: Assessment) {
     if (a.subjectId) await this.scope.assertSubject(actor, a.subjectId);
     else if (a.courseId) await this.scope.assertCourse(actor, a.courseId);
     else await this.scope.assertUnscoped(actor);

@@ -177,6 +177,14 @@ function Solved({
           {t('practice.answerIs', { answer: `${a.value}${a.tolerance ? ` ± ${a.tolerance}` : ''}` })}
         </Text>
       ) : null}
+      {q.graderComment ? (
+        <View style={[styles.comment, { borderColor: colors.border }]}>
+          <Text variant="caption" color="textMuted" style={styles.overline}>
+            {t('review.teacherComment')}
+          </Text>
+          <Text variant="body">{q.graderComment}</Text>
+        </View>
+      ) : null}
       {explanation ? (
         <View style={{ gap: 4 }}>
           <Text variant="caption" color="textMuted" style={styles.overline}>
@@ -204,4 +212,5 @@ const styles = StyleSheet.create({
   head: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   overline: { textTransform: 'uppercase', letterSpacing: 0.4 },
   written: { borderRadius: radius.md, padding: 12 },
+  comment: { borderWidth: 1, borderRadius: radius.md, padding: 12, gap: 4 },
 });

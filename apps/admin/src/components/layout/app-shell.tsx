@@ -6,6 +6,7 @@ import {
   FileQuestion,
   FileText,
   Flag,
+  PenLine,
   FolderTree,
   GraduationCap,
   Library,
@@ -50,6 +51,7 @@ const NAV: Array<{ group: string; items: NavItem[] }> = [
       { to: '/subjects', label: 'Subjects', icon: BookOpen, permission: 'content:edit' },
       { to: '/questions', label: 'Question bank', icon: FileQuestion, permission: 'questions:edit' },
       { to: '/assessments', label: 'Assessments', icon: ClipboardCheck, permission: 'assessments:edit' },
+      { to: '/grading', label: 'Grading', icon: PenLine, permission: 'grading:manage' },
       {
         to: '/question-reports',
         label: 'Question reports',

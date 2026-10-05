@@ -386,6 +386,7 @@ export const en = {
   'review.awarded': 'Marks {marks}',
   'review.give': 'Your marks (out of {max})',
   'review.saveMarks': 'Save marks',
+  'review.teacherComment': 'Comment from your teacher',
   'history.title': 'My test results',
   'history.empty': 'No tests taken yet',
   'history.emptyBody': 'Your submitted tests and results appear here.',

@@ -4,6 +4,15 @@ All notable changes to this project. Format based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Added — 2026-10-06 (§10 part 2: grading and results)
+- CMS: **Grading** page (written answers with the model answer, marks and a comment; corrections), **Results** per
+  assessment (statistics, attempts, one attempt in full), **Release results** for manual release.
+- Student app: the teacher's comment in the answer review.
+- API: grading queue, grade, results, attempt detail, release endpoints; E2E editor role gets `grading:manage`.
+
+### Fixed — 2026-10-06
+- CMS assessment search no longer widens a scoped staff member's view (KI-035).
+
 ### Added — 2026-10-04 (§10 part 1: taking tests)
 - Student app: Tests tab on the subject screen, Tests on the course page, "Tests for your exam" on Home, test page
   with the rules, exam mode (timer from the server's deadline, question palette, mark for review, autosave with an

@@ -24,12 +24,15 @@ const scoring = {
 const quizTitle = `Constitution quiz ${run}`;
 const weeklyTitle = `Weekly exam ${run}`;
 const quickTitle = `One-minute check ${run}`;
+const writtenTitle = `Written test ${run}`;
 
 let page: Page;
+let staffToken = '';
 test.describe.configure({ mode: 'serial' });
 
 test.beforeAll(async ({ browser, request }) => {
   const token = await editorToken(request);
+  staffToken = token;
   const call = <T = { id: string }>(method: 'POST' | 'PUT', p: string, data?: unknown) =>
     apiCall<T>(request, token, method, p, data);
 
@@ -151,6 +154,24 @@ test.beforeAll(async ({ browser, request }) => {
   await assessment({ type: 'quiz', title: { en: quickTitle }, subjectId: subject.id, durationMinutes: 1 }, [
     truth,
   ]);
+  const written = await question(
+    {
+      type: 'subjective',
+      stem: doc('Explain judicial review.'),
+      modelAnswer: doc('Courts test laws against the constitution.'),
+    },
+    5,
+  );
+  await assessment(
+    {
+      type: 'subject_test',
+      title: { en: writtenTitle },
+      subjectId: subject.id,
+      durationMinutes: null,
+      subjectiveGrading: 'instructor',
+    },
+    [written],
+  );
 
   const registered = await request.post(`${E2E_WEB_ORIGIN}/api/v1/auth/register`, {
     data: {
@@ -259,6 +280,46 @@ test('a weekly exam for my exam waits for the window to close before showing res
   await expect(text('Your answers are submitted.')).toBeVisible();
   await expect(text(/Results will be published on/)).toBeVisible();
   await expect(text('Your score')).toHaveCount(0);
+});
+
+test('a written answer marked by a teacher shows the marks and the comment', async ({ request }) => {
+  await page.goto('/');
+  await openSubjectTests();
+  await link(writtenTitle).click();
+  await button('Start test').click();
+  await visible(page.getByLabel('Your answer', { exact: true })).fill(
+    'Courts can cancel unconstitutional laws.',
+  );
+  await button('Finish').click();
+  await visible(page.getByRole('dialog', { name: 'Submit your answers?' }))
+    .getByRole('button', { name: 'Submit' })
+    .click();
+  await expect(text('Your teachers will mark your written answers.')).toBeVisible();
+
+  // A teacher marks it in the CMS (grading queue → grade).
+  const queue = await apiCall<{ data: Array<{ attemptId: string; questionId: string }> }>(
+    request,
+    staffToken,
+    'GET',
+    '/admin/grading',
+  );
+  const item = queue.data[0]!;
+  await apiCall(
+    request,
+    staffToken,
+    'PUT',
+    `/admin/attempts/${item.attemptId}/answers/${item.questionId}/grade`,
+    {
+      awarded: 4,
+      comment: 'Good — also mention Article 133.',
+    },
+  );
+
+  await page.reload();
+  await expect(visible(page.getByRole('progressbar', { name: '4 out of 5' }))).toBeVisible();
+  await button('Review answers').click();
+  await expect(text('Comment from your teacher')).toBeVisible();
+  await expect(text('Good — also mention Article 133.')).toBeVisible();
 });
 
 test('when time runs out the app submits the attempt by itself', async () => {
