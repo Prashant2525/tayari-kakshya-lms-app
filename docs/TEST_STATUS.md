@@ -1,6 +1,6 @@
 # Test Status
 
-Last updated: 2026-10-04 (§10 part 1: attempt engine, exam mode). `pnpm test` runs unit + integration suites (needs `pnpm infra:up`);
+Last updated: 2026-10-06 (§10 part 2: grading and results). `pnpm test` runs unit + integration suites (needs `pnpm infra:up`);
 `pnpm build && pnpm --filter @tk/admin e2e` and `pnpm build && pnpm --filter @tk/mobile e2e` run the browser suites
 (the student suite also needs Mailpit, part of `pnpm infra:up`).
 
@@ -11,12 +11,24 @@ Last updated: 2026-10-04 (§10 part 1: attempt engine, exam mode). `pnpm test` r
 | `@tk/design-tokens` | 39 | WCAG contrast for every text/background pair (light + dark), CSS generation |
 | `@tk/domain` | 45 | BS calendar, Kathmandu day boundary, fiscal year, money/VAT/discounts, access validity |
 | `@tk/contracts` | 21 | Schema behaviour (localized text, email normalisation, mass assignment, settings defaults, rich-text validation) |
-| `@tk/api` | 196 | Integration against real PostgreSQL + Redis + S3 (SeaweedFS) through the HTTP stack; TOTP RFC 6238 vectors; RBAC, video, watermark unit |
+| `@tk/api` | 200 | Integration against real PostgreSQL + Redis + S3 (SeaweedFS) through the HTTP stack; TOTP RFC 6238 vectors; RBAC, video, watermark unit |
 | `@tk/admin` (unit) | 35 | API client (headers, refresh single-flight, retry, session loss, error mapping), BS formatting, Button `asChild` regression |
-| `@tk/admin` (E2E, Playwright) | 20 | Real browser + real API + `*_e2e` database |
+| `@tk/admin` (E2E, Playwright) | 21 | Real browser + real API + `*_e2e` database |
 | `@tk/mobile` (unit) | 33 | API client (single-flight refresh, early refresh, session end, maintenance), translations complete in both languages, BS dates and Kathmandu weekday, force-update/maintenance gate, form checks, Nepali phone numbers |
-| `@tk/mobile` (E2E, Playwright, phone viewport) | 17 | Web build + real API + `*_mobile_e2e` database + Mailpit |
-| **Total** | **406** | |
+| `@tk/mobile` (E2E, Playwright, phone viewport) | 18 | Web build + real API + `*_mobile_e2e` database + Mailpit |
+| **Total** | **412** | |
+
+### Added with grading and results (§10 part 2)
+- **API (4 integration tests):** queue → grade (over the maximum refused) → corrected → totals and pass/fail → hidden
+  until released → release needs `assessments:publish` → student sees score and comment; releasing twice changes
+  nothing; audit entries; auto-scored, unanswered and running attempts cannot be graded; permissions and staff
+  scopes (mutation-checked: removing the attempt scope check fails the test); statistics from official attempts.
+- **Regression:** a scoped editor searching assessments sees only their scope (fails without the KI-035 fix).
+- **Browser E2E (admin):** Grading → invalid marks message → marks + comment → queue empty → Results (Completed,
+  4 / 5) → Release results → student result released with the comment → attempt page shows who marked it.
+- **Browser E2E (student app):** a written answer in an instructor-graded test → "teachers will mark" → graded via
+  the CMS API → 4/5 and "Comment from your teacher" in the review.
+- **Screenshots reviewed:** Grading, Results, attempt page.
 
 ### Added with the attempt engine (§10 part 1)
 - **API (10 integration tests):** start → autosave (newest wins) → resume → submit with negative marking and partial

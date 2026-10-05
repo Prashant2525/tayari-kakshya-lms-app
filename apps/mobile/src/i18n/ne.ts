@@ -384,6 +384,7 @@ export const ne: Record<MessageKey, string> = {
   'review.awarded': 'अङ्क {marks}',
   'review.give': 'तपाईंको अङ्क ({max} मध्ये)',
   'review.saveMarks': 'अङ्क सुरक्षित गर्नुहोस्',
+  'review.teacherComment': 'शिक्षकको टिप्पणी',
   'history.title': 'मेरा टेस्ट नतिजा',
   'history.empty': 'अहिलेसम्म कुनै टेस्ट दिइएको छैन',
   'history.emptyBody': 'बुझाएका टेस्ट र नतिजाहरू यहाँ देखिन्छन्।',

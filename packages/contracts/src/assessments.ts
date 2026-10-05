@@ -256,3 +256,18 @@ export const StudentAssessmentQuery = z
   })
   .refine((q) => !q.subjectId || q.courseId, { message: 'A subject needs its course', path: ['subjectId'] });
 export type StudentAssessmentQuery = z.infer<typeof StudentAssessmentQuery>;
+
+// ───────────── Grading and results (staff, §10 part 2) ─────────────
+
+/** Marks for one written answer (0 … the question's marks) and an optional comment the student sees. */
+export const GradeAnswerInput = z.object({
+  awarded: Marks,
+  comment: z.string().trim().max(2000).nullable().optional(),
+});
+export type GradeAnswerInput = z.infer<typeof GradeAnswerInput>;
+
+export const GradingQueueQuery = z.object({
+  assessmentId: z.uuid().optional(),
+  limit: z.coerce.number().int().min(1).max(50).default(20),
+});
+export type GradingQueueQuery = z.infer<typeof GradingQueueQuery>;

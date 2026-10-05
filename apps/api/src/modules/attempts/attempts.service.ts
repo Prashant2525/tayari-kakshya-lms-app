@@ -17,12 +17,10 @@ import {
   releaseDate,
   resultsReleased,
   scoreQuestion,
-  totalAttempt,
   windowState,
   type AnswerKey,
   type AnswerResponse,
   type MarkScheme,
-  type QuestionScore,
 } from '@tk/domain';
 import { AppError, Errors } from '../../common/errors/app-error.js';
 import { Prisma, type Assessment, type Attempt } from '../../generated/prisma/client.js';
@@ -34,6 +32,7 @@ import { mediaIdsIn, splitQuestion } from '../content/practice-view.js';
 import { isLive, liveWhere } from '../content/publishing.js';
 import { MediaService } from '../media/media.service.js';
 import { SettingsService } from '../settings/settings.service.js';
+import { cm, retotalAttempt } from './attempt-totals.js';
 import {
   optionOrderFor,
   ordered,
@@ -54,8 +53,6 @@ const notAvailable = (reason: 'not_open' | 'closed' | 'no_attempts_left' | 'not_
   new AppError(409, ErrorCode.ASSESSMENT_NOT_AVAILABLE, message, { reason });
 const closed = () =>
   new AppError(409, ErrorCode.ATTEMPT_CLOSED, 'This attempt has ended; its answers can no longer change');
-const cm = (d: Prisma.Decimal | number | null | undefined) =>
-  d === null || d === undefined ? null : marksToCentimarks(String(d));
 const FINISHED = ['pending_grading', 'completed'] as const;
 
 /**
@@ -376,7 +373,7 @@ export class AttemptsService {
           data: { outcome: s.score.outcome, awarded: s.score.awarded, gradedAt: now },
         });
       }
-      await this.retotal(tx, attempt.id, a);
+      await retotalAttempt(tx, attempt.id, a);
     });
     return this.result(attemptId, viewer);
   }
@@ -456,39 +453,7 @@ export class AttemptsService {
           ),
         },
       });
-      await this.retotal(tx, attemptId, a);
-    });
-  }
-
-  /** Recomputes totals from the answer rows; complete once no written answer awaits marks. */
-  private async retotal(tx: Prisma.TransactionClient, attemptId: string, a: Assessment) {
-    const attempt = await tx.attempt.findUniqueOrThrow({ where: { id: attemptId } });
-    const planned = new Map(
-      planQuestions(attempt.plan as unknown as AttemptPlan).map((q) => [q.questionId, q]),
-    );
-    const rows = await tx.attemptAnswer.findMany({ where: { attemptId } });
-    const items = rows.flatMap((r) => {
-      const q = planned.get(r.questionId);
-      if (!q) return [];
-      const score: QuestionScore = { outcome: r.outcome ?? 'skipped', awarded: r.awarded ?? 0 };
-      return [{ scheme: { marks: q.marks, negativeMarks: q.negativeMarks }, score }];
-    });
-    const floor = (a.scoring as ScoringRulesInput).scoreFloor;
-    const totals = totalAttempt(items, floor);
-    const pass = cm(a.passMarks);
-    await tx.attempt.update({
-      where: { id: attemptId },
-      data: {
-        status: totals.pending > 0 ? 'pending_grading' : 'completed',
-        score: totals.score,
-        maxScore: totals.maxScore,
-        correctCount: totals.correct,
-        partialCount: totals.partial,
-        wrongCount: totals.wrong,
-        skippedCount: totals.skipped,
-        pendingCount: totals.pending,
-        passed: totals.pending > 0 || pass === null ? null : totals.score >= pass,
-      },
+      await retotalAttempt(tx, attemptId, a);
     });
   }
 
@@ -594,7 +559,9 @@ export class AttemptsService {
                 : null,
             response: (row.response as AnswerResponseInput | null) ?? null,
             markedForReview: row.markedForReview,
-            ...(withSolutions ? { answer, outcome: row.outcome, awarded: row.awarded } : {}),
+            ...(withSolutions
+              ? { answer, outcome: row.outcome, awarded: row.awarded, graderComment: row.graderComment }
+              : {}),
           },
         ];
       }),

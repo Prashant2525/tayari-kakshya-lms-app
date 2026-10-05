@@ -92,6 +92,8 @@ export interface SolvedQuestion extends AttemptQuestion {
   answer: PracticeAnswer | null;
   outcome: Outcome | null;
   awarded: number | null;
+  /** Written answers marked by a teacher: their comment, if any. */
+  graderComment?: string | null;
 }
 
 export interface AttemptResult {

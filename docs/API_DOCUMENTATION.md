@@ -121,6 +121,18 @@ courses/subjects. Every write is audited.
 
 Admin: `AssessmentInput` gains optional `premiumAccess` (linked/any_course/plans_only), `lateStart` (until_close/full_duration), `countedAttempt` (first/best/latest) — omitted = the `assessments.defaults` setting; detail returns them. Settings: `assessments.defaults` gains the three defaults; new `assessments.timing { graceSeconds }`.
 
+## 1b-4. Implemented endpoints (§10 part 2 — grading and results) ✅
+
+| Method | Path | Auth | Notes |
+|---|---|---|---|
+| GET | `/admin/grading?assessmentId=&limit=` | `grading:manage` (scoped) | written answers awaiting marks in instructor-graded assessments, oldest submission first: attempt, question (stem), answer (model answer), student name, response, max marks (centimarks); `total` and the assessments with answers waiting |
+| PUT | `/admin/attempts/:attemptId/answers/:questionId/grade` | `grading:manage` (scoped) | `{ awarded, comment? }` — written answers only, 0 … max; also corrects earlier marks; recomputes totals and pass/fail; audited `attempt.grade`; 409 while the attempt runs; 400 for unanswered or auto-scored questions |
+| GET | `/admin/assessments/:id/attempts?cursor=&limit=` | `assessments:edit` / `assessments:publish` / `grading:manage` (scoped) | release state, statistics (attempts, students, in progress, awaiting marks, average and passes over official attempts) and attempts (student, number, status, score, official) |
+| GET | `/admin/attempts/:id` | as above | every question with response, answer key, outcome, marks, grader and comment |
+| POST | `/admin/assessments/:id/release-results` | `assessments:publish` (scoped) | manual release (one-way, audited `assessment.results_release`); 409 for assessments that release automatically |
+
+Students: released results include `graderComment` on written answers.
+
 ## 1c. Implemented endpoints (Phase 7 — question bank) ✅
 
 | Method | Path | Auth | Notes |

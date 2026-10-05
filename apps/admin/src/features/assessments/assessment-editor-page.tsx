@@ -878,6 +878,23 @@ function AssessmentEditor({
         </div>
         <div className="flex flex-col gap-6">
           {assessment ? (
+            <Card>
+              <CardHeader
+                title="Results"
+                description="Attempts, statistics, grading and releasing results."
+                actions={
+                  <Link
+                    to="/assessments/$assessmentId/results"
+                    params={{ assessmentId: assessment.id }}
+                    className="text-sm font-semibold text-link"
+                  >
+                    View results
+                  </Link>
+                }
+              />
+            </Card>
+          ) : null}
+          {assessment ? (
             <PublishingCard
               key={`${assessment.status}-${assessment.updatedAt}`}
               a={assessment}

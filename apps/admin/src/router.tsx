@@ -176,6 +176,21 @@ const routes = [
   }),
   createRoute({
     getParentRoute: () => appRoute,
+    path: '/assessments/$assessmentId/results',
+    component: lazyRouteComponent(() => import('./features/grading/results-page'), 'ResultsPage'),
+  }),
+  createRoute({
+    getParentRoute: () => appRoute,
+    path: '/attempts/$attemptId',
+    component: lazyRouteComponent(() => import('./features/grading/attempt-page'), 'AttemptPage'),
+  }),
+  createRoute({
+    getParentRoute: () => appRoute,
+    path: '/grading',
+    component: lazyRouteComponent(() => import('./features/grading/grading-page'), 'GradingPage'),
+  }),
+  createRoute({
+    getParentRoute: () => appRoute,
     path: '/questions',
     component: lazyRouteComponent(() => import('./features/questions/questions-page'), 'QuestionsPage'),
   }),

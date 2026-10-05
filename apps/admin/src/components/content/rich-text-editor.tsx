@@ -427,3 +427,26 @@ export function RichTextEditor({
     </div>
   );
 }
+
+/** Read-only rendering of a stored document (grading, attempt review) — same nodes and images as the editor. */
+export function RichTextView({
+  value,
+  lang,
+  label,
+}: {
+  value: JsonNode | null;
+  lang?: 'en' | 'ne';
+  label: string;
+}) {
+  const editor = useEditor(
+    {
+      extensions: richTextExtensions(EditorImage),
+      content: value ?? '',
+      editable: false,
+      immediatelyRender: true,
+      editorProps: { attributes: { 'aria-label': label, lang: lang ?? 'en', class: 'tk-prose' } },
+    },
+    [JSON.stringify(value)],
+  );
+  return <EditorContent editor={editor} />;
+}
