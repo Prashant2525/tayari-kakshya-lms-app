@@ -14,7 +14,7 @@ import { docFor } from '@/features/questions/answer-input';
 import { localized } from '@/i18n/translate';
 import { useT } from '@/i18n/use-t';
 import { errorMessageKey } from '@/lib/error-message';
-import { bsDate, bsDateTime } from '@/lib/dates';
+import { bsDate, bsDateTime, nepalToday } from '@/lib/dates';
 import { marks, num } from '@/lib/format';
 import { useTheme } from '@/theme/theme';
 import { Button } from '@/ui/button';
@@ -54,7 +54,17 @@ export default function TestScreen() {
         <ScrollView contentContainerStyle={styles.body}>
           <Rules a={test.data} />
           {start.isError ? <Banner message={t(errorMessageKey(start.error))} /> : null}
+          {test.data.challengeDate && test.data.challengeDate < nepalToday() ? (
+            <Banner tone="info" message={t('test.practiceNote')} />
+          ) : null}
           <Action a={test.data} loading={start.isPending} onStart={begin} />
+          {test.data.leaderboardEnabled ? (
+            <Button
+              label={t('leaderboard.see')}
+              variant="secondary"
+              onPress={() => router.push({ pathname: '/leaderboard/[id]', params: { id } })}
+            />
+          ) : null}
           {test.data.attempts.length ? <Attempts a={test.data} /> : null}
         </ScrollView>
       )}

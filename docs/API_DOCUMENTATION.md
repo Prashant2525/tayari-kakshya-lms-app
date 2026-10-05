@@ -133,6 +133,17 @@ Admin: `AssessmentInput` gains optional `premiumAccess` (linked/any_course/plans
 
 Students: released results include `graderComment` on written answers.
 
+## 1b-5. Implemented endpoints (§10 part 3a — daily challenge, streaks, leaderboards) ✅
+
+| Method | Path | Auth | Notes |
+|---|---|---|---|
+| GET | `/daily-challenge/today` | student | `{ today, challenge (summary or null), streak: { current, longest, doneToday } }` — Nepal day |
+| GET | `/daily-challenges?cursor=&limit=` | student | earlier challenges, newest first; `pastAsPractice` |
+| GET | `/me/streak` | student | `{ current, longest, doneToday }` (current is 0 once a day is missed) |
+| GET | `/assessments/:id/leaderboard` | student | 404 when the assessment has no leaderboard; `released` false before results are released; `{ total, names, me: { rank, score, timeTakenSeconds }, top: [{ rank, name, me, score, timeTakenSeconds }] }` (≤ 50; empty with names `none`) |
+
+Changes: attempt start on a daily challenge — before its day 409 `not_open`; after its day a practice attempt (or 409 `closed` when the CMS turns practice off). Summaries add `challengeDate`, `leaderboardEnabled`; attempts and results add `practice`; results add `rank: { rank, total } | null`. Settings: `leaderboards.display { names }`, `dailyChallenge.rules { pastAsPractice }`. Admin results: practice attempts excluded from statistics and official attempts, marked `practice`.
+
 ## 1c. Implemented endpoints (Phase 7 — question bank) ✅
 
 | Method | Path | Auth | Notes |

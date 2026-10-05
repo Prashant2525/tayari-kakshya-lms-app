@@ -36,6 +36,7 @@ import { AdminAttemptsController } from './modules/attempts/admin-attempts.contr
 import { AdminAttemptsService } from './modules/attempts/admin-attempts.service.js';
 import { AttemptsController } from './modules/attempts/attempts.controller.js';
 import { AttemptsService } from './modules/attempts/attempts.service.js';
+import { EngagementService } from './modules/attempts/engagement.service.js';
 import { PracticeController } from './modules/content/practice.controller.js';
 import { PracticeService } from './modules/content/practice.service.js';
 import { CatalogService } from './modules/content/catalog.service.js';
@@ -113,6 +114,7 @@ export class InfraModule {}
     CatalogService,
     PracticeService,
     AttemptsService,
+    EngagementService,
     AdminAttemptsService,
     ScopeService,
     QuestionsService,
@@ -147,6 +149,7 @@ export class InfraModule {}
     CatalogService,
     PracticeService,
     AttemptsService,
+    EngagementService,
     AdminAttemptsService,
     ScopeService,
     QuestionsService,

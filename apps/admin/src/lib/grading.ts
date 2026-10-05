@@ -90,6 +90,7 @@ export interface AttemptRow {
   pending: number;
   passed: boolean | null;
   timeTakenSeconds: number | null;
+  practice: boolean;
 }
 
 export interface AssessmentResults {

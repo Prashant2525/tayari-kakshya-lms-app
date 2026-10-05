@@ -611,6 +611,42 @@ export function SettingsPage() {
         </SettingCard>
 
         <SettingCard
+          row={row('leaderboards.display')}
+          title="Leaderboards"
+          description="How other students appear on leaderboards. Students always see their own rank and score."
+        >
+          {(d, set, disabled) => (
+            <OptionSelect
+              label="Names shown"
+              value={d.names}
+              options={{
+                first_initial: 'First name + initial (e.g. Aarati S.)',
+                full: 'Full name',
+                none: 'No names (own rank only)',
+              }}
+              disabled={disabled}
+              onChange={(v) => set({ names: v })}
+            />
+          )}
+        </SettingCard>
+
+        <SettingCard
+          row={row('dailyChallenge.rules')}
+          title="Daily challenge"
+          description="A day's challenge counts for the streak and that day's ranking only when taken on its day (Nepal time)."
+        >
+          {(d, set, disabled) => (
+            <ToggleRow
+              label="Past challenges stay open as practice"
+              hint="Practice never counts for streaks or rankings."
+              checked={d.pastAsPractice}
+              disabled={disabled}
+              onChange={(v) => set({ pastAsPractice: v })}
+            />
+          )}
+        </SettingCard>
+
+        <SettingCard
           row={row('app.maintenance')}
           title="Maintenance mode"
           description="Temporarily closes the student app and website. This admin panel stays available."

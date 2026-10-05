@@ -98,6 +98,10 @@ function Exam({ view }: { view: AttemptView }) {
   const [now, setNow] = useState(view.receivedAt);
   const remaining = deadline === null ? null : (deadline - (now + offset)) / 1000;
   const timeUp = remaining !== null && remaining <= 0;
+  // Warn near the end: the last 5 minutes of longer tests, the last minute of short ones (e.g. daily challenges).
+  const totalSeconds = deadline === null ? null : (deadline - Date.parse(view.startedAt)) / 1000;
+  const warnAt = totalSeconds !== null && totalSeconds > 600 ? 300 : 60;
+  const nearEnd = remaining !== null && remaining > 0 && remaining < warnAt;
   // When time runs out the answers are sent and the attempt submitted (retried every few seconds if offline).
   const finishRef = useRef(finish);
   useEffect(() => {
@@ -161,17 +165,14 @@ function Exam({ view }: { view: AttemptView }) {
           <View
             role="timer"
             aria-label={t('exam.timeLeft', { time: formatDuration(Math.ceil(remaining), locale) })}
-            style={[
-              styles.timer,
-              { backgroundColor: remaining < 300 ? colors.dangerSoft : colors.primarySoft },
-            ]}
+            style={[styles.timer, { backgroundColor: nearEnd ? colors.dangerSoft : colors.primarySoft }]}
           >
-            <Clock size={16} color={remaining < 300 ? colors.danger : colors.onPrimarySoft} strokeWidth={2} />
+            <Clock size={16} color={nearEnd ? colors.danger : colors.onPrimarySoft} strokeWidth={2} />
             <Text
               variant="h4"
               style={{
                 fontVariant: ['tabular-nums'],
-                color: remaining < 300 ? colors.danger : colors.onPrimarySoft,
+                color: nearEnd ? colors.danger : colors.onPrimarySoft,
               }}
             >
               {formatDuration(Math.max(0, Math.ceil(remaining)), locale)}
@@ -189,9 +190,9 @@ function Exam({ view }: { view: AttemptView }) {
         </Pressable>
       </View>
       <SaveLine state={saveState} />
-      {remaining !== null && remaining > 0 && remaining < 300 ? (
+      {nearEnd ? (
         <View style={{ paddingHorizontal: 20 }}>
-          <Banner tone="info" message={t('exam.fiveMinutes')} />
+          <Banner tone="info" message={warnAt === 300 ? t('exam.fiveMinutes') : t('exam.oneMinute')} />
         </View>
       ) : null}
 
@@ -206,6 +207,11 @@ function Exam({ view }: { view: AttemptView }) {
         <View style={styles.qHead}>
           <Text variant="label" color="textSecondary" style={{ flex: 1 }}>
             {t('exam.questionOf', { n: num(index + 1, locale), total: num(questions.length, locale) })}
+            {'  ·  '}
+            {t('exam.progress', {
+              answered: num(counts.answered, locale),
+              marked: num(counts.marked, locale),
+            })}
           </Text>
           <Text variant="caption" color="textSecondary">
             +{marks(q.marks, locale)}

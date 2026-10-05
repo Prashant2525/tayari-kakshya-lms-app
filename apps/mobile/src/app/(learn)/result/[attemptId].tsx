@@ -40,6 +40,7 @@ export default function ResultScreen() {
       ) : (
         <ScrollView contentContainerStyle={styles.body}>
           {result.data.autoSubmitted ? <Banner tone="info" message={t('result.autoSubmitted')} /> : null}
+          {result.data.practice ? <Banner tone="info" message={t('result.practice')} /> : null}
           {result.data.released && result.data.summary ? (
             <Released r={result.data} />
           ) : (
@@ -102,6 +103,12 @@ function Released({ r }: { r: AttemptResult }) {
             />
           ) : null}
           {r.counted ? <StatusChip tone="progress" label={t('test.official')} /> : null}
+          {r.rank ? (
+            <StatusChip
+              tone="done"
+              label={t('result.rank', { rank: num(r.rank.rank, locale), total: num(r.rank.total, locale) })}
+            />
+          ) : null}
         </View>
         {r.timeTakenSeconds !== null ? (
           <Text variant="bodySm" color="textSecondary">
@@ -153,6 +160,13 @@ function Released({ r }: { r: AttemptResult }) {
         label={r.canSelfGrade ? t('result.selfGradeTitle') : t('result.review')}
         onPress={() => router.push({ pathname: '/review/[attemptId]', params: { attemptId: r.id } })}
       />
+      {r.assessment.leaderboardEnabled ? (
+        <Button
+          label={t('leaderboard.see')}
+          variant="secondary"
+          onPress={() => router.push({ pathname: '/leaderboard/[id]', params: { id: r.assessment.id } })}
+        />
+      ) : null}
     </>
   );
 }

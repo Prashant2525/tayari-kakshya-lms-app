@@ -153,3 +153,24 @@ navigation grouped by domain, command palette (⌘K), consistent form layout wit
 ## 10. Review gate
 
 Before Phase 8 (mobile foundation) I will publish a visual preview of tokens + key screens for owner sign-off.
+
+## 10. Design reference canvas (D-047)
+
+The approved student-app design canvas (published 2026-10-03 from another account; link kept by the owner:
+`https://claude.ai/artifact/E4WHvmwpuNZ5HdV4bb2Bke`) holds: design tokens & components, Login, Verify, Onboarding,
+Home (+ Nepali dark), Course (Android / iOS without prices), Subject, Reader, Video, Questions, Exam, Result, Profile,
+Notices, States. It is a reference, not the implementation — the repository is the source of truth. Reviewed
+2026-10-06; elements not built yet and where they belong:
+
+| Design element | Where it lands |
+|---|---|
+| Home: daily challenge card with streak ("10 questions · 5 min · Start") | §10 part 3a |
+| Result: "Rank 124 of 2,310" | §10 part 3a (leaderboards) |
+| Exam header: "6 answered · 1 marked" counter | §10 part 3a |
+| Profile → Learning: Certificates | §10 part 3b |
+| Profile → Learning: Downloads | §14 (offline) |
+| Profile → Learning: Purchases & receipts | §11 (commerce) |
+| Profile → Notifications; Help & legal (Help & FAQ, Contact us, Terms, privacy & refunds) | §12 (communication) |
+| Home shortcuts: Gorkhapatra, Current affairs | §12 (articles) |
+| Notices: filters All / Official / Announcements / Teachers, attachments | §12 (notices) |
+

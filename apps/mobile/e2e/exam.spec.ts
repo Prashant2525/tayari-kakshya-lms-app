@@ -329,7 +329,7 @@ test('when time runs out the app submits the attempt by itself', async () => {
   await link(quickTitle).click();
   await button('Start test').click();
   await visible(page.getByRole('radio', { name: 'True' })).click();
-  await expect(text('Less than 5 minutes left')).toBeVisible();
+  await expect(text('Less than a minute left')).toBeVisible();
   await expect(text('Submitted automatically when the time ran out.')).toBeVisible({ timeout: 100_000 });
   await expect(visible(page.getByRole('progressbar', { name: '1 out of 1' }))).toBeVisible();
 });

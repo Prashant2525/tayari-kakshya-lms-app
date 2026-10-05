@@ -89,6 +89,7 @@ export class AccountDeletionService {
         await tx.bookmark.deleteMany({ where: { userId: request.userId } });
         // Answers go with their attempts (cascade).
         await tx.attempt.deleteMany({ where: { userId: request.userId } });
+        await tx.userStreak.deleteMany({ where: { userId: request.userId } });
         await tx.user.update({
           where: { id: request.userId },
           data: {

@@ -3,10 +3,19 @@ import { en } from '@/i18n/en';
 import { ne } from '@/i18n/ne';
 import { defaultLocale, localized, translate } from '@/i18n/translate';
 import { appGate, compareVersions, type AppConfig } from './app-gate';
-import { adIsoToBs, bsDateTime, bsToAdIso, countdown, kathmanduWeekday, todayLabel } from './dates';
+import {
+  adIsoToBs,
+  bsDateTime,
+  bsToAdIso,
+  countdown,
+  kathmanduWeekday,
+  nepalToday,
+  todayLabel,
+} from './dates';
 import { devApiOrigin } from './dev-api';
 import { formatDuration, marks, percent, price } from './format';
 import { initialsOf } from './names';
+import { routeGate } from './route-gate';
 import { checkCode, checkEmail, checkPassword, toNepalE164 } from './validation';
 
 describe('translations', () => {
@@ -168,5 +177,43 @@ describe('exam display helpers', () => {
     expect(marks(1250, 'en')).toBe('12.5');
     expect(marks(-50, 'en')).toBe('-0.5');
     expect(marks(200, 'ne')).toBe('२');
+  });
+
+  it('finds the Nepal calendar day (UTC+5:45), whatever the phone time zone', () => {
+    expect(nepalToday(new Date('2026-10-05T18:14:00Z'))).toBe('2026-10-05'); // 23:59 in Nepal
+    expect(nepalToday(new Date('2026-10-05T18:15:00Z'))).toBe('2026-10-06'); // midnight in Nepal
+  });
+});
+
+describe('route gate', () => {
+  const account = { id: 'u1', emailVerified: true, phoneVerified: false };
+  const base = {
+    signedIn: true,
+    account,
+    verifyPrompt: false,
+    verificationRequired: false,
+    targetCount: 0,
+    skippedOnboarding: [] as string[],
+  };
+  it('decides nothing until the account has loaded (a skipped student is not sent back to onboarding)', () => {
+    expect(routeGate({ ...base, account: undefined, skippedOnboarding: ['u1'] })).toEqual({
+      mustVerify: false,
+      needsOnboarding: false,
+    });
+    expect(routeGate({ ...base, skippedOnboarding: ['u1'] }).needsOnboarding).toBe(false);
+    expect(routeGate(base).needsOnboarding).toBe(true);
+    expect(routeGate({ ...base, targetCount: undefined }).needsOnboarding).toBe(false);
+    expect(routeGate({ ...base, targetCount: 1 }).needsOnboarding).toBe(false);
+  });
+
+  it('asks unverified students to verify when prompted or required, before onboarding', () => {
+    const unverified = { ...base, account: { ...account, emailVerified: false } };
+    expect(routeGate({ ...unverified, verificationRequired: true })).toEqual({
+      mustVerify: true,
+      needsOnboarding: false,
+    });
+    expect(routeGate({ ...unverified, verifyPrompt: true }).mustVerify).toBe(true);
+    expect(routeGate(unverified).mustVerify).toBe(false);
+    expect(routeGate({ ...base, signedIn: false }).mustVerify).toBe(false);
   });
 });

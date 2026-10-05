@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useMe, useTargetPosts } from '@/api/queries';
 import { CurrentCourse } from '@/features/courses/current-course';
 import { CatalogList } from '@/features/courses/my-courses';
+import { DailyChallengeCard } from '@/features/tests/daily-challenge-card';
 import { TestsLink } from '@/features/tests/tests-link';
 import { localized } from '@/i18n/translate';
 import { useT } from '@/i18n/use-t';
@@ -88,6 +89,7 @@ export default function HomeScreen() {
           )}
         </Card>
         <CurrentCourse />
+        <DailyChallengeCard />
         <TestsLink title={t('home.tests')} body={t('home.testsBody')} />
         <View style={styles.sectionHead}>
           <Text variant="h3" role="heading" style={{ flex: 1 }}>

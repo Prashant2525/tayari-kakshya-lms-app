@@ -31,6 +31,12 @@ export function bsDate(iso: string, locale: Locale): string {
   return formatBs(instantToBs(new Date(iso)), locale);
 }
 
+/** Today's Nepal calendar day as `YYYY-MM-DD` (daily challenges belong to Nepal days, D-049). */
+export function nepalToday(now = new Date()): string {
+  const d = kathmanduDate(now);
+  return `${d.year}-${String(d.month).padStart(2, '0')}-${String(d.day).padStart(2, '0')}`;
+}
+
 /** BS date and Nepal time (24-hour) for an ISO timestamp, e.g. "17 Asoj 2083, 10:00". */
 export function bsDateTime(iso: string, locale: Locale): string {
   // Nepal is UTC+5:45 all year (no daylight saving).

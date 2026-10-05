@@ -21,6 +21,27 @@ export class AttemptsController {
     return this.attempts.list(query, { userId: auth.userId });
   }
 
+  /** Today's daily challenge (Nepal day) and the student's streak. */
+  @Get('daily-challenge/today')
+  dailyToday(@CurrentAuth() auth: AuthContext) {
+    return this.attempts.dailyToday({ userId: auth.userId });
+  }
+
+  @Get('daily-challenges')
+  dailyPast(@ZodQuery(CursorQuery) query: CursorQuery, @CurrentAuth() auth: AuthContext) {
+    return this.attempts.dailyPast({ userId: auth.userId }, query.cursor, query.limit);
+  }
+
+  @Get('me/streak')
+  streak(@CurrentAuth() auth: AuthContext) {
+    return this.attempts.streak({ userId: auth.userId });
+  }
+
+  @Get('assessments/:id/leaderboard')
+  leaderboard(@Param('id', uuid()) id: string, @CurrentAuth() auth: AuthContext) {
+    return this.attempts.leaderboard(id, { userId: auth.userId });
+  }
+
   @Get('assessments/:id')
   detail(@Param('id', uuid()) id: string, @CurrentAuth() auth: AuthContext) {
     return this.attempts.detail(id, { userId: auth.userId });

@@ -15,7 +15,7 @@ Scope = approved decisions only (`DECISIONS.md`). Each phase ends with tests, do
 | 7 | Question bank + assessment CMS | see §7 | ☐ |
 | 8 | Student mobile foundation | see §8 (includes design preview gate) | ☐ |
 | 9 | Student learning | see §9 | ☑ (part 2 in PR) |
-| 10 | Exam engine + engagement | see §10 | ◐ parts 1–2 |
+| 10 | Exam engine + engagement | see §10 | ◐ parts 1–3a |
 | 11 | Commerce + website checkout | see §11 | ☐ |
 | 12 | Communication & CMS content | see §12 | ☐ |
 | 13 | Progress & community | see §13 | ☐ |
@@ -126,7 +126,10 @@ Tests: scoring per type, negative marking, blueprint generation.
 - ☑ Part 2 (branch `feature/grading`, T-044): Grading queue for written answers (marks + comment, corrections),
   results per assessment (statistics from official attempts, attempts, one attempt in full), manual release;
   students see the teacher's comment. Also fixed a staff-scope bypass in the CMS assessment search (KI-035)
-- ☐ Part 3: daily challenge + streaks, rankings + leaderboards, certificates (issue + verify), mistake notebook &
+- ☑ Part 3a (branch `feature/daily-challenge`, D-049, T-045): daily challenge on Home with streak, past challenges as
+  practice, ranks on results and leaderboards (names per CMS setting), exam header answered/marked counter;
+  CMS settings Leaderboards + Daily challenge; fixed the onboarding guard race (KI-037)
+- ☐ Part 3b: certificates for finishing a course (CMS templates, PDF, public verify — D-049), mistake notebook &
   revision mode
 
 Original plan: assessments list, exam mode (timer, palette, autosave queue, resume, submit,
