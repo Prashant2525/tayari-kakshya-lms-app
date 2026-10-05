@@ -24,6 +24,9 @@ export interface AssessmentSummary {
   /** Centimarks; null when random questions carry different marks. */
   totalMarks: number | null;
   maxAttempts: number | null;
+  /** Daily challenges: the Nepal day (YYYY-MM-DD) it belongs to. */
+  challengeDate: string | null;
+  leaderboardEnabled: boolean;
   attemptsUsed: number;
   inProgressAttemptId: string | null;
   result: { attemptId: string; score: number | null; maxScore: number | null } | null;
@@ -33,6 +36,8 @@ export interface AttemptSummary {
   id: string;
   attemptNo: number;
   status: AttemptStatus;
+  /** A past daily challenge taken as practice (no streak, no rank). */
+  practice: boolean;
   startedAt: string;
   submittedAt: string | null;
   released: boolean;
@@ -105,8 +110,10 @@ export interface AttemptResult {
     passMarks: number | null;
     showExplanations: boolean;
     subjectiveGrading: 'none' | 'self' | 'instructor';
+    leaderboardEnabled: boolean;
   };
   attemptNo: number;
+  practice: boolean;
   status: AttemptStatus;
   autoSubmitted: boolean;
   startedAt: string;
@@ -138,6 +145,8 @@ export interface AttemptResult {
   questions: SolvedQuestion[];
   media: MediaMap;
   canSelfGrade: boolean;
+  /** Rank of this attempt when it is the official one and results are released. */
+  rank: { rank: number; total: number } | null;
 }
 
 export interface HistoryItem extends AttemptSummary {
@@ -150,6 +159,9 @@ export const assessmentKeys = {
   attempt: (id: string) => ['attempt', id] as const,
   result: (id: string) => ['attempt-result', id] as const,
   history: ['me', 'attempts'] as const,
+  daily: ['daily-challenge', 'today'] as const,
+  dailyPast: ['daily-challenge', 'past'] as const,
+  leaderboard: (id: string) => ['leaderboard', id] as const,
 };
 
 export type AssessmentScope = { courseId: string; subjectId?: string } | { mine: true };
@@ -217,6 +229,8 @@ export function afterSubmit(result: AttemptResult) {
   void queryClient.invalidateQueries({ queryKey: ['assessments'] });
   void queryClient.invalidateQueries({ queryKey: assessmentKeys.detail(result.assessment.id) });
   void queryClient.invalidateQueries({ queryKey: assessmentKeys.history });
+  void queryClient.invalidateQueries({ queryKey: ['daily-challenge'] });
+  void queryClient.invalidateQueries({ queryKey: ['leaderboard'] });
 }
 
 export function useAttemptResult(id: string) {
@@ -243,5 +257,51 @@ export function useAttemptHistory() {
       ),
     initialPageParam: null as string | null,
     getNextPageParam: (last) => last.nextCursor,
+  });
+}
+
+// ───────────── Daily challenge, streaks, leaderboards (§10 part 3a, D-049) ─────────────
+
+export interface Streak {
+  current: number;
+  longest: number;
+  doneToday: boolean;
+}
+
+export function useDailyChallenge() {
+  return useQuery({
+    queryKey: assessmentKeys.daily,
+    queryFn: () =>
+      api.get<{ today: string; challenge: AssessmentSummary | null; streak: Streak }>(
+        '/daily-challenge/today',
+      ),
+  });
+}
+
+export function usePastChallenges() {
+  return useInfiniteQuery({
+    queryKey: assessmentKeys.dailyPast,
+    queryFn: ({ pageParam }) =>
+      api.get<{ pastAsPractice: boolean; data: AssessmentSummary[]; nextCursor: string | null }>(
+        `/daily-challenges?limit=20${pageParam ? `&cursor=${pageParam}` : ''}`,
+      ),
+    initialPageParam: null as string | null,
+    getNextPageParam: (last) => last.nextCursor,
+  });
+}
+
+export interface Leaderboard {
+  assessment: { id: string; type: AssessmentType; title: LocalizedText };
+  released: boolean;
+  total: number;
+  names: 'first_initial' | 'full' | 'none' | null;
+  me: { rank: number; score: number; timeTakenSeconds: number } | null;
+  top: Array<{ rank: number; name: string | null; me: boolean; score: number; timeTakenSeconds: number }>;
+}
+
+export function useLeaderboard(assessmentId: string) {
+  return useQuery({
+    queryKey: assessmentKeys.leaderboard(assessmentId),
+    queryFn: () => api.get<Leaderboard>(`/assessments/${assessmentId}/leaderboard`),
   });
 }

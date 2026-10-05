@@ -1,6 +1,6 @@
 # Test Status
 
-Last updated: 2026-10-06 (§10 part 2: grading and results). `pnpm test` runs unit + integration suites (needs `pnpm infra:up`);
+Last updated: 2026-10-06 (§10 part 3a: daily challenge, streaks, leaderboards). `pnpm test` runs unit + integration suites (needs `pnpm infra:up`);
 `pnpm build && pnpm --filter @tk/admin e2e` and `pnpm build && pnpm --filter @tk/mobile e2e` run the browser suites
 (the student suite also needs Mailpit, part of `pnpm infra:up`).
 
@@ -9,14 +9,29 @@ Last updated: 2026-10-06 (§10 part 2: grading and results). `pnpm test` runs un
 | Package | Tests | Kind |
 |---|---|---|
 | `@tk/design-tokens` | 39 | WCAG contrast for every text/background pair (light + dark), CSS generation |
-| `@tk/domain` | 45 | BS calendar, Kathmandu day boundary, fiscal year, money/VAT/discounts, access validity |
+| `@tk/domain` | 49 | BS calendar, Kathmandu day boundary, fiscal year, money/VAT/discounts, access validity |
 | `@tk/contracts` | 21 | Schema behaviour (localized text, email normalisation, mass assignment, settings defaults, rich-text validation) |
-| `@tk/api` | 200 | Integration against real PostgreSQL + Redis + S3 (SeaweedFS) through the HTTP stack; TOTP RFC 6238 vectors; RBAC, video, watermark unit |
+| `@tk/api` | 204 | Integration against real PostgreSQL + Redis + S3 (SeaweedFS) through the HTTP stack; TOTP RFC 6238 vectors; RBAC, video, watermark unit |
 | `@tk/admin` (unit) | 35 | API client (headers, refresh single-flight, retry, session loss, error mapping), BS formatting, Button `asChild` regression |
 | `@tk/admin` (E2E, Playwright) | 21 | Real browser + real API + `*_e2e` database |
-| `@tk/mobile` (unit) | 33 | API client (single-flight refresh, early refresh, session end, maintenance), translations complete in both languages, BS dates and Kathmandu weekday, force-update/maintenance gate, form checks, Nepali phone numbers |
-| `@tk/mobile` (E2E, Playwright, phone viewport) | 18 | Web build + real API + `*_mobile_e2e` database + Mailpit |
-| **Total** | **412** | |
+| `@tk/mobile` (unit) | 36 | API client (single-flight refresh, early refresh, session end, maintenance), translations complete in both languages, BS dates and Kathmandu weekday, force-update/maintenance gate, form checks, Nepali phone numbers |
+| `@tk/mobile` (E2E, Playwright, phone viewport) | 20 | Web build + real API + `*_mobile_e2e` database + Mailpit |
+| **Total** | **425** | |
+
+### Added with daily challenge, streaks and leaderboards (§10 part 3a)
+- **Domain (unit):** streak advance (same day, next day, gap, older day, month/year boundary), streak shown as 0 after
+  a missed day, leaderboard names (first + initial, Devanagari, single name, full, none), competition ranking.
+- **API (4 integration tests):** today's challenge; streak 4 → 5; same day again unchanged; past challenge is
+  practice and never extends a streak (mutation-checked); future challenge not open; practice off → closed; lapsed
+  streak shows 0; erasure removes the streak; ranks from official attempts with ties (1, 2, 2, 4), names per
+  setting (first + initial / full / none), rank on the result, hidden before release, practice excluded, 404 without
+  a leaderboard. Existing attempt / grading / builder suites still pass.
+- **App unit:** Nepal day at midnight boundary; route gate (no decision before the account loads — KI-037).
+- **Browser E2E (student app, 2 new):** Home card → today's challenge → Rank 1 of 1 → leaderboard → 1-day streak and
+  "Done for today"; past challenge → practice note → no rank, streak unchanged. KI-037 reproduction: 2/5 failures
+  before the fix, 8/8 passes after (16 reloads).
+- **Screenshots reviewed** (light, Nepali dark): Home card before/after, exam counter, result rank, leaderboard.
+  Fixed: "1 questions", the 5-minute warning shown for the whole of a 5-minute test.
 
 ### Added with grading and results (§10 part 2)
 - **API (4 integration tests):** queue → grade (over the maximum refused) → corrected → totals and pass/fail → hidden

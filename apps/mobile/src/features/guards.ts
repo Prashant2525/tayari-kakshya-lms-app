@@ -1,4 +1,5 @@
 import { useAppConfig, useMe, useTargetPosts } from '@/api/queries';
+import { routeGate } from '@/lib/route-gate';
 import { usePrefs } from '@/state/prefs';
 import { useSession } from '@/state/session';
 
@@ -15,11 +16,14 @@ export function useGuards() {
   const me = useMe(signedIn);
   const targets = useTargetPosts(signedIn);
 
-  const verified = Boolean(me.data?.emailVerified || me.data?.phoneVerified);
-  const mustVerify =
-    signedIn && !verified && (verifyPrompt || config.data?.verification.requiredForLearning === true);
-  const needsOnboarding =
-    signedIn && !mustVerify && targets.data?.length === 0 && !skipped.includes(me.data?.id ?? '');
+  const { mustVerify, needsOnboarding } = routeGate({
+    signedIn,
+    account: me.data,
+    verifyPrompt,
+    verificationRequired: config.data?.verification.requiredForLearning === true,
+    targetCount: targets.data?.length,
+    skippedOnboarding: skipped,
+  });
   return {
     signedIn,
     mustVerify,

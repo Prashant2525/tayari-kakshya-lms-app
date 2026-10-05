@@ -141,6 +141,11 @@ export function ResultsPage() {
                     >
                       {ATTEMPT_STATUS_LABEL[t.status]}
                     </Badge>
+                    {t.practice ? (
+                      <Badge tone="neutral" className="ml-2">
+                        Practice
+                      </Badge>
+                    ) : null}
                     {t.autoSubmitted ? (
                       <span className="ml-2 text-xs text-text-muted">time ran out</span>
                     ) : null}

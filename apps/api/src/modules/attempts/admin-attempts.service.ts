@@ -166,13 +166,17 @@ export class AdminAttemptsService {
         score: true,
         timeTakenSeconds: true,
         passed: true,
+        practice: true,
       },
     });
     const byStudent = new Map<string, typeof all>();
     for (const t of all) byStudent.set(t.userId, [...(byStudent.get(t.userId) ?? []), t]);
     const official = new Map<string, (typeof all)[number]>();
     for (const [userId, attempts] of byStudent) {
-      const finished = attempts.filter((t) => (FINISHED as readonly string[]).includes(t.status));
+      // Practice attempts (past daily challenges) never count (D-049).
+      const finished = attempts.filter(
+        (t) => !t.practice && (FINISHED as readonly string[]).includes(t.status),
+      );
       const pick = countedAttempt(
         finished.map((t) => ({
           id: t.id,
@@ -339,5 +343,6 @@ function attemptRow(t: Attempt) {
     pending: t.pendingCount,
     passed: t.passed,
     timeTakenSeconds: t.timeTakenSeconds,
+    practice: t.practice,
   };
 }

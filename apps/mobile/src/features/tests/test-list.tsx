@@ -5,7 +5,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { useAssessments, type AssessmentScope, type AssessmentSummary } from '@/api/assessments';
 import { localized } from '@/i18n/translate';
 import { useT } from '@/i18n/use-t';
-import { bsDateTime } from '@/lib/dates';
+import { bsDate, bsDateTime } from '@/lib/dates';
 import { marks, num } from '@/lib/format';
 import { useTheme } from '@/theme/theme';
 import { StatusChip } from '@/ui/chip';
@@ -44,7 +44,8 @@ export function TestRow({ a }: { a: AssessmentSummary }) {
   const { t, locale } = useT();
   const meta = [
     t(`assessmentType.${a.type}`),
-    t('test.questions', { n: num(a.questionCount, locale) }),
+    a.challengeDate ? bsDate(`${a.challengeDate}T06:00:00Z`, locale) : null,
+    t(a.questionCount === 1 ? 'test.question' : 'test.questions', { n: num(a.questionCount, locale) }),
     a.durationSeconds ? t('test.minutes', { n: num(Math.round(a.durationSeconds / 60), locale) }) : null,
   ]
     .filter(Boolean)

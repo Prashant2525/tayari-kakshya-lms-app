@@ -33,6 +33,7 @@ import { isLive, liveWhere } from '../content/publishing.js';
 import { MediaService } from '../media/media.service.js';
 import { SettingsService } from '../settings/settings.service.js';
 import { cm, retotalAttempt } from './attempt-totals.js';
+import { EngagementService, isoDay, nepalDay } from './engagement.service.js';
 import {
   optionOrderFor,
   ordered,
@@ -68,6 +69,7 @@ export class AttemptsService {
     private readonly entitlements: EntitlementsService,
     private readonly media: MediaService,
     private readonly settings: SettingsService,
+    private readonly engagement: EngagementService,
   ) {}
 
   // ───────────── Lists and details ─────────────
@@ -156,6 +158,19 @@ export class AttemptsService {
     const state = windowState(a, now);
     if (state === 'upcoming') throw notAvailable('not_open', 'This assessment has not opened yet');
     if (state === 'closed') throw notAvailable('closed', 'This assessment has closed');
+    // Daily challenges (D-049): open on their Nepal day; afterwards only as practice, when the CMS allows it.
+    let practice = false;
+    if (a.type === 'daily_challenge' && a.challengeDate) {
+      const day = isoDay(a.challengeDate);
+      const today = nepalDay(now);
+      if (day > today) throw notAvailable('not_open', 'This challenge opens on its day');
+      if (day < today) {
+        if (!(await this.settings.get('dailyChallenge.rules')).pastAsPractice) {
+          throw notAvailable('closed', 'This challenge has closed');
+        }
+        practice = true;
+      }
+    }
     const used = await this.prisma.attempt.findMany({
       where: { assessmentId: id, userId: viewer.userId },
       select: { attemptNo: true, status: true },
@@ -176,6 +191,7 @@ export class AttemptsService {
             assessmentId: id,
             userId: viewer.userId,
             attemptNo,
+            practice,
             startedAt: now,
             deadlineAt: attemptDeadline(a, now),
             plan: plan as unknown as Prisma.InputJsonValue,
@@ -300,8 +316,10 @@ export class AttemptsService {
         passMarks: cm(a.passMarks),
         showExplanations: a.showExplanations,
         subjectiveGrading: a.subjectiveGrading,
+        leaderboardEnabled: a.leaderboardEnabled,
       },
       attemptNo: attempt.attemptNo,
+      practice: attempt.practice,
       status: attempt.status,
       autoSubmitted: attempt.autoSubmitted,
       startedAt: attempt.startedAt.toISOString(),
@@ -312,7 +330,15 @@ export class AttemptsService {
       releaseAt: releaseDate(a)?.toISOString() ?? null,
     };
     if (!released)
-      return { ...base, summary: null, sections: [], questions: [], media: {}, canSelfGrade: false };
+      return {
+        ...base,
+        summary: null,
+        sections: [],
+        questions: [],
+        media: {},
+        canSelfGrade: false,
+        rank: null,
+      };
 
     const { sections, questions, media } = await this.solutionsOf(attempt, a);
     return {
@@ -331,7 +357,83 @@ export class AttemptsService {
       questions,
       media,
       canSelfGrade: attempt.status === 'pending_grading' && a.subjectiveGrading === 'self',
+      rank: await this.engagement.rankOf(a, attempt.id, now),
     };
+  }
+
+  // ───────────── Daily challenge and leaderboards (§10 part 3a, D-049) ─────────────
+
+  /** Today's challenge (Nepal day), the student's state on it, and their streak. */
+  async dailyToday(viewer: Viewer) {
+    const now = new Date();
+    const today = nepalDay(now);
+    const [a, streak] = await Promise.all([
+      this.prisma.assessment.findFirst({
+        where: { ...liveWhere(now), type: 'daily_challenge', challengeDate: new Date(`${today}T00:00:00Z`) },
+        include: { sections: { include: { questions: { include: { question: true } } } } },
+      }),
+      this.engagement.streak(viewer.userId, now),
+    ]);
+    if (!a) return { today, challenge: null, streak };
+    const [allowed, attempts] = await Promise.all([
+      this.canTake(a, viewer, await this.accessContext(viewer)),
+      this.prisma.attempt.findMany({
+        where: { userId: viewer.userId, assessmentId: a.id, status: { not: 'voided' } },
+        orderBy: { attemptNo: 'asc' },
+      }),
+    ]);
+    return { today, challenge: this.summary(a, allowed, attempts, now), streak };
+  }
+
+  /** Earlier challenges, newest first (open as practice when the CMS allows it). */
+  async dailyPast(viewer: Viewer, cursor: string | undefined, limit: number) {
+    const now = new Date();
+    const today = new Date(`${nepalDay(now)}T00:00:00Z`);
+    const rows = await this.prisma.assessment.findMany({
+      where: { ...liveWhere(now), type: 'daily_challenge', challengeDate: { lt: today } },
+      include: { sections: { include: { questions: { include: { question: true } } } } },
+      orderBy: [{ challengeDate: 'desc' }, { id: 'desc' }],
+      take: limit + 1,
+      ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
+    });
+    const page = rows.slice(0, limit);
+    const [ctx, attempts, rules] = await Promise.all([
+      this.accessContext(viewer),
+      this.prisma.attempt.findMany({
+        where: {
+          userId: viewer.userId,
+          assessmentId: { in: page.map((a) => a.id) },
+          status: { not: 'voided' },
+        },
+        orderBy: { attemptNo: 'asc' },
+      }),
+      this.settings.get('dailyChallenge.rules'),
+    ]);
+    return {
+      pastAsPractice: rules.pastAsPractice,
+      data: await Promise.all(
+        page.map(async (a) =>
+          this.summary(
+            a,
+            await this.canTake(a, viewer, ctx),
+            attempts.filter((t) => t.assessmentId === a.id),
+            now,
+          ),
+        ),
+      ),
+      nextCursor: rows.length > limit ? (page.at(-1)?.id ?? null) : null,
+    };
+  }
+
+  async leaderboard(id: string, viewer: Viewer) {
+    const a = await this.liveAssessment(id);
+    const board = await this.engagement.leaderboard(a, viewer.userId);
+    if (!board) throw Errors.notFound('Leaderboard');
+    return { assessment: { id: a.id, type: a.type, title: a.title as LocalizedText }, ...board };
+  }
+
+  async streak(viewer: Viewer) {
+    return this.engagement.streak(viewer.userId);
   }
 
   /** Self-evaluation of written answers against the model answer (subjective grading `self`, after release). */
@@ -454,6 +556,10 @@ export class AttemptsService {
         },
       });
       await retotalAttempt(tx, attemptId, a);
+      // A daily challenge submitted on its day keeps the streak going (D-049); practice never does.
+      if (a.type === 'daily_challenge' && a.challengeDate && !attempt.practice) {
+        await this.engagement.recordChallengeDay(tx, attempt.userId, isoDay(a.challengeDate));
+      }
     });
   }
 
@@ -714,7 +820,9 @@ export class AttemptsService {
   }
 
   private counted(a: Assessment, attempts: Attempt[]) {
-    const finished = attempts.filter((t) => (FINISHED as readonly string[]).includes(t.status));
+    const finished = attempts.filter(
+      (t) => !t.practice && (FINISHED as readonly string[]).includes(t.status),
+    );
     return countedAttempt(
       finished.map((t) => ({
         id: t.id,
@@ -744,6 +852,8 @@ export class AttemptsService {
       questionCount: totals.questions,
       totalMarks: totals.marks,
       maxAttempts: a.maxAttempts,
+      challengeDate: a.challengeDate ? isoDay(a.challengeDate) : null,
+      leaderboardEnabled: a.leaderboardEnabled,
       attemptsUsed: finished.length + attempts.filter((t) => t.status === 'in_progress').length,
       inProgressAttemptId: attempts.find((t) => t.status === 'in_progress')?.id ?? null,
       result:
@@ -763,6 +873,7 @@ export class AttemptsService {
       id: t.id,
       attemptNo: t.attemptNo,
       status: t.status,
+      practice: t.practice,
       startedAt: t.startedAt.toISOString(),
       submittedAt: t.submittedAt?.toISOString() ?? null,
       released: show,

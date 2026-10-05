@@ -84,6 +84,7 @@ model User {
   learningProgress    LearningProgress[]
   bookmarks           Bookmark[]
   attempts            Attempt[]
+  streak              UserStreak?
   gradedAnswers       AttemptAnswer[]          @relation("AttemptAnswerGrader")
 
   @@index([kind, status])
@@ -1175,6 +1176,8 @@ model Attempt {
   attemptNo        Int           @map("attempt_no")
   status           AttemptStatus @default(in_progress)
   autoSubmitted    Boolean       @default(false) @map("auto_submitted")
+  /// A past daily challenge taken as practice (D-049): never counts for streaks or rankings.
+  practice         Boolean       @default(false)
   startedAt        DateTime      @default(now()) @map("started_at") @db.Timestamptz(6)
   deadlineAt       DateTime?     @map("deadline_at") @db.Timestamptz(6)
   submittedAt      DateTime?     @map("submitted_at") @db.Timestamptz(6)
@@ -1200,6 +1203,7 @@ model Attempt {
   @@index([userId, startedAt(sort: Desc)])
   @@index([assessmentId, status])
   @@index([status, deadlineAt])
+  @@index([assessmentId, practice, status], map: "attempts_ranking_idx")
   @@map("attempts")
 }
 
@@ -1226,4 +1230,18 @@ model AttemptAnswer {
   @@id([attemptId, questionId])
   @@index([questionId])
   @@map("attempt_answers")
+}
+
+/// Daily-challenge streak (D-049): consecutive Nepal calendar days with that day's challenge submitted.
+model UserStreak {
+  userId      String   @id @map("user_id") @db.Uuid
+  currentDays Int      @default(0) @map("current_days")
+  longestDays Int      @default(0) @map("longest_days")
+  /// The last Nepal calendar day that counted.
+  lastDay     DateTime @map("last_day") @db.Date
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_streaks")
 }

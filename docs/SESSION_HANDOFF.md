@@ -2,7 +2,7 @@
 
 Session date: 2026-10-02 (session 4 — resumed after a VS Code crash)
 Current phase: **Phase 6 — content CMS, API layer complete and verified locally**
-Current task: §10 part 2 (grading + results) done; PR open from `feature/grading`; next §10 part 3
+Current task: §10 part 3a (daily challenge, streaks, leaderboards) done; PR open from `feature/daily-challenge`; next part 3b
 
 ## Completed this session
 - Recovered the interrupted work from the repository (nothing lost). Verified the uncommitted content API:
@@ -68,6 +68,16 @@ Current task: §10 part 2 (grading + results) done; PR open from `feature/gradin
 - PR #9 / #10 merged. Branch `feature/student-learning`. API part committed first (`485f5f7`): progress, Continue,
   self-hosted PDF reader. Then the app: Courses tab, course page, Home current course, subject outline, lessons.
 - Verified with 8 browser tests (real API, PDF rendered by pdf.js) and screenshots; four defects fixed (TEST_STATUS).
+
+## Session 16 (2026-10-06)
+- PR #17 merged. Owner shared the design canvas (D-047) from another account as reference; reviewed it and mapped
+  what is not built yet to phases (DESIGN_SYSTEM §10). The canvas is a reference, the repository is the truth.
+- Owner answered the part 3 questions → D-049 (streak = daily challenge on its day; names first + initial; past
+  challenges as practice; certificates for finishing a course). Two of them are CMS settings.
+- Branch `feature/daily-challenge`: part 3a (T-045). While screenshotting, found and fixed the onboarding guard race
+  (KI-037) — the same symptom seen in session 13 had been blamed on the test script.
+- Next: part 3b — certificates (needs certificate wording/signatory details from the owner when the CMS template
+  exists) and the mistake notebook (one open rule: when a question leaves the notebook).
 
 ## Session 15 (2026-10-06)
 - PR #16 merged by the owner. Branch `feature/grading`: §10 part 2 (T-044) — see IMPLEMENTATION_PLAN / TEST_STATUS.
@@ -153,9 +163,9 @@ Current task: §10 part 2 (grading + results) done; PR open from `feature/gradin
 - Nothing partially implemented. Admin screens for Phase 6 not started.
 
 ## Exact next steps
-1. Owner reviews and merges the §10 part 2 PR (`feature/grading` → `main`); CI must be green.
-2. §10 part 3: daily challenge + streaks, rankings + leaderboards (official attempt, D-048), certificates (issue +
-   public verify), mistake notebook & revision mode.
+1. Owner reviews and merges the §10 part 3a PR (`feature/daily-challenge` → `main`); CI must be green.
+2. §10 part 3b: certificates for finishing a course (CMS template: wording, signatory, share of lessons; PDF;
+   public verification), mistake notebook & revision mode.
 3. Google Android/iOS clients after the app identifiers (L5, KI-029); Sentry source maps with the first EAS build.
 
 ## Files changed
@@ -165,7 +175,7 @@ Current task: §10 part 2 (grading + results) done; PR open from `feature/gradin
 - Migration `content_catalog`; endpoints in `API_DOCUMENTATION.md` §1b.
 
 ## Tests run
-- `pnpm format:check && pnpm build && pnpm lint && pnpm typecheck && pnpm test` → all passing, 373 tests; `pnpm --filter @tk/admin e2e` → 21 passing; `pnpm --filter @tk/mobile e2e` → 18 passing.
+- `pnpm format:check && pnpm build && pnpm lint && pnpm typecheck && pnpm test` → all passing, 384 tests; `pnpm --filter @tk/admin e2e` → 21 passing; `pnpm --filter @tk/mobile e2e` → 20 passing.
 
 ## Known issues / blockers
 - KI-021 (CI-only media failure — fix pending CI confirmation), KI-022 (per-request watermark cost). No blockers.

@@ -4,6 +4,18 @@ All notable changes to this project. Format based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Added — 2026-10-06 (§10 part 3a: daily challenge, streaks, leaderboards)
+- Student app: daily challenge card on Home with the streak (D-049), past challenges as practice, rank on results,
+  leaderboard screen, "answered · marked" counter in exam mode; time warning in the last minute for short tests.
+- API: migration `streaks` (`user_streaks`, `attempts.practice`); today / past challenges, streak and leaderboard
+  endpoints; ranks from official attempts (T-045).
+- CMS: Settings → Leaderboards (names shown) and Daily challenge (past challenges as practice); results mark practice.
+- Design canvas (D-047) reviewed; remaining elements mapped to phases (DESIGN_SYSTEM §10).
+
+### Fixed — 2026-10-06 (part 3a)
+- A student who skipped onboarding could be sent back to it after restarting the app (KI-037).
+- "1 questions" → "1 question".
+
 ### Added — 2026-10-06 (§10 part 2: grading and results)
 - CMS: **Grading** page (written answers with the model answer, marks and a comment; corrections), **Results** per
   assessment (statistics, attempts, one attempt in full), **Release results** for manual release.

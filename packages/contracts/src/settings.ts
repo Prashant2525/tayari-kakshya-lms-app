@@ -155,6 +155,18 @@ export const SETTINGS = {
     default: { graceSeconds: 30 },
     public: false,
   },
+  /** D-049: how other students appear on leaderboards (first name + initial by default; or full names; or none). */
+  'leaderboards.display': {
+    schema: z.object({ names: z.enum(['first_initial', 'full', 'none']) }),
+    default: { names: 'first_initial' as const },
+    public: false,
+  },
+  /** D-049: past daily challenges stay open as practice (never counting for the streak or that day's ranking). */
+  'dailyChallenge.rules': {
+    schema: z.object({ pastAsPractice: z.boolean() }),
+    default: { pastAsPractice: true },
+    public: false,
+  },
 } as const satisfies Record<string, { schema: z.ZodType; default: unknown; public: boolean }>;
 
 export type SettingKey = keyof typeof SETTINGS;
