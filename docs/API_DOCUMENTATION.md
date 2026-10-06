@@ -151,6 +151,21 @@ Students: released results include `graderComment` on written answers.
 
 Setting `payments.providers { esewa, khalti }`. Migration `commerce`. Worker job `payments-reconcile` (every minute).
 
+## 1c-11b. Implemented endpoints (Phase 11 part 2a — plans, T-050) ✅
+
+| Method | Path | Auth | Notes |
+|---|---|---|---|
+| GET | `/plans` | optional | live plans: name, description, features, coverage, courses, validity, `pricing` (null on iOS / closed channels or price 0), `isFree`, `mine { endsAt }` for a signed-in student |
+| POST | `/orders` | student | `{ planId }` (exactly one of `courseId` / `planId`) → order at the plan's price; renewal allowed while active (D-054); 409 `PURCHASE_NOT_AVAILABLE` `not_for_sale` (price 0), `already_has_access` (lifetime plan held) |
+| GET | `/admin/plans` | `plans:manage` | list with course count, price, active subscribers, status |
+| POST | `/admin/plans` | `plans:manage` | `{ slug, name, description, features[], coverage, isFeatured, sortOrder }` → 201 draft (409 slug taken) |
+| GET / PUT | `/admin/plans/:id` | `plans:manage` | detail (pricing, course ids, subscribers) / update details |
+| PUT | `/admin/plans/:id/pricing` | `plans:manage` | same body as course pricing |
+| PUT | `/admin/plans/:id/courses` | `plans:manage` | `{ courseIds }` — applies to current subscribers at once |
+| PUT | `/admin/plans/:id/status` | `plans:manage` | `{ status, publishAt? }` |
+
+Order items now carry `kind` (course / plan), `planId` and `planSlug`. Migration `plans`.
+
 Access change (D-053): premium items, practice answers, mistake-notebook answers and Premium tests are unlocked only by
 paid access (`order`), staff grants, coupons or referrals — not by `free_enrol`. `access.entitled` on a course still
 means "in My courses" (free enrolments included).

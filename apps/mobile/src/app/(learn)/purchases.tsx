@@ -55,7 +55,13 @@ export default function PurchasesScreen() {
 function Row({ o }: { o: OrderView }) {
   const { colors } = useTheme();
   const { t, locale } = useT();
-  const title = o.items.map((i) => localized(i.title, locale)).join(', ');
+  const title = o.items
+    .map((i) =>
+      i.kind === 'plan'
+        ? t('purchases.plan', { name: localized(i.title, locale) })
+        : localized(i.title, locale),
+    )
+    .join(', ');
   return (
     <View style={[styles.row, { backgroundColor: colors.surface, borderColor: colors.border }]}>
       <View style={{ flex: 1, gap: 2 }}>

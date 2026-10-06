@@ -2,7 +2,8 @@
 
 Session date: 2026-10-02 (session 4 — resumed after a VS Code crash)
 Current phase: **Phase 6 — content CMS, API layer complete and verified locally**
-Current task: Phase 11 part 1 (course purchase) done; PR open from `feature/commerce`; next part 2 (plans, coupons)
+Current task: Phase 11 part 2a (plans) done on `feature/plans-coupons` (PR into `main`, after PR #23); next part 2b
+(coupons + VAT settings in the CMS)
 
 ## Completed this session
 - Recovered the interrupted work from the repository (nothing lost). Verified the uncommitted content API:
@@ -201,6 +202,13 @@ Current task: Phase 11 part 1 (course purchase) done; PR open from `feature/comm
 - Nothing partially implemented. Admin screens for Phase 6 not started.
 
 ## Exact next steps
+0. 2026-10-06: PR #22 merged. PR #23 (Android eSewa, KI-042) green — owner merges it, restarts the API, retries eSewa
+   on the emulator. Plans (T-050) on `feature/plans-coupons`, built on top of #23: CMS Sales → Plans, app Profile →
+   Subscription plan, plan checkout and renewal. Next: part 2b — coupons (D-025: CMS CRUD, limits, redemptions,
+   server-side at checkout, `allowOnSale` default off per D-054; a 100% coupon makes the total 0 → the orders CHECK
+   `total > 0` must change) and VAT settings `commerce.tax` (owner, 2026-10-06: details later, must be editable in
+   the CMS without code changes; default: not VAT-registered, rate 13%, prices VAT-inclusive; PAN / VAT no.,
+   business name and address fields) with a tax snapshot per order; part 3 invoices use it.
 1. Owner reviews and merges the Phase 11 part 1 PR (`feature/commerce` → `main`); CI must be green; owner tries a
    test purchase (above).
 2. Phase 11 part 2: plans (subscriptions: contents, validity — D-023) and coupons (D-025) — CMS + checkout.

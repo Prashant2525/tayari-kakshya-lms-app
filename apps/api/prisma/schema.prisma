@@ -651,6 +651,7 @@ model Course {
   instructors         CourseInstructor[]
   entitlements        Entitlement[]
   orderItems          OrderItem[]
+  plans               PlanCourse[]
 
   assessments Assessment[]
   progress    LearningProgress[]
@@ -802,7 +803,7 @@ model Entitlement {
   userId        String            @map("user_id") @db.Uuid
   scopeType     EntitlementScope  @map("scope_type")
   courseId      String?           @map("course_id") @db.Uuid
-  /// Plans arrive in Phase 11 (FK added then).
+  /// scopeType=plan: the plan bought (its courses are read when access is checked, D-054).
   planId        String?           @map("plan_id") @db.Uuid
   sourceType    EntitlementSource @map("source_type")
   sourceId      String?           @map("source_id")
@@ -819,6 +820,7 @@ model Entitlement {
   user      User    @relation("EntitlementUser", fields: [userId], references: [id], onDelete: Restrict)
   grantedBy User?   @relation("EntitlementGrantedBy", fields: [grantedById], references: [id], onDelete: SetNull)
   course    Course? @relation(fields: [courseId], references: [id], onDelete: Restrict)
+  plan      Plan?   @relation(fields: [planId], references: [id], onDelete: Restrict)
 
   @@index([userId, status])
   @@index([courseId])
@@ -1426,9 +1428,10 @@ model Order {
 model OrderItem {
   id               String  @id @default(uuid(7)) @db.Uuid
   orderId          String  @map("order_id") @db.Uuid
-  /// course now; plans later.
+  /// course | plan
   itemType         String  @map("item_type")
   courseId         String? @map("course_id") @db.Uuid
+  planId           String? @map("plan_id") @db.Uuid
   titleSnapshot    Json    @map("title_snapshot")
   unitPricePaisa   Int     @map("unit_price_paisa")
   /// { type, days, endsOn } — the course validity when bought.
@@ -1436,9 +1439,11 @@ model OrderItem {
 
   order  Order   @relation(fields: [orderId], references: [id], onDelete: Restrict)
   course Course? @relation(fields: [courseId], references: [id], onDelete: Restrict)
+  plan   Plan?   @relation(fields: [planId], references: [id], onDelete: Restrict)
 
   @@index([orderId])
   @@index([courseId])
+  @@index([planId])
   @@map("order_items")
 }
 
@@ -1493,4 +1498,59 @@ model PaymentEvent {
 
   @@index([paymentId, receivedAt])
   @@map("payment_events")
+}
+
+enum PlanCoverage {
+  /// Every course (including courses added later).
+  all_courses
+  /// The courses linked to the plan (its current list, D-054).
+  selected
+}
+
+/// A subscription plan (D-023, D-054): bought like a course; while active it gives access to the courses it contains
+/// now. Price 0 = shown for comparison only (not sold).
+model Plan {
+  id             String        @id @default(uuid(7)) @db.Uuid
+  slug           String
+  name           Json
+  description    Json?
+  /// LocalizedText[] shown as a check-list on the plan card.
+  features       Json          @default("[]")
+  pricePaisa     Int           @default(0) @map("price_paisa")
+  salePricePaisa Int?          @map("sale_price_paisa")
+  saleStartsAt   DateTime?     @map("sale_starts_at") @db.Timestamptz(6)
+  saleEndsAt     DateTime?     @map("sale_ends_at") @db.Timestamptz(6)
+  validityType   ValidityType  @default(days) @map("validity_type")
+  validityDays   Int?          @map("validity_days")
+  validityEndsOn DateTime?     @map("validity_ends_on") @db.Date
+  coverage       PlanCoverage  @default(selected)
+  isFeatured     Boolean       @default(false) @map("is_featured")
+  sortOrder      Int           @default(0) @map("sort_order")
+  status         PublishStatus @default(draft)
+  publishAt      DateTime?     @map("publish_at") @db.Timestamptz(6)
+  createdById    String?       @map("created_by") @db.Uuid
+  updatedById    String?       @map("updated_by") @db.Uuid
+  createdAt      DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt      DateTime?     @map("deleted_at") @db.Timestamptz(6)
+
+  courses      PlanCourse[]
+  entitlements Entitlement[]
+  orderItems   OrderItem[]
+
+  @@index([status, sortOrder])
+  @@map("plans")
+}
+
+model PlanCourse {
+  planId    String @map("plan_id") @db.Uuid
+  courseId  String @map("course_id") @db.Uuid
+  sortOrder Int    @default(0) @map("sort_order")
+
+  plan   Plan   @relation(fields: [planId], references: [id], onDelete: Cascade)
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@id([planId, courseId])
+  @@index([courseId])
+  @@map("plan_courses")
 }

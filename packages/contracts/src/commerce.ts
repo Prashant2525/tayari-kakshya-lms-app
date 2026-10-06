@@ -1,12 +1,43 @@
 import { z } from 'zod';
-import { CursorQuery } from './common.js';
+import { CursorQuery, LocalizedText } from './common.js';
+import { CoursePricingInput, Slug, StatusChangeInput } from './content.js';
 
 /** Orders and payments (Phase 11: D-003, D-023, D-027, D-051, D-052). */
 export const PaymentProviderName = z.enum(['esewa', 'khalti']);
 export type PaymentProviderName = z.infer<typeof PaymentProviderName>;
 
-export const CreateOrderInput = z.object({ courseId: z.uuid() });
+/** A course or a plan (exactly one). */
+export const CreateOrderInput = z
+  .object({ courseId: z.uuid().optional(), planId: z.uuid().optional() })
+  .refine((v) => Boolean(v.courseId) !== Boolean(v.planId), { message: 'Choose a course or a plan' });
 export type CreateOrderInput = z.infer<typeof CreateOrderInput>;
+
+// ───────────── Plans (D-023, D-054) ─────────────
+
+export const PlanCoverage = z.enum(['all_courses', 'selected']);
+export type PlanCoverage = z.infer<typeof PlanCoverage>;
+
+export const PlanInput = z.object({
+  slug: Slug,
+  name: LocalizedText,
+  description: LocalizedText.nullable(),
+  /** Check-list lines on the plan card. */
+  features: z.array(LocalizedText).max(20),
+  coverage: PlanCoverage,
+  isFeatured: z.boolean(),
+  sortOrder: z.number().int().min(0).max(10_000),
+});
+export type PlanInput = z.infer<typeof PlanInput>;
+
+/** Price and validity, as for courses (price 0 = shown for comparison, not sold). */
+export const PlanPricingInput = CoursePricingInput;
+export type PlanPricingInput = z.infer<typeof PlanPricingInput>;
+
+export const PlanCoursesInput = z.object({ courseIds: z.array(z.uuid()).max(500) });
+export type PlanCoursesInput = z.infer<typeof PlanCoursesInput>;
+
+export const PlanStatusInput = StatusChangeInput;
+export type PlanStatusInput = z.infer<typeof PlanStatusInput>;
 
 /** `returnTo`: where the student lands after paying — the app (deep link) or the website (both allow-listed). */
 export const PayOrderInput = z.object({

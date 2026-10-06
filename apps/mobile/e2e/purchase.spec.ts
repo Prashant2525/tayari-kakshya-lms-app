@@ -12,6 +12,8 @@ const password = 'buy the course';
 const email = `buyer.${run}@example.com`;
 const slug = `paid-${run}`;
 const courseTitle = `Kharidar Complete ${run}`;
+const planCourseTitle = `Section Officer ${run}`;
+const planName = `All Access ${run}`;
 const doc = (text: string) => ({
   en: { type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text }] }] },
 });
@@ -59,6 +61,43 @@ test.beforeAll(async ({ browser, request }) => {
   });
   await call('PUT', `/admin/courses/${course.id}/subjects`, { subjects: [{ subjectId: subject.id }] });
   await call('PUT', `/admin/courses/${course.id}/publishing`, { status: 'published' });
+
+  // A plan (D-023) covering a second course with the same subject. Test values.
+  const planCourse = await call('POST', '/admin/courses', {
+    slug: `so-${run}`,
+    title: { en: planCourseTitle },
+  });
+  await call('PUT', `/admin/courses/${planCourse.id}/pricing`, {
+    pricePaisa: 200_000,
+    salePricePaisa: null,
+    saleStartsAt: null,
+    saleEndsAt: null,
+    validityType: 'lifetime',
+    validityDays: null,
+    validityEndsOn: null,
+  });
+  await call('PUT', `/admin/courses/${planCourse.id}/subjects`, { subjects: [{ subjectId: subject.id }] });
+  await call('PUT', `/admin/courses/${planCourse.id}/publishing`, { status: 'published' });
+  const plan = await call('POST', '/admin/plans', {
+    slug: `all-access-${run}`,
+    name: { en: planName },
+    description: { en: 'Every course in one plan' },
+    features: [{ en: 'Premium notes' }],
+    coverage: 'selected',
+    isFeatured: true,
+    sortOrder: 0,
+  });
+  await call('PUT', `/admin/plans/${plan.id}/pricing`, {
+    pricePaisa: 300_000,
+    salePricePaisa: 250_000,
+    saleStartsAt: null,
+    saleEndsAt: null,
+    validityType: 'days',
+    validityDays: 90,
+    validityEndsOn: null,
+  });
+  await call('PUT', `/admin/plans/${plan.id}/courses`, { courseIds: [planCourse.id] });
+  await call('PUT', `/admin/plans/${plan.id}/status`, { status: 'published' });
 
   const registered = await request.post(`${E2E_WEB_ORIGIN}/api/v1/auth/register`, {
     data: {
@@ -118,4 +157,35 @@ test('Purchases lists the paid order', async () => {
   await visible(page.getByRole('link', { name: 'Purchases' })).click();
   await expect(text(courseTitle)).toBeVisible();
   await expect(text('Paid')).toBeVisible();
+});
+
+test('a plan bought with Khalti opens its courses and can then be renewed', async () => {
+  await page.goto('/profile');
+  await visible(page.getByRole('link', { name: 'Subscription plan' })).click();
+  await expect(visible(page.getByRole('heading', { name: 'Choose your plan' }))).toBeVisible();
+  const card = visible(page.getByRole('group', { name: planName }));
+  await expect(card.getByText('Recommended')).toBeVisible();
+  await expect(card.getByText('Premium notes')).toBeVisible();
+  await expect(card.getByText(planCourseTitle)).toBeVisible();
+  await expect(card.getByText('Rs 2,500')).toBeVisible();
+  await card.getByRole('button', { name: 'Choose plan' }).click();
+
+  await expect(visible(page.getByRole('heading', { name: 'Checkout' }))).toBeVisible();
+  await expect(text('Access for 90 days')).toBeVisible();
+  await visible(page.getByRole('radio', { name: 'Khalti' })).click();
+  await button('Pay Rs 2,500').click();
+  await page.getByRole('link', { name: 'Pay with Khalti' }).click();
+  await expect(text('Payment successful')).toBeVisible({ timeout: 20_000 });
+
+  await page.goto(`/course/so-${run}`);
+  await expect(text('You have access to this course.')).toBeVisible();
+
+  await page.goto('/plans');
+  const mine = visible(page.getByRole('group', { name: planName }));
+  await expect(mine.getByText(/^Your plan · until /)).toBeVisible();
+  await mine.getByRole('button', { name: 'Renew plan' }).click();
+  await expect(text(/Renewing adds the new period after that day/)).toBeVisible();
+
+  await page.goto('/purchases');
+  await expect(text(`Plan: ${planName}`)).toBeVisible();
 });

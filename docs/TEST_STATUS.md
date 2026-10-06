@@ -1,6 +1,6 @@
 # Test Status
 
-Last updated: 2026-10-06 (Phase 11 part 1: course purchase). `pnpm test` runs unit + integration suites (needs `pnpm infra:up`);
+Last updated: 2026-10-06 (Phase 11 part 2a: plans). `pnpm test` runs unit + integration suites (needs `pnpm infra:up`);
 `pnpm build && pnpm --filter @tk/admin e2e` and `pnpm build && pnpm --filter @tk/mobile e2e` run the browser suites
 (the student suite also needs Mailpit, part of `pnpm infra:up`).
 
@@ -11,12 +11,24 @@ Last updated: 2026-10-06 (Phase 11 part 1: course purchase). `pnpm test` runs un
 | `@tk/design-tokens` | 39 | WCAG contrast for every text/background pair (light + dark), CSS generation |
 | `@tk/domain` | 58 | BS calendar, Kathmandu day boundary, fiscal year, money/VAT/discounts, access validity |
 | `@tk/contracts` | 21 | Schema behaviour (localized text, email normalisation, mass assignment, settings defaults, rich-text validation) |
-| `@tk/api` | 236 | Integration against real PostgreSQL + Redis + S3 (SeaweedFS) through the HTTP stack; TOTP RFC 6238 vectors; RBAC, video, watermark unit |
+| `@tk/api` | 241 | Integration against real PostgreSQL + Redis + S3 (SeaweedFS) through the HTTP stack; TOTP RFC 6238 vectors; RBAC, video, watermark unit |
 | `@tk/admin` (unit) | 35 | API client (headers, refresh single-flight, retry, session loss, error mapping), BS formatting, Button `asChild` regression |
-| `@tk/admin` (E2E, Playwright) | 24 | Real browser + real API + `*_e2e` database |
+| `@tk/admin` (E2E, Playwright) | 25 | Real browser + real API + `*_e2e` database |
 | `@tk/mobile` (unit) | 36 | API client (single-flight refresh, early refresh, session end, maintenance), translations complete in both languages, BS dates and Kathmandu weekday, force-update/maintenance gate, form checks, Nepali phone numbers |
-| `@tk/mobile` (E2E, Playwright, phone viewport) | 27 | Web build + real API + `*_mobile_e2e` database + Mailpit |
-| **Total** | **476** | |
+| `@tk/mobile` (E2E, Playwright, phone viewport) | 28 | Web build + real API + `*_mobile_e2e` database + Mailpit |
+| **Total** | **483** | |
+
+### Added with plans (Phase 11 part 2a, T-050)
+- **API (5 integration tests):** staff write, price and publish a plan (duplicate slug 409, sale above price 400,
+  audit trail, no access without `plans:manage`); students see it with pricing on Android and none on iOS; a bought
+  plan opens its courses' premium content while active and not after it ends; a course the plan covers cannot be
+  bought; adding / removing courses and switching to all courses apply to current subscribers at once; renewal
+  starts when the current period ends (+60 days for two 30-day purchases); a lifetime plan cannot be rebought; a
+  free plan is not sold; "plans only" Premium tests open to plan holders.
+- **Admin E2E (1):** create a plan, add a feature, highlight, price, choose a course, publish; list shows it.
+- **Student E2E (1):** Profile → Subscription plan → plan card (Recommended, features, course, sale price) → checkout
+  → Khalti → paid → the covered course is open → "Your plan · until …" → Renew shows the renewal note → Purchases.
+- KI-036 seen once (Vitest worker exit 0xC0000409 in `content-admin`); the re-run passed 241/241.
 
 ### Added with the Android payment return fix (KI-042)
 - **API unit (3):** development callback address = the address the device reached the API on (emulator 10.0.2.2,

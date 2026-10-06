@@ -48,6 +48,8 @@ import { AdminOrdersService } from './modules/payments/admin-orders.service.js';
 import { GatewayHttp } from './modules/payments/gateway-http.js';
 import { PaymentsController } from './modules/payments/payments.controller.js';
 import { PaymentsService } from './modules/payments/payments.service.js';
+import { AdminPlansController, PlansController } from './modules/payments/plans.controller.js';
+import { PlansService } from './modules/payments/plans.service.js';
 import { PracticeController } from './modules/content/practice.controller.js';
 import { PracticeService } from './modules/content/practice.service.js';
 import { CatalogService } from './modules/content/catalog.service.js';
@@ -133,6 +135,7 @@ export class InfraModule {}
     GatewayHttp,
     PaymentsService,
     AdminOrdersService,
+    PlansService,
     ScopeService,
     QuestionsService,
     QuestionReportsService,
@@ -174,6 +177,7 @@ export class InfraModule {}
     GatewayHttp,
     PaymentsService,
     AdminOrdersService,
+    PlansService,
     ScopeService,
     QuestionsService,
     QuestionReportsService,
@@ -234,6 +238,8 @@ export class DomainModule {}
     MistakesController,
     PaymentsController,
     AdminOrdersController,
+    PlansController,
+    AdminPlansController,
     AdminQuestionsController,
     QuestionReportsController,
     AdminAssessmentsController,

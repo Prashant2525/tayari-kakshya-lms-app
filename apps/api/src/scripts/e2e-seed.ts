@@ -29,6 +29,7 @@ const CONTENT_PERMISSIONS = [
   'certificates:manage',
   'orders:read',
   'orders:manage',
+  'plans:manage',
 ];
 
 /**

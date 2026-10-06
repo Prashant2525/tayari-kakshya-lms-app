@@ -2,7 +2,7 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import type { LocalizedText } from '@tk/contracts';
 import { api, queryClient } from './client';
 
-/** Course purchases (Phase 11). The server sets every amount; the app only shows them. */
+/** Course and plan purchases (Phase 11). The server sets every amount; the app only shows them. */
 
 export type ProviderName = 'esewa' | 'khalti';
 
@@ -15,7 +15,16 @@ export interface OrderView {
   createdAt: string;
   expiresAt: string;
   paidAt: string | null;
-  items: Array<{ courseId: string | null; slug: string | null; title: LocalizedText; pricePaisa: number }>;
+  items: Array<{
+    kind: 'course' | 'plan';
+    courseId: string | null;
+    planId: string | null;
+    /** The course's slug (course items) or the plan's (plan items). */
+    slug: string | null;
+    planSlug: string | null;
+    title: LocalizedText;
+    pricePaisa: number;
+  }>;
   payments: Array<{
     id: string;
     provider: ProviderName | 'connectips';
@@ -43,12 +52,12 @@ export function usePaymentOptions() {
 export function useCheckout() {
   return useMutation({
     mutationFn: async (input: {
-      courseId: string;
+      item: { courseId: string } | { planId: string };
       provider: ProviderName;
       returnTo: 'app' | 'web';
       appReturnUrl?: string;
     }) => {
-      const order = await api.post<OrderView>('/orders', { courseId: input.courseId });
+      const order = await api.post<OrderView>('/orders', input.item);
       const started = await api.post<{ paymentId: string; redirectUrl: string }>(`/orders/${order.id}/pay`, {
         provider: input.provider,
         returnTo: input.returnTo,
@@ -72,8 +81,9 @@ export function useMyOrders() {
   return useQuery({ queryKey: commerceKeys.mine, queryFn: () => api.get<OrderView[]>('/me/orders') });
 }
 
-/** After a purchase: course pages, My courses and orders show the new access. */
+/** After a purchase: course pages, My courses, plans and orders show the new access. */
 export function refreshAfterPurchase() {
+  void queryClient.invalidateQueries({ queryKey: ['plans'] });
   void queryClient.invalidateQueries({ queryKey: ['course'] });
   void queryClient.invalidateQueries({ queryKey: ['me', 'courses'] });
   void queryClient.invalidateQueries({ queryKey: commerceKeys.mine });
