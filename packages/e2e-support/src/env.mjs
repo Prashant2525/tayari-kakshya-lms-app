@@ -77,6 +77,8 @@ export function createE2eEnv({ name, apiPort, webOrigin, redisDb, email = 'log' 
     E2E_EDITOR2_EMAIL,
     E2E_ADMIN_PASSWORD,
     ...gatewayEnv(apiPort, webOrigin),
+    // Coupon share links open the app served by this run.
+    PUBLIC_WEB_URL: webOrigin,
   };
 }
 

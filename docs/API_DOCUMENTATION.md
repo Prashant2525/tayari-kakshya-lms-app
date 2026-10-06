@@ -166,6 +166,19 @@ Setting `payments.providers { esewa, khalti }`. Migration `commerce`. Worker job
 
 Order items now carry `kind` (course / plan), `planId` and `planSlug`. Migration `plans`.
 
+## 1c-11c. Implemented endpoints (Phase 11 part 2b — coupons and VAT, T-051) ✅
+
+| Method | Path | Auth | Notes |
+|---|---|---|---|
+| POST | `/orders/quote` | student | `{ courseId | planId, couponCode? }` → `{ kind, title, validity, regularPricePaisa, subtotalPaisa, discountPaisa, coupon, tax, totalPaisa }`; nothing stored. 422 `COUPON_NOT_VALID` (`details.reason`: not_found, inactive, not_started, ended, used_up, already_used, not_applicable, below_minimum, on_sale); 409 `PURCHASE_NOT_AVAILABLE` as for orders |
+| POST | `/orders` | student | now also `couponCode`; a total of Rs 0 returns the order already **paid** (no payment, D-056) |
+| GET | `/orders/:id`, `/me/orders` | student | orders carry `subtotalPaisa`, `discountPaisa`, `couponCode`, `tax { rateBps, inclusive, paisa }` |
+| GET | `/admin/coupons?q=&state=active|inactive&cursor=&limit=` | `coupons:manage` | with paid uses |
+| POST | `/admin/coupons` | `coupons:manage` | `CouponInput` → 201 (409 code taken) |
+| GET / PUT | `/admin/coupons/:id` | `coupons:manage` | detail (targets, uses, waiting orders, recent orders, `shareBaseUrl`) / update (audited `coupon.update`) |
+
+Setting `commerce.tax { vatRegistered, rateBps, pricesIncludeVat, businessName, panNumber, address }`. Migration `coupons_tax`. Env `PUBLIC_WEB_URL` (share links).
+
 Access change (D-053): premium items, practice answers, mistake-notebook answers and Premium tests are unlocked only by
 paid access (`order`), staff grants, coupons or referrals — not by `free_enrol`. `access.entitled` on a course still
 means "in My courses" (free enrolments included).

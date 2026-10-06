@@ -1,6 +1,6 @@
 # Project State
 
-Current Phase: **Phase 11 commerce — part 2a (plans) done** on `feature/plans-coupons`; part 1 merged (PR #22); Android eSewa fix PR #23
+Current Phase: **Phase 11 commerce — part 2b (coupons, VAT) done** on `feature/coupons-vat`; parts 1–2a merged (PR #22–#24)
 Current Milestone: content API on `feature/content-cms` → Admin CMS content screens
 Overall Status: **IN PROGRESS**
 Last updated: 2026-10-06
@@ -40,7 +40,9 @@ Last updated: 2026-10-06
   verification, Orders in the CMS. Merged (PR #22).
 - KI-042 (eSewa on the Android emulator) fixed on `fix/android-payment-return` (PR #23, CI green).
 - Phase 11 part 2a on `feature/plans-coupons` (T-050): plans in the CMS and the app, plan checkout and renewal.
-  Next: part 2b (coupons + VAT settings in the CMS), part 3 (invoices/refunds).
+  Merged (PR #24).
+- Phase 11 part 2b on `feature/coupons-vat` (T-051, D-055, D-056): coupons, VAT settings, Rs 0 orders.
+  Next: part 3 (receipts / invoice numbering, refunds).
 - Monitoring (T-042) merged (PR #14, #15): Sentry in the API, worker, admin and app; PostHog in the app. Google web client registered for `http://localhost:8081` (checked); a real
   sign-in by the owner and Android/iOS clients remain (KI-029).
 - Phase 9 part 2 merged (PR #13): practice questions with Check answer and locked Premium answers
@@ -97,5 +99,5 @@ and `pnpm --filter @tk/admin dev` → create your Super Admin:
 (code in Mailpit http://localhost:8025) → set password at http://localhost:5173/set-password → sign in → enrol 2FA.
 
 ## Exact Next Task
-- Owner merges PR #23 then the plans PR; tries eSewa on the emulator and a plan purchase. Next: part 2b (coupons,
-  VAT settings in the CMS).
+- Owner merges the coupons PR, restarts the API (migration `coupons_tax`), adds `PUBLIC_WEB_URL` to `.env`, tries a
+  coupon. Next: part 3 — receipts (PDF, numbering per fiscal year) and the refund workflow (D-026).

@@ -152,8 +152,8 @@ certificates (issue + verify), mistake notebook & revision mode. Edge-case tests
   (payments, gateway messages, check again), Settings → Payment methods
 - ☑ Part 2a (T-050, D-054): plans — CMS (Sales → Plans), `GET /plans`, plan checkout and renewal, access follows the
   plan's current courses; app "Choose your plan" (Profile → Subscription plan)
-- ☐ Part 2b: coupons (D-025, D-054 sale switch) and VAT settings in the CMS (`commerce.tax`: registered, rate,
-  inclusive, PAN / VAT no., business name and address) with a tax snapshot on each order
+- ☑ Part 2b (T-051, D-055, D-056): coupons (CMS, checkout, share links, limits, Rs 0 orders) and VAT settings in the
+  CMS (`commerce.tax`) with a VAT snapshot on each order
 - ☐ Part 3: VAT / invoice numbering + PDF receipts, refunds workflow (needs the owner's VAT / invoice details, D-026)
 - ☐ Part 4: website (Next.js) checkout for iOS users (D-027), referral programme
 

@@ -14,6 +14,9 @@ const slug = `paid-${run}`;
 const courseTitle = `Kharidar Complete ${run}`;
 const planCourseTitle = `Section Officer ${run}`;
 const planName = `All Access ${run}`;
+const couponCourseTitle = `Computer Operator ${run}`;
+const discountCode = `FEST-${run}`.toUpperCase();
+const freeCode = `FREE-${run}`.toUpperCase();
 const doc = (text: string) => ({
   en: { type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text }] }] },
 });
@@ -98,6 +101,43 @@ test.beforeAll(async ({ browser, request }) => {
   });
   await call('PUT', `/admin/plans/${plan.id}/courses`, { courseIds: [planCourse.id] });
   await call('PUT', `/admin/plans/${plan.id}/status`, { status: 'published' });
+
+  // Coupons (D-025, D-056) for a third course. Test values.
+  const couponCourse = await call('POST', '/admin/courses', {
+    slug: `co-${run}`,
+    title: { en: couponCourseTitle },
+  });
+  await call('PUT', `/admin/courses/${couponCourse.id}/pricing`, {
+    pricePaisa: 120_000,
+    salePricePaisa: null,
+    saleStartsAt: null,
+    saleEndsAt: null,
+    validityType: 'lifetime',
+    validityDays: null,
+    validityEndsOn: null,
+  });
+  await call('PUT', `/admin/courses/${couponCourse.id}/subjects`, { subjects: [{ subjectId: subject.id }] });
+  await call('PUT', `/admin/courses/${couponCourse.id}/publishing`, { status: 'published' });
+  const couponBody = (code: string, percentBps: number) => ({
+    code,
+    note: null,
+    discountType: 'percent',
+    percentBps,
+    amountPaisa: null,
+    maxDiscountPaisa: null,
+    minOrderPaisa: null,
+    startsAt: null,
+    endsAt: null,
+    maxRedemptions: null,
+    perUserLimit: null,
+    appliesTo: 'selected',
+    courseIds: [couponCourse.id],
+    planIds: [],
+    allowOnSale: false,
+    active: true,
+  });
+  await call('POST', '/admin/coupons', couponBody(discountCode, 2000));
+  await call('POST', '/admin/coupons', couponBody(freeCode, 10_000));
 
   const registered = await request.post(`${E2E_WEB_ORIGIN}/api/v1/auth/register`, {
     data: {
@@ -188,4 +228,42 @@ test('a plan bought with Khalti opens its courses and can then be renewed', asyn
 
   await page.goto('/purchases');
   await expect(text(`Plan: ${planName}`)).toBeVisible();
+});
+
+test('a coupon at checkout: a wrong code is explained; the discount is the server one', async () => {
+  await page.goto(`/checkout/co-${run}`);
+  await expect(text('Rs 1,200').first()).toBeVisible();
+  await button('Have a coupon?').click();
+  await visible(page.getByLabel('Coupon code')).fill('NOPE-NOPE');
+  await button('Apply').click();
+  await expect(text('This coupon code does not exist.')).toBeVisible();
+  await visible(page.getByLabel('Coupon code')).fill(discountCode.toLowerCase());
+  await button('Apply').click();
+  await expect(text(`Coupon ${discountCode} applied`)).toBeVisible();
+  await expect(text('− Rs 240')).toBeVisible();
+  await expect(button('Pay Rs 960')).toBeVisible();
+  await button('Remove coupon').click();
+  await expect(button('Pay Rs 1,200')).toBeVisible();
+});
+
+test('a share link opened signed out: sign in, then checkout opens with the coupon — 100% off gives access', async ({
+  browser,
+}) => {
+  const fresh = await browser.newPage();
+  const seen = <T extends ReturnType<Page['getByRole']>>(l: T) => l.filter({ visible: true });
+  await fresh.goto(`/checkout/co-${run}?coupon=${freeCode}`);
+  await seen(fresh.getByLabel('Email', { exact: true })).fill(email);
+  await seen(fresh.getByLabel('Password', { exact: true })).fill(password);
+  await seen(fresh.getByRole('button', { name: 'Log in', exact: true })).click();
+  await seen(fresh.getByRole('button', { name: 'Skip', exact: true })).click();
+
+  await expect(seen(fresh.getByText(`Coupon ${freeCode} applied`))).toBeVisible();
+  await expect(seen(fresh.getByText('Your coupon covers the full price. No payment needed.'))).toBeVisible();
+  await expect(seen(fresh.getByRole('radio', { name: 'Khalti' }))).toHaveCount(0);
+  await seen(fresh.getByRole('button', { name: 'Get access', exact: true })).click();
+  await expect(seen(fresh.getByText('Payment successful'))).toBeVisible();
+  await expect(seen(fresh.getByText(/Order #\d{6} · Rs 0/))).toBeVisible();
+  await seen(fresh.getByRole('button', { name: 'Start learning', exact: true })).click();
+  await expect(seen(fresh.getByText('You have access to this course.'))).toBeVisible();
+  await fresh.close();
 });

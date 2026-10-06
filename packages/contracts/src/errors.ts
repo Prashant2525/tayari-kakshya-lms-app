@@ -49,6 +49,11 @@ export const ErrorCode = {
   CERTIFICATE_REVOKED: 'CERTIFICATE_REVOKED',
   /** details.reason: channel_closed | already_has_access | free_course | not_for_sale | access_period_ended */
   PURCHASE_NOT_AVAILABLE: 'PURCHASE_NOT_AVAILABLE',
+  /**
+   * details.reason: not_found | inactive | not_started | ended | used_up | already_used | not_applicable |
+   * below_minimum | on_sale
+   */
+  COUPON_NOT_VALID: 'COUPON_NOT_VALID',
   /** The order is paid, or can no longer be paid (time ran out). */
   ORDER_CLOSED: 'ORDER_CLOSED',
   /** The chosen gateway is switched off or not configured. */

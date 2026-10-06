@@ -170,6 +170,44 @@ function ToggleRow({
   );
 }
 
+/** A percentage typed as text (keeps "12." while typing) and stored in basis points; NaN while not a number. */
+function PercentField({
+  label,
+  hint,
+  bps,
+  disabled,
+  onChange,
+}: {
+  label: string;
+  hint?: string;
+  bps: number;
+  disabled: boolean;
+  onChange: (bps: number) => void;
+}) {
+  const toBps = (s: string) =>
+    /^\d{1,3}(\.\d{1,2})?$/.test(s.trim()) ? Math.round(Number(s) * 100) : Number.NaN;
+  const [text, setText] = useState(Number.isNaN(bps) ? '' : String(bps / 100));
+  // A saved value or Discard replaces what is typed.
+  if (!Number.isNaN(bps) && toBps(text) !== bps) setText(String(bps / 100));
+  return (
+    <Field label={label} hint={hint}>
+      {(a) => (
+        <Input
+          {...a}
+          inputMode="decimal"
+          className="w-32"
+          value={text}
+          disabled={disabled}
+          onChange={(e) => {
+            setText(e.target.value);
+            onChange(toBps(e.target.value));
+          }}
+        />
+      )}
+    </Field>
+  );
+}
+
 export function SettingsPage() {
   const settings = useQuery({
     queryKey: ['settings'],
@@ -665,6 +703,71 @@ export function SettingsPage() {
                 disabled={disabled}
                 onChange={(v) => set({ ...d, khalti: v })}
               />
+            </>
+          )}
+        </SettingCard>
+
+        <SettingCard
+          row={row('commerce.tax')}
+          title="VAT and business details"
+          description="Off until the business is VAT-registered. When on, every new order records the VAT it contains (or adds it on top) and receipts show these details. Orders already made keep what applied to them."
+        >
+          {(d, set, disabled) => (
+            <>
+              <ToggleRow
+                label="VAT-registered"
+                hint="Check with your auditor first: some education services are VAT-exempt."
+                checked={d.vatRegistered}
+                disabled={disabled}
+                onChange={(v) => set({ ...d, vatRegistered: v })}
+              />
+              <div className="grid gap-4 sm:grid-cols-2">
+                <PercentField
+                  label="VAT rate (%)"
+                  hint="Nepal's VAT Act: 13%."
+                  bps={d.rateBps}
+                  disabled={disabled}
+                  onChange={(bps) => set({ ...d, rateBps: bps })}
+                />
+                <OptionSelect
+                  label="Prices typed in the CMS"
+                  value={d.pricesIncludeVat ? 'inclusive' : 'exclusive'}
+                  options={{ inclusive: 'Already include VAT', exclusive: 'VAT is added at checkout' }}
+                  disabled={disabled}
+                  onChange={(v) => set({ ...d, pricesIncludeVat: v === 'inclusive' })}
+                />
+                <Field label="Registered business name">
+                  {(a) => (
+                    <Input
+                      {...a}
+                      value={d.businessName}
+                      disabled={disabled}
+                      onChange={(e) => set({ ...d, businessName: e.target.value })}
+                    />
+                  )}
+                </Field>
+                <Field label="PAN / VAT number" hint="9 digits.">
+                  {(a) => (
+                    <Input
+                      {...a}
+                      inputMode="numeric"
+                      value={d.panNumber}
+                      disabled={disabled}
+                      onChange={(e) => set({ ...d, panNumber: e.target.value.trim() })}
+                    />
+                  )}
+                </Field>
+              </div>
+              <Field label="Business address">
+                {(a) => (
+                  <Input
+                    {...a}
+                    value={d.address}
+                    disabled={disabled}
+                    onChange={(e) => set({ ...d, address: e.target.value })}
+                  />
+                )}
+              </Field>
             </>
           )}
         </SettingCard>

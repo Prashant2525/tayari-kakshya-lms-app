@@ -1,6 +1,6 @@
 # Test Status
 
-Last updated: 2026-10-06 (Phase 11 part 2a: plans). `pnpm test` runs unit + integration suites (needs `pnpm infra:up`);
+Last updated: 2026-10-06 (Phase 11 part 2b: coupons and VAT). `pnpm test` runs unit + integration suites (needs `pnpm infra:up`);
 `pnpm build && pnpm --filter @tk/admin e2e` and `pnpm build && pnpm --filter @tk/mobile e2e` run the browser suites
 (the student suite also needs Mailpit, part of `pnpm infra:up`).
 
@@ -11,12 +11,29 @@ Last updated: 2026-10-06 (Phase 11 part 2a: plans). `pnpm test` runs unit + inte
 | `@tk/design-tokens` | 39 | WCAG contrast for every text/background pair (light + dark), CSS generation |
 | `@tk/domain` | 58 | BS calendar, Kathmandu day boundary, fiscal year, money/VAT/discounts, access validity |
 | `@tk/contracts` | 21 | Schema behaviour (localized text, email normalisation, mass assignment, settings defaults, rich-text validation) |
-| `@tk/api` | 241 | Integration against real PostgreSQL + Redis + S3 (SeaweedFS) through the HTTP stack; TOTP RFC 6238 vectors; RBAC, video, watermark unit |
+| `@tk/api` | 250 | Integration against real PostgreSQL + Redis + S3 (SeaweedFS) through the HTTP stack; TOTP RFC 6238 vectors; RBAC, video, watermark unit |
 | `@tk/admin` (unit) | 35 | API client (headers, refresh single-flight, retry, session loss, error mapping), BS formatting, Button `asChild` regression |
-| `@tk/admin` (E2E, Playwright) | 25 | Real browser + real API + `*_e2e` database |
+| `@tk/admin` (E2E, Playwright) | 27 | Real browser + real API + `*_e2e` database |
 | `@tk/mobile` (unit) | 36 | API client (single-flight refresh, early refresh, session end, maintenance), translations complete in both languages, BS dates and Kathmandu weekday, force-update/maintenance gate, form checks, Nepali phone numbers |
-| `@tk/mobile` (E2E, Playwright, phone viewport) | 28 | Web build + real API + `*_mobile_e2e` database + Mailpit |
-| **Total** | **483** | |
+| `@tk/mobile` (E2E, Playwright, phone viewport) | 30 | Web build + real API + `*_mobile_e2e` database + Mailpit |
+| **Total** | **496** | |
+
+### Added with coupons and VAT (Phase 11 part 2b, T-051, D-055, D-056)
+- **API (9 integration tests):** coupon management (upper-case codes, duplicate 409, shape rules, switch off, audit,
+  permission); checkout applies the server's discount (a client's own discount is ignored; the gateway is asked
+  for the discounted total; the order keeps code and discount; an unpaid order is reused only for the same total);
+  every refusal reason (not found, off, not started, ended, not applicable, below minimum, sale price — and the
+  discount from the sale price when allowed); limits (an unpaid order holds the last use until it runs out; a
+  student's own replaced order does not count; per-student limit); 100% and over-price fixed coupons → paid at once
+  with Rs 0, access, no payment, audited; chosen plans only; VAT not registered / inclusive (Rs 1,130 contains
+  Rs 130) / added on top after the coupon (Rs 1,695 to the gateway); VAT settings refused without PAN and name.
+  Mutation-checked: removing the sale-price rule, the use limit or VAT-on-top each fails a test.
+- **Admin E2E (2 + 1 extended):** create a coupon for one course, share link, list; a student's order shows the
+  coupon and discount; System settings → VAT card refuses registration without the PAN / VAT number.
+- **Student E2E (2):** a wrong code is explained, the right one shows the discount and the pay amount, removing it
+  restores the price; a share link opened signed out → sign in → checkout with the 100% coupon → Get access →
+  access. Screens checked with screenshots.
+- KI-036 seen once (the admin E2E web server stopped mid-run); the re-run passed 27/27.
 
 ### Added with plans (Phase 11 part 2a, T-050)
 - **API (5 integration tests):** staff write, price and publish a plan (duplicate slug 409, sale above price 400,

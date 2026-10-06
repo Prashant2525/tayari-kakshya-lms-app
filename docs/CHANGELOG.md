@@ -4,6 +4,17 @@ All notable changes to this project. Format based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Added — 2026-10-06 (Phase 11 part 2b: coupons and VAT)
+- CMS: Sales → Coupons — percent or fixed discounts, dates, total and per-student limits, minimum price, where the
+  code works (everything, all courses, all plans or chosen ones), "works on sale prices" (D-054), on/off; uses and
+  recent orders; a share link that opens checkout with the code filled in. Orders show the coupon and VAT.
+- CMS: System settings → VAT and business details (D-055): VAT-registered, rate, prices include VAT or not, business
+  name, PAN / VAT number, address — no code change needed when the details arrive.
+- Student app: checkout shows the server's price lines (price, sale, coupon, VAT, total), "Have a coupon?" with the
+  reason when a code does not apply, and "Get access" when a coupon covers the full price (D-056). A share link
+  opened while signed out continues after signing in.
+- API: migration `coupons_tax`; `POST /orders/quote`; coupons checked and limited on the server under a lock.
+
 ### Added — 2026-10-06 (Phase 11 part 2a: plans)
 - CMS: Sales → Plans — create a plan, write its card (bilingual name, description, feature check-list, highlight),
   price / sale / validity, choose its courses or cover all courses, publish; subscribers shown.

@@ -11,6 +11,10 @@ export interface OrderView {
   orderNo: number;
   status: 'pending' | 'paid' | 'expired' | 'cancelled';
   currency: string;
+  subtotalPaisa: number;
+  discountPaisa: number;
+  couponCode: string | null;
+  tax: { rateBps: number; inclusive: boolean; paisa: number } | null;
   totalPaisa: number;
   createdAt: string;
   expiresAt: string;
@@ -34,7 +38,24 @@ export interface OrderView {
   }>;
 }
 
+export type CheckoutItem = { courseId: string } | { planId: string };
+
+/** The server's price for a purchase (D-025 coupon, D-055 VAT); nothing is stored until the order is made. */
+export interface Quote {
+  kind: 'course' | 'plan';
+  title: LocalizedText;
+  validity: { type: string; days: number | null; endsOn: string | null };
+  /** The regular price; above `subtotalPaisa` during a sale. */
+  regularPricePaisa: number;
+  subtotalPaisa: number;
+  discountPaisa: number;
+  coupon: { code: string } | null;
+  tax: { rateBps: number; inclusive: boolean; paisa: number } | null;
+  totalPaisa: number;
+}
+
 export const commerceKeys = {
+  quote: (item: CheckoutItem | null, coupon: string | null) => ['quote', item, coupon] as const,
   options: ['payment-options'] as const,
   order: (id: string) => ['order', id] as const,
   mine: ['my-orders'] as const,
@@ -48,16 +69,48 @@ export function usePaymentOptions() {
   });
 }
 
-/** Creates the order (or returns the unpaid one) and starts paying it; returns where to send the student. */
+const quoteOf = (item: CheckoutItem, coupon: string | null) =>
+  api.post<Quote>('/orders/quote', { ...item, ...(coupon ? { couponCode: coupon } : {}) });
+
+export function useQuote(item: CheckoutItem | null, coupon: string | null, enabled = true) {
+  return useQuery({
+    queryKey: commerceKeys.quote(item, coupon),
+    queryFn: () => quoteOf(item!, coupon),
+    enabled: Boolean(item) && enabled,
+    retry: false,
+  });
+}
+
+/** Asks the server whether a coupon applies; on success its quote is ready for checkout to show. */
+export function useApplyCoupon(item: CheckoutItem) {
+  return useMutation({
+    mutationFn: (code: string) => quoteOf(item, code),
+    onSuccess: (quote, code) => queryClient.setQueryData(commerceKeys.quote(item, code), quote),
+  });
+}
+
+/**
+ * Creates the order (or returns the unpaid one) and starts paying it; returns where to send the student — or no
+ * address when a coupon left nothing to pay and the order is already paid (D-056).
+ */
 export function useCheckout() {
   return useMutation({
     mutationFn: async (input: {
-      item: { courseId: string } | { planId: string };
-      provider: ProviderName;
+      item: CheckoutItem;
+      couponCode?: string | undefined;
+      provider: ProviderName | null;
       returnTo: 'app' | 'web';
       appReturnUrl?: string;
-    }) => {
-      const order = await api.post<OrderView>('/orders', input.item);
+    }): Promise<{ order: OrderView; redirectUrl: string | null }> => {
+      const order = await api.post<OrderView>('/orders', {
+        ...input.item,
+        ...(input.couponCode ? { couponCode: input.couponCode } : {}),
+      });
+      if (order.status === 'paid') {
+        refreshAfterPurchase();
+        return { order, redirectUrl: null };
+      }
+      if (!input.provider) throw new Error('No payment method');
       const started = await api.post<{ paymentId: string; redirectUrl: string }>(`/orders/${order.id}/pay`, {
         provider: input.provider,
         returnTo: input.returnTo,

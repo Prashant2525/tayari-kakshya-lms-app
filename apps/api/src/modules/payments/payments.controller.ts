@@ -1,6 +1,6 @@
 import { Controller, Get, HttpCode, Param, ParseUUIDPipe, Post, Query, Req, Res } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { CreateOrderInput, PayOrderInput, type Platform } from '@tk/contracts';
+import { CreateOrderInput, OrderQuoteInput, PayOrderInput, type Platform } from '@tk/contracts';
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import { Audiences, CurrentAuth, Public, type AuthContext } from '../../common/auth/auth-context.js';
 import { RateLimit } from '../../common/security/rate-limit.js';
@@ -35,6 +35,19 @@ export class PaymentsController {
     @CurrentAuth() auth: AuthContext,
   ) {
     return this.payments.createOrder(auth.userId, body, platform);
+  }
+
+  /** The price checkout would charge (sale, coupon, VAT) — nothing is stored. */
+  @Post('orders/quote')
+  @HttpCode(200)
+  @RateLimit({ name: 'orders.quote', limit: 120, windowSeconds: 3600, by: ['user'] })
+  @ApiZodBody(OrderQuoteInput)
+  quote(
+    @ZodBody(OrderQuoteInput) body: OrderQuoteInput,
+    @ClientPlatform() platform: Platform,
+    @CurrentAuth() auth: AuthContext,
+  ) {
+    return this.payments.quote(auth.userId, body, platform);
   }
 
   @Post('orders/:id/pay')

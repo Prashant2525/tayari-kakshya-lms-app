@@ -7,7 +7,8 @@ import {
 } from '@expo-google-fonts/mukta';
 import NetInfo from '@react-native-community/netinfo';
 import { onlineManager, QueryClientProvider } from '@tanstack/react-query';
-import { Stack } from 'expo-router';
+import * as Linking from 'expo-linking';
+import { router, Stack, type Href } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
@@ -18,6 +19,7 @@ import { AppGate } from '@/features/app-gate';
 import { useGuards } from '@/features/guards';
 import { useAnalyticsIdentity, useScreenTracking } from '@/lib/analytics';
 import { initMonitoring } from '@/lib/monitoring';
+import { checkoutHref, usePendingLink } from '@/lib/pending-link';
 import { usePrefs } from '@/state/prefs';
 import { useSession } from '@/state/session';
 import { ThemeProvider, useTheme } from '@/theme/theme';
@@ -89,6 +91,20 @@ function RootNavigator() {
 
   // The navigator stays mounted (navigation state survives); account data loads under an overlay.
   const blocking = signedIn && (me.isPending || targets.isPending || me.isError || targets.isError);
+
+  // A checkout share link opened while signed out is opened once the student is in (D-056).
+  const url = Linking.useURL();
+  const pending = usePendingLink((s) => s.href);
+  useEffect(() => {
+    const href = checkoutHref(url);
+    if (href && !signedIn) usePendingLink.getState().set(href);
+  }, [url, signedIn]);
+  const inside = signedIn && !mustVerify && !needsOnboarding && !blocking;
+  useEffect(() => {
+    if (!inside || !pending) return;
+    usePendingLink.getState().set(null);
+    router.push(pending as Href);
+  }, [inside, pending]);
   return (
     <View style={{ flex: 1 }}>
       <Stack screenOptions={{ headerShown: false }}>
