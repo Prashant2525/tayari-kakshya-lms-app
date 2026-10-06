@@ -110,9 +110,9 @@ partial indexes, generated `tsvector` columns, check constraints and triggers th
 | `payments` | `order_id`, `provider` (esewa/khalti/connectips), `status`, `amount_paisa`, `provider_reference` (eSewa transaction_uuid / Khalti pidx / ConnectIPS txn id), `provider_transaction_id`, `initiated_at`, `completed_at`, `last_checked_at`, `check_count`, `raw_initiate` jsonb, `raw_verify` jsonb. Unique `(provider, provider_reference)`; partial unique `(order_id) where status = 'completed'`. |
 | `payment_events` | `payment_id` null, `provider`, `event_type` (callback/redirect/verify/reconcile), `idempotency_key` unique, `payload` jsonb (secrets stripped), `received_at`, `processed_at`, `result` |
 | `entitlements` | `user_id`, `scope_type` (course/plan), `course_id` / `plan_id`, `source_type` (order/admin_grant/coupon/referral), `source_id`, `starts_at`, `ends_at` null (lifetime), `status` (active/revoked/expired), `revoked_reason`. Index `(user_id, status)`. |
-| `invoices` | `invoice_no` unique, `fiscal_year` (BS, e.g. 2083/84), `order_id` unique, `buyer_name`, `buyer_pan` null, amounts, `issued_at`, `pdf_media_id` |
-| `invoice_counters` | `fiscal_year` PK, `prefix`, `next_value` (row-locked when allocating) |
-| `refunds` | `order_id`, `payment_id`, `amount_paisa`, `reason`, `status` (requested/approved/processed/rejected), `requested_by`, `approved_by`, `processed_at`, `provider_refund_ref` |
+| `invoices` | ✅ part 3 (T-052): `invoice_no` unique, `fiscal_year` (BS, e.g. 2083/84; null when not restarting), `sequence` (unique per year), `order_id` unique, `kind` (receipt/tax_invoice), `buyer_name`, `buyer_contact`, `seller` jsonb, `items` jsonb, amounts + coupon + VAT snapshot, `paid_with`, `issued_at`, email delivery (`email_status`, attempts). Trigger: never updated (except email delivery) or deleted. PDF made on request from the snapshot. |
+| `invoice_counters` | ✅ `key` PK (fiscal year, or `all`), `next_value` (incremented under the row lock in the payment transaction) |
+| `refunds` | ✅ `order_id`, `amount_paisa` (> 0), `reason`, `status` (requested/approved/rejected/refunded), `full`, `requested_by/at`, `decided_by/at`, `decision_note`, `refunded_by/at`, `provider_reference`, `refund_note`; CHECKs keep status and its fields consistent. Orders gain status `refunded` (`paid_at` kept). |
 
 ### 2.9 Communication & CMS content
 | Table | Key columns / constraints |

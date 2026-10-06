@@ -1,6 +1,6 @@
 # Test Status
 
-Last updated: 2026-10-06 (Phase 11 part 2b: coupons and VAT). `pnpm test` runs unit + integration suites (needs `pnpm infra:up`);
+Last updated: 2026-10-06 (Phase 11 part 3: receipts and refunds). `pnpm test` runs unit + integration suites (needs `pnpm infra:up`);
 `pnpm build && pnpm --filter @tk/admin e2e` and `pnpm build && pnpm --filter @tk/mobile e2e` run the browser suites
 (the student suite also needs Mailpit, part of `pnpm infra:up`).
 
@@ -11,12 +11,29 @@ Last updated: 2026-10-06 (Phase 11 part 2b: coupons and VAT). `pnpm test` runs u
 | `@tk/design-tokens` | 39 | WCAG contrast for every text/background pair (light + dark), CSS generation |
 | `@tk/domain` | 58 | BS calendar, Kathmandu day boundary, fiscal year, money/VAT/discounts, access validity |
 | `@tk/contracts` | 21 | Schema behaviour (localized text, email normalisation, mass assignment, settings defaults, rich-text validation) |
-| `@tk/api` | 250 | Integration against real PostgreSQL + Redis + S3 (SeaweedFS) through the HTTP stack; TOTP RFC 6238 vectors; RBAC, video, watermark unit |
+| `@tk/api` | 256 | Integration against real PostgreSQL + Redis + S3 (SeaweedFS) through the HTTP stack; TOTP RFC 6238 vectors; RBAC, video, watermark unit |
 | `@tk/admin` (unit) | 35 | API client (headers, refresh single-flight, retry, session loss, error mapping), BS formatting, Button `asChild` regression |
-| `@tk/admin` (E2E, Playwright) | 27 | Real browser + real API + `*_e2e` database |
+| `@tk/admin` (E2E, Playwright) | 28 | Real browser + real API + `*_e2e` database |
 | `@tk/mobile` (unit) | 36 | API client (single-flight refresh, early refresh, session end, maintenance), translations complete in both languages, BS dates and Kathmandu weekday, force-update/maintenance gate, form checks, Nepali phone numbers |
 | `@tk/mobile` (E2E, Playwright, phone viewport) | 30 | Web build + real API + `*_mobile_e2e` database + Mailpit |
-| **Total** | **496** | |
+| **Total** | **503** | |
+
+### Added with receipts and refunds (Phase 11 part 3, T-052, D-057)
+- **Receipt PDF unit (1):** one A4 page titled with kind and number — receipt, tax invoice, Rs 0 order, and no
+  business details yet (this case found a crash: pdfkit fails on empty metadata; fixed).
+- **API (5 integration tests):** numbers run in order with the fiscal year; the student's signed link gives the PDF,
+  while someone else's order, a changed signature, a longer expiry and an expired link give 404; the receipt email
+  carries the PDF; numbering follows the CMS setting; tax invoice with the seller's PAN when VAT-registered;
+  receipts cannot be changed or deleted (database trigger) but delivery status can; Rs 0 orders get receipts;
+  refunds: more than paid refused, open requests count, partial approval keeps access, the rest removes it (order
+  refunded, entitlement revoked, student sees Refunded), sent with reference, audit; rejection keeps access and
+  frees the amount; approvers only; unpaid orders refused. Mutation-checked (access not removed, open requests not
+  counted, expiry not checked → each fails a test).
+- **Admin E2E (1):** paid order shows its receipt number → request a full refund → Refunds queue → approve (access
+  removed, order Refunded) → mark as refunded with the reference.
+- **Student E2E (extended):** Purchases → receipt button → the link returns a PDF.
+- Receipt PDFs checked as images (receipt; tax invoice with coupon and VAT 13% inclusive: Rs 2,700 = Rs 2,389.38 +
+  Rs 310.62).
 
 ### Added with coupons and VAT (Phase 11 part 2b, T-051, D-055, D-056)
 - **API (9 integration tests):** coupon management (upper-case codes, duplicate 409, shape rules, switch off, audit,

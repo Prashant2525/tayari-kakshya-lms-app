@@ -77,6 +77,9 @@ model User {
   entitlements        Entitlement[]            @relation("EntitlementUser")
   grantedEntitlements Entitlement[]            @relation("EntitlementGrantedBy")
   orders              Order[]
+  refundsRequested    Refund[]                 @relation("RefundRequester")
+  refundsDecided      Refund[]                 @relation("RefundDecider")
+  refundsCompleted    Refund[]                 @relation("RefundCompleter")
   questionReports     QuestionReport[]         @relation("QuestionReportUser")
   resolvedReports     QuestionReport[]         @relation("QuestionReportResolver")
   questionImports     QuestionImport[]         @relation("QuestionImportCreator")
@@ -1370,6 +1373,8 @@ enum OrderStatus {
   /// Created; can be paid until `expires_at`.
   pending
   paid
+  /// Paid, then refunded in full (D-057): the access it gave was removed.
+  refunded
   /// Not paid in time (a payment confirmed later still completes it).
   expired
   cancelled
@@ -1428,6 +1433,8 @@ model Order {
   coupon   Coupon?     @relation(fields: [couponId], references: [id], onDelete: Restrict)
   items    OrderItem[]
   payments Payment[]
+  invoice  Invoice?
+  refunds  Refund[]
 
   @@index([userId, createdAt(sort: Desc)])
   @@index([status, expiresAt])
@@ -1624,4 +1631,103 @@ model CouponTarget {
   @@index([courseId])
   @@index([planId])
   @@map("coupon_targets")
+}
+
+enum InvoiceKind {
+  /// Not VAT-registered when issued.
+  receipt
+  /// VAT-registered when issued (heading "Tax Invoice").
+  tax_invoice
+}
+
+enum InvoiceEmailStatus {
+  pending
+  sent
+  /// The student has no email address.
+  skipped
+  failed
+}
+
+/// One receipt per paid order (D-026, D-057), numbered once and never changed or deleted: everything printed on it is a
+/// snapshot taken when it was issued, so the PDF is the same every time it is made.
+model Invoice {
+  id             String             @id @default(uuid(7)) @db.Uuid
+  invoiceNo      String             @unique @map("invoice_no")
+  /// Nepali fiscal year, e.g. 2083/84 (null when numbering does not restart each year).
+  fiscalYear     String?            @map("fiscal_year")
+  sequence       Int
+  orderId        String             @unique @map("order_id") @db.Uuid
+  kind           InvoiceKind
+  buyerName      String             @map("buyer_name")
+  buyerContact   String?            @map("buyer_contact")
+  /// { businessName, panNumber, address } from the CMS when issued.
+  seller         Json
+  /// [{ title, unitPricePaisa, validity }]
+  items          Json
+  subtotalPaisa  Int                @map("subtotal_paisa")
+  discountPaisa  Int                @map("discount_paisa")
+  couponCode     String?            @map("coupon_code")
+  taxRateBps     Int?               @map("tax_rate_bps")
+  taxInclusive   Boolean?           @map("tax_inclusive")
+  taxPaisa       Int                @map("tax_paisa")
+  totalPaisa     Int                @map("total_paisa")
+  /// eSewa / Khalti, or null when nothing was paid (D-056).
+  paidWith       String?            @map("paid_with")
+  issuedAt       DateTime           @map("issued_at") @db.Timestamptz(6)
+  emailStatus    InvoiceEmailStatus @default(pending) @map("email_status")
+  emailAttempts  Int                @default(0) @map("email_attempts")
+  emailAttemptAt DateTime?          @map("email_attempt_at") @db.Timestamptz(6)
+  emailedAt      DateTime?          @map("emailed_at") @db.Timestamptz(6)
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Restrict)
+
+  @@unique([fiscalYear, sequence])
+  @@index([emailStatus, emailAttemptAt])
+  @@map("invoices")
+}
+
+/// The next receipt number per fiscal year (`key` = the fiscal year, or "all" when numbering never restarts).
+model InvoiceCounter {
+  key       String @id
+  nextValue Int    @map("next_value")
+
+  @@map("invoice_counters")
+}
+
+enum RefundStatus {
+  requested
+  approved
+  rejected
+  /// The money was sent back.
+  refunded
+}
+
+/// Refunds (D-026, D-057): staff ask, someone with `refunds:approve` decides, and whoever sends the money back records
+/// its reference. Never deleted.
+model Refund {
+  id                String       @id @default(uuid(7)) @db.Uuid
+  orderId           String       @map("order_id") @db.Uuid
+  amountPaisa       Int          @map("amount_paisa")
+  reason            String
+  status            RefundStatus @default(requested)
+  /// Set when approved: this refund completes the order's total, so the access it gave was removed.
+  full              Boolean      @default(false)
+  requestedById     String       @map("requested_by") @db.Uuid
+  requestedAt       DateTime     @default(now()) @map("requested_at") @db.Timestamptz(6)
+  decidedById       String?      @map("decided_by") @db.Uuid
+  decidedAt         DateTime?    @map("decided_at") @db.Timestamptz(6)
+  decisionNote      String?      @map("decision_note")
+  refundedById      String?      @map("refunded_by") @db.Uuid
+  refundedAt        DateTime?    @map("refunded_at") @db.Timestamptz(6)
+  providerReference String?      @map("provider_reference")
+  refundNote        String?      @map("refund_note")
+
+  order       Order @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  requestedBy User  @relation("RefundRequester", fields: [requestedById], references: [id], onDelete: Restrict)
+  decidedBy   User? @relation("RefundDecider", fields: [decidedById], references: [id], onDelete: Restrict)
+  refundedBy  User? @relation("RefundCompleter", fields: [refundedById], references: [id], onDelete: Restrict)
+
+  @@index([orderId])
+  @@index([status, requestedAt])
+  @@map("refunds")
 }

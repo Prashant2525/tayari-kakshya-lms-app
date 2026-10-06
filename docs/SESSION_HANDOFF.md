@@ -2,8 +2,8 @@
 
 Session date: 2026-10-02 (session 4 — resumed after a VS Code crash)
 Current phase: **Phase 6 — content CMS, API layer complete and verified locally**
-Current task: Phase 11 part 2b (coupons + VAT settings) done on `feature/coupons-vat` (PR into `main`); next part 3
-(receipts / invoice numbering, refunds)
+Current task: Phase 11 part 3 (receipts + refunds) done on `feature/receipts-refunds` (PR into `main`); next part 4
+(website checkout for iOS users, referral programme)
 
 ## Completed this session
 - Recovered the interrupted work from the repository (nothing lost). Verified the uncommitted content API:
@@ -202,6 +202,12 @@ Current task: Phase 11 part 2b (coupons + VAT settings) done on `feature/coupons
 - Nothing partially implemented. Admin screens for Phase 6 not started.
 
 ## Exact next steps
+0c. 2026-10-06 (evening): PR #25 merged. Part 3 on `feature/receipts-refunds` (T-052, D-057): receipts issued with
+   payment (numbered per fiscal year, immutable, PDF via signed link, emailed + worker retry), refunds (request →
+   approve/reject → sent with reference; full refund removes access). KI-045: no credit notes yet (needed only once
+   VAT-registered). Next: part 4 — Next.js website (course pages, sign-in, checkout for iOS users per D-027, receipts,
+   legal pages, certificate verification, app links for share links KI-044) and referral programme (ask the
+   owner for the referral reward rules before building).
 0b. 2026-10-06 (later): PR #23 and #24 merged. Part 2b on `feature/coupons-vat` (T-051): coupons (CMS Sales →
    Coupons, checkout box, share links resumed after sign-in, Rs 0 orders per D-056), VAT card in System settings
    (D-055), `POST /orders/quote`. Next: part 3 — receipts with numbering per BS fiscal year (prefix and reset are CMS

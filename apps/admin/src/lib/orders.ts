@@ -1,10 +1,12 @@
 import type { LocalizedText } from '@tk/contracts';
+import type { RefundView } from './refunds';
 
 /** Orders and payments (Phase 11). Amounts are paisa. */
 
 export const ORDER_STATUS = {
   pending: { label: 'Not paid', tone: 'warning' },
   paid: { label: 'Paid', tone: 'success' },
+  refunded: { label: 'Refunded', tone: 'danger' },
   expired: { label: 'Expired', tone: 'neutral' },
   cancelled: { label: 'Cancelled', tone: 'neutral' },
 } as const;
@@ -58,6 +60,8 @@ export interface OrderDetail {
   createdAt: string;
   expiresAt: string;
   paidAt: string | null;
+  receipt: { number: string; issuedAt: string; email: 'pending' | 'sent' | 'skipped' | 'failed' } | null;
+  refunds: RefundView[];
   student: { id: string; fullName: string; contact: string | null };
   items: Array<{ courseId: string | null; title: LocalizedText; pricePaisa: number; validity: unknown }>;
   access: Array<{

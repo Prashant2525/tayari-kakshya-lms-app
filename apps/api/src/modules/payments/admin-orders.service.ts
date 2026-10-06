@@ -6,6 +6,7 @@ import { PrismaService } from '../../infra/prisma/prisma.service.js';
 import { AuditService } from '../audit/audit.service.js';
 import type { ContentActor } from '../content/scope.service.js';
 import { PaymentsService } from './payments.service.js';
+import { RefundsService } from './refunds.service.js';
 
 /** Orders and payments in the CMS (Phase 11): what was bought, every payment attempt and what the gateways said. */
 @Injectable()
@@ -14,6 +15,7 @@ export class AdminOrdersService {
     private readonly prisma: PrismaService,
     private readonly payments: PaymentsService,
     private readonly audit: AuditService,
+    private readonly refunds: RefundsService,
   ) {}
 
   async list(query: AdminOrderQuery) {
@@ -74,6 +76,7 @@ export class AdminOrdersService {
       include: {
         user: { select: { id: true, fullName: true, email: true, phone: true } },
         items: { include: { course: { select: { id: true, slug: true } } } },
+        invoice: { select: { invoiceNo: true, issuedAt: true, emailStatus: true } },
         payments: {
           orderBy: { initiatedAt: 'asc' },
           include: { events: { orderBy: { receivedAt: 'asc' } } },
@@ -103,6 +106,14 @@ export class AdminOrdersService {
       createdAt: o.createdAt.toISOString(),
       expiresAt: o.expiresAt.toISOString(),
       paidAt: o.paidAt?.toISOString() ?? null,
+      receipt: o.invoice
+        ? {
+            number: o.invoice.invoiceNo,
+            issuedAt: o.invoice.issuedAt.toISOString(),
+            email: o.invoice.emailStatus,
+          }
+        : null,
+      refunds: await this.refunds.forOrder(o.id),
       student: { id: o.user.id, fullName: o.user.fullName, contact: o.user.email ?? o.user.phone },
       items: o.items.map((i) => ({
         courseId: i.courseId,

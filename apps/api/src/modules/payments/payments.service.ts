@@ -30,6 +30,7 @@ import { SettingsService } from '../settings/settings.service.js';
 import { GatewayHttp } from './gateway-http.js';
 import { CouponsService, type PricedItem } from './coupons.service.js';
 import { planPrice, saleActive } from './plans.service.js';
+import { ReceiptsService } from './receipts.service.js';
 import {
   GatewayError,
   gatewaysFromEnv,
@@ -130,6 +131,7 @@ export class PaymentsService {
     private readonly audit: AuditService,
     private readonly entitlements: EntitlementsService,
     private readonly coupons: CouponsService,
+    private readonly receipts: ReceiptsService,
     @Inject(ENV) private readonly env: Env,
     http: GatewayHttp,
   ) {
@@ -242,8 +244,9 @@ export class PaymentsService {
         include: { items: true },
       });
       if (free) {
-        // Nothing to pay (D-056): access now, recorded like any paid order.
+        // Nothing to pay (D-056): access now, recorded like any paid order, with its receipt.
         await this.grant(tx, created, now);
+        await this.receipts.issue(tx, created.id, null, now);
         await this.audit.record(
           {
             actorUserId: userId,
@@ -257,6 +260,7 @@ export class PaymentsService {
       }
       return created;
     });
+    if (order.status === 'paid') this.emailReceipts();
     return this.orderView(order.id, userId);
   }
 
@@ -534,6 +538,7 @@ export class PaymentsService {
           include: { course: { select: { id: true, slug: true } }, plan: { select: { slug: true } } },
         },
         payments: { orderBy: { initiatedAt: 'desc' } },
+        invoice: { select: { invoiceNo: true } },
       },
     });
     return this.view(full);
@@ -541,7 +546,7 @@ export class PaymentsService {
 
   async myOrders(userId: string) {
     const rows = await this.prisma.order.findMany({
-      where: { userId, OR: [{ status: 'paid' }, { payments: { some: {} } }] },
+      where: { userId, OR: [{ status: { in: ['paid', 'refunded'] } }, { payments: { some: {} } }] },
       orderBy: { createdAt: 'desc' },
       take: 100,
       include: {
@@ -549,6 +554,7 @@ export class PaymentsService {
           include: { course: { select: { id: true, slug: true } }, plan: { select: { slug: true } } },
         },
         payments: { orderBy: { initiatedAt: 'desc' } },
+        invoice: { select: { invoiceNo: true } },
       },
     });
     return rows.map((o) => this.view(o));
@@ -598,7 +604,7 @@ export class PaymentsService {
     request: unknown,
     now = new Date(),
   ): Promise<Payment> {
-    return this.prisma.$transaction(async (tx) => {
+    const settled = await this.prisma.$transaction(async (tx) => {
       const first = await tx.payment.findUniqueOrThrow({ where: { id: paymentId } });
       await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${`pay:${first.orderId}`}))`;
       const payment = await tx.payment.findUniqueOrThrow({ where: { id: paymentId } });
@@ -636,7 +642,7 @@ export class PaymentsService {
           where: { id: payment.orderId },
           include: { items: true },
         });
-        const duplicate = order.status === 'paid';
+        const duplicate = order.status === 'paid' || order.status === 'refunded';
         const updated = await tx.payment.update({
           where: { id: payment.id },
           data: {
@@ -664,6 +670,7 @@ export class PaymentsService {
         }
         await tx.order.update({ where: { id: order.id }, data: { status: 'paid', paidAt: now } });
         await this.grant(tx, order, now);
+        await this.receipts.issue(tx, order.id, payment.provider, now);
         await record('completed');
         await this.audit.record(
           {
@@ -706,6 +713,17 @@ export class PaymentsService {
       await record(verdict.status);
       return updated;
     });
+    if (settled.status === 'completed' && !settled.duplicate) this.emailReceipts();
+    return settled;
+  }
+
+  /** Sends receipts waiting for their email (the worker retries any that fail). */
+  private emailReceipts() {
+    void this.receipts
+      .sendPending()
+      .catch((err: unknown) =>
+        this.logger.warn({ err: String(err) }, 'Receipt emails will be retried by the worker'),
+      );
   }
 
   /**
@@ -836,6 +854,7 @@ export class PaymentsService {
         plan: { slug: string } | null;
       }>;
       payments: Payment[];
+      invoice: { invoiceNo: string } | null;
     },
   ) {
     return {
@@ -854,6 +873,7 @@ export class PaymentsService {
       createdAt: o.createdAt.toISOString(),
       expiresAt: o.expiresAt.toISOString(),
       paidAt: o.paidAt?.toISOString() ?? null,
+      receipt: o.invoice ? { number: o.invoice.invoiceNo } : null,
       items: o.items.map((i) => ({
         kind: i.itemType as 'course' | 'plan',
         planId: i.planId,

@@ -1,8 +1,8 @@
 import { radius } from '@tk/design-tokens';
 import { formatNpr } from '@tk/domain';
-import { Receipt } from 'lucide-react-native';
-import { FlatList, StyleSheet, View } from 'react-native';
-import { useMyOrders, type OrderView } from '@/api/commerce';
+import { FileText, Receipt } from 'lucide-react-native';
+import { FlatList, Pressable, StyleSheet, View } from 'react-native';
+import { useMyOrders, useOpenReceipt, type OrderView } from '@/api/commerce';
 import { localized } from '@/i18n/translate';
 import { useT } from '@/i18n/use-t';
 import { bsDate } from '@/lib/dates';
@@ -14,6 +14,7 @@ import { Text } from '@/ui/text';
 
 const STATUS_KEY = {
   paid: 'purchases.status.paid',
+  refunded: 'purchases.status.refunded',
   pending: 'purchases.status.pending',
   expired: 'purchases.status.expired',
   cancelled: 'purchases.status.cancelled',
@@ -80,7 +81,26 @@ function Row({ o }: { o: OrderView }) {
         tone={o.status === 'paid' ? 'done' : o.status === 'pending' ? 'progress' : 'neutral'}
         label={t(STATUS_KEY[o.status])}
       />
+      {o.receipt ? <ReceiptButton orderId={o.id} number={o.receipt.number} /> : null}
     </View>
+  );
+}
+
+function ReceiptButton({ orderId, number }: { orderId: string; number: string }) {
+  const { colors } = useTheme();
+  const { t } = useT();
+  const open = useOpenReceipt();
+  return (
+    <Pressable
+      role="button"
+      aria-label={t('purchases.receipt', { no: number })}
+      onPress={() => open.mutate(orderId)}
+      disabled={open.isPending}
+      hitSlop={8}
+      style={styles.receipt}
+    >
+      <FileText size={20} color={open.isError ? colors.danger : colors.link} strokeWidth={1.75} />
+    </Pressable>
   );
 }
 
@@ -95,4 +115,5 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: radius.md,
   },
+  receipt: { minWidth: 44, minHeight: 44, alignItems: 'center', justifyContent: 'center' },
 });

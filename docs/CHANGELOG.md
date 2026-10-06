@@ -4,6 +4,16 @@ All notable changes to this project. Format based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Added — 2026-10-06 (Phase 11 part 3: receipts and refunds)
+- Receipts: every paid order (including Rs 0 coupon orders) gets a numbered receipt, e.g. TK-2083/84-000001
+  (prefix and yearly restart in System settings → Receipt numbers); "Tax Invoice" once VAT-registered. Students
+  download the PDF from Purchases or after paying, and get it by email when payment is confirmed.
+- Refunds: staff request a refund on the order page with the reason; someone with refund approval approves or
+  rejects it and records the money as sent with its reference (Sales → Refunds lists the queue). A refund of the
+  whole amount removes the access the order gave; a partial refund keeps it. Purchases show "Refunded".
+- API: migration `receipts_refunds` (receipts that can never change, refunds, order status `refunded`); worker job
+  `receipts-email`.
+
 ### Added — 2026-10-06 (Phase 11 part 2b: coupons and VAT)
 - CMS: Sales → Coupons — percent or fixed discounts, dates, total and per-student limits, minimum price, where the
   code works (everything, all courses, all plans or chosen ones), "works on sale prices" (D-054), on/off; uses and

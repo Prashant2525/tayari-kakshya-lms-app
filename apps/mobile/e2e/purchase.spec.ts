@@ -197,6 +197,15 @@ test('Purchases lists the paid order', async () => {
   await visible(page.getByRole('link', { name: 'Purchases' })).click();
   await expect(text(courseTitle)).toBeVisible();
   await expect(text('Paid')).toBeVisible();
+  // The receipt (D-057) opens as a PDF through a short-lived link (headless Chromium downloads it).
+  const [request] = await Promise.all([
+    page.context().waitForEvent('request', (r) => r.url().includes('/receipts/')),
+    visible(page.getByRole('button', { name: /^Receipt TK-\d{4}\/\d{2}-\d{6}$/ }))
+      .first()
+      .click(),
+  ]);
+  const pdf = await page.request.get(request.url());
+  expect(pdf.headers()['content-type']).toBe('application/pdf');
 });
 
 test('a plan bought with Khalti opens its courses and can then be renewed', async () => {
