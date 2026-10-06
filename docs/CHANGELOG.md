@@ -4,6 +4,13 @@ All notable changes to this project. Format based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Added — 2026-10-07 (Phase 11 part 4a: public website)
+- `apps/web` (Next.js): home with featured courses, course list and pages (CMS description, subjects, instructors,
+  price), plans, checkout with coupons (share links included) and eSewa / Khalti, payment result, sign in / create
+  account / verify email / reset password, My account (purchases, receipts, sign out), certificate check, sitemap.
+  English and Nepali; BS dates. iOS users buy here (D-027). The student's tokens stay in HttpOnly cookies.
+- CI: `web-e2e` job.
+
 ### Added — 2026-10-06 (Phase 11 part 3: receipts and refunds)
 - Receipts: every paid order (including Rs 0 coupon orders) gets a numbered receipt, e.g. TK-2083/84-000001
   (prefix and yearly restart in System settings → Receipt numbers); "Tax Invoice" once VAT-registered. Students

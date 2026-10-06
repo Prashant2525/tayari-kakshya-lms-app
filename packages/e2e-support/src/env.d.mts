@@ -7,6 +7,7 @@ export declare function createE2eEnv(options: {
   name?: string;
   apiPort: number;
   webOrigin: string;
+  apiOrigin?: string;
   redisDb: number;
   email?: 'log' | 'smtp';
 }): NodeJS.ProcessEnv;

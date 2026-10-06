@@ -1,6 +1,6 @@
 # Test Status
 
-Last updated: 2026-10-06 (Phase 11 part 3: receipts and refunds). `pnpm test` runs unit + integration suites (needs `pnpm infra:up`);
+Last updated: 2026-10-07 (Phase 11 part 4a: website). `pnpm test` runs unit + integration suites (needs `pnpm infra:up`);
 `pnpm build && pnpm --filter @tk/admin e2e` and `pnpm build && pnpm --filter @tk/mobile e2e` run the browser suites
 (the student suite also needs Mailpit, part of `pnpm infra:up`).
 
@@ -16,7 +16,21 @@ Last updated: 2026-10-06 (Phase 11 part 3: receipts and refunds). `pnpm test` ru
 | `@tk/admin` (E2E, Playwright) | 28 | Real browser + real API + `*_e2e` database |
 | `@tk/mobile` (unit) | 36 | API client (single-flight refresh, early refresh, session end, maintenance), translations complete in both languages, BS dates and Kathmandu weekday, force-update/maintenance gate, form checks, Nepali phone numbers |
 | `@tk/mobile` (E2E, Playwright, phone viewport) | 30 | Web build + real API + `*_mobile_e2e` database + Mailpit |
-| **Total** | **503** | |
+| `@tk/web` (unit) | 6 | Session refresh used once (concurrent / late requests share it; refused → signed out; unreachable → retried), token expiry, both languages complete, failure messages |
+| `@tk/web` (E2E, Playwright) | 4 | `next start` production build + real API + `*_web_e2e` database + Mailpit + gateway stand-in; access tokens last 60 s so every page load refreshes |
+| **Total** | **513** | |
+
+### Added with the website (Phase 11 part 4a, T-053)
+- **Unit (6)** as above.
+- **E2E (4):** course page with CMS content and price, switch to Nepali (Devanagari digits, Nepali title) and back;
+  share link signed out → create account → email code from Mailpit → back at checkout with the coupon applied →
+  Khalti → API-verified return → Payment successful → receipt PDF → My account (Paid, receipt) → course page says
+  you have access; sign out → wrong password explained (email kept — a bug the test found: React reset the form) →
+  sign in; certificate number check. With 60-second tokens the run made 26 refreshes and the API recorded no
+  refresh-token reuse.
+- Found and fixed while testing: the API config path (`/app/config`); Next's on-disk fetch cache serving a previous
+  run's catalog (cleared when the E2E server starts); the email field emptied after a failed sign-in.
+- Screens checked at desktop and phone width, English and Nepali.
 
 ### Added with receipts and refunds (Phase 11 part 3, T-052, D-057)
 - **Receipt PDF unit (1):** one A4 page titled with kind and number — receipt, tax invoice, Rs 0 order, and no

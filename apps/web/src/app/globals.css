@@ -1,0 +1,64 @@
+@import 'tailwindcss';
+@import '@tk/design-tokens/tokens.css';
+@import '@fontsource/mukta/400.css';
+@import '@fontsource/mukta/500.css';
+@import '@fontsource/mukta/600.css';
+@import '@fontsource/mukta/700.css';
+
+/* Design tokens (CSS variables, light + dark) as Tailwind utilities — the same names as in the CMS. */
+@theme inline {
+  --font-sans: var(--tk-font-sans);
+
+  --color-bg: var(--tk-bg);
+  --color-surface: var(--tk-surface);
+  --color-surface-muted: var(--tk-surface-muted);
+  --color-surface-raised: var(--tk-surface-raised);
+  --color-border: var(--tk-border);
+  --color-border-strong: var(--tk-border-strong);
+  --color-text: var(--tk-text);
+  --color-text-secondary: var(--tk-text-secondary);
+  --color-text-muted: var(--tk-text-muted);
+  --color-text-inverse: var(--tk-text-inverse);
+  --color-brand: var(--tk-brand);
+  --color-on-brand: var(--tk-on-brand);
+  --color-primary: var(--tk-primary);
+  --color-primary-hover: var(--tk-primary-hover);
+  --color-on-primary: var(--tk-on-primary);
+  --color-primary-soft: var(--tk-primary-soft);
+  --color-on-primary-soft: var(--tk-on-primary-soft);
+  --color-link: var(--tk-link);
+  --color-focus: var(--tk-focus-ring);
+  --color-success: var(--tk-success);
+  --color-success-soft: var(--tk-success-soft);
+  --color-warning: var(--tk-warning);
+  --color-warning-soft: var(--tk-warning-soft);
+  --color-danger: var(--tk-danger);
+  --color-danger-soft: var(--tk-danger-soft);
+  --color-premium: var(--tk-premium);
+  --color-on-premium: var(--tk-on-premium);
+
+  --radius-sm: var(--tk-radius-sm);
+  --radius-md: var(--tk-radius-md);
+  --radius-lg: var(--tk-radius-lg);
+  --radius-xl: var(--tk-radius-xl);
+
+  --shadow-e1: var(--tk-shadow-e1);
+  --shadow-e2: var(--tk-shadow-e2);
+}
+
+@layer base {
+  html {
+    font-family: var(--tk-font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+  body {
+    background: var(--tk-bg);
+    color: var(--tk-text);
+    font-size: 16px;
+    line-height: 1.6;
+  }
+  :focus-visible {
+    outline: 2px solid var(--tk-focus-ring);
+    outline-offset: 2px;
+  }
+}

@@ -155,7 +155,8 @@ certificates (issue + verify), mistake notebook & revision mode. Edge-case tests
 - ☑ Part 2b (T-051, D-055, D-056): coupons (CMS, checkout, share links, limits, Rs 0 orders) and VAT settings in the
   CMS (`commerce.tax`) with a VAT snapshot on each order
 - ☑ Part 3 (T-052, D-057): numbered receipts (PDF in the app and by email), refund workflow with approval
-- ☐ Part 4: website (Next.js) checkout for iOS users (D-027), referral programme
+- ☑ Part 4a (T-053): public website (Next.js) — catalog, plans, checkout with coupons, sign-in, receipts, certificate check
+- ☐ Part 4b (D-058): referral programme — personal codes / links, friend's first-purchase discount, reward coupon
 
 Original plan: plans, course purchase, coupons/sales, orders, eSewa + Khalti providers (sandbox), callbacks,
 verification, reconciliation worker, entitlements, VAT/invoice numbering + PDF, refunds workflow, referral program,

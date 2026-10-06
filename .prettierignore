@@ -7,3 +7,7 @@ pnpm-lock.yaml
 **/generated/**
 *.pdf
 docs/**/*.md
+.next
+next-env.d.ts
+playwright-report
+test-results

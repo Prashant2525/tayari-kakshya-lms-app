@@ -1,0 +1,41 @@
+{
+  "name": "@tk/web",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Public website (Next.js): course pages, sign-in, checkout for every channel (iOS users buy here, D-027), receipts.",
+  "scripts": {
+    "dev": "node --env-file-if-exists=../../.env ./node_modules/next/dist/bin/next dev --port 3000",
+    "build": "next build",
+    "start": "node --env-file-if-exists=../../.env ./node_modules/next/dist/bin/next start --port 3000",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint src e2e",
+    "test": "vitest run",
+    "e2e": "playwright test"
+  },
+  "dependencies": {
+    "@fontsource/mukta": "5.3.0",
+    "@tk/contracts": "workspace:*",
+    "@tk/design-tokens": "workspace:*",
+    "@tk/domain": "workspace:*",
+    "next": "16.3.8",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "server-only": "0.0.1"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0",
+    "@tailwindcss/postcss": "4.3.3",
+    "@tk/config": "workspace:*",
+    "@tk/e2e-support": "workspace:*",
+    "@types/node": "24.19.0",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "eslint": "10.11.0",
+    "eslint-plugin-react-hooks": "7.1.1",
+    "globals": "17.13.0",
+    "tailwindcss": "4.3.3",
+    "typescript": "6.0.3",
+    "vitest": "5.0.3"
+  }
+}
