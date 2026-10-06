@@ -42,11 +42,17 @@ export function usePaymentOptions() {
 /** Creates the order (or returns the unpaid one) and starts paying it; returns where to send the student. */
 export function useCheckout() {
   return useMutation({
-    mutationFn: async (input: { courseId: string; provider: ProviderName; returnTo: 'app' | 'web' }) => {
+    mutationFn: async (input: {
+      courseId: string;
+      provider: ProviderName;
+      returnTo: 'app' | 'web';
+      appReturnUrl?: string;
+    }) => {
       const order = await api.post<OrderView>('/orders', { courseId: input.courseId });
       const started = await api.post<{ paymentId: string; redirectUrl: string }>(`/orders/${order.id}/pay`, {
         provider: input.provider,
         returnTo: input.returnTo,
+        ...(input.appReturnUrl ? { appReturnUrl: input.appReturnUrl } : {}),
       });
       return { order, redirectUrl: started.redirectUrl };
     },

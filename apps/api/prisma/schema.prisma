@@ -1454,8 +1454,11 @@ model Payment {
   providerReference     String?         @map("provider_reference")
   /// The gateway's transaction id once paid (eSewa transaction_code, Khalti transaction_id).
   providerTransactionId String?         @map("provider_transaction_id")
-  /// Where the student returns afterwards (allow-listed: app or web).
+  /// Where the student returns afterwards: an allow-listed address (older rows: "app" / "web").
   returnTo              String          @map("return_to")
+  /// The API address the gateway sends the student back to, fixed when the payment starts (null = the configured
+  /// PAYMENT_CALLBACK_BASE_URL). In development it is the address the device reached the API on (emulator, phone).
+  callbackBase          String?         @map("callback_base")
   /// Set when a second payment completed an order that was already paid (needs a refund decision).
   duplicate             Boolean         @default(false)
   failureReason         String?         @map("failure_reason")

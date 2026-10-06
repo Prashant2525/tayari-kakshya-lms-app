@@ -12,6 +12,11 @@ export type CreateOrderInput = z.infer<typeof CreateOrderInput>;
 export const PayOrderInput = z.object({
   provider: PaymentProviderName,
   returnTo: z.enum(['app', 'web']),
+  /**
+   * The app's own return link (`tayarikakshya://payment-result`, or `exp://…/--/payment-result` in Expo Go during
+   * development). Used only when the server allows it; otherwise the configured app address applies.
+   */
+  appReturnUrl: z.string().trim().max(300).optional(),
 });
 export type PayOrderInput = z.infer<typeof PayOrderInput>;
 

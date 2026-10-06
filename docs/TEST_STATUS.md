@@ -11,12 +11,18 @@ Last updated: 2026-10-06 (Phase 11 part 1: course purchase). `pnpm test` runs un
 | `@tk/design-tokens` | 39 | WCAG contrast for every text/background pair (light + dark), CSS generation |
 | `@tk/domain` | 58 | BS calendar, Kathmandu day boundary, fiscal year, money/VAT/discounts, access validity |
 | `@tk/contracts` | 21 | Schema behaviour (localized text, email normalisation, mass assignment, settings defaults, rich-text validation) |
-| `@tk/api` | 233 | Integration against real PostgreSQL + Redis + S3 (SeaweedFS) through the HTTP stack; TOTP RFC 6238 vectors; RBAC, video, watermark unit |
+| `@tk/api` | 236 | Integration against real PostgreSQL + Redis + S3 (SeaweedFS) through the HTTP stack; TOTP RFC 6238 vectors; RBAC, video, watermark unit |
 | `@tk/admin` (unit) | 35 | API client (headers, refresh single-flight, retry, session loss, error mapping), BS formatting, Button `asChild` regression |
 | `@tk/admin` (E2E, Playwright) | 24 | Real browser + real API + `*_e2e` database |
 | `@tk/mobile` (unit) | 36 | API client (single-flight refresh, early refresh, session end, maintenance), translations complete in both languages, BS dates and Kathmandu weekday, force-update/maintenance gate, form checks, Nepali phone numbers |
 | `@tk/mobile` (E2E, Playwright, phone viewport) | 27 | Web build + real API + `*_mobile_e2e` database + Mailpit |
-| **Total** | **473** | |
+| **Total** | **476** | |
+
+### Added with the Android payment return fix (KI-042)
+- **API unit (3):** development callback address = the address the device reached the API on (emulator 10.0.2.2,
+  phone on Wi-Fi), never a malformed one; any other environment always uses the configured address; the app's return
+  link is accepted only when allowed (configured, or Expo Go's in development) — never an arbitrary address. Payment
+  integration tests and the purchase / orders browser specs re-run green.
 
 ### Added with the free-enrolment access fix (D-053, KI-043)
 - **API (1 new + 1 updated integration test):** a free course sharing a subject with a paid course no longer unlocks

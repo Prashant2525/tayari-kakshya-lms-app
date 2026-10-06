@@ -1,5 +1,6 @@
 import { radius } from '@tk/design-tokens';
 import { formatNpr } from '@tk/domain';
+import * as Linking from 'expo-linking';
 import * as WebBrowser from 'expo-web-browser';
 import { router, useLocalSearchParams } from 'expo-router';
 import { ShieldCheck } from 'lucide-react-native';
@@ -21,8 +22,6 @@ import { ErrorState } from '@/ui/states';
 import { Text } from '@/ui/text';
 
 const PROVIDER_LABEL: Record<ProviderName, string> = { esewa: 'eSewa', khalti: 'Khalti' };
-/** The app's return address (PAYMENT_RETURN_URL_APP on the server); closes the in-app browser when reached. */
-const APP_RETURN = 'tayarikakshya://payment-result';
 
 /**
  * Checkout (Phase 11): the course and its price as the server sets them, a gateway to pay with, then the gateway's
@@ -53,15 +52,17 @@ export default function CheckoutScreen() {
 
   const pay = () => {
     if (!provider) return;
+    // The app's own return link (tayarikakshya://… in builds, exp://… in Expo Go); reaching it closes the browser.
+    const appReturnUrl = Linking.createURL('payment-result');
     checkout.mutate(
-      { courseId: c.id, provider, returnTo: Platform.OS === 'web' ? 'web' : 'app' },
+      { courseId: c.id, provider, returnTo: Platform.OS === 'web' ? 'web' : 'app', appReturnUrl },
       {
         onSuccess: async ({ order, redirectUrl }) => {
           if (Platform.OS === 'web') {
             globalThis.location.assign(redirectUrl);
             return;
           }
-          await WebBrowser.openAuthSessionAsync(redirectUrl, APP_RETURN).catch(() => undefined);
+          await WebBrowser.openAuthSessionAsync(redirectUrl, appReturnUrl).catch(() => undefined);
           // Whatever the browser reports, the result screen asks the server.
           router.replace({ pathname: '/payment-result', params: { order: order.id } });
         },
