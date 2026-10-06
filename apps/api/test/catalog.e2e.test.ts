@@ -229,7 +229,7 @@ describe('free courses are joined with an enrol step (L6)', () => {
   const enrol = (courseId: string, token?: string) =>
     call(ctx, 'POST', `/courses/${courseId}/enrol`, token ? { token } : {});
 
-  it('keeps premium items locked until the student enrols, then unlocks them for the course validity', async () => {
+  it('enrolling adds the course for its validity; premium items still need paid access (D-053)', async () => {
     const { admin, seeded, token, userId } = await setup();
     await freeCourse(admin, seeded.course.id);
 
@@ -245,9 +245,11 @@ describe('free courses are joined with an enrol step (L6)', () => {
     expect(days).toBeGreaterThan(29.99);
     expect(days).toBeLessThan(30.01);
 
+    // D-053: a free enrolment opens the free lessons only; premium ones need paid access or a staff grant.
     const item = await call(ctx, 'GET', `/learning-items/${seeded.premiumNote.id}`, { token });
-    expect(item.status).toBe(200);
-    expect(JSON.stringify(item.body)).toContain('Premium secret body');
+    expect(item.status).toBe(403);
+    expect(JSON.stringify(item.body)).not.toContain('Premium secret body');
+    expect((await call(ctx, 'GET', `/learning-items/${seeded.freeNote.id}`, { token })).status).toBe(200);
     const mine = await call(ctx, 'GET', '/me/courses', { token });
     expect(mine.body.map((c: { id: string }) => c.id)).toEqual([seeded.course.id]);
     const after = await call(ctx, 'GET', '/courses/sainey-likhit', { token });
@@ -258,6 +260,41 @@ describe('free courses are joined with an enrol step (L6)', () => {
     expect(rows[0]).toMatchObject({ sourceType: 'free_enrol', grantedById: null });
     const audit = await ctx.prisma.auditLog.findFirst({ where: { action: 'entitlement.enrol_free' } });
     expect(audit).toMatchObject({ actorUserId: userId, entityId: rows[0]!.id });
+  });
+
+  it('a free course sharing a subject with a paid course does not unlock the paid lessons (D-053)', async () => {
+    const { admin, seeded, token, userId } = await setup();
+    // The seeded course stays paid; a second, free course uses the same subject.
+    const free = await call(ctx, 'POST', '/admin/courses', {
+      token: admin,
+      body: { slug: 'free-taster', title: { en: 'Free taster' } },
+    });
+    await freeCourse(admin, free.body.id);
+    await call(ctx, 'PUT', `/admin/courses/${free.body.id}/subjects`, {
+      token: admin,
+      body: { subjects: [{ subjectId: seeded.subject.id }] },
+    });
+    await call(ctx, 'PUT', `/admin/courses/${free.body.id}/publishing`, {
+      token: admin,
+      body: { status: 'published' },
+    });
+    expect((await enrol(free.body.id, token)).status).toBe(201);
+
+    for (const id of [seeded.premiumNote.id, seeded.premiumPdf.id]) {
+      expect((await call(ctx, 'GET', `/learning-items/${id}`, { token })).status).toBe(403);
+    }
+    const outline = await call(
+      ctx,
+      'GET',
+      `/courses/${seeded.course.id}/subjects/${seeded.subject.id}/outline`,
+      {
+        token,
+      },
+    );
+    expect(outline.body.hasPremiumAccess).toBe(false);
+    // A staff grant (or a purchase) of the paid course unlocks them.
+    await grant(admin, userId, seeded.course.id);
+    expect((await call(ctx, 'GET', `/learning-items/${seeded.premiumNote.id}`, { token })).status).toBe(200);
   });
 
   it('is idempotent, including under concurrent taps', async () => {

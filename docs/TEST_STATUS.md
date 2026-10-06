@@ -11,12 +11,17 @@ Last updated: 2026-10-06 (Phase 11 part 1: course purchase). `pnpm test` runs un
 | `@tk/design-tokens` | 39 | WCAG contrast for every text/background pair (light + dark), CSS generation |
 | `@tk/domain` | 58 | BS calendar, Kathmandu day boundary, fiscal year, money/VAT/discounts, access validity |
 | `@tk/contracts` | 21 | Schema behaviour (localized text, email normalisation, mass assignment, settings defaults, rich-text validation) |
-| `@tk/api` | 232 | Integration against real PostgreSQL + Redis + S3 (SeaweedFS) through the HTTP stack; TOTP RFC 6238 vectors; RBAC, video, watermark unit |
+| `@tk/api` | 233 | Integration against real PostgreSQL + Redis + S3 (SeaweedFS) through the HTTP stack; TOTP RFC 6238 vectors; RBAC, video, watermark unit |
 | `@tk/admin` (unit) | 35 | API client (headers, refresh single-flight, retry, session loss, error mapping), BS formatting, Button `asChild` regression |
 | `@tk/admin` (E2E, Playwright) | 24 | Real browser + real API + `*_e2e` database |
 | `@tk/mobile` (unit) | 36 | API client (single-flight refresh, early refresh, session end, maintenance), translations complete in both languages, BS dates and Kathmandu weekday, force-update/maintenance gate, form checks, Nepali phone numbers |
 | `@tk/mobile` (E2E, Playwright, phone viewport) | 27 | Web build + real API + `*_mobile_e2e` database + Mailpit |
-| **Total** | **472** | |
+| **Total** | **473** | |
+
+### Added with the free-enrolment access fix (D-053, KI-043)
+- **API (1 new + 1 updated integration test):** a free course sharing a subject with a paid course no longer unlocks
+  the paid course's premium lessons or PDF (mutation-checked: the old rule fails both tests); a free enrolment opens
+  free lessons only; a staff grant (or purchase) unlocks premium ones. All suites re-run green.
 
 ### Added with course purchase (Phase 11 part 1, T-049)
 - **Gateway unit (5):** eSewa form signing (field order, rupee amounts), eSewa's **own published signed success

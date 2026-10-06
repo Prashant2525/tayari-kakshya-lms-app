@@ -151,6 +151,10 @@ Students: released results include `graderComment` on written answers.
 
 Setting `payments.providers { esewa, khalti }`. Migration `commerce`. Worker job `payments-reconcile` (every minute).
 
+Access change (D-053): premium items, practice answers, mistake-notebook answers and Premium tests are unlocked only by
+paid access (`order`), staff grants, coupons or referrals — not by `free_enrol`. `access.entitled` on a course still
+means "in My courses" (free enrolments included).
+
 ## 1b-8. Changes (§10 hardening)
 
 `PUT /attempts/:id/answers` accepts `clientSavedAt` (epoch ms, optional): an answer from a batch older than the one

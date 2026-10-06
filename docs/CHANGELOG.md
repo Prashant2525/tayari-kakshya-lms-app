@@ -4,6 +4,11 @@ All notable changes to this project. Format based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Fixed — 2026-10-06 (access, D-053)
+- Joining a free course unlocked premium lessons of paid courses that share its subjects (KI-043). Premium content
+  now needs paid access, a staff grant, a coupon or a referral; free enrolment opens free lessons only. Locked
+  messages in the app say how to unlock.
+
 ### Added — 2026-10-06 (Phase 11 part 1: course purchase)
 - Student app: Buy on paid courses (Android in-app and web; never iOS, D-027) → checkout (server price, eSewa or
   Khalti, "Test mode" while on test credentials) → the gateway's page → a result screen that waits for the server's
