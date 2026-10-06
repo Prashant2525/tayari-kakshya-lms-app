@@ -27,6 +27,8 @@ const CONTENT_PERMISSIONS = [
   'assessments:publish',
   'grading:manage',
   'certificates:manage',
+  'orders:read',
+  'orders:manage',
 ];
 
 /**

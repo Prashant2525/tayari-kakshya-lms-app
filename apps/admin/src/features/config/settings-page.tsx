@@ -647,6 +647,29 @@ export function SettingsPage() {
         </SettingCard>
 
         <SettingCard
+          row={row('payments.providers')}
+          title="Payment methods"
+          description="Which gateways students can pay with. Each also needs its merchant credentials on the server (.env); payments already started still finish."
+        >
+          {(d, set, disabled) => (
+            <>
+              <ToggleRow
+                label="eSewa"
+                checked={d.esewa}
+                disabled={disabled}
+                onChange={(v) => set({ ...d, esewa: v })}
+              />
+              <ToggleRow
+                label="Khalti"
+                checked={d.khalti}
+                disabled={disabled}
+                onChange={(v) => set({ ...d, khalti: v })}
+              />
+            </>
+          )}
+        </SettingCard>
+
+        <SettingCard
           row={row('mistakes.revision')}
           title="Mistake notebook"
           description="Wrong and partly correct answers from tests and practice are collected for revision. A question leaves the notebook after this many correct answers in a row (or when the student removes it)."

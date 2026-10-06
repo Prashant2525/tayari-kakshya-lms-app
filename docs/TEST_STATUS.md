@@ -1,6 +1,6 @@
 # Test Status
 
-Last updated: 2026-10-06 (§10 hardening — phase 10 complete). `pnpm test` runs unit + integration suites (needs `pnpm infra:up`);
+Last updated: 2026-10-06 (Phase 11 part 1: course purchase). `pnpm test` runs unit + integration suites (needs `pnpm infra:up`);
 `pnpm build && pnpm --filter @tk/admin e2e` and `pnpm build && pnpm --filter @tk/mobile e2e` run the browser suites
 (the student suite also needs Mailpit, part of `pnpm infra:up`).
 
@@ -11,12 +11,33 @@ Last updated: 2026-10-06 (§10 hardening — phase 10 complete). `pnpm test` run
 | `@tk/design-tokens` | 39 | WCAG contrast for every text/background pair (light + dark), CSS generation |
 | `@tk/domain` | 58 | BS calendar, Kathmandu day boundary, fiscal year, money/VAT/discounts, access validity |
 | `@tk/contracts` | 21 | Schema behaviour (localized text, email normalisation, mass assignment, settings defaults, rich-text validation) |
-| `@tk/api` | 219 | Integration against real PostgreSQL + Redis + S3 (SeaweedFS) through the HTTP stack; TOTP RFC 6238 vectors; RBAC, video, watermark unit |
+| `@tk/api` | 232 | Integration against real PostgreSQL + Redis + S3 (SeaweedFS) through the HTTP stack; TOTP RFC 6238 vectors; RBAC, video, watermark unit |
 | `@tk/admin` (unit) | 35 | API client (headers, refresh single-flight, retry, session loss, error mapping), BS formatting, Button `asChild` regression |
-| `@tk/admin` (E2E, Playwright) | 23 | Real browser + real API + `*_e2e` database |
+| `@tk/admin` (E2E, Playwright) | 24 | Real browser + real API + `*_e2e` database |
 | `@tk/mobile` (unit) | 36 | API client (single-flight refresh, early refresh, session end, maintenance), translations complete in both languages, BS dates and Kathmandu weekday, force-update/maintenance gate, form checks, Nepali phone numbers |
-| `@tk/mobile` (E2E, Playwright, phone viewport) | 25 | Web build + real API + `*_mobile_e2e` database + Mailpit |
-| **Total** | **456** | |
+| `@tk/mobile` (E2E, Playwright, phone viewport) | 27 | Web build + real API + `*_mobile_e2e` database + Mailpit |
+| **Total** | **472** | |
+
+### Added with course purchase (Phase 11 part 1, T-049)
+- **Gateway unit (5):** eSewa form signing (field order, rupee amounts), eSewa's **own published signed success
+  response** accepted and altered / unsigned / garbage ones rejected, status-check mapping (COMPLETE, NOT_FOUND,
+  PENDING, AMBIGUOUS, CANCELED, FULL_REFUND, outage); Khalti initiate (paisa, server key, return address) and lookup
+  mapping (only Completed completes).
+- **API (8 integration tests, gateways answered by a test stand-in at the HTTP boundary):** Playbook §11.11 —
+  success (Khalti, eSewa), failure / cancellation / expiry (no access, try again), **duplicate and repeated
+  callbacks** (one access, events kept), **invalid signature** (rejected), **invalid amount** (no access, flagged —
+  mutation-checked), **expired payment** and unpaid orders (worker), **client disconnect after payment** (order view
+  and worker settle it), **duplicate enrollment** (two payments → one access, second flagged — mutation-checked;
+  D-052 refuses rebuying); also: price from the server only (client amounts ignored), channels (iOS, Android
+  web-only), free courses, gateway switched off, gateway down (502, recorded), forged return addresses, privacy of
+  orders, staff permissions, staff re-check (audited), revoking paid access keeps the order.
+- **Real test gateways (manual script, session 20):** eSewa accepted our signed form and rejected a bad signature;
+  eSewa status API and Khalti initiate / lookup answered through our gateway code. Completing a payment on their own
+  pages is a manual owner check (KI-041).
+- **Browser E2E (student app, 1 new spec / 2 tests; local gateway stand-in):** Buy → checkout (Rs 1,500, both
+  gateways) → Khalti → cancel → "Payment not completed" → Try again → eSewa (our signed hand-off page) → pay →
+  "Payment successful" → access → Purchases lists it. **CMS (1):** a student paid and never came back → Orders →
+  "Check with Khalti" → paid, access given, gateway messages shown.
 
 ### Added with exam hardening (§10, T-048)
 - **API (3 integration tests):** a save that arrives after a newer one is skipped (mutation-checked), newer saves and

@@ -76,6 +76,7 @@ model User {
   courseInstructor    CourseInstructor[]
   entitlements        Entitlement[]            @relation("EntitlementUser")
   grantedEntitlements Entitlement[]            @relation("EntitlementGrantedBy")
+  orders              Order[]
   questionReports     QuestionReport[]         @relation("QuestionReportUser")
   resolvedReports     QuestionReport[]         @relation("QuestionReportResolver")
   questionImports     QuestionImport[]         @relation("QuestionImportCreator")
@@ -649,6 +650,7 @@ model Course {
   subjects            CourseSubject[]
   instructors         CourseInstructor[]
   entitlements        Entitlement[]
+  orderItems          OrderItem[]
 
   assessments Assessment[]
   progress    LearningProgress[]
@@ -1357,4 +1359,135 @@ model Mistake {
   @@index([userId, status, lastWrongAt(sort: Desc)])
   @@index([questionId])
   @@map("mistakes")
+}
+
+// ───────────── Commerce (Phase 11, D-003, D-023, D-027, D-051, D-052) ─────────────
+
+enum OrderStatus {
+  /// Created; can be paid until `expires_at`.
+  pending
+  paid
+  /// Not paid in time (a payment confirmed later still completes it).
+  expired
+  cancelled
+}
+
+enum OrderChannel {
+  android
+  ios
+  web
+}
+
+enum PaymentProvider {
+  esewa
+  khalti
+  connectips
+}
+
+enum PaymentStatus {
+  /// Handed to the gateway; the student has not come back yet.
+  initiated
+  /// The gateway has not settled it yet (checked again later).
+  pending
+  completed
+  failed
+  cancelled
+  expired
+}
+
+/// A purchase. Amounts are fixed by the server when the order is created and never come from the client.
+/// Financial record: never deleted.
+model Order {
+  id            String       @id @default(uuid(7)) @db.Uuid
+  /// Shown to students and staff, e.g. #000123.
+  orderNo       Int          @unique @default(autoincrement()) @map("order_no")
+  userId        String       @map("user_id") @db.Uuid
+  status        OrderStatus  @default(pending)
+  channel       OrderChannel
+  currency      String       @default("NPR")
+  subtotalPaisa Int          @map("subtotal_paisa")
+  discountPaisa Int          @default(0) @map("discount_paisa")
+  totalPaisa    Int          @map("total_paisa")
+  expiresAt     DateTime     @map("expires_at") @db.Timestamptz(6)
+  paidAt        DateTime?    @map("paid_at") @db.Timestamptz(6)
+  createdAt     DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime     @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user     User        @relation(fields: [userId], references: [id], onDelete: Restrict)
+  items    OrderItem[]
+  payments Payment[]
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([status, expiresAt])
+  @@map("orders")
+}
+
+/// What was bought, as it was when bought.
+model OrderItem {
+  id               String  @id @default(uuid(7)) @db.Uuid
+  orderId          String  @map("order_id") @db.Uuid
+  /// course now; plans later.
+  itemType         String  @map("item_type")
+  courseId         String? @map("course_id") @db.Uuid
+  titleSnapshot    Json    @map("title_snapshot")
+  unitPricePaisa   Int     @map("unit_price_paisa")
+  /// { type, days, endsOn } — the course validity when bought.
+  validitySnapshot Json    @map("validity_snapshot")
+
+  order  Order   @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  course Course? @relation(fields: [courseId], references: [id], onDelete: Restrict)
+
+  @@index([orderId])
+  @@index([courseId])
+  @@map("order_items")
+}
+
+/// One attempt to pay an order through a gateway. Success is only ever recorded after the server has verified it
+/// with the gateway. Financial record: never deleted.
+model Payment {
+  id                    String          @id @default(uuid(7)) @db.Uuid
+  orderId               String          @map("order_id") @db.Uuid
+  provider              PaymentProvider
+  status                PaymentStatus   @default(initiated)
+  amountPaisa           Int             @map("amount_paisa")
+  /// The gateway's id for this payment (Khalti pidx; for eSewa our transaction_uuid = this payment's id).
+  providerReference     String?         @map("provider_reference")
+  /// The gateway's transaction id once paid (eSewa transaction_code, Khalti transaction_id).
+  providerTransactionId String?         @map("provider_transaction_id")
+  /// Where the student returns afterwards (allow-listed: app or web).
+  returnTo              String          @map("return_to")
+  /// Set when a second payment completed an order that was already paid (needs a refund decision).
+  duplicate             Boolean         @default(false)
+  failureReason         String?         @map("failure_reason")
+  initiatedAt           DateTime        @default(now()) @map("initiated_at") @db.Timestamptz(6)
+  completedAt           DateTime?       @map("completed_at") @db.Timestamptz(6)
+  lastCheckedAt         DateTime?       @map("last_checked_at") @db.Timestamptz(6)
+  checkCount            Int             @default(0) @map("check_count")
+  updatedAt             DateTime        @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  order  Order          @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  events PaymentEvent[]
+
+  @@unique([provider, providerReference])
+  @@index([orderId])
+  @@index([status, initiatedAt])
+  @@map("payments")
+}
+
+/// Everything a gateway told us (redirects, verifications, reconciliation), secrets stripped. Never deleted.
+model PaymentEvent {
+  id         String          @id @default(uuid(7)) @db.Uuid
+  paymentId  String?         @map("payment_id") @db.Uuid
+  provider   PaymentProvider
+  /// redirect | verify | reconcile | initiate
+  eventType  String          @map("event_type")
+  payload    Json
+  /// What it changed: completed, failed, unchanged, rejected (bad signature / amount), duplicate…
+  result     String
+  receivedAt DateTime        @default(now()) @map("received_at") @db.Timestamptz(6)
+
+  payment Payment? @relation(fields: [paymentId], references: [id], onDelete: Restrict)
+
+  @@index([paymentId, receivedAt])
+  @@map("payment_events")
 }

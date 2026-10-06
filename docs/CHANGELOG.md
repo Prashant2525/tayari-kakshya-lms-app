@@ -4,6 +4,16 @@ All notable changes to this project. Format based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Added — 2026-10-06 (Phase 11 part 1: course purchase)
+- Student app: Buy on paid courses (Android in-app and web; never iOS, D-027) → checkout (server price, eSewa or
+  Khalti, "Test mode" while on test credentials) → the gateway's page → a result screen that waits for the server's
+  confirmation → access; Profile → Purchases.
+- API: migration `commerce` (orders, order items, payments, payment events); eSewa ePay v2 and Khalti KPG-2 with
+  server-side verification, one idempotent settlement path, amount and duplicate checks, reconciliation worker; all
+  gateway settings from `.env` (D-051); no rebuying while access is active (D-052).
+- CMS: Orders (search, needs attention, payments with every gateway message, check again with the gateway);
+  Settings → Payment methods.
+
 ### Fixed — 2026-10-06 (§10 hardening)
 - Exam answers given offline were lost if the app was closed before the connection came back (KI-039).
 - A save that reached the server late (after a lost connection) could overwrite a newer answer; it is now skipped

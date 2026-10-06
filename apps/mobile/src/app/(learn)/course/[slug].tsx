@@ -262,10 +262,14 @@ function AccessBar({
   } else if (course.pricing) {
     content = (
       <View style={styles.priceBar}>
-        <PriceText course={course} />
-        <Text variant="bodySm" color="textSecondary" style={{ flex: 1, textAlign: 'right' }}>
-          {t('course.buySoon')}
-        </Text>
+        <View style={{ flex: 1 }}>
+          <PriceText course={course} />
+        </View>
+        <Button
+          label={t('course.buy')}
+          size="md"
+          onPress={() => router.push({ pathname: '/checkout/[slug]', params: { slug } })}
+        />
       </View>
     );
   } else {

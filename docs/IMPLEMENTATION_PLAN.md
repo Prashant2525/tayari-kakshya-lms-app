@@ -16,7 +16,7 @@ Scope = approved decisions only (`DECISIONS.md`). Each phase ends with tests, do
 | 8 | Student mobile foundation | see §8 (includes design preview gate) | ☐ |
 | 9 | Student learning | see §9 | ☑ (part 2 in PR) |
 | 10 | Exam engine + engagement | see §10 | ☑ |
-| 11 | Commerce + website checkout | see §11 | ☐ |
+| 11 | Commerce + website checkout | see §11 | ◐ part 1 |
 | 12 | Communication & CMS content | see §12 | ☐ |
 | 13 | Progress & community | see §13 | ☐ |
 | 14 | Advanced approved features | see §14 | ☐ |
@@ -145,7 +145,16 @@ Original plan: assessments list, exam mode (timer, palette, autosave queue, resu
 auto-submit), results & solutions, attempt history, subjective self-grading, daily challenge + streaks, leaderboards,
 certificates (issue + verify), mistake notebook & revision mode. Edge-case tests (reconnect, double submit, expiry, duplicate start).
 
-**§11 Commerce** — plans, course purchase, coupons/sales, orders, eSewa + Khalti providers (sandbox), callbacks,
+**§11 Commerce** (branch `feature/commerce`) — ◐ IN PROGRESS
+- ☑ Part 1 (T-049, D-051, D-052): course purchase — orders at the server's price, eSewa + Khalti (test credentials,
+  everything from `.env`), server-side verification, idempotent settlement, duplicate / amount checks, reconciliation
+  worker, access with the bought validity; app: Buy → checkout → gateway → result, Profile → Purchases; CMS: Orders
+  (payments, gateway messages, check again), Settings → Payment methods
+- ☐ Part 2: plans (subscriptions), coupons
+- ☐ Part 3: VAT / invoice numbering + PDF receipts, refunds workflow (needs the owner's VAT / invoice details, D-026)
+- ☐ Part 4: website (Next.js) checkout for iOS users (D-027), referral programme
+
+Original plan: plans, course purchase, coupons/sales, orders, eSewa + Khalti providers (sandbox), callbacks,
 verification, reconciliation worker, entitlements, VAT/invoice numbering + PDF, refunds workflow, referral program,
 iOS web-only channel rules, **Next.js website** (course pages, auth, checkout, receipts, legal pages, certificate verify).
 Payment edge-case tests per Playbook §11.11.

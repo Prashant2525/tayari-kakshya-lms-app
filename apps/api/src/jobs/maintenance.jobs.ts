@@ -6,6 +6,7 @@ import { reportError } from '../infra/monitoring/sentry.js';
 import { AttemptsService } from '../modules/attempts/attempts.service.js';
 import { AccountDeletionService } from '../modules/auth/account-deletion.service.js';
 import { AuthCleanupService } from '../modules/auth/auth-cleanup.service.js';
+import { PaymentsService } from '../modules/payments/payments.service.js';
 
 export const MAINTENANCE_QUEUE = 'maintenance';
 
@@ -23,10 +24,13 @@ export async function startMaintenanceJobs(
   await queue.upsertJobScheduler('auth-cleanup', { every: 60 * 60_000 }, { name: 'auth-cleanup' });
   // Attempts whose time ran out while the student was away are submitted automatically (§10).
   await queue.upsertJobScheduler('attempts-expire', { every: 60_000 }, { name: 'attempts-expire' });
+  // Payments a student paid but never came back from are settled with their gateway; unpaid orders time out (Phase 11).
+  await queue.upsertJobScheduler('payments-reconcile', { every: 60_000 }, { name: 'payments-reconcile' });
 
   const deletions = app.get(AccountDeletionService);
   const cleanup = app.get(AuthCleanupService);
   const attempts = app.get(AttemptsService);
+  const payments = app.get(PaymentsService);
   const worker = new Worker(
     MAINTENANCE_QUEUE,
     async (job) => {
@@ -37,6 +41,8 @@ export async function startMaintenanceJobs(
           return cleanup.run();
         case 'attempts-expire':
           return { finished: await attempts.finishExpired() };
+        case 'payments-reconcile':
+          return payments.reconcile();
         default:
           throw new Error(`Unknown maintenance job ${job.name}`);
       }

@@ -133,6 +133,24 @@ Admin: `AssessmentInput` gains optional `premiumAccess` (linked/any_course/plans
 
 Students: released results include `graderComment` on written answers.
 
+## 1c-11. Implemented endpoints (Phase 11 part 1 — course purchase) ✅
+
+| Method | Path | Auth | Notes |
+|---|---|---|---|
+| GET | `/payments/options` | student | `{ providers: [{ provider: esewa / khalti, testMode }] }` — configured, switched on, and the platform can buy (`X-TK-Platform`) |
+| POST | `/orders` | student | `{ courseId }` → 201 order (server price; the unpaid one is reused). 409 `PURCHASE_NOT_AVAILABLE` (`channel_closed`, `already_has_access`, `free_course`, `not_for_sale`, `access_period_ended`) |
+| POST | `/orders/:id/pay` | student | `{ provider, returnTo: app / web }` → `{ paymentId, redirectUrl }`. 409 `ORDER_CLOSED`, 409 `PAYMENT_PROVIDER_UNAVAILABLE`, 502 `PAYMENT_GATEWAY_ERROR` |
+| GET | `/orders/:id` | student (own) | order with items and payments; an open payment is checked with its gateway first (≤ every 5 s) |
+| GET | `/me/orders` | student | orders that were paid or had a payment, newest first |
+| GET | `/payments/esewa/:paymentId/start` | public | HTML page posting the signed form to eSewa (CSP: one script hash, `form-action` eSewa only); 404 once used / closed |
+| GET | `/payments/esewa/return?data=` / `?payment=` | public | signature-checked, confirmed with eSewa's status API → 302 to the allow-listed return address with `?order=` (400 page for unknown / forged) |
+| GET | `/payments/khalti/return?pidx=` | public | looked up with Khalti → 302 as above |
+| GET | `/admin/orders?q=&status=&provider=&attention=true&cursor=&limit=` | `orders:read` | `q` = order number (`#123`), student name or email; `attention` = duplicate or amount mismatch |
+| GET | `/admin/orders/:id` | `orders:read` | items (with validity bought), access given, payments with every gateway event |
+| POST | `/admin/payments/:id/check` | `orders:manage` | asks the gateway again and settles; audited `payment.check` |
+
+Setting `payments.providers { esewa, khalti }`. Migration `commerce`. Worker job `payments-reconcile` (every minute).
+
 ## 1b-8. Changes (§10 hardening)
 
 `PUT /attempts/:id/answers` accepts `clientSavedAt` (epoch ms, optional): an answer from a batch older than the one

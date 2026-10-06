@@ -48,4 +48,17 @@ Object.assign(process.env, {
   YOUTUBE_API_KEY: '',
   // …and never report test errors to the real Sentry project.
   SENTRY_DSN_API: '',
+  // Payment gateways: test-only values; tests answer for the gateways themselves (fake-gateways.ts).
+  ESEWA_ENV: 'sandbox',
+  ESEWA_PRODUCT_CODE: 'EPAYTEST',
+  ESEWA_SECRET_KEY: 'test-esewa-secret',
+  ESEWA_FORM_URL: '',
+  ESEWA_STATUS_URL: '',
+  KHALTI_ENV: 'sandbox',
+  KHALTI_SECRET_KEY: 'test-khalti-key',
+  KHALTI_BASE_URL: '',
+  PAYMENT_CALLBACK_BASE_URL: 'https://api.test.invalid',
+  PAYMENT_RETURN_URL_APP: 'tayarikakshya://payment-result',
+  PAYMENT_RETURN_URL_WEB: 'https://web.test.invalid/payment-result',
+  PAYMENT_ORDER_TTL_MINUTES: '60',
 });

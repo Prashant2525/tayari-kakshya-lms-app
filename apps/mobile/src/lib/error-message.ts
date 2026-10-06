@@ -24,6 +24,10 @@ const BY_CODE: Record<string, MessageKey> = {
   ASSESSMENT_NOT_AVAILABLE: 'error.assessmentNotAvailable',
   ATTEMPT_CLOSED: 'error.attemptClosed',
   CONTENT_LOCKED: 'error.contentLocked',
+  PURCHASE_NOT_AVAILABLE: 'error.purchaseNotAvailable',
+  ORDER_CLOSED: 'error.orderClosed',
+  PAYMENT_PROVIDER_UNAVAILABLE: 'error.providerUnavailable',
+  PAYMENT_GATEWAY_ERROR: 'error.gateway',
 };
 
 export function errorMessageKey(error: unknown): MessageKey {

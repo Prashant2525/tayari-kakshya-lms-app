@@ -182,6 +182,15 @@ export const SETTINGS = {
     default: { baseUrl: null },
     public: false,
   },
+  /**
+   * D-003: which payment gateways students may use (each also needs its credentials in .env). Turning one off stops
+   * new payments through it; payments already started still settle.
+   */
+  'payments.providers': {
+    schema: z.object({ esewa: z.boolean(), khalti: z.boolean() }),
+    default: { esewa: true, khalti: true },
+    public: false,
+  },
   /** D-050: a question leaves the mistake notebook after this many correct revision answers in a row (default 2). */
   'mistakes.revision': {
     schema: z.object({ correctInARow: z.number().int().min(1).max(10) }),
