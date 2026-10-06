@@ -201,22 +201,50 @@ export class EntitlementsService {
     }));
   }
 
-  /** Course ids the user can currently access. */
+  /** Course ids the user can currently access (their courses, free enrolments and their plans' courses). */
   async activeCourseIds(userId: string, now = new Date()): Promise<Set<string>> {
     const rows = await this.prisma.entitlement.findMany({
       where: { userId, scopeType: 'course', ...activeEntitlementWhere(now) },
       select: { courseId: true },
     });
-    return new Set(rows.map((r) => r.courseId).filter((id): id is string => Boolean(id)));
+    const ids = new Set(rows.map((r) => r.courseId).filter((id): id is string => Boolean(id)));
+    for (const id of await this.planCourseIds(userId, now)) ids.add(id);
+    return ids;
   }
 
-  /** Course ids whose premium content the user can open (D-053: not through a free enrolment). */
+  /** Whether the user has an active plan (any). */
+  async hasActivePlan(userId: string, now = new Date()): Promise<boolean> {
+    const count = await this.prisma.entitlement.count({
+      where: { userId, scopeType: 'plan', ...activeEntitlementWhere(now) },
+    });
+    return count > 0;
+  }
+
+  /**
+   * Courses the user's active plans cover (D-054): each plan's courses as they are now, or every course for an
+   * all-courses plan. A plan staff later delete keeps giving access to subscribers until it ends.
+   */
+  async planCourseIds(userId: string, now = new Date()): Promise<Set<string>> {
+    const plans = await this.prisma.entitlement.findMany({
+      where: { userId, scopeType: 'plan', ...activeEntitlementWhere(now) },
+      select: { plan: { select: { coverage: true, courses: { select: { courseId: true } } } } },
+    });
+    if (plans.some((p) => p.plan?.coverage === 'all_courses')) {
+      const all = await this.prisma.course.findMany({ where: { deletedAt: null }, select: { id: true } });
+      return new Set(all.map((c) => c.id));
+    }
+    return new Set(plans.flatMap((p) => p.plan?.courses.map((c) => c.courseId) ?? []));
+  }
+
+  /** Course ids whose premium content the user can open (D-053: not through a free enrolment; plans count). */
   async premiumCourseIds(userId: string, now = new Date()): Promise<Set<string>> {
     const rows = await this.prisma.entitlement.findMany({
       where: { userId, scopeType: 'course', ...activeEntitlementWhere(now), ...premiumSourceWhere },
       select: { courseId: true },
     });
-    return new Set(rows.map((r) => r.courseId).filter((id): id is string => Boolean(id)));
+    const ids = new Set(rows.map((r) => r.courseId).filter((id): id is string => Boolean(id)));
+    for (const id of await this.planCourseIds(userId, now)) ids.add(id);
+    return ids;
   }
 
   /** True if the user has premium access (D-053) to a course that includes this subject. */
@@ -230,6 +258,13 @@ export class EntitlementsService {
         course: { deletedAt: null, subjects: { some: { subjectId } } },
       },
     });
-    return count > 0;
+    if (count > 0) return true;
+    // Or a plan covering a course that includes this subject.
+    const planCourses = await this.planCourseIds(userId, now);
+    if (planCourses.size === 0) return false;
+    const covering = await this.prisma.courseSubject.count({
+      where: { subjectId, courseId: { in: [...planCourses] }, course: { deletedAt: null } },
+    });
+    return covering > 0;
   }
 }

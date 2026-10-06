@@ -29,6 +29,7 @@ export const PERMISSIONS = {
   'assessments:publish': 'Publish, schedule, archive and delete assessments; release results',
   'grading:manage': 'Grade subjective answers',
   'certificates:manage': 'Manage certificate templates; revoke and reinstate issued certificates',
+  'plans:manage': 'Create, price and publish subscription plans and choose their courses',
   'orders:read': 'View orders, payments and what the payment gateways reported',
   'orders:manage': 'Check a payment again with its gateway',
 } as const;

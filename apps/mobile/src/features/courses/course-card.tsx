@@ -1,7 +1,7 @@
 import { palette, radius } from '@tk/design-tokens';
 import { router } from 'expo-router';
 import { Image, Pressable, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
-import type { CatalogCourse, MyCourse } from '@/api/learning';
+import type { CatalogCourse, MyCourse, Pricing } from '@/api/learning';
 import { localized } from '@/i18n/translate';
 import { useT } from '@/i18n/use-t';
 import { percent, price } from '@/lib/format';
@@ -40,7 +40,7 @@ export function CourseArt({
 
 /** Price line for catalog cards. No price is shown where the API sends none (iOS, D-027). */
 export function PriceText({ course }: { course: CatalogCourse }) {
-  const { t, locale } = useT();
+  const { t } = useT();
   if (course.isFree) {
     return (
       <Text variant="label" color="success">
@@ -48,14 +48,20 @@ export function PriceText({ course }: { course: CatalogCourse }) {
       </Text>
     );
   }
-  if (!course.pricing) return null;
-  const sale = course.pricing.salePricePaisa !== null;
+  return <PricingText pricing={course.pricing} />;
+}
+
+/** A price as the server sends it, with the regular price struck through during a sale; nothing when none is sent. */
+export function PricingText({ pricing }: { pricing: Pricing | null }) {
+  const { locale } = useT();
+  if (!pricing) return null;
+  const sale = pricing.salePricePaisa !== null;
   return (
     <View style={styles.priceRow}>
-      <Text variant="label">{price(course.pricing.effectivePricePaisa, locale)}</Text>
+      <Text variant="label">{price(pricing.effectivePricePaisa, locale)}</Text>
       {sale ? (
         <Text variant="caption" color="textMuted" style={{ textDecorationLine: 'line-through' }}>
-          {price(course.pricing.pricePaisa, locale)}
+          {price(pricing.pricePaisa, locale)}
         </Text>
       ) : null}
     </View>

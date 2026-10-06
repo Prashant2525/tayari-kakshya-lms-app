@@ -27,11 +27,7 @@ import { Prisma, type Assessment, type Attempt } from '../../generated/prisma/cl
 import { PrismaService } from '../../infra/prisma/prisma.service.js';
 import { poolWhere } from '../assessments/assessments.service.js';
 import { CatalogService, type Viewer } from '../content/catalog.service.js';
-import {
-  activeEntitlementWhere,
-  EntitlementsService,
-  premiumSourceWhere,
-} from '../content/entitlements.service.js';
+import { EntitlementsService } from '../content/entitlements.service.js';
 import { mediaIdsIn, splitQuestion } from '../content/practice-view.js';
 import { isLive, liveWhere } from '../content/publishing.js';
 import { MediaService } from '../media/media.service.js';
@@ -724,24 +720,18 @@ export class AttemptsService {
   /** D-048: free for everyone; Premium per the assessment's rule. */
   private async canTake(a: Assessment, viewer: Viewer, ctx: { courses: Set<string> }): Promise<boolean> {
     if (a.accessLevel === 'free') return true;
-    if (a.premiumAccess === 'plans_only') return false;
+    if (a.premiumAccess === 'plans_only') return this.entitlements.hasActivePlan(viewer.userId);
     if (a.premiumAccess === 'any_course') return ctx.courses.size > 0;
     if (a.courseId) return ctx.courses.has(a.courseId);
     if (a.subjectId) return this.entitlements.hasSubjectAccess(viewer.userId, a.subjectId);
     if (a.examNodeId) {
+      // A course for this exam (or one below it) that the student has premium access to — directly or by a plan.
       const nodes = await this.withDescendants([a.examNodeId]);
-      const linked = await this.prisma.courseExamNode.count({
-        where: {
-          examNodeId: { in: [...nodes] },
-          course: {
-            deletedAt: null,
-            entitlements: {
-              some: { userId: viewer.userId, ...activeEntitlementWhere(), ...premiumSourceWhere },
-            },
-          },
-        },
+      const linked = await this.prisma.courseExamNode.findMany({
+        where: { examNodeId: { in: [...nodes] }, course: { deletedAt: null } },
+        select: { courseId: true },
       });
-      return linked > 0;
+      return linked.some((l) => ctx.courses.has(l.courseId));
     }
     return false;
   }

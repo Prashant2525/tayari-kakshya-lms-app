@@ -34,7 +34,7 @@ export class PaymentsController {
     @ClientPlatform() platform: Platform,
     @CurrentAuth() auth: AuthContext,
   ) {
-    return this.payments.createOrder(auth.userId, body.courseId, platform);
+    return this.payments.createOrder(auth.userId, body, platform);
   }
 
   @Post('orders/:id/pay')

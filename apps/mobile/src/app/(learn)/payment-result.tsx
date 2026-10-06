@@ -55,10 +55,20 @@ export default function PaymentResultScreen() {
         ? 'notPaid'
         : 'waiting';
 
+  const isPlan = item?.kind === 'plan';
   const goCourse = () =>
-    item?.slug
-      ? router.replace({ pathname: '/course/[slug]', params: { slug: item.slug } })
-      : router.replace('/');
+    isPlan
+      ? router.replace('/courses')
+      : item?.slug
+        ? router.replace({ pathname: '/course/[slug]', params: { slug: item.slug } })
+        : router.replace('/');
+  const tryAgain = isPlan
+    ? item.planSlug
+      ? () => router.replace({ pathname: '/checkout/plan/[slug]', params: { slug: item.planSlug! } })
+      : null
+    : item?.slug
+      ? () => router.replace({ pathname: '/checkout/[slug]', params: { slug: item.slug! } })
+      : null;
 
   return (
     <Screen edges={['top', 'bottom']} contentStyle={styles.content}>
@@ -95,13 +105,14 @@ export default function PaymentResultScreen() {
         <Button label={t('payment.startLearning')} onPress={goCourse} />
       ) : state === 'notPaid' ? (
         <View style={{ gap: 10 }}>
-          {o.status === 'pending' && item?.slug ? (
-            <Button
-              label={t('payment.tryAgain')}
-              onPress={() => router.replace({ pathname: '/checkout/[slug]', params: { slug: item.slug! } })}
-            />
+          {o.status === 'pending' && tryAgain ? (
+            <Button label={t('payment.tryAgain')} onPress={tryAgain} />
           ) : null}
-          <Button label={t('payment.backToCourse')} variant="secondary" onPress={goCourse} />
+          <Button
+            label={isPlan ? t('payment.backToPlans') : t('payment.backToCourse')}
+            variant="secondary"
+            onPress={isPlan ? () => router.replace('/plans') : goCourse}
+          />
         </View>
       ) : null}
     </Screen>

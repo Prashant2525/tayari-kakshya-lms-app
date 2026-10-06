@@ -4,6 +4,15 @@ All notable changes to this project. Format based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Added — 2026-10-06 (Phase 11 part 2a: plans)
+- CMS: Sales → Plans — create a plan, write its card (bilingual name, description, feature check-list, highlight),
+  price / sale / validity, choose its courses or cover all courses, publish; subscribers shown.
+- Student app: Profile → Subscription plan → "Choose your plan" (features, included courses, price where the
+  platform sells, "Your plan · until …"), plan checkout through eSewa / Khalti, renewal that adds the new period
+  after the current one; Purchases shows plans.
+- API: migration `plans`; plan orders settle like course orders; access follows the plan's current courses (D-054);
+  plan holders open premium lessons and "plans only" tests.
+
 ### Fixed — 2026-10-06 (payments on Android, KI-042)
 - eSewa showed "localhost refused to connect" on the Android emulator: in development the gateways now send the
   student back to the address the device reached the API on, and the app returns via its own link (Expo Go too).

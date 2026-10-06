@@ -100,8 +100,8 @@ partial indexes, generated `tsvector` columns, check constraints and triggers th
 ### 2.8 Commerce & payments
 | Table | Key columns / constraints |
 |---|---|
-| `plans` | `name` localized, `description`, `features` localized list, `price_paisa`, `sale_*`, `validity_type/days/ends_on`, `coverage` (all_courses/selected), `status`, `sort_order` |
-| `plan_courses` | `plan_id`, `course_id` |
+| `plans` | ✅ part 2a (T-050): `slug` (unique among non-deleted), `name` localized, `description`, `features` localized list, `price_paisa` (≥ 0; 0 = not sold), `sale_*` (sale < price), `validity_type/days/ends_on` (CHECK shape), `coverage` (all_courses/selected), `is_featured`, `status`, `publish_at`, `sort_order`, `deleted_at` |
+| `plan_courses` | ✅ `plan_id`, `course_id` (PK both), `sort_order` |
 | `coupons` | `code` citext unique, `discount_type` (percent/fixed), `value`, `max_discount_paisa`, `starts_at`, `ends_at`, `max_redemptions`, `per_user_limit`, `min_order_paisa`, `applies_to` jsonb (course/plan ids or all), `active` |
 | `coupon_redemptions` | `coupon_id`, `user_id`, `order_id` unique |
 | `orders` | ✅ part 1 (T-049): `order_no` serial unique, `user_id`, `status` (pending/paid/expired/cancelled), `channel`, `currency`, `subtotal_paisa`, `discount_paisa`, `total_paisa` (CHECK total = subtotal − discount > 0), `expires_at`, `paid_at` (CHECK set exactly when paid). VAT / tax snapshot and coupon arrive with parts 2–3. |

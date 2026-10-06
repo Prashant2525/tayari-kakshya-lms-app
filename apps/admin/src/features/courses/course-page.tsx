@@ -1,24 +1,24 @@
 import type { PublishStatus } from '@tk/contracts';
-import { formatNpr, MoneyError, rupeesToPaisa } from '@tk/domain';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link, useNavigate, useParams, useSearch } from '@tanstack/react-router';
 import { ArrowDown, ArrowLeft, ArrowUp, Plus, Trash2 } from 'lucide-react';
 import { useMemo, useState, type ReactNode } from 'react';
 import { toast } from 'sonner';
+import { PricingCard } from '@/components/commerce/pricing-card';
+import { CheckList } from '@/components/content/check-list';
 import { MediaField } from '@/components/content/media-picker';
 import { RichTextEditor } from '@/components/content/rich-text-editor';
 import { StatusBadge } from '@/components/content/status';
 import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/ui/dialog';
 import { Field, Input, Select, Textarea } from '@/components/ui/form';
-import { Alert, Card, CardHeader, Checkbox, ErrorState, Spinner, Switch } from '@/components/ui/primitives';
+import { Alert, Card, CardHeader, ErrorState, Spinner, Switch } from '@/components/ui/primitives';
 import { api, errorMessage } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import type { CertificateTemplateRow } from '@/lib/certificates';
 import {
   isoToNepalLocal,
   nepalLocalToIso,
-  paisaToRupeesInput,
   STATUS_LABEL,
   toLocalized,
   type CourseDetail,
@@ -286,179 +286,22 @@ function DetailsSection({ course, readOnly }: { course: CourseDetail; readOnly: 
 
 // ───────────── Pricing ─────────────
 
-function parseRupees(value: string): number | null | 'invalid' {
-  if (!value.trim()) return null;
-  try {
-    return rupeesToPaisa(value.replace(/,/g, ''));
-  } catch (err) {
-    if (err instanceof MoneyError) return 'invalid';
-    throw err;
-  }
-}
-
 function PricingSection({ course, readOnly }: { course: CourseDetail; readOnly: boolean }) {
   const s = useSection(course.id);
-  const p = course.pricing;
-  const [v, setV] = useState({
-    price: paisaToRupeesInput(p.pricePaisa),
-    sale: paisaToRupeesInput(p.salePricePaisa),
-    saleStarts: isoToNepalLocal(p.saleStartsAt),
-    saleEnds: isoToNepalLocal(p.saleEndsAt),
-    validityType: p.validityType,
-    validityDays: p.validityDays?.toString() ?? '',
-    validityEndsOn: p.validityEndsOn ?? '',
-  });
-  const set = <K extends keyof typeof v>(key: K, value: (typeof v)[K]) =>
-    setV((x) => ({ ...x, [key]: value }));
-  const price = parseRupees(v.price);
-  const sale = parseRupees(v.sale);
-  const submit = () => {
-    if (price === null || price === 'invalid')
-      return s.setError('Enter the price in rupees, e.g. 3000 or 2999.50 (0 = free)');
-    if (sale === 'invalid') return s.setError('Enter the sale price in rupees');
-    if (v.validityType === 'days' && !/^\d+$/.test(v.validityDays))
-      return s.setError('Enter the number of days');
-    void s.save(
-      () =>
-        api.put(`/admin/courses/${course.id}/pricing`, {
-          pricePaisa: price,
-          salePricePaisa: sale,
-          saleStartsAt: sale === null ? null : nepalLocalToIso(v.saleStarts),
-          saleEndsAt: sale === null ? null : nepalLocalToIso(v.saleEnds),
-          validityType: v.validityType,
-          validityDays: v.validityType === 'days' ? Number(v.validityDays) : null,
-          validityEndsOn: v.validityType === 'fixed_date' ? v.validityEndsOn || null : null,
-        }),
-      'Pricing saved',
-    );
-  };
   return (
-    <Card>
-      <CardHeader
-        title="Price"
-        description="Entered by your team; never calculated in the app. Amounts in Nepali rupees."
-      />
-      <div className="flex flex-col gap-4 p-5">
-        {s.error ? <Alert tone="danger" title={s.error} /> : null}
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Field
-            label="Price (Rs)"
-            hint={
-              typeof price === 'number'
-                ? price === 0
-                  ? 'Free course: students join with an Enrol button.'
-                  : formatNpr(price, 'en')
-                : undefined
-            }
-          >
-            {(a) => (
-              <Input
-                {...a}
-                inputMode="decimal"
-                value={v.price}
-                disabled={readOnly}
-                onChange={(e) => set('price', e.target.value)}
-              />
-            )}
-          </Field>
-          <Field label="Sale price (Rs)" hint={typeof sale === 'number' ? formatNpr(sale, 'en') : 'Optional'}>
-            {(a) => (
-              <Input
-                {...a}
-                inputMode="decimal"
-                value={v.sale}
-                disabled={readOnly}
-                onChange={(e) => set('sale', e.target.value)}
-              />
-            )}
-          </Field>
-        </div>
-        {sale !== null ? (
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field
-              label="Sale starts (Nepal time)"
-              hint={v.saleStarts ? formatDateTimeBs(nepalLocalToIso(v.saleStarts)) : 'Empty = now'}
-            >
-              {(a) => (
-                <Input
-                  {...a}
-                  type="datetime-local"
-                  value={v.saleStarts}
-                  disabled={readOnly}
-                  onChange={(e) => set('saleStarts', e.target.value)}
-                />
-              )}
-            </Field>
-            <Field
-              label="Sale ends (Nepal time)"
-              hint={v.saleEnds ? formatDateTimeBs(nepalLocalToIso(v.saleEnds)) : 'Empty = no end'}
-            >
-              {(a) => (
-                <Input
-                  {...a}
-                  type="datetime-local"
-                  value={v.saleEnds}
-                  disabled={readOnly}
-                  onChange={(e) => set('saleEnds', e.target.value)}
-                />
-              )}
-            </Field>
-          </div>
-        ) : null}
-      </div>
-      <CardHeader
-        title="Validity"
-        description="How long a student keeps access after buying or enrolling."
-        className="border-t"
-      />
-      <div className="grid gap-4 p-5 sm:grid-cols-2">
-        <Field label="Access lasts">
-          {(a) => (
-            <Select
-              {...a}
-              value={v.validityType}
-              disabled={readOnly}
-              onChange={(e) => set('validityType', e.target.value as typeof v.validityType)}
-            >
-              <option value="days">A number of days</option>
-              <option value="fixed_date">Until a fixed date</option>
-              <option value="lifetime">Lifetime</option>
-            </Select>
-          )}
-        </Field>
-        {v.validityType === 'days' ? (
-          <Field label="Days">
-            {(a) => (
-              <Input
-                {...a}
-                inputMode="numeric"
-                value={v.validityDays}
-                disabled={readOnly}
-                onChange={(e) => set('validityDays', e.target.value)}
-              />
-            )}
-          </Field>
-        ) : v.validityType === 'fixed_date' ? (
-          <Field label="Last day" hint="Access ends at midnight Nepal time after this day.">
-            {(a) => (
-              <Input
-                {...a}
-                type="date"
-                value={v.validityEndsOn}
-                disabled={readOnly}
-                onChange={(e) => set('validityEndsOn', e.target.value)}
-              />
-            )}
-          </Field>
-        ) : null}
-      </div>
-      <SectionFooter
-        saving={s.saving}
-        disabled={readOnly}
-        onSave={submit}
-        note={readOnly ? 'Changing prices needs the pricing permission.' : 'iOS never shows prices (D-027).'}
-      />
-    </Card>
+    <PricingCard
+      value={course.pricing}
+      readOnly={readOnly}
+      saving={s.saving}
+      error={s.error}
+      onError={s.setError}
+      onSave={(body) =>
+        void s.save(() => api.put(`/admin/courses/${course.id}/pricing`, body), 'Pricing saved')
+      }
+      zeroHint="Free course: students join with an Enrol button."
+      validityHint="How long a student keeps access after buying or enrolling."
+      note={readOnly ? 'Changing prices needs the pricing permission.' : 'iOS never shows prices (D-027).'}
+    />
   );
 }
 
@@ -674,59 +517,6 @@ function SubjectsSection({ course, readOnly }: { course: CourseDetail; readOnly:
 }
 
 // ───────────── Exams & instructors ─────────────
-
-function CheckList({
-  items,
-  selected,
-  onToggle,
-  disabled,
-  empty,
-}: {
-  items: Array<{ id: string; label: string; hint?: string }>;
-  selected: string[];
-  onToggle: (id: string, on: boolean) => void;
-  disabled: boolean;
-  empty: string;
-}) {
-  const [filter, setFilter] = useState('');
-  const visible = items.filter((i) => i.label.toLowerCase().includes(filter.trim().toLowerCase()));
-  if (items.length === 0) return <p className="text-sm text-text-muted">{empty}</p>;
-  return (
-    <>
-      <Input
-        value={filter}
-        onChange={(e) => setFilter(e.target.value)}
-        placeholder="Filter"
-        aria-label="Filter"
-        className="mb-2 h-9"
-      />
-      <ul className="max-h-72 overflow-y-auto">
-        {visible.map((i) => {
-          const id = `chk-${i.id}`;
-          return (
-            <li key={i.id} className="flex items-center gap-2 py-1.5">
-              <Checkbox
-                id={id}
-                checked={selected.includes(i.id)}
-                disabled={disabled}
-                onCheckedChange={(on) => onToggle(i.id, on)}
-                describedBy={i.hint ? `${id}-hint` : undefined}
-              />
-              <label htmlFor={id} className="text-sm text-text">
-                {i.label}
-              </label>
-              {i.hint ? (
-                <span id={`${id}-hint`} className="text-xs text-text-muted">
-                  {i.hint}
-                </span>
-              ) : null}
-            </li>
-          );
-        })}
-      </ul>
-    </>
-  );
-}
 
 function LinksSection({ course, readOnly }: { course: CourseDetail; readOnly: boolean }) {
   const s = useSection(course.id);

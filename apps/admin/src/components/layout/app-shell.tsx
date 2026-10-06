@@ -4,6 +4,7 @@ import {
   Award,
   BookOpen,
   ClipboardCheck,
+  Crown,
   FileQuestion,
   FileText,
   Flag,
@@ -70,7 +71,10 @@ const NAV: Array<{ group: string; items: NavItem[] }> = [
   },
   {
     group: 'Sales',
-    items: [{ to: '/orders', label: 'Orders', icon: Receipt, permission: 'orders:read' }],
+    items: [
+      { to: '/plans', label: 'Plans', icon: Crown, permission: 'plans:manage' },
+      { to: '/orders', label: 'Orders', icon: Receipt, permission: 'orders:read' },
+    ],
   },
   {
     group: 'People',

@@ -6,10 +6,15 @@ import { ENV, type Env } from '../../config/env.js';
 import { Prisma, type Order, type Payment, type PaymentProvider } from '../../generated/prisma/client.js';
 import { PrismaService, type Tx } from '../../infra/prisma/prisma.service.js';
 import { AuditService } from '../audit/audit.service.js';
-import { activeEntitlementWhere, courseAccessEndsAt } from '../content/entitlements.service.js';
+import {
+  activeEntitlementWhere,
+  courseAccessEndsAt,
+  EntitlementsService,
+} from '../content/entitlements.service.js';
 import { isLive } from '../content/publishing.js';
 import { SettingsService } from '../settings/settings.service.js';
 import { GatewayHttp } from './gateway-http.js';
+import { planPrice } from './plans.service.js';
 import {
   GatewayError,
   gatewaysFromEnv,
@@ -108,6 +113,7 @@ export class PaymentsService {
     private readonly prisma: PrismaService,
     private readonly settings: SettingsService,
     private readonly audit: AuditService,
+    private readonly entitlements: EntitlementsService,
     @Inject(ENV) private readonly env: Env,
     http: GatewayHttp,
   ) {
@@ -127,13 +133,23 @@ export class PaymentsService {
   }
 
   /**
-   * Creates the order for a course at its current price (sale included), or returns the student's unpaid one for it.
-   * Refused while the student has access (D-052), for free courses (they enrol), and where the platform cannot sell
-   * (D-027: never on iOS).
+   * Creates the order for a course or a plan at its current price (sale included), or returns the student's unpaid
+   * one for it. Refused where the platform cannot sell (D-027: never on iOS).
    */
-  async createOrder(userId: string, courseId: string, platform: Platform, now = new Date()) {
+  async createOrder(
+    userId: string,
+    item: { courseId?: string | undefined; planId?: string | undefined },
+    platform: Platform,
+    now = new Date(),
+  ) {
     if (!(await this.channelOpen(platform))) {
       throw notAvailable('channel_closed', 'Purchases are not available here');
+    }
+    if (item.planId) return this.createPlanOrder(userId, item.planId, platform, now);
+    const courseId = item.courseId!;
+    // D-052 also covers access through a plan.
+    if ((await this.entitlements.planCourseIds(userId, now)).has(courseId)) {
+      throw notAvailable('already_has_access', 'Your plan already includes this course');
     }
     const order = await this.prisma.$transaction(async (tx) => {
       await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${`order:${userId}:${courseId}`}))`;
@@ -186,6 +202,60 @@ export class PaymentsService {
               itemType: 'course',
               courseId,
               titleSnapshot: course.title as Prisma.InputJsonValue,
+              unitPricePaisa: price,
+              validitySnapshot: validity as unknown as Prisma.InputJsonValue,
+            },
+          },
+        },
+      });
+    });
+    return this.orderView(order.id, userId);
+  }
+
+  /**
+   * A plan order (D-054): renewing a plan the student has extends it — except a lifetime or fixed-end plan, which a
+   * second purchase could not extend.
+   */
+  private async createPlanOrder(userId: string, planId: string, platform: Platform, now: Date) {
+    const order = await this.prisma.$transaction(async (tx) => {
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${`order:${userId}:${planId}`}))`;
+      const plan = await tx.plan.findFirst({ where: { id: planId, deletedAt: null } });
+      if (!plan || !isLive(plan, now)) throw Errors.notFound('Plan');
+      const price = planPrice(plan, now);
+      if (plan.pricePaisa === 0 || price <= 0)
+        throw notAvailable('not_for_sale', 'This plan is not for sale');
+      if (plan.validityType === 'fixed_date' && plan.validityEndsOn && plan.validityEndsOn <= now) {
+        throw notAvailable('access_period_ended', 'This plan can no longer be bought');
+      }
+      if (plan.validityType !== 'days') {
+        const active = await tx.entitlement.findFirst({
+          where: { userId, scopeType: 'plan', planId, ...activeEntitlementWhere(now) },
+        });
+        if (active) throw notAvailable('already_has_access', 'You already have this plan');
+      }
+      const open = await tx.order.findFirst({
+        where: { userId, status: 'pending', expiresAt: { gt: now }, items: { some: { planId } } },
+        orderBy: { createdAt: 'desc' },
+      });
+      if (open && open.totalPaisa === price) return open;
+      if (open) await tx.order.update({ where: { id: open.id }, data: { status: 'cancelled' } });
+      const validity: ValiditySnapshot = {
+        type: plan.validityType,
+        days: plan.validityDays,
+        endsOn: plan.validityEndsOn?.toISOString().slice(0, 10) ?? null,
+      };
+      return tx.order.create({
+        data: {
+          userId,
+          channel: platform,
+          subtotalPaisa: price,
+          totalPaisa: price,
+          expiresAt: new Date(now.getTime() + this.env.PAYMENT_ORDER_TTL_MINUTES * 60_000),
+          items: {
+            create: {
+              itemType: 'plan',
+              planId,
+              titleSnapshot: plan.name as Prisma.InputJsonValue,
               unitPricePaisa: price,
               validitySnapshot: validity as unknown as Prisma.InputJsonValue,
             },
@@ -366,7 +436,9 @@ export class PaymentsService {
     const full = await this.prisma.order.findUniqueOrThrow({
       where: { id: orderId },
       include: {
-        items: { include: { course: { select: { id: true, slug: true } } } },
+        items: {
+          include: { course: { select: { id: true, slug: true } }, plan: { select: { slug: true } } },
+        },
         payments: { orderBy: { initiatedAt: 'desc' } },
       },
     });
@@ -379,7 +451,9 @@ export class PaymentsService {
       orderBy: { createdAt: 'desc' },
       take: 100,
       include: {
-        items: { include: { course: { select: { id: true, slug: true } } } },
+        items: {
+          include: { course: { select: { id: true, slug: true } }, plan: { select: { slug: true } } },
+        },
         payments: { orderBy: { initiatedAt: 'desc' } },
       },
     });
@@ -496,7 +570,6 @@ export class PaymentsService {
         }
         await tx.order.update({ where: { id: order.id }, data: { status: 'paid', paidAt: now } });
         for (const item of order.items) {
-          if (item.itemType !== 'course' || !item.courseId) continue;
           const snapshot = item.validitySnapshot as unknown as ValiditySnapshot;
           const validity: AccessValidity =
             snapshot.type === 'days'
@@ -504,6 +577,32 @@ export class PaymentsService {
               : snapshot.type === 'fixed_date'
                 ? { type: 'fixed_date', endsOn: snapshot.endsOn ?? '' }
                 : { type: 'lifetime' };
+          if (item.itemType === 'plan' && item.planId) {
+            // D-054: renewing a plan the student has adds the new period after the current one.
+            const current = await tx.entitlement.findFirst({
+              where: {
+                userId: order.userId,
+                scopeType: 'plan',
+                planId: item.planId,
+                ...activeEntitlementWhere(now),
+              },
+              orderBy: { endsAt: { sort: 'desc', nulls: 'first' } },
+            });
+            const start = current?.endsAt && current.endsAt > now ? current.endsAt : now;
+            await tx.entitlement.create({
+              data: {
+                userId: order.userId,
+                scopeType: 'plan',
+                planId: item.planId,
+                sourceType: 'order',
+                sourceId: order.id,
+                startsAt: start,
+                endsAt: accessEndsAt(validity, start),
+              },
+            });
+            continue;
+          }
+          if (!item.courseId) continue;
           await tx.entitlement.create({
             data: {
               userId: order.userId,
@@ -629,10 +728,13 @@ export class PaymentsService {
   private view(
     o: Order & {
       items: Array<{
+        itemType: string;
+        planId: string | null;
         courseId: string | null;
         titleSnapshot: unknown;
         unitPricePaisa: number;
         course: { id: string; slug: string } | null;
+        plan: { slug: string } | null;
       }>;
       payments: Payment[];
     },
@@ -647,8 +749,11 @@ export class PaymentsService {
       expiresAt: o.expiresAt.toISOString(),
       paidAt: o.paidAt?.toISOString() ?? null,
       items: o.items.map((i) => ({
+        kind: i.itemType as 'course' | 'plan',
+        planId: i.planId,
         courseId: i.courseId,
         slug: i.course?.slug ?? null,
+        planSlug: i.plan?.slug ?? null,
         title: i.titleSnapshot as LocalizedText,
         pricePaisa: i.unitPricePaisa,
       })),

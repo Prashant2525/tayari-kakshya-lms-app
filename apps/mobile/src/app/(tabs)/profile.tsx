@@ -8,6 +8,7 @@ import {
   Bookmark,
   ChevronRight,
   ClipboardList,
+  Crown,
   KeyRound,
   LogOut,
   ShieldAlert,
@@ -147,6 +148,7 @@ export default function ProfileScreen() {
           <LinkRow icon={Bookmark} label={t('profile.saved.list')} href="/bookmarks" />
           <LinkRow icon={ClipboardList} label={t('history.title')} href="/attempts" />
           <LinkRow icon={NotebookPen} label={t('mistakes.title')} href="/mistakes" />
+          <LinkRow icon={Crown} label={t('plans.menu')} href="/plans" />
           <LinkRow icon={Receipt} label={t('purchases.title')} href="/purchases" />
           <LinkRow icon={Award} label={t('cert.title')} href="/certificates" last />
         </Card>
@@ -185,7 +187,8 @@ function LinkRow({
     | '/attempts'
     | '/certificates'
     | '/mistakes'
-    | '/purchases';
+    | '/purchases'
+    | '/plans';
   last?: boolean;
 }) {
   const { colors } = useTheme();
