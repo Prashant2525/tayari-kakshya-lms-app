@@ -202,6 +202,11 @@ Current task: Phase 11 part 3 (receipts + refunds) done on `feature/receipts-ref
 - Nothing partially implemented. Admin screens for Phase 6 not started.
 
 ## Exact next steps
+0d. 2026-10-07: PR #26 merged. Part 4a on `feature/website` (T-053): `apps/web` Next.js website (BFF, HttpOnly
+   cookies, single-use refresh), web-e2e CI job. Owner answered the referral questions (D-058). Next: part 4b —
+   referrals: per-student code (`referral_codes`), link `/r/<code>` or `?ref=` at sign-up, friend's first-purchase
+   discount and the referrer's reward coupon from CMS settings (`referrals.rules`), reward issued in the payment
+   transaction, switched off on a full refund when unused; CMS Referrals page; app Profile → Invite friends.
 0c. 2026-10-06 (evening): PR #25 merged. Part 3 on `feature/receipts-refunds` (T-052, D-057): receipts issued with
    payment (numbered per fiscal year, immutable, PDF via signed link, emailed + worker retry), refunds (request →
    approve/reject → sent with reference; full refund removes access). KI-045: no credit notes yet (needed only once

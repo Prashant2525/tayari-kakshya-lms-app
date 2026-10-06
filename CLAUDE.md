@@ -54,7 +54,7 @@ React Native student app + web Admin CMS + backend API + PostgreSQL. It is a rea
 ## Stack (approved — `docs/DECISIONS.md` T-001…T-015)
 
 pnpm + Turborepo monorepo: `apps/api` (NestJS/Fastify + Prisma + PostgreSQL 17 + Redis/BullMQ), `apps/admin` (React + Vite +
-TanStack + shadcn/ui), `apps/mobile` (Expo + Expo Router), `apps/web` (Next.js), `packages/*` (contracts, domain,
+TanStack + shadcn/ui), `apps/mobile` (Expo + Expo Router), `apps/web` (Next.js 16, built — T-053), `packages/*` (contracts, domain,
 design-tokens, i18n, config). Storage Cloudflare R2; video Bunny Stream + YouTube unlisted; push Expo; Sentry + PostHog.
 Hosting: Nepal VPS with Docker Compose. Architecture: `docs/ARCHITECTURE.md`, `docs/DATABASE_ARCHITECTURE.md`,
 `docs/API_DOCUMENTATION.md`, `docs/DESIGN_SYSTEM.md`.
@@ -74,6 +74,8 @@ Windows 11; PowerShell + Git Bash. Node 24, pnpm 12.8.1, Docker Desktop (WSL2). 
 - Verify everything: `pnpm format:check && pnpm build && pnpm lint && pnpm typecheck && pnpm test`.
 - API: `pnpm --filter @tk/api dev` (needs root `.env`); migrations: `pnpm --filter @tk/api exec prisma migrate dev --name <x>`.
 - Admin CMS: `pnpm --filter @tk/admin dev` (:5173, proxies `/api` → :4000). Browser E2E: `pnpm build && pnpm --filter @tk/admin e2e`.
+- Website: `pnpm --filter @tk/web dev` (:3000, reads the root `.env`; talks to the API from its server only). Browser
+  E2E: `pnpm build && pnpm --filter @tk/web e2e` (`next start` + API on `*_web_e2e`, Mailpit, gateway stand-in).
 - Student app: `pnpm --filter @tk/mobile dev` (Expo; `w` = web); Android emulator: `pnpm --filter @tk/mobile android`
   (needs `ANDROID_HOME`; see SESSION_HANDOFF). Browser E2E (web build, phone viewport, Mailpit for
   codes): `pnpm build && pnpm --filter @tk/mobile e2e`. Pin Expo packages to the versions in Expo's bundledNativeModules.

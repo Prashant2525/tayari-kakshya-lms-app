@@ -191,3 +191,68 @@ jobs:
             apps/mobile/playwright-report
             apps/mobile/test-results
           retention-days: 7
+
+  web-e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: tayari
+          POSTGRES_PASSWORD: ci_only_password
+          POSTGRES_DB: tayari_kakshya_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U tayari -d tayari_kakshya_test"
+          --health-interval 5s --health-timeout 3s --health-retries 20
+      mailpit:
+        # Receives the verification / reset codes the API emails; the tests read them from its API.
+        image: axllent/mailpit:latest
+        ports: ['1025:1025', '8025:8025']
+      redis:
+        image: redis:7.4-alpine
+        ports: ['6379:6379']
+        options: >-
+          --health-cmd "redis-cli ping" --health-interval 5s --health-timeout 3s --health-retries 20
+
+    env:
+      # The E2E runner derives tayari_kakshya_web_e2e from this URL and creates it if missing.
+      TEST_DATABASE_URL: postgresql://tayari:ci_only_password@localhost:5432/tayari_kakshya_test
+      REDIS_URL: redis://localhost:6379
+      S3_ENDPOINT: http://localhost:8333
+      S3_ACCESS_KEY_ID: tayari_dev_access
+      S3_SECRET_ACCESS_KEY: tayari_dev_secret_only
+      # Surface server-side errors in CI test logs (tests are silent locally).
+      TEST_LOG_LEVEL: error
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Start S3-compatible storage (SeaweedFS)
+        run: |
+          docker run -d --name seaweedfs -p 8333:8333 -p 9333:9333             -v "$GITHUB_WORKSPACE/infra/docker/seaweedfs/s3.json:/etc/seaweedfs/s3.json:ro"             chrislusf/seaweedfs:latest server -dir=/data -s3 -s3.port=8333             -s3.config=/etc/seaweedfs/s3.json -master.volumeSizeLimitMB=256 -volume.max=0
+          # Ready only when the master can actually allocate a volume (the S3 port answers earlier).
+          for i in $(seq 1 60); do
+            curl -sf http://localhost:9333/dir/assign | grep -q '"fid"' && echo "SeaweedFS ready" && exit 0
+            sleep 2
+          done
+          docker logs seaweedfs | tail -50
+          exit 1
+      - run: pnpm build
+      - run: pnpm --filter @tk/web exec playwright install --with-deps chromium
+      - run: pnpm --filter @tk/web e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: web-playwright-report
+          path: |
+            apps/web/playwright-report
+            apps/web/test-results
+          retention-days: 7

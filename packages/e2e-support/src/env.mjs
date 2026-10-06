@@ -19,9 +19,13 @@ const secret = () => randomBytes(48).toString('base64url');
  * Builds the API environment for one E2E suite. Each suite gets its own database (`<base>[_<name>]_e2e`),
  * Redis logical database and port, so the admin and student-app suites can run side by side.
  *
- * @param {{ name?: string, apiPort: number, webOrigin: string, redisDb: number, email?: 'log' | 'smtp' }} options
+ * `apiOrigin`: where browsers reach the API when the web origin does not proxy `/api` (the website); defaults to the
+ * web origin (the CMS and the student-app test server proxy it).
+ *
+ * @param {{ name?: string, apiPort: number, webOrigin: string, apiOrigin?: string, redisDb: number, email?: 'log' | 'smtp' }} options
  */
-export function createE2eEnv({ name, apiPort, webOrigin, redisDb, email = 'log' }) {
+export function createE2eEnv({ name, apiPort, webOrigin, apiOrigin, redisDb, email = 'log' }) {
+  const browserApi = apiOrigin ?? webOrigin;
   const base = process.env.E2E_DATABASE_URL ?? process.env.TEST_DATABASE_URL;
   if (!base) throw new Error('Set E2E_DATABASE_URL or TEST_DATABASE_URL');
   const dbUrl = new URL(base);
@@ -57,7 +61,7 @@ export function createE2eEnv({ name, apiPort, webOrigin, redisDb, email = 'log' 
     S3_FORCE_PATH_STYLE: 'true',
     S3_BUCKET_PUBLIC: 'tayari-e2e-public',
     S3_BUCKET_PRIVATE: 'tayari-e2e-private',
-    PUBLIC_MEDIA_BASE_URL: `${webOrigin}/api/v1/public-media`,
+    PUBLIC_MEDIA_BASE_URL: `${browserApi}/api/v1/public-media`,
     PUBLIC_MEDIA_PROXY: 'true',
     STORAGE_AUTO_CREATE_BUCKETS: 'true',
     // Never call real providers from browser tests, even when the developer's .env holds live keys.
@@ -76,7 +80,7 @@ export function createE2eEnv({ name, apiPort, webOrigin, redisDb, email = 'log' 
     E2E_EDITOR_EMAIL,
     E2E_EDITOR2_EMAIL,
     E2E_ADMIN_PASSWORD,
-    ...gatewayEnv(apiPort, webOrigin),
+    ...gatewayEnv(apiPort, webOrigin, browserApi),
     // Coupon share links open the app served by this run.
     PUBLIC_WEB_URL: webOrigin,
   };
@@ -86,8 +90,8 @@ export function createE2eEnv({ name, apiPort, webOrigin, redisDb, email = 'log' 
  * Payment gateways for an E2E run: a local stand-in (fake-gateway.mjs) by default, so runs never touch real gateways.
  * E2E_REAL_GATEWAYS=1 keeps the developer's .env gateway values instead — test (sandbox) credentials only.
  */
-function gatewayEnv(apiPort, webOrigin) {
-  const urls = { callbackBase: webOrigin, webReturnUrl: `${webOrigin}/payment-result` };
+function gatewayEnv(apiPort, webOrigin, browserApi) {
+  const urls = { callbackBase: browserApi, webReturnUrl: `${webOrigin}/payment-result` };
   if (process.env.E2E_REAL_GATEWAYS === '1') {
     if (process.env.ESEWA_ENV === 'production' || process.env.KHALTI_ENV === 'production') {
       throw new Error('E2E_REAL_GATEWAYS is for test (sandbox) credentials only');
