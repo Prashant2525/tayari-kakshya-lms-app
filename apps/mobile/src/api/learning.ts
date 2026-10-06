@@ -1,6 +1,7 @@
 import { useInfiniteQuery, useMutation, useQuery } from '@tanstack/react-query';
 import type { LearningProgressInput, LocalizedText } from '@tk/contracts';
 import { track } from '@/lib/analytics';
+import { certificateKeys, type CourseCertificate, type NewCertificate } from './certificates';
 import { api, queryClient } from './client';
 import { keys as accountKeys, type CourseCardView } from './queries';
 
@@ -53,7 +54,7 @@ export interface CourseDetail extends CatalogCourse {
     bio: LocalizedText | null;
     photoUrl: string | null;
   }>;
-  access: { entitled: boolean; canEnrol: boolean } | null;
+  access: { entitled: boolean; canEnrol: boolean; certificate: CourseCertificate | null } | null;
 }
 
 export type ItemType = 'note' | 'pdf' | 'video';
@@ -200,9 +201,18 @@ export function useEnrol(slug: string) {
 export function useSaveProgress(itemId: string) {
   return useMutation({
     mutationFn: (input: LearningProgressInput) =>
-      api.put<{ position: number | null; completed: boolean }>(`/learning-items/${itemId}/progress`, input),
-    onSuccess: (_, input) => {
+      api.put<{ position: number | null; completed: boolean; newCertificates: NewCertificate[] }>(
+        `/learning-items/${itemId}/progress`,
+        input,
+      ),
+    onSuccess: (result, input) => {
       if (input.completed) track('lesson_completed', { item_id: itemId });
+      if (result.newCertificates.length) {
+        track('certificate_earned', { count: result.newCertificates.length });
+        void queryClient.invalidateQueries({ queryKey: certificateKeys.mine });
+      }
+      // Course pages show certificate progress.
+      if (input.completed) void queryClient.invalidateQueries({ queryKey: ['course'] });
       void queryClient.invalidateQueries({ queryKey: ['outline'] });
       void queryClient.invalidateQueries({ queryKey: learningKeys.continue });
       void queryClient.invalidateQueries({ queryKey: accountKeys.myCourses });

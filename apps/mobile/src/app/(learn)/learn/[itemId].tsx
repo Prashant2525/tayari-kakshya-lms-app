@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useItem, useOutline, useSaveProgress, type ItemContent, type OutlineItem } from '@/api/learning';
+import type { NewCertificate } from '@/api/certificates';
 import { PdfReader } from '@/features/learn/pdf-reader';
 import { BookmarkButton } from '@/features/practice/bookmark-button';
 import { RichText } from '@/features/learn/rich-text';
@@ -17,6 +18,7 @@ import { READER_SCALES, usePrefs } from '@/state/prefs';
 import { useTheme } from '@/theme/theme';
 import { Button } from '@/ui/button';
 import { StatusChip } from '@/ui/chip';
+import { Dialog } from '@/ui/dialog';
 import { BackButton, Skeleton } from '@/ui/layout';
 import { Segmented } from '@/ui/segmented';
 import { EmptyState, ErrorState, OfflineBanner } from '@/ui/states';
@@ -47,12 +49,18 @@ export default function LearnScreen() {
   const saved = index >= 0 ? ordered[index]?.progress : null;
   const [done, setDone] = useState(false);
   const finished = done || Boolean(saved?.completed);
+  const [earned, setEarned] = useState<NewCertificate[]>([]);
 
   const record = useCallback(
     (input: { position?: number; completed?: true }) =>
       save.mutate(
         { ...(courseId ? { courseId } : {}), ...input },
-        { onSuccess: (r) => r.completed && setDone(true) },
+        {
+          onSuccess: (r) => {
+            if (r.completed) setDone(true);
+            if (r.newCertificates.length) setEarned(r.newCertificates);
+          },
+        },
       ),
     [save, courseId],
   );
@@ -163,6 +171,22 @@ export default function LearnScreen() {
           />
         </View>
       ) : null}
+
+      <Dialog visible={earned.length > 0} title={t('cert.earnedTitle')} onClose={() => setEarned([])}>
+        <Text variant="body" color="textSecondary">
+          {t('cert.earnedBody', {
+            course: earned.map((c) => localized(c.course.title, locale)).join(', '),
+          })}
+        </Text>
+        <Button
+          label={t('cert.view')}
+          onPress={() => {
+            setEarned([]);
+            router.push('/certificates');
+          }}
+        />
+        <Button label={t('cert.later')} variant="secondary" onPress={() => setEarned([])} />
+      </Dialog>
     </SafeAreaView>
   );
 }

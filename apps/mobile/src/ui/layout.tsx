@@ -66,7 +66,16 @@ export function Screen({
   );
 }
 
-export function BackButton({ onPress, style }: { onPress?: () => void; style?: StyleProp<ViewStyle> }) {
+/** `color` fixes the arrow's colour on a fixed background (e.g. the light chip over a course image). */
+export function BackButton({
+  onPress,
+  style,
+  color,
+}: {
+  onPress?: () => void;
+  style?: StyleProp<ViewStyle>;
+  color?: string;
+}) {
   const { colors } = useTheme();
   const { t } = useT();
   return (
@@ -77,7 +86,7 @@ export function BackButton({ onPress, style }: { onPress?: () => void; style?: S
       style={[styles.back, style]}
       hitSlop={4}
     >
-      <ArrowLeft size={24} color={colors.text} strokeWidth={1.75} />
+      <ArrowLeft size={24} color={color ?? colors.text} strokeWidth={1.75} />
     </Pressable>
   );
 }

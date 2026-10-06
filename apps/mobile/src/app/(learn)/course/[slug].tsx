@@ -1,9 +1,10 @@
-import { radius } from '@tk/design-tokens';
+import { palette, radius } from '@tk/design-tokens';
 import { router, useLocalSearchParams } from 'expo-router';
 import { BookOpen, ChevronRight, FileText, Lock, PlayCircle } from 'lucide-react-native';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useCourse, useEnrol, type CourseDetail } from '@/api/learning';
+import { CertificateCard } from '@/features/courses/certificate-card';
 import { CourseArt, PriceText } from '@/features/courses/course-card';
 import { RichText } from '@/features/learn/rich-text';
 import { TestsLink } from '@/features/tests/tests-link';
@@ -75,7 +76,7 @@ export default function CourseScreen() {
       <ScrollView contentContainerStyle={styles.scroll}>
         <View>
           <CourseArt title={title} uri={c.thumbnailUrl} style={styles.hero} size="lg" />
-          <BackButton style={styles.heroBack} />
+          <BackButton style={styles.heroBack} color={palette.ink900} />
         </View>
         <View style={styles.body}>
           <View style={{ gap: 4 }}>
@@ -123,6 +124,8 @@ export default function CourseScreen() {
           </View>
 
           <TestsLink title={t('tests.title')} courseId={c.id} />
+
+          <CertificateCard certificate={c.access?.certificate} />
 
           {description ? (
             <View style={{ gap: 8 }}>

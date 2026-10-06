@@ -1,7 +1,8 @@
-import { CanActivate, ExecutionContext, Injectable, SetMetadata } from '@nestjs/common';
+import { CanActivate, ExecutionContext, Inject, Injectable, SetMetadata } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { createHash } from 'node:crypto';
 import type { FastifyRequest } from 'fastify';
+import { ENV, type Env } from '../../config/env.js';
 import { RedisService } from '../../infra/redis/redis.provider.js';
 import { Errors } from '../errors/app-error.js';
 
@@ -15,8 +16,6 @@ export interface RateLimitPolicy {
 }
 
 const RATE_LIMITS = 'tk:rateLimits';
-/** Applied to every route without its own policy. */
-const DEFAULT_POLICY: RateLimitPolicy = { name: 'default', limit: 300, windowSeconds: 60, by: ['ip'] };
 
 /** Adds one or more rate-limit policies to a route (all must pass). */
 export const RateLimit = (...policies: RateLimitPolicy[]) => SetMetadata(RATE_LIMITS, policies);
@@ -24,10 +23,21 @@ export const RateLimit = (...policies: RateLimitPolicy[]) => SetMetadata(RATE_LI
 /** Fixed-window limiter in Redis (shared by all API instances). */
 @Injectable()
 export class RateLimitGuard implements CanActivate {
+  /** Applied to every route, before its own policies (RATE_LIMIT_DEFAULT_PER_MINUTE, 300 unless configured). */
+  private readonly defaultPolicy: RateLimitPolicy;
+
   constructor(
     private readonly reflector: Reflector,
     private readonly redis: RedisService,
-  ) {}
+    @Inject(ENV) env: Env,
+  ) {
+    this.defaultPolicy = {
+      name: 'default',
+      limit: env.RATE_LIMIT_DEFAULT_PER_MINUTE,
+      windowSeconds: 60,
+      by: ['ip'],
+    };
+  }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const req = context.switchToHttp().getRequest<FastifyRequest>();
@@ -36,7 +46,7 @@ export class RateLimitGuard implements CanActivate {
         context.getHandler(),
         context.getClass(),
       ]) ?? [];
-    for (const policy of [DEFAULT_POLICY, ...policies]) {
+    for (const policy of [this.defaultPolicy, ...policies]) {
       const identity = this.identity(policy, req);
       if (identity === null) continue;
       const window = Math.floor(Date.now() / 1000 / policy.windowSeconds);

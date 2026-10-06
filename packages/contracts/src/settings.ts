@@ -167,6 +167,21 @@ export const SETTINGS = {
     default: { pastAsPractice: true },
     public: false,
   },
+  /**
+   * Where a certificate can be checked, printed with a QR code on every certificate: `{baseUrl}/{code}` (e.g. the
+   * website's verification page). Unset = the PDF shows only the certificate number.
+   */
+  'certificates.verification': {
+    schema: z.object({
+      baseUrl: z
+        .url({ protocol: /^https$/ })
+        .max(300)
+        .refine((v) => !v.endsWith('/'), 'Leave out the trailing /')
+        .nullable(),
+    }),
+    default: { baseUrl: null },
+    public: false,
+  },
 } as const satisfies Record<string, { schema: z.ZodType; default: unknown; public: boolean }>;
 
 export type SettingKey = keyof typeof SETTINGS;

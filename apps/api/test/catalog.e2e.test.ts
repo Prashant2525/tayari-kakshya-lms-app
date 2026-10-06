@@ -101,6 +101,7 @@ describe('premium access is enforced on the server', () => {
     expect((await call(ctx, 'GET', '/courses/sainey-likhit', { token })).body.access).toEqual({
       entitled: true,
       canEnrol: false,
+      certificate: null,
     });
     expect(
       (await call(ctx, 'GET', '/me/courses', { token })).body.map((c: { slug: string }) => c.slug),
@@ -250,7 +251,7 @@ describe('free courses are joined with an enrol step (L6)', () => {
     const mine = await call(ctx, 'GET', '/me/courses', { token });
     expect(mine.body.map((c: { id: string }) => c.id)).toEqual([seeded.course.id]);
     const after = await call(ctx, 'GET', '/courses/sainey-likhit', { token });
-    expect(after.body.access).toEqual({ entitled: true, canEnrol: false });
+    expect(after.body.access).toEqual({ entitled: true, canEnrol: false, certificate: null });
 
     const rows = await ctx.prisma.entitlement.findMany({ where: { userId } });
     expect(rows).toHaveLength(1);

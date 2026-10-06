@@ -25,6 +25,8 @@ export const EnvSchema = z
     PORT: z.coerce.number().int().min(1).max(65535).default(4000),
     LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).default('info'),
     TRUST_PROXY: bool,
+    /** Requests per minute per IP on routes without their own limit (all routes also keep their own limits). */
+    RATE_LIMIT_DEFAULT_PER_MINUTE: z.coerce.number().int().min(60).max(100_000).default(300),
     CORS_ALLOWED_ORIGINS: csv,
 
     DATABASE_URL: z.string().min(1),

@@ -141,6 +141,7 @@ export class CoursesService {
       })),
       instructors: c.instructors.map((i) => ({ id: i.user.id, fullName: i.user.fullName })),
       activeStudents,
+      certificateTemplateId: c.certificateTemplateId,
     };
   }
 

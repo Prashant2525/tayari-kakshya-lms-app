@@ -4,14 +4,22 @@ import { E2E_WEB_ORIGIN, MAILPIT_URL } from './constants.mjs';
 
 const api = (path: string) => `${E2E_WEB_ORIGIN}/api/v1${path}`;
 
-/** Signs in the seeded content editor through the admin API (no browser) and returns an access token. */
+let cachedEditorToken: { token: string; at: number } | null = null;
+
+/**
+ * Signs in the seeded content editor through the admin API (no browser) and returns an access token. The token is
+ * reused for 5 minutes: staff sign-in allows 5 attempts per account per 15 minutes, fewer than the specs that need it.
+ */
 export async function editorToken(request: APIRequestContext): Promise<string> {
+  if (cachedEditorToken && Date.now() - cachedEditorToken.at < 5 * 60_000) return cachedEditorToken.token;
   const res = await request.post(api('/admin/auth/login'), {
     headers: { 'X-TK-Client': 'admin' },
     data: { email: E2E_EDITOR_EMAIL, password: E2E_ADMIN_PASSWORD },
   });
   expect(res.ok(), await res.text()).toBe(true);
-  return ((await res.json()) as { accessToken: string }).accessToken;
+  const token = ((await res.json()) as { accessToken: string }).accessToken;
+  cachedEditorToken = { token, at: Date.now() };
+  return token;
 }
 
 /** Creates and publishes a category, as the content team would in the CMS. */

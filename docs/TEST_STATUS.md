@@ -1,6 +1,6 @@
 # Test Status
 
-Last updated: 2026-10-06 (§10 part 3a: daily challenge, streaks, leaderboards). `pnpm test` runs unit + integration suites (needs `pnpm infra:up`);
+Last updated: 2026-10-06 (§10 part 3b: certificates). `pnpm test` runs unit + integration suites (needs `pnpm infra:up`);
 `pnpm build && pnpm --filter @tk/admin e2e` and `pnpm build && pnpm --filter @tk/mobile e2e` run the browser suites
 (the student suite also needs Mailpit, part of `pnpm infra:up`).
 
@@ -9,14 +9,39 @@ Last updated: 2026-10-06 (§10 part 3a: daily challenge, streaks, leaderboards).
 | Package | Tests | Kind |
 |---|---|---|
 | `@tk/design-tokens` | 39 | WCAG contrast for every text/background pair (light + dark), CSS generation |
-| `@tk/domain` | 49 | BS calendar, Kathmandu day boundary, fiscal year, money/VAT/discounts, access validity |
+| `@tk/domain` | 53 | BS calendar, Kathmandu day boundary, fiscal year, money/VAT/discounts, access validity |
 | `@tk/contracts` | 21 | Schema behaviour (localized text, email normalisation, mass assignment, settings defaults, rich-text validation) |
-| `@tk/api` | 204 | Integration against real PostgreSQL + Redis + S3 (SeaweedFS) through the HTTP stack; TOTP RFC 6238 vectors; RBAC, video, watermark unit |
+| `@tk/api` | 211 | Integration against real PostgreSQL + Redis + S3 (SeaweedFS) through the HTTP stack; TOTP RFC 6238 vectors; RBAC, video, watermark unit |
 | `@tk/admin` (unit) | 35 | API client (headers, refresh single-flight, retry, session loss, error mapping), BS formatting, Button `asChild` regression |
-| `@tk/admin` (E2E, Playwright) | 21 | Real browser + real API + `*_e2e` database |
+| `@tk/admin` (E2E, Playwright) | 23 | Real browser + real API + `*_e2e` database |
 | `@tk/mobile` (unit) | 36 | API client (single-flight refresh, early refresh, session end, maintenance), translations complete in both languages, BS dates and Kathmandu weekday, force-update/maintenance gate, form checks, Nepali phone numbers |
-| `@tk/mobile` (E2E, Playwright, phone viewport) | 20 | Web build + real API + `*_mobile_e2e` database + Mailpit |
-| **Total** | **425** | |
+| `@tk/mobile` (E2E, Playwright, phone viewport) | 22 | Web build + real API + `*_mobile_e2e` database + Mailpit |
+| **Total** | **440** | |
+
+### Added with certificates (§10 part 3b)
+- **Domain (unit, 4):** certificate earned at exactly the share (66.7 % vs 66 / 67 %, empty course never); 8 bytes →
+  12 unambiguous characters; printed in groups of four; read back ignoring case, spaces, dashes and O/0, I/L/1.
+- **API PDF (unit, 2):** one A4 landscape page in English and Nepali, with and without the QR code; no signatories /
+  no intro. Rendered PDFs checked visually (Devanagari conjuncts, reph and vowel signs shape correctly).
+- **API (4 integration tests):** issued automatically at the template share, once; frozen wording and name after
+  template / name edits; public verification however the number is typed; PDF served; unknown numbers 404; no
+  certificate without course access (mutation-checked on the course page), inactive template or no template; lessons
+  finished earlier count once access / the template arrives; revoke (reason required, 409 twice) → verifies as
+  revoked, PDF 410 (mutation-checked), not issued again → reinstate; audit trail; template validation; course editors
+  pick templates but cannot write them; staff scopes on the issued list, revoking and assigning; sample PDF;
+  verification URL setting; erasure removes certificates. Existing catalog / progress checks updated for the new
+  fields.
+- **API (1 integration test):** the default per-IP limit (300 a minute, `RATE_LIMIT_DEFAULT_PER_MINUTE`, KI-038):
+  the 301st request is refused, another IP is not.
+- **Browser E2E (CMS, 2 new):** write a template (validation), sample PDF download, choose it on the course's
+  Certificate tab; a student finishing the course receives it; search by number, revoke with a reason, reinstate.
+- **Browser E2E (student app, 2 new):** enrol → course page shows the rule and 0 of 2 lessons → finishing a lesson
+  shows "Certificate earned!" → Certificates lists it → Open certificate requests the PDF; course page and Profile
+  lead to it.
+- **E2E harness:** a second seeded editor account and a reused editor token keep the suites under the staff sign-in
+  limit; E2E runs raise the default per-IP limit (all traffic comes from 127.0.0.1).
+- **Screenshots reviewed** (CMS template, course tab, revoke dialog, issued list; app course page, dialog, list, Nepali
+  dark). Fixed: number and date wrapping in the CMS list; the course hero back arrow in dark mode; Nepali wording.
 
 ### Added with daily challenge, streaks and leaderboards (§10 part 3a)
 - **Domain (unit):** streak advance (same day, next day, gap, older day, month/year boundary), streak shown as 0 after

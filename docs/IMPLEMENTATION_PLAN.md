@@ -15,7 +15,7 @@ Scope = approved decisions only (`DECISIONS.md`). Each phase ends with tests, do
 | 7 | Question bank + assessment CMS | see §7 | ☐ |
 | 8 | Student mobile foundation | see §8 (includes design preview gate) | ☐ |
 | 9 | Student learning | see §9 | ☑ (part 2 in PR) |
-| 10 | Exam engine + engagement | see §10 | ◐ parts 1–3a |
+| 10 | Exam engine + engagement | see §10 | ◐ parts 1–3b |
 | 11 | Commerce + website checkout | see §11 | ☐ |
 | 12 | Communication & CMS content | see §12 | ☐ |
 | 13 | Progress & community | see §13 | ☐ |
@@ -129,8 +129,12 @@ Tests: scoring per type, negative marking, blueprint generation.
 - ☑ Part 3a (branch `feature/daily-challenge`, D-049, T-045): daily challenge on Home with streak, past challenges as
   practice, ranks on results and leaderboards (names per CMS setting), exam header answered/marked counter;
   CMS settings Leaderboards + Daily challenge; fixed the onboarding guard race (KI-037)
-- ☐ Part 3b: certificates for finishing a course (CMS templates, PDF, public verify — D-049), mistake notebook &
-  revision mode
+- ☑ Part 3b (branch `feature/certificates`, D-050, T-046): certificates for finishing a course — CMS templates
+  (wording, signatories, share of lessons, preview), course Certificate tab, automatic issue, Profile → Certificates,
+  course-page progress, "certificate earned" dialog, PDF (Nepali shaping, BS date, QR), public verification,
+  revoke / reinstate (audited), Settings → Certificate verification
+- ☐ Part 3c: mistake notebook & revision mode (D-050 rules: tests + practice feed it; wrong or partly correct;
+  leaves after N correct in a row, N in CMS settings, or when the student removes it)
 
 Original plan: assessments list, exam mode (timer, palette, autosave queue, resume, submit,
 auto-submit), results & solutions, attempt history, subjective self-grading, daily challenge + streaks, leaderboards,

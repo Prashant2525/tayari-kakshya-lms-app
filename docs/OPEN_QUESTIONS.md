@@ -139,4 +139,6 @@ supported merchant locations (Nepal: developer ✔, merchant ✘); YouTube priva
   **Answered 2026-10-02: Enrol step** (D-043).
 - **§10 (asked 2026-10-04):** (A) Who may take a Premium test not linked to a course? (B) A timed test started late in its window: until the close or the full duration? (C) With retakes, which attempt is official? **Answered 2026-10-04:** category/linked course owners, until it closes, first attempt — each changeable per assessment in the CMS (D-048).
 - **§10 part 3 (asked 2026-10-06):** streak rule, leaderboard names, past daily challenges, what earns a certificate. **Answered 2026-10-06** (D-049).
+- **§10 part 3b (asked 2026-10-06):** how certificates are issued, what feeds the mistake notebook, what counts as a
+  mistake, when a question leaves it. **Answered 2026-10-06** (D-050).
 - **L5 (Phase 18):** App identifiers (`com.<org>.<app>`), store account ownership (Play Console organisation account, Apple Developer).

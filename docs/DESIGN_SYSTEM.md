@@ -167,7 +167,7 @@ Notices, States. It is a reference, not the implementation — the repository is
 | Home: daily challenge card with streak ("10 questions · 5 min · Start") | §10 part 3a |
 | Result: "Rank 124 of 2,310" | §10 part 3a (leaderboards) |
 | Exam header: "6 answered · 1 marked" counter | §10 part 3a |
-| Profile → Learning: Certificates | §10 part 3b |
+| Profile → Learning: Certificates | ✅ §10 part 3b (Profile → Certificates) |
 | Profile → Learning: Downloads | §14 (offline) |
 | Profile → Learning: Purchases & receipts | §11 (commerce) |
 | Profile → Notifications; Help & legal (Help & FAQ, Contact us, Terms, privacy & refunds) | §12 (communication) |

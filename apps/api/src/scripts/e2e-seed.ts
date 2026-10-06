@@ -26,6 +26,7 @@ const CONTENT_PERMISSIONS = [
   'assessments:edit',
   'assessments:publish',
   'grading:manage',
+  'certificates:manage',
 ];
 
 /**
@@ -76,15 +77,18 @@ async function main(): Promise<void> {
           permissions: { create: CONTENT_PERMISSIONS.map((permission) => ({ permission })) },
         },
       });
-      await prisma.user.create({
-        data: {
-          kind: 'staff',
-          email: editorEmail,
-          fullName: 'E2E Editor',
-          passwordHash,
-          roles: { create: { roleId: editorRole.id } },
-        },
-      });
+      // A second editor keeps each account under the staff sign-in limit (5 per 15 minutes) across a full run.
+      const editors = [
+        { email: editorEmail, fullName: 'E2E Editor' },
+        ...(process.env['E2E_EDITOR2_EMAIL']
+          ? [{ email: process.env['E2E_EDITOR2_EMAIL'], fullName: 'E2E Second Editor' }]
+          : []),
+      ];
+      for (const editor of editors) {
+        await prisma.user.create({
+          data: { kind: 'staff', ...editor, passwordHash, roles: { create: { roleId: editorRole.id } } },
+        });
+      }
     }
     console.log(
       `E2E database reset; Super Admin ${email} created${editorEmail ? `, editor ${editorEmail}` : ''}.`,

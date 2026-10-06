@@ -1,6 +1,7 @@
 import type { Permission } from '@tk/contracts';
 import { Link, Navigate, Outlet, useRouterState } from '@tanstack/react-router';
 import {
+  Award,
   BookOpen,
   ClipboardCheck,
   FileQuestion,
@@ -52,6 +53,7 @@ const NAV: Array<{ group: string; items: NavItem[] }> = [
       { to: '/questions', label: 'Question bank', icon: FileQuestion, permission: 'questions:edit' },
       { to: '/assessments', label: 'Assessments', icon: ClipboardCheck, permission: 'assessments:edit' },
       { to: '/grading', label: 'Grading', icon: PenLine, permission: 'grading:manage' },
+      { to: '/certificates', label: 'Certificates', icon: Award, permission: 'certificates:manage' },
       {
         to: '/question-reports',
         label: 'Question reports',

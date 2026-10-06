@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   call,
   createTestApp,
@@ -124,6 +124,22 @@ describe('login', () => {
       ).status;
     }
     expect(last).toBe(429);
+  });
+
+  it('limits every route to RATE_LIMIT_DEFAULT_PER_MINUTE requests per IP (300 by default)', async () => {
+    // Counting is per calendar minute: pin the clock to the start of one so the test cannot straddle two.
+    vi.useFakeTimers({ toFake: ['Date'], now: new Date('2026-10-06T06:00:00Z') });
+    try {
+      for (let i = 0; i < 300; i++) {
+        expect((await call(ctx, 'GET', '/exam-node-types', { ip: '203.0.113.7' })).status).toBe(200);
+      }
+      const refused = await call(ctx, 'GET', '/exam-node-types', { ip: '203.0.113.7' });
+      expect(refused.status).toBe(429);
+      expect(refused.body.error.code).toBe('RATE_LIMITED');
+      expect((await call(ctx, 'GET', '/exam-node-types', { ip: '203.0.113.8' })).status).toBe(200);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });
 

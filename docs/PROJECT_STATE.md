@@ -1,6 +1,6 @@
 # Project State
 
-Current Phase: **Phase 10 — parts 1–2 merged (PR #16, #17); part 3a done** on `feature/daily-challenge`
+Current Phase: **Phase 10 — parts 1–3a merged (PR #16–#18); part 3b (certificates) done** on `feature/certificates`
 Current Milestone: content API on `feature/content-cms` → Admin CMS content screens
 Overall Status: **IN PROGRESS**
 Last updated: 2026-10-04
@@ -31,8 +31,9 @@ Last updated: 2026-10-04
   subject outline, note / PDF / video lessons with progress (T-038, T-039).
 - §10 part 1 merged (PR #16): attempt engine (T-043, D-048), exam mode, results, review, history.
 - §10 part 2 merged (PR #17): grading queue, results, release (T-044); scope fix (KI-035).
-- §10 part 3a on `feature/daily-challenge` (D-049, T-045): daily challenge + streak, leaderboards, practice; guard fix
-  (KI-037). Next: part 3b (certificates for finishing a course, mistake notebook).
+- §10 part 3a merged (PR #18, D-049, T-045): daily challenge + streak, leaderboards, practice; guard fix (KI-037).
+- §10 part 3b on `feature/certificates` (D-050, T-046): certificate templates, automatic issue, PDF, public
+  verification, revoke/reinstate. Next: part 3c (mistake notebook & revision mode).
 - Monitoring (T-042) merged (PR #14, #15): Sentry in the API, worker, admin and app; PostHog in the app. Google web client registered for `http://localhost:8081` (checked); a real
   sign-in by the owner and Android/iOS clients remain (KI-029).
 - Phase 9 part 2 merged (PR #13): practice questions with Check answer and locked Premium answers
@@ -89,5 +90,5 @@ and `pnpm --filter @tk/admin dev` → create your Super Admin:
 (code in Mailpit http://localhost:8025) → set password at http://localhost:5173/set-password → sign in → enrol 2FA.
 
 ## Exact Next Task
-- Owner merges the §10 part 3a PR; then §10 part 3b exam engine + engagement (assessments list, exam mode, results, history,
+- Owner merges the §10 part 3b PR; then §10 part 3c (mistake notebook & revision mode); then the rest of §10 exam engine + engagement (assessments list, exam mode, results, history,
   daily challenge, leaderboards, certificates, mistake notebook) — see SESSION_HANDOFF.
