@@ -6,11 +6,89 @@ import { CoursePricingInput, Slug, StatusChangeInput } from './content.js';
 export const PaymentProviderName = z.enum(['esewa', 'khalti']);
 export type PaymentProviderName = z.infer<typeof PaymentProviderName>;
 
-/** A course or a plan (exactly one). */
+/** Coupon codes: letters, numbers and dashes; matched without regard to case (stored upper-case). */
+export const CouponCode = z
+  .string()
+  .trim()
+  .min(3, 'At least 3 characters')
+  .max(32, 'At most 32 characters')
+  .regex(/^[A-Za-z0-9-]+$/, 'Letters, numbers and dashes only')
+  .transform((s) => s.toUpperCase());
+
+/** A course or a plan (exactly one), with an optional coupon (D-025). */
 export const CreateOrderInput = z
-  .object({ courseId: z.uuid().optional(), planId: z.uuid().optional() })
+  .object({ courseId: z.uuid().optional(), planId: z.uuid().optional(), couponCode: CouponCode.optional() })
   .refine((v) => Boolean(v.courseId) !== Boolean(v.planId), { message: 'Choose a course or a plan' });
 export type CreateOrderInput = z.infer<typeof CreateOrderInput>;
+
+/** The price the server would charge, before an order exists (checkout shows it; nothing is stored). */
+export const OrderQuoteInput = CreateOrderInput;
+export type OrderQuoteInput = z.infer<typeof OrderQuoteInput>;
+
+// ───────────── Coupons (D-025, D-054, D-056) ─────────────
+
+export const CouponDiscountType = z.enum(['percent', 'fixed']);
+export type CouponDiscountType = z.infer<typeof CouponDiscountType>;
+/** What a coupon can be used for. */
+export const CouponAppliesTo = z.enum(['everything', 'all_courses', 'all_plans', 'selected']);
+export type CouponAppliesTo = z.infer<typeof CouponAppliesTo>;
+
+const Paisa = z.number().int().min(1).max(100_000_000);
+
+export const CouponInput = z
+  .object({
+    code: CouponCode,
+    /** Staff note (who it is for); never shown to students. */
+    note: z.string().trim().max(300).nullable(),
+    discountType: CouponDiscountType,
+    /** Percent in basis points (10% = 1000; 100% = 10000). */
+    percentBps: z.number().int().min(1).max(10_000).nullable(),
+    amountPaisa: Paisa.nullable(),
+    /** Largest discount for a percent coupon. */
+    maxDiscountPaisa: Paisa.nullable(),
+    /** Price (after any sale) needed before the coupon works. */
+    minOrderPaisa: Paisa.nullable(),
+    startsAt: z.iso.datetime().nullable(),
+    endsAt: z.iso.datetime().nullable(),
+    /** Uses by everyone together (null = no limit). */
+    maxRedemptions: z.number().int().min(1).max(1_000_000).nullable(),
+    /** Uses per student (null = no limit). */
+    perUserLimit: z.number().int().min(1).max(1000).nullable(),
+    appliesTo: CouponAppliesTo,
+    courseIds: z.array(z.uuid()).max(500),
+    planIds: z.array(z.uuid()).max(100),
+    /** D-054: when on, the discount applies to the sale price; when off, the coupon does not work during a sale. */
+    allowOnSale: z.boolean(),
+    active: z.boolean(),
+  })
+  .superRefine((v, ctx) => {
+    if (v.discountType === 'percent' && v.percentBps === null) {
+      ctx.addIssue({ code: 'custom', path: ['percentBps'], message: 'Enter the percentage' });
+    }
+    if (v.discountType === 'fixed' && v.amountPaisa === null) {
+      ctx.addIssue({ code: 'custom', path: ['amountPaisa'], message: 'Enter the amount' });
+    }
+    if (v.discountType === 'fixed' && v.maxDiscountPaisa !== null) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['maxDiscountPaisa'],
+        message: 'A largest discount applies to percent coupons only',
+      });
+    }
+    if (v.startsAt && v.endsAt && v.startsAt >= v.endsAt) {
+      ctx.addIssue({ code: 'custom', path: ['endsAt'], message: 'The coupon must end after it starts' });
+    }
+    if (v.appliesTo === 'selected' && v.courseIds.length + v.planIds.length === 0) {
+      ctx.addIssue({ code: 'custom', path: ['courseIds'], message: 'Choose at least one course or plan' });
+    }
+  });
+export type CouponInput = z.infer<typeof CouponInput>;
+
+export const AdminCouponQuery = CursorQuery.extend({
+  q: z.string().trim().min(1).max(60).optional(),
+  state: z.enum(['active', 'inactive']).optional(),
+});
+export type AdminCouponQuery = z.infer<typeof AdminCouponQuery>;
 
 // ───────────── Plans (D-023, D-054) ─────────────
 

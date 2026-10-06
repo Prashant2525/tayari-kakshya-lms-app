@@ -44,6 +44,8 @@ import { CertificatesService } from './modules/certificates/certificates.service
 import { MistakesController } from './modules/mistakes/mistakes.controller.js';
 import { MistakesService } from './modules/mistakes/mistakes.service.js';
 import { AdminOrdersController } from './modules/payments/admin-orders.controller.js';
+import { AdminCouponsController } from './modules/payments/coupons.controller.js';
+import { CouponsService } from './modules/payments/coupons.service.js';
 import { AdminOrdersService } from './modules/payments/admin-orders.service.js';
 import { GatewayHttp } from './modules/payments/gateway-http.js';
 import { PaymentsController } from './modules/payments/payments.controller.js';
@@ -136,6 +138,7 @@ export class InfraModule {}
     PaymentsService,
     AdminOrdersService,
     PlansService,
+    CouponsService,
     ScopeService,
     QuestionsService,
     QuestionReportsService,
@@ -178,6 +181,7 @@ export class InfraModule {}
     PaymentsService,
     AdminOrdersService,
     PlansService,
+    CouponsService,
     ScopeService,
     QuestionsService,
     QuestionReportsService,
@@ -240,6 +244,7 @@ export class DomainModule {}
     AdminOrdersController,
     PlansController,
     AdminPlansController,
+    AdminCouponsController,
     AdminQuestionsController,
     QuestionReportsController,
     AdminAssessmentsController,

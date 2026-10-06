@@ -651,6 +651,7 @@ model Course {
   instructors         CourseInstructor[]
   entitlements        Entitlement[]
   orderItems          OrderItem[]
+  couponTargets       CouponTarget[]
   plans               PlanCourse[]
 
   assessments Assessment[]
@@ -1410,17 +1411,27 @@ model Order {
   subtotalPaisa Int          @map("subtotal_paisa")
   discountPaisa Int          @default(0) @map("discount_paisa")
   totalPaisa    Int          @map("total_paisa")
+  /// The coupon used (D-025) and its code as typed — kept even if the coupon changes later.
+  couponId      String?      @map("coupon_id") @db.Uuid
+  couponCode    String?      @map("coupon_code")
+  /// VAT that applied (D-055): null rate = not VAT-registered. Inclusive: the total contains `tax_paisa`;
+  /// otherwise `tax_paisa` was added on top.
+  taxRateBps    Int?         @map("tax_rate_bps")
+  taxInclusive  Boolean?     @map("tax_inclusive")
+  taxPaisa      Int          @default(0) @map("tax_paisa")
   expiresAt     DateTime     @map("expires_at") @db.Timestamptz(6)
   paidAt        DateTime?    @map("paid_at") @db.Timestamptz(6)
   createdAt     DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt     DateTime     @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   user     User        @relation(fields: [userId], references: [id], onDelete: Restrict)
+  coupon   Coupon?     @relation(fields: [couponId], references: [id], onDelete: Restrict)
   items    OrderItem[]
   payments Payment[]
 
   @@index([userId, createdAt(sort: Desc)])
   @@index([status, expiresAt])
+  @@index([couponId, status])
   @@map("orders")
 }
 
@@ -1534,9 +1545,10 @@ model Plan {
   updatedAt      DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
   deletedAt      DateTime?     @map("deleted_at") @db.Timestamptz(6)
 
-  courses      PlanCourse[]
-  entitlements Entitlement[]
-  orderItems   OrderItem[]
+  courses       PlanCourse[]
+  entitlements  Entitlement[]
+  orderItems    OrderItem[]
+  couponTargets CouponTarget[]
 
   @@index([status, sortOrder])
   @@map("plans")
@@ -1553,4 +1565,63 @@ model PlanCourse {
   @@id([planId, courseId])
   @@index([courseId])
   @@map("plan_courses")
+}
+
+enum CouponDiscountType {
+  percent
+  fixed
+}
+
+enum CouponAppliesTo {
+  everything
+  all_courses
+  all_plans
+  selected
+}
+
+/// Coupon codes (D-025, D-054, D-056). Never deleted (orders point at them); staff switch them off instead.
+/// Uses are the orders that carry the coupon: paid ones, and unpaid ones while they can still be paid.
+model Coupon {
+  id               String             @id @default(uuid(7)) @db.Uuid
+  /// Upper-case letters, numbers and dashes.
+  code             String             @unique
+  note             String?
+  discountType     CouponDiscountType @map("discount_type")
+  percentBps       Int?               @map("percent_bps")
+  amountPaisa      Int?               @map("amount_paisa")
+  maxDiscountPaisa Int?               @map("max_discount_paisa")
+  minOrderPaisa    Int?               @map("min_order_paisa")
+  startsAt         DateTime?          @map("starts_at") @db.Timestamptz(6)
+  endsAt           DateTime?          @map("ends_at") @db.Timestamptz(6)
+  maxRedemptions   Int?               @map("max_redemptions")
+  perUserLimit     Int?               @map("per_user_limit")
+  appliesTo        CouponAppliesTo    @map("applies_to")
+  /// D-054: off = the coupon does not work while a sale price applies.
+  allowOnSale      Boolean            @default(false) @map("allow_on_sale")
+  active           Boolean            @default(true)
+  createdAt        DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime           @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  targets CouponTarget[]
+  orders  Order[]
+
+  @@map("coupons")
+}
+
+/// The courses and plans a "selected" coupon works for (exactly one of the two per row).
+model CouponTarget {
+  id       String  @id @default(uuid(7)) @db.Uuid
+  couponId String  @map("coupon_id") @db.Uuid
+  courseId String? @map("course_id") @db.Uuid
+  planId   String? @map("plan_id") @db.Uuid
+
+  coupon Coupon  @relation(fields: [couponId], references: [id], onDelete: Cascade)
+  course Course? @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  plan   Plan?   @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  @@unique([couponId, courseId])
+  @@unique([couponId, planId])
+  @@index([courseId])
+  @@index([planId])
+  @@map("coupon_targets")
 }

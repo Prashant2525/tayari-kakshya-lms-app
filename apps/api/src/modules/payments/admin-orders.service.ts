@@ -93,6 +93,12 @@ export class AdminOrdersService {
       currency: o.currency,
       subtotalPaisa: o.subtotalPaisa,
       discountPaisa: o.discountPaisa,
+      couponCode: o.couponCode,
+      couponId: o.couponId,
+      tax:
+        o.taxRateBps === null
+          ? null
+          : { rateBps: o.taxRateBps, inclusive: o.taxInclusive, paisa: o.taxPaisa },
       totalPaisa: o.totalPaisa,
       createdAt: o.createdAt.toISOString(),
       expiresAt: o.expiresAt.toISOString(),

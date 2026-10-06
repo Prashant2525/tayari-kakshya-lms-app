@@ -2,8 +2,8 @@
 
 Session date: 2026-10-02 (session 4 — resumed after a VS Code crash)
 Current phase: **Phase 6 — content CMS, API layer complete and verified locally**
-Current task: Phase 11 part 2a (plans) done on `feature/plans-coupons` (PR into `main`, after PR #23); next part 2b
-(coupons + VAT settings in the CMS)
+Current task: Phase 11 part 2b (coupons + VAT settings) done on `feature/coupons-vat` (PR into `main`); next part 3
+(receipts / invoice numbering, refunds)
 
 ## Completed this session
 - Recovered the interrupted work from the repository (nothing lost). Verified the uncommitted content API:
@@ -202,6 +202,11 @@ Current task: Phase 11 part 2a (plans) done on `feature/plans-coupons` (PR into 
 - Nothing partially implemented. Admin screens for Phase 6 not started.
 
 ## Exact next steps
+0b. 2026-10-06 (later): PR #23 and #24 merged. Part 2b on `feature/coupons-vat` (T-051): coupons (CMS Sales →
+   Coupons, checkout box, share links resumed after sign-in, Rs 0 orders per D-056), VAT card in System settings
+   (D-055), `POST /orders/quote`. Next: part 3 — receipts with numbering per BS fiscal year (prefix and reset are CMS
+   settings, D-026), PDF receipt using `commerce.tax` details, refund workflow (staff request → approve → processed,
+   never deleting records). Ask the owner before inventing receipt wording or refund rules.
 0. 2026-10-06: PR #22 merged. PR #23 (Android eSewa, KI-042) green — owner merges it, restarts the API, retries eSewa
    on the emulator. Plans (T-050) on `feature/plans-coupons`, built on top of #23: CMS Sales → Plans, app Profile →
    Subscription plan, plan checkout and renewal. Next: part 2b — coupons (D-025: CMS CRUD, limits, redemptions,

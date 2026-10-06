@@ -49,10 +49,45 @@ export function OrderPage() {
                   <span className="font-medium text-text">{npr(i.pricePaisa)}</span>
                 </div>
               ))}
+              {o.couponCode ? (
+                <div className="flex items-center justify-between gap-3 text-sm">
+                  <span className="text-text">
+                    Coupon{' '}
+                    {o.couponId ? (
+                      <Link
+                        to="/coupons/$couponId"
+                        params={{ couponId: o.couponId }}
+                        className="font-mono text-link"
+                      >
+                        {o.couponCode}
+                      </Link>
+                    ) : (
+                      <span className="font-mono">{o.couponCode}</span>
+                    )}
+                  </span>
+                  <span className="font-medium text-text">− {npr(o.discountPaisa)}</span>
+                </div>
+              ) : null}
+              {o.tax && !o.tax.inclusive ? (
+                <div className="flex items-center justify-between gap-3 text-sm">
+                  <span className="text-text">VAT ({o.tax.rateBps / 100}%)</span>
+                  <span className="font-medium text-text">{npr(o.tax.paisa)}</span>
+                </div>
+              ) : null}
               <div className="mt-2 flex items-center justify-between border-t border-border pt-3 text-sm">
                 <span className="font-semibold text-text">Total</span>
                 <span className="font-semibold text-text">{npr(o.totalPaisa)}</span>
               </div>
+              {o.tax?.inclusive ? (
+                <p className="text-right text-xs text-text-muted">
+                  Includes VAT ({o.tax.rateBps / 100}%) {npr(o.tax.paisa)}
+                </p>
+              ) : null}
+              {o.totalPaisa === 0 ? (
+                <p className="text-xs text-text-muted">
+                  Nothing to pay: the coupon covered the full price (D-056).
+                </p>
+              ) : null}
             </div>
           </Card>
           <Card>

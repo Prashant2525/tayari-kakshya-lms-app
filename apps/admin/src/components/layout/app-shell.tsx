@@ -5,6 +5,7 @@ import {
   BookOpen,
   ClipboardCheck,
   Crown,
+  TicketPercent,
   FileQuestion,
   FileText,
   Flag,
@@ -73,6 +74,7 @@ const NAV: Array<{ group: string; items: NavItem[] }> = [
     group: 'Sales',
     items: [
       { to: '/plans', label: 'Plans', icon: Crown, permission: 'plans:manage' },
+      { to: '/coupons', label: 'Coupons', icon: TicketPercent, permission: 'coupons:manage' },
       { to: '/orders', label: 'Orders', icon: Receipt, permission: 'orders:read' },
     ],
   },

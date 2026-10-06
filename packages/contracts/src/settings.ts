@@ -191,6 +191,49 @@ export const SETTINGS = {
     default: { esewa: true, khalti: true },
     public: false,
   },
+  /**
+   * D-026, D-055: VAT and the seller's details for receipts. Off until the business is VAT-registered; rate in basis
+   * points (13% = 1300); prices typed in the CMS either already include VAT or have it added at checkout. Nepal PAN
+   * (which is also the VAT number) has 9 digits.
+   */
+  'commerce.tax': {
+    schema: z
+      .object({
+        vatRegistered: z.boolean(),
+        rateBps: z.number().int().min(0).max(10_000),
+        pricesIncludeVat: z.boolean(),
+        businessName: z.string().trim().max(200),
+        panNumber: z
+          .string()
+          .trim()
+          .regex(/^(\d{9})?$/, 'PAN / VAT number: 9 digits'),
+        address: z.string().trim().max(300),
+      })
+      .superRefine((v, ctx) => {
+        if (!v.vatRegistered) return;
+        if (v.rateBps <= 0)
+          ctx.addIssue({ code: 'custom', path: ['rateBps'], message: 'Enter the VAT rate' });
+        if (!v.panNumber) {
+          ctx.addIssue({ code: 'custom', path: ['panNumber'], message: 'Enter the PAN / VAT number' });
+        }
+        if (!v.businessName) {
+          ctx.addIssue({
+            code: 'custom',
+            path: ['businessName'],
+            message: 'Enter the registered business name',
+          });
+        }
+      }),
+    default: {
+      vatRegistered: false,
+      rateBps: 1300,
+      pricesIncludeVat: true,
+      businessName: '',
+      panNumber: '',
+      address: '',
+    },
+    public: false,
+  },
   /** D-050: a question leaves the mistake notebook after this many correct revision answers in a row (default 2). */
   'mistakes.revision': {
     schema: z.object({ correctInARow: z.number().int().min(1).max(10) }),

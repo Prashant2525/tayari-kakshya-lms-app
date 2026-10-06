@@ -130,6 +130,21 @@ test('signing in again requires the authenticator code, and the session survives
   await expect(page.getByLabel('Premium access')).toHaveValue('linked');
   await page.getByRole('link', { name: 'System settings' }).click();
 
+  // VAT details are CMS data (D-055): registering needs the PAN / VAT number and business name.
+  const vat = page.getByRole('region', { name: 'VAT and business details' });
+  await expect(vat.getByLabel('VAT rate (%)')).toHaveValue('13');
+  await vat.getByRole('switch', { name: 'VAT-registered' }).click();
+  await vat.getByRole('button', { name: 'Save' }).click();
+  await expect(vat.getByText('Enter the PAN / VAT number')).toBeVisible();
+  await vat.getByLabel('PAN / VAT number').fill('123456789');
+  await vat.getByLabel('Registered business name').fill('Test Academy Pvt. Ltd.');
+  await vat.getByRole('button', { name: 'Save' }).click();
+  await expect(page.getByText('VAT and business details saved')).toBeVisible();
+  // Back off, so later suites price orders without VAT.
+  await vat.getByRole('switch', { name: 'VAT-registered' }).click();
+  await vat.getByRole('button', { name: 'Save' }).click();
+  await expect(vat.getByRole('switch', { name: 'VAT-registered' })).not.toBeChecked();
+
   await page.getByRole('link', { name: 'Audit log' }).click();
   await expect(page.getByText('settings.update').first()).toBeVisible();
   await expect(page.getByText('staff.create')).toBeVisible();

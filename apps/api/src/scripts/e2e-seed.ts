@@ -30,6 +30,7 @@ const CONTENT_PERMISSIONS = [
   'orders:read',
   'orders:manage',
   'plans:manage',
+  'coupons:manage',
 ];
 
 /**

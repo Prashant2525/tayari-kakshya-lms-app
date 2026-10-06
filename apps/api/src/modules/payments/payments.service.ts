@@ -1,9 +1,23 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import { ErrorCode, type LocalizedText, type PayOrderInput, type Platform } from '@tk/contracts';
-import { accessEndsAt, type AccessValidity } from '@tk/domain';
+import {
+  ErrorCode,
+  type CreateOrderInput,
+  type LocalizedText,
+  type OrderQuoteInput,
+  type PayOrderInput,
+  type Platform,
+  type SettingValue,
+} from '@tk/contracts';
+import { accessEndsAt, computeTax, type AccessValidity } from '@tk/domain';
 import { AppError, Errors } from '../../common/errors/app-error.js';
 import { ENV, type Env } from '../../config/env.js';
-import { Prisma, type Order, type Payment, type PaymentProvider } from '../../generated/prisma/client.js';
+import {
+  Prisma,
+  type Order,
+  type OrderItem,
+  type Payment,
+  type PaymentProvider,
+} from '../../generated/prisma/client.js';
 import { PrismaService, type Tx } from '../../infra/prisma/prisma.service.js';
 import { AuditService } from '../audit/audit.service.js';
 import {
@@ -14,7 +28,8 @@ import {
 import { isLive } from '../content/publishing.js';
 import { SettingsService } from '../settings/settings.service.js';
 import { GatewayHttp } from './gateway-http.js';
-import { planPrice } from './plans.service.js';
+import { CouponsService, type PricedItem } from './coupons.service.js';
+import { planPrice, saleActive } from './plans.service.js';
 import {
   GatewayError,
   gatewaysFromEnv,
@@ -114,6 +129,7 @@ export class PaymentsService {
     private readonly settings: SettingsService,
     private readonly audit: AuditService,
     private readonly entitlements: EntitlementsService,
+    private readonly coupons: CouponsService,
     @Inject(ENV) private readonly env: Env,
     http: GatewayHttp,
   ) {
@@ -133,93 +149,135 @@ export class PaymentsService {
   }
 
   /**
-   * Creates the order for a course or a plan at its current price (sale included), or returns the student's unpaid
-   * one for it. Refused where the platform cannot sell (D-027: never on iOS).
+   * What checkout would charge now (D-025, D-055): the price (sale included), the coupon's discount and VAT. Nothing
+   * is stored; `createOrder` prices again on its own.
    */
-  async createOrder(
-    userId: string,
-    item: { courseId?: string | undefined; planId?: string | undefined },
-    platform: Platform,
-    now = new Date(),
-  ) {
+  async quote(userId: string, input: OrderQuoteInput, platform: Platform, now = new Date()) {
     if (!(await this.channelOpen(platform))) {
       throw notAvailable('channel_closed', 'Purchases are not available here');
     }
-    if (item.planId) return this.createPlanOrder(userId, item.planId, platform, now);
-    const courseId = item.courseId!;
-    // D-052 also covers access through a plan.
-    if ((await this.entitlements.planCourseIds(userId, now)).has(courseId)) {
-      throw notAvailable('already_has_access', 'Your plan already includes this course');
+    const priced = await this.priceItem(this.prisma, userId, input, now);
+    const coupon = input.couponCode
+      ? await this.coupons.evaluate(this.prisma, input.couponCode, userId, priced.item, now)
+      : null;
+    const totals = this.totals(
+      priced.item.pricePaisa,
+      coupon?.discountPaisa ?? 0,
+      await this.settings.get('commerce.tax'),
+    );
+    return {
+      kind: priced.item.kind,
+      title: priced.title,
+      validity: priced.validity,
+      regularPricePaisa: priced.regularPricePaisa,
+      subtotalPaisa: totals.subtotalPaisa,
+      discountPaisa: totals.discountPaisa,
+      coupon: coupon ? { code: coupon.coupon.code } : null,
+      tax:
+        totals.taxRateBps === null
+          ? null
+          : { rateBps: totals.taxRateBps, inclusive: totals.taxInclusive, paisa: totals.taxPaisa },
+      totalPaisa: totals.totalPaisa,
+    };
+  }
+
+  /**
+   * Creates the order for a course or a plan at its current price (sale included) with the coupon's discount and VAT,
+   * or returns the student's unpaid one for the same thing at the same total. Refused where the platform cannot sell
+   * (D-027: never on iOS). A total of Rs 0 (a full-discount coupon, D-056) is paid at once and gives access.
+   */
+  async createOrder(userId: string, input: CreateOrderInput, platform: Platform, now = new Date()) {
+    if (!(await this.channelOpen(platform))) {
+      throw notAvailable('channel_closed', 'Purchases are not available here');
     }
+    const tax = await this.settings.get('commerce.tax');
+    const itemId = (input.planId ?? input.courseId)!;
     const order = await this.prisma.$transaction(async (tx) => {
-      await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${`order:${userId}:${courseId}`}))`;
-      const course = await tx.course.findFirst({ where: { id: courseId, deletedAt: null } });
-      if (!course || !isLive(course, now)) throw Errors.notFound('Course');
-      if (course.pricePaisa === 0) throw notAvailable('free_course', 'This course is free: enrol instead');
-      const endsAt = courseAccessEndsAt(course, now);
-      if (endsAt && endsAt <= now) {
-        throw notAvailable('access_period_ended', 'This course can no longer be bought');
-      }
-      const active = await tx.entitlement.findFirst({
-        where: { userId, courseId, ...activeEntitlementWhere(now) },
-      });
-      if (active) throw notAvailable('already_has_access', 'You already have access to this course');
-
-      const saleActive =
-        course.salePricePaisa !== null &&
-        (!course.saleStartsAt || course.saleStartsAt <= now) &&
-        (!course.saleEndsAt || course.saleEndsAt > now);
-      const price = saleActive ? (course.salePricePaisa as number) : course.pricePaisa;
-      if (price <= 0) throw notAvailable('not_for_sale', 'This course is not for sale');
-
-      // The student's unpaid order for this course at this price is reused (several taps, or two devices).
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${`order:${userId}:${itemId}`}))`;
+      const priced = await this.priceItem(tx, userId, input, now);
+      const itemWhere = priced.item.kind === 'plan' ? { planId: itemId } : { courseId: itemId };
+      // The student's unpaid order for the same thing (several taps, or two devices).
       const open = await tx.order.findFirst({
-        where: {
-          userId,
-          status: 'pending',
-          expiresAt: { gt: now },
-          items: { some: { courseId } },
-        },
+        where: { userId, status: 'pending', expiresAt: { gt: now }, items: { some: itemWhere } },
         orderBy: { createdAt: 'desc' },
       });
-      if (open && open.totalPaisa === price) return open;
+      const coupon = input.couponCode
+        ? await this.coupons.evaluate(tx, input.couponCode, userId, priced.item, now, {
+            lock: true,
+            excludeOrderId: open?.id ?? null,
+          })
+        : null;
+      const totals = this.totals(priced.item.pricePaisa, coupon?.discountPaisa ?? 0, tax);
+      if (
+        open &&
+        open.totalPaisa === totals.totalPaisa &&
+        open.couponId === (coupon?.coupon.id ?? null) &&
+        open.taxRateBps === totals.taxRateBps
+      ) {
+        return open;
+      }
       if (open) await tx.order.update({ where: { id: open.id }, data: { status: 'cancelled' } });
 
-      const validity: ValiditySnapshot = {
-        type: course.validityType,
-        days: course.validityDays,
-        endsOn: course.validityEndsOn?.toISOString().slice(0, 10) ?? null,
-      };
-      return tx.order.create({
+      const free = totals.totalPaisa === 0;
+      const created = await tx.order.create({
         data: {
           userId,
           channel: platform,
-          subtotalPaisa: price,
-          totalPaisa: price,
+          ...totals,
+          couponId: coupon?.coupon.id ?? null,
+          couponCode: coupon?.coupon.code ?? null,
+          status: free ? 'paid' : 'pending',
+          paidAt: free ? now : null,
           expiresAt: new Date(now.getTime() + this.env.PAYMENT_ORDER_TTL_MINUTES * 60_000),
           items: {
             create: {
-              itemType: 'course',
-              courseId,
-              titleSnapshot: course.title as Prisma.InputJsonValue,
-              unitPricePaisa: price,
-              validitySnapshot: validity as unknown as Prisma.InputJsonValue,
+              itemType: priced.item.kind,
+              ...itemWhere,
+              titleSnapshot: priced.title as Prisma.InputJsonValue,
+              unitPricePaisa: priced.item.pricePaisa,
+              validitySnapshot: priced.validity as unknown as Prisma.InputJsonValue,
             },
           },
         },
+        include: { items: true },
       });
+      if (free) {
+        // Nothing to pay (D-056): access now, recorded like any paid order.
+        await this.grant(tx, created, now);
+        await this.audit.record(
+          {
+            actorUserId: userId,
+            action: 'order.paid',
+            entityType: 'order',
+            entityId: created.id,
+            changes: { orderNo: created.orderNo, amountPaisa: 0, coupon: created.couponCode, free: true },
+          },
+          tx,
+        );
+      }
+      return created;
     });
     return this.orderView(order.id, userId);
   }
 
   /**
-   * A plan order (D-054): renewing a plan the student has extends it — except a lifetime or fixed-end plan, which a
-   * second purchase could not extend.
+   * The thing being bought and its price now, after every rule that can refuse it (free courses, ended access
+   * periods, access the student already has — D-052, a plan that already includes the course, D-054).
    */
-  private async createPlanOrder(userId: string, planId: string, platform: Platform, now: Date) {
-    const order = await this.prisma.$transaction(async (tx) => {
-      await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${`order:${userId}:${planId}`}))`;
-      const plan = await tx.plan.findFirst({ where: { id: planId, deletedAt: null } });
+  private async priceItem(
+    db: Tx | PrismaService,
+    userId: string,
+    input: { courseId?: string | undefined; planId?: string | undefined },
+    now: Date,
+  ): Promise<{
+    item: PricedItem;
+    title: LocalizedText;
+    validity: ValiditySnapshot;
+    regularPricePaisa: number;
+  }> {
+    if (input.planId) {
+      const planId = input.planId;
+      const plan = await db.plan.findFirst({ where: { id: planId, deletedAt: null } });
       if (!plan || !isLive(plan, now)) throw Errors.notFound('Plan');
       const price = planPrice(plan, now);
       if (plan.pricePaisa === 0 || price <= 0)
@@ -227,43 +285,79 @@ export class PaymentsService {
       if (plan.validityType === 'fixed_date' && plan.validityEndsOn && plan.validityEndsOn <= now) {
         throw notAvailable('access_period_ended', 'This plan can no longer be bought');
       }
+      // D-054: a days plan can be renewed while active; a lifetime or fixed-end plan could not be extended.
       if (plan.validityType !== 'days') {
-        const active = await tx.entitlement.findFirst({
+        const active = await db.entitlement.findFirst({
           where: { userId, scopeType: 'plan', planId, ...activeEntitlementWhere(now) },
         });
         if (active) throw notAvailable('already_has_access', 'You already have this plan');
       }
-      const open = await tx.order.findFirst({
-        where: { userId, status: 'pending', expiresAt: { gt: now }, items: { some: { planId } } },
-        orderBy: { createdAt: 'desc' },
-      });
-      if (open && open.totalPaisa === price) return open;
-      if (open) await tx.order.update({ where: { id: open.id }, data: { status: 'cancelled' } });
-      const validity: ValiditySnapshot = {
-        type: plan.validityType,
-        days: plan.validityDays,
-        endsOn: plan.validityEndsOn?.toISOString().slice(0, 10) ?? null,
-      };
-      return tx.order.create({
-        data: {
-          userId,
-          channel: platform,
-          subtotalPaisa: price,
-          totalPaisa: price,
-          expiresAt: new Date(now.getTime() + this.env.PAYMENT_ORDER_TTL_MINUTES * 60_000),
-          items: {
-            create: {
-              itemType: 'plan',
-              planId,
-              titleSnapshot: plan.name as Prisma.InputJsonValue,
-              unitPricePaisa: price,
-              validitySnapshot: validity as unknown as Prisma.InputJsonValue,
-            },
-          },
+      return {
+        item: { kind: 'plan', id: planId, pricePaisa: price, onSale: saleActive(plan, now) },
+        title: plan.name as LocalizedText,
+        regularPricePaisa: plan.pricePaisa,
+        validity: {
+          type: plan.validityType,
+          days: plan.validityDays,
+          endsOn: plan.validityEndsOn?.toISOString().slice(0, 10) ?? null,
         },
-      });
+      };
+    }
+    const courseId = input.courseId!;
+    const course = await db.course.findFirst({ where: { id: courseId, deletedAt: null } });
+    if (!course || !isLive(course, now)) throw Errors.notFound('Course');
+    if (course.pricePaisa === 0) throw notAvailable('free_course', 'This course is free: enrol instead');
+    const endsAt = courseAccessEndsAt(course, now);
+    if (endsAt && endsAt <= now)
+      throw notAvailable('access_period_ended', 'This course can no longer be bought');
+    // D-052, also through a plan.
+    if ((await this.entitlements.planCourseIds(userId, now)).has(courseId)) {
+      throw notAvailable('already_has_access', 'Your plan already includes this course');
+    }
+    const active = await db.entitlement.findFirst({
+      where: { userId, courseId, ...activeEntitlementWhere(now) },
     });
-    return this.orderView(order.id, userId);
+    if (active) throw notAvailable('already_has_access', 'You already have access to this course');
+    const onSale = saleActive(course, now);
+    const price = onSale ? (course.salePricePaisa as number) : course.pricePaisa;
+    if (price <= 0) throw notAvailable('not_for_sale', 'This course is not for sale');
+    return {
+      item: { kind: 'course', id: courseId, pricePaisa: price, onSale },
+      title: course.title as LocalizedText,
+      regularPricePaisa: course.pricePaisa,
+      validity: {
+        type: course.validityType,
+        days: course.validityDays,
+        endsOn: course.validityEndsOn?.toISOString().slice(0, 10) ?? null,
+      },
+    };
+  }
+
+  /**
+   * Order amounts (D-055): VAT applies only when the business is VAT-registered (CMS setting `commerce.tax`), on the
+   * price after the coupon. Inclusive prices contain it; otherwise it is added on top.
+   */
+  private totals(pricePaisa: number, discountPaisa: number, tax: SettingValue<'commerce.tax'>) {
+    const taxable = pricePaisa - discountPaisa;
+    if (!tax.vatRegistered) {
+      return {
+        subtotalPaisa: pricePaisa,
+        discountPaisa,
+        taxRateBps: null,
+        taxInclusive: null,
+        taxPaisa: 0,
+        totalPaisa: taxable,
+      };
+    }
+    const split = computeTax({ amountPaisa: taxable, rateBps: tax.rateBps, inclusive: tax.pricesIncludeVat });
+    return {
+      subtotalPaisa: pricePaisa,
+      discountPaisa,
+      taxRateBps: tax.rateBps,
+      taxInclusive: tax.pricesIncludeVat,
+      taxPaisa: split.taxPaisa,
+      totalPaisa: split.grossPaisa,
+    };
   }
 
   /**
@@ -569,52 +663,7 @@ export class PaymentsService {
           return updated;
         }
         await tx.order.update({ where: { id: order.id }, data: { status: 'paid', paidAt: now } });
-        for (const item of order.items) {
-          const snapshot = item.validitySnapshot as unknown as ValiditySnapshot;
-          const validity: AccessValidity =
-            snapshot.type === 'days'
-              ? { type: 'days', days: snapshot.days ?? 0 }
-              : snapshot.type === 'fixed_date'
-                ? { type: 'fixed_date', endsOn: snapshot.endsOn ?? '' }
-                : { type: 'lifetime' };
-          if (item.itemType === 'plan' && item.planId) {
-            // D-054: renewing a plan the student has adds the new period after the current one.
-            const current = await tx.entitlement.findFirst({
-              where: {
-                userId: order.userId,
-                scopeType: 'plan',
-                planId: item.planId,
-                ...activeEntitlementWhere(now),
-              },
-              orderBy: { endsAt: { sort: 'desc', nulls: 'first' } },
-            });
-            const start = current?.endsAt && current.endsAt > now ? current.endsAt : now;
-            await tx.entitlement.create({
-              data: {
-                userId: order.userId,
-                scopeType: 'plan',
-                planId: item.planId,
-                sourceType: 'order',
-                sourceId: order.id,
-                startsAt: start,
-                endsAt: accessEndsAt(validity, start),
-              },
-            });
-            continue;
-          }
-          if (!item.courseId) continue;
-          await tx.entitlement.create({
-            data: {
-              userId: order.userId,
-              scopeType: 'course',
-              courseId: item.courseId,
-              sourceType: 'order',
-              sourceId: order.id,
-              startsAt: now,
-              endsAt: accessEndsAt(validity, now),
-            },
-          });
-        }
+        await this.grant(tx, order, now);
         await record('completed');
         await this.audit.record(
           {
@@ -687,6 +736,56 @@ export class PaymentsService {
 
   // ───────────── helpers ─────────────
 
+  /** Gives the access an order paid for (once per order — unique index), with the validity it was bought with. */
+  private async grant(tx: Tx, order: Order & { items: OrderItem[] }, now: Date) {
+    for (const item of order.items) {
+      const snapshot = item.validitySnapshot as unknown as ValiditySnapshot;
+      const validity: AccessValidity =
+        snapshot.type === 'days'
+          ? { type: 'days', days: snapshot.days ?? 0 }
+          : snapshot.type === 'fixed_date'
+            ? { type: 'fixed_date', endsOn: snapshot.endsOn ?? '' }
+            : { type: 'lifetime' };
+      if (item.itemType === 'plan' && item.planId) {
+        // D-054: renewing a plan the student has adds the new period after the current one.
+        const current = await tx.entitlement.findFirst({
+          where: {
+            userId: order.userId,
+            scopeType: 'plan',
+            planId: item.planId,
+            ...activeEntitlementWhere(now),
+          },
+          orderBy: { endsAt: { sort: 'desc', nulls: 'first' } },
+        });
+        const start = current?.endsAt && current.endsAt > now ? current.endsAt : now;
+        await tx.entitlement.create({
+          data: {
+            userId: order.userId,
+            scopeType: 'plan',
+            planId: item.planId,
+            sourceType: 'order',
+            sourceId: order.id,
+            startsAt: start,
+            endsAt: accessEndsAt(validity, start),
+          },
+        });
+        continue;
+      }
+      if (!item.courseId) continue;
+      await tx.entitlement.create({
+        data: {
+          userId: order.userId,
+          scopeType: 'course',
+          courseId: item.courseId,
+          sourceType: 'order',
+          sourceId: order.id,
+          startsAt: now,
+          endsAt: accessEndsAt(validity, now),
+        },
+      });
+    }
+  }
+
   private async channelOpen(platform: Platform): Promise<boolean> {
     const channels = await this.settings.get('purchase.channels');
     if (platform === 'ios') return false;
@@ -744,6 +843,13 @@ export class PaymentsService {
       orderNo: o.orderNo,
       status: o.status,
       currency: o.currency,
+      subtotalPaisa: o.subtotalPaisa,
+      discountPaisa: o.discountPaisa,
+      couponCode: o.couponCode,
+      tax:
+        o.taxRateBps === null
+          ? null
+          : { rateBps: o.taxRateBps, inclusive: o.taxInclusive, paisa: o.taxPaisa },
       totalPaisa: o.totalPaisa,
       createdAt: o.createdAt.toISOString(),
       expiresAt: o.expiresAt.toISOString(),
