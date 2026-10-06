@@ -15,7 +15,7 @@ Scope = approved decisions only (`DECISIONS.md`). Each phase ends with tests, do
 | 7 | Question bank + assessment CMS | see §7 | ☐ |
 | 8 | Student mobile foundation | see §8 (includes design preview gate) | ☐ |
 | 9 | Student learning | see §9 | ☑ (part 2 in PR) |
-| 10 | Exam engine + engagement | see §10 | ◐ parts 1–3c |
+| 10 | Exam engine + engagement | see §10 | ☑ |
 | 11 | Commerce + website checkout | see §11 | ☐ |
 | 12 | Communication & CMS content | see §12 | ☐ |
 | 13 | Progress & community | see §13 | ☐ |
@@ -117,7 +117,7 @@ Tests: scoring per type, negative marking, blueprint generation.
   migration `bookmarks`, `/courses/:c/subjects/:s/questions`, `/practice-questions/:id`, `/me/bookmarks`, `/search`
 - Home CMS sections / banners are §12 (DYNAMIC_ADMIN_AUDIT §2.3); PDF download to the device is §14 (offline).
 
-**§10 Exam engine + engagement** (branch `feature/exam-engine`) — ◐ IN PROGRESS
+**§10 Exam engine + engagement** (branch `feature/exam-engine`) — ☑ DONE
 - ☑ Part 1: attempt engine (T-043, D-048) — student tests list (course / subject / my exams), test page with the CMS
   rules, start/resume, autosave + offline copy, server deadline + grace + automatic submit (worker), scoring with the
   assessment's rules, results per release rule, solutions, self-graded written answers, attempt history; exam mode
@@ -137,6 +137,9 @@ Tests: scoring per type, negative marking, blueprint generation.
   answers recorded and scored on the server, test mistakes after release, Profile → Mistake notebook (subject filter,
   revision cards, self-review for written answers, remove), "Revise your mistakes" on results, Settings → Mistake
   notebook (N)
+- ☑ Hardening (branch `feature/exam-hardening`, T-048): late saves never overwrite newer answers (`clientSavedAt`),
+  concurrent submits, a save racing a submit, submit after the deadline; offline answers survive closing the app
+  (KI-039 fixed); browser test for reconnecting
 
 Original plan: assessments list, exam mode (timer, palette, autosave queue, resume, submit,
 auto-submit), results & solutions, attempt history, subjective self-grading, daily challenge + streaks, leaderboards,

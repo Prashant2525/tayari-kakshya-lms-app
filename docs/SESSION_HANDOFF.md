@@ -2,7 +2,7 @@
 
 Session date: 2026-10-02 (session 4 — resumed after a VS Code crash)
 Current phase: **Phase 6 — content CMS, API layer complete and verified locally**
-Current task: §10 part 3c (mistake notebook) done; PR open from `feature/mistake-notebook`
+Current task: §10 hardening done (phase 10 complete); PR open from `feature/exam-hardening`; next Phase 11 commerce
 
 ## Completed this session
 - Recovered the interrupted work from the repository (nothing lost). Verified the uncommitted content API:
@@ -68,6 +68,12 @@ Current task: §10 part 3c (mistake notebook) done; PR open from `feature/mistak
 - PR #9 / #10 merged. Branch `feature/student-learning`. API part committed first (`485f5f7`): progress, Continue,
   self-hosted PDF reader. Then the app: Courses tab, course page, Home current course, subject outline, lessons.
 - Verified with 8 browser tests (real API, PDF rendered by pdf.js) and screenshots; four defects fixed (TEST_STATUS).
+
+## Session 19 (2026-10-06)
+- PR #20 merged. Owner answered Q25's follow-up → D-051 (test credentials first, all gateway config from `.env`).
+- Branch `feature/exam-hardening` (T-048): the new reconnect browser test found KI-039 (offline answers lost when the
+  app was closed before reconnecting) — fixed. Late saves can no longer overwrite newer answers.
+- §10 is complete. Next: Phase 11 commerce.
 
 ## Session 18 (2026-10-06)
 - PR #19 merged. Branch `feature/mistake-notebook` (D-050, T-047).
@@ -180,9 +186,9 @@ Current task: §10 part 3c (mistake notebook) done; PR open from `feature/mistak
 - Nothing partially implemented. Admin screens for Phase 6 not started.
 
 ## Exact next steps
-1. Owner reviews and merges the §10 part 3c PR (`feature/mistake-notebook` → `main`); CI must be green.
-2. Review what remains of §10 in IMPLEMENTATION_PLAN (edge-case hardening: reconnect, double submit, expiry) and
-   close the phase; then Phase 11 (commerce) — needs the payment-gateway answers (Q25).
+1. Owner reviews and merges the §10 hardening PR (`feature/exam-hardening` → `main`); CI must be green.
+2. Phase 11 commerce (D-003, D-023–D-027, D-051): read the gateways' current official docs for test credentials and
+   endpoints; every merchant value from `.env`; server-side verification, idempotent callbacks, audit.
 3. Google Android/iOS clients after the app identifiers (L5, KI-029); Sentry source maps with the first EAS build.
 
 ## Files changed

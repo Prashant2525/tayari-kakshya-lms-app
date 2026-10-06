@@ -133,6 +133,11 @@ Admin: `AssessmentInput` gains optional `premiumAccess` (linked/any_course/plans
 
 Students: released results include `graderComment` on written answers.
 
+## 1b-8. Changes (§10 hardening)
+
+`PUT /attempts/:id/answers` accepts `clientSavedAt` (epoch ms, optional): an answer from a batch older than the one
+that set it is skipped (T-048). Migration `answer_client_time`.
+
 ## 1b-7. Implemented endpoints (§10 part 3c — mistake notebook) ✅
 
 | Method | Path | Auth | Notes |

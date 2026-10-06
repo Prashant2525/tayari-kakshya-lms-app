@@ -1233,6 +1233,8 @@ model AttemptAnswer {
   gradedById        String?        @map("graded_by") @db.Uuid
   gradedAt          DateTime?      @map("graded_at") @db.Timestamptz(6)
   graderComment     String?        @map("grader_comment")
+  /// When the app made the save that set this answer (out-of-order saves are ignored; null for older apps).
+  clientSavedAt     DateTime?      @map("client_saved_at") @db.Timestamptz(6)
 
   attempt         Attempt         @relation(fields: [attemptId], references: [id], onDelete: Cascade)
   question        Question        @relation(fields: [questionId], references: [id], onDelete: Restrict)

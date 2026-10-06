@@ -271,14 +271,21 @@ export class AttemptsService {
         data: { updatedAt: now },
       });
       if (!live.count) throw closed();
+      const madeAt = input.clientSavedAt ? new Date(input.clientSavedAt) : null;
       for (const ans of input.answers) {
         const response = answered(ans.response) ? ans.response : null;
-        await tx.attemptAnswer.update({
-          where: { attemptId_questionId: { attemptId: attempt.id, questionId: ans.questionId } },
+        // A batch made before the one that set this answer arrived late (retried after a lost connection): skip it.
+        await tx.attemptAnswer.updateMany({
+          where: {
+            attemptId: attempt.id,
+            questionId: ans.questionId,
+            ...(madeAt ? { OR: [{ clientSavedAt: null }, { clientSavedAt: { lte: madeAt } }] } : {}),
+          },
           data: {
             response: response ? (response as Prisma.InputJsonValue) : Prisma.DbNull,
             markedForReview: ans.markedForReview,
             answeredAt: response ? now : null,
+            clientSavedAt: madeAt,
           },
         });
       }
