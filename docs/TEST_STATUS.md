@@ -1,6 +1,6 @@
 # Test Status
 
-Last updated: 2026-10-06 (§10 part 3c: mistake notebook). `pnpm test` runs unit + integration suites (needs `pnpm infra:up`);
+Last updated: 2026-10-06 (§10 hardening — phase 10 complete). `pnpm test` runs unit + integration suites (needs `pnpm infra:up`);
 `pnpm build && pnpm --filter @tk/admin e2e` and `pnpm build && pnpm --filter @tk/mobile e2e` run the browser suites
 (the student suite also needs Mailpit, part of `pnpm infra:up`).
 
@@ -11,12 +11,25 @@ Last updated: 2026-10-06 (§10 part 3c: mistake notebook). `pnpm test` runs unit
 | `@tk/design-tokens` | 39 | WCAG contrast for every text/background pair (light + dark), CSS generation |
 | `@tk/domain` | 58 | BS calendar, Kathmandu day boundary, fiscal year, money/VAT/discounts, access validity |
 | `@tk/contracts` | 21 | Schema behaviour (localized text, email normalisation, mass assignment, settings defaults, rich-text validation) |
-| `@tk/api` | 216 | Integration against real PostgreSQL + Redis + S3 (SeaweedFS) through the HTTP stack; TOTP RFC 6238 vectors; RBAC, video, watermark unit |
+| `@tk/api` | 219 | Integration against real PostgreSQL + Redis + S3 (SeaweedFS) through the HTTP stack; TOTP RFC 6238 vectors; RBAC, video, watermark unit |
 | `@tk/admin` (unit) | 35 | API client (headers, refresh single-flight, retry, session loss, error mapping), BS formatting, Button `asChild` regression |
 | `@tk/admin` (E2E, Playwright) | 23 | Real browser + real API + `*_e2e` database |
 | `@tk/mobile` (unit) | 36 | API client (single-flight refresh, early refresh, session end, maintenance), translations complete in both languages, BS dates and Kathmandu weekday, force-update/maintenance gate, form checks, Nepali phone numbers |
-| `@tk/mobile` (E2E, Playwright, phone viewport) | 24 | Web build + real API + `*_mobile_e2e` database + Mailpit |
-| **Total** | **452** | |
+| `@tk/mobile` (E2E, Playwright, phone viewport) | 25 | Web build + real API + `*_mobile_e2e` database + Mailpit |
+| **Total** | **456** | |
+
+### Added with exam hardening (§10, T-048)
+- **API (3 integration tests):** a save that arrives after a newer one is skipped (mutation-checked), newer saves and
+  clearing still apply, older apps without `clientSavedAt` always apply; four submits and a save arriving together
+  score once and the stored answer is the scored one, closed afterwards, nothing left for the worker; a submit after
+  the time is up counts at the deadline with the answers saved in time; a new start after a finished attempt makes a
+  new attempt. (Simultaneous starts, repeated submits, grace and the worker were already covered.)
+- **Browser E2E (student app, 1 new):** answer online → connection drops → answer offline ("Offline — your answers
+  are kept on this phone") → close the app → reopen online → "Continue test" → answers sent → score 2 of 2. It failed
+  before the KI-039 fix.
+- **CMS:** the certificates spec failed in CI (KI-040): revoking while a search was still loading left the list on
+  the old state. The spec now delivers that search response late on purpose, so the race happens every run; it fails
+  without the fix and passes with it.
 
 ### Added with the mistake notebook (§10 part 3c)
 - **Domain (unit, 5):** practice feedback (correct / partial / wrong / skipped, written answers self-reviewed); what

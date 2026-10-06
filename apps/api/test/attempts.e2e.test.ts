@@ -557,3 +557,86 @@ describe('taking an assessment', () => {
     expect(await ctx.prisma.attemptAnswer.count()).toBe(0);
   });
 });
+
+describe('unreliable connections and repeated requests', () => {
+  const pick = (questionId: string, optionId: string) => ({
+    questionId,
+    response: { type: 'single_choice', optionId },
+    markedForReview: false,
+  });
+  const saveAt = (s: Setup, attemptId: string, clientSavedAt: number | undefined, answers: unknown[]) =>
+    call(ctx, 'PUT', `/attempts/${attemptId}/answers`, {
+      token: s.student,
+      body: { answers, ...(clientSavedAt ? { clientSavedAt } : {}) },
+    });
+  const stored = async (attemptId: string, questionId: string) =>
+    (
+      (
+        await ctx.prisma.attemptAnswer.findUniqueOrThrow({
+          where: { attemptId_questionId: { attemptId, questionId } },
+        })
+      ).response as { optionId: string } | null
+    )?.optionId ?? null;
+
+  it('ignores a save that arrives after a newer one (retried after a lost connection)', async () => {
+    const s = await setup();
+    const id = await s.assessment({}, [s.fixed(s.single, s.truth)]);
+    const attempt = (await start(s, id)).body;
+    const t = Date.now();
+
+    expect((await saveAt(s, attempt.id, t + 2000, [pick(s.single, 'b')])).status).toBe(200);
+    // The older batch (made at t) reaches the server late: the newer answer stays.
+    expect((await saveAt(s, attempt.id, t, [pick(s.single, 'a')])).status).toBe(200);
+    expect(await stored(attempt.id, s.single)).toBe('b');
+    // Newer batches still apply, including clearing the answer.
+    await saveAt(s, attempt.id, t + 3000, [{ questionId: s.single, response: null, markedForReview: true }]);
+    expect(await stored(attempt.id, s.single)).toBeNull();
+    await saveAt(s, attempt.id, t + 4000, [pick(s.single, 'b')]);
+    // Older apps send no time: their saves always apply.
+    await saveAt(s, attempt.id, undefined, [pick(s.single, 'a')]);
+    expect(await stored(attempt.id, s.single)).toBe('a');
+  });
+
+  it('scores once when several submits arrive together, and refuses saves that race a submit', async () => {
+    const s = await setup();
+    const id = await s.assessment({}, [s.fixed(s.single, s.truth)]);
+    const attempt = (await start(s, id)).body;
+    await save(s, attempt.id, [pick(s.single, 'b')]);
+
+    const [late, ...submits] = await Promise.all([
+      save(s, attempt.id, [pick(s.single, 'a')]),
+      ...Array.from({ length: 4 }, () => submit(s, attempt.id)),
+    ]);
+    expect(new Set(submits.map((r) => r.status))).toEqual(new Set([200]));
+    const scores = new Set(submits.map((r) => r.body.summary.score));
+    expect(scores.size).toBe(1);
+    // Whatever order they ran in, the stored answer is the one that was scored.
+    const final = await stored(attempt.id, s.single);
+    expect([...scores][0]).toBe(final === 'b' ? 200 : -50);
+    if (late.status !== 200) expect(late.body.error.code).toBe('ATTEMPT_CLOSED');
+    // Closed for good: no change afterwards, and the worker has nothing left to finish.
+    expect((await save(s, attempt.id, [pick(s.single, 'a')])).status).toBe(409);
+    expect(await stored(attempt.id, s.single)).toBe(final);
+    expect(await ctx.app.get(AttemptsService).finishExpired()).toBe(0);
+  });
+
+  it('a submit after the time is up counts at the deadline, with the answers saved in time', async () => {
+    const s = await setup();
+    const id = await s.assessment({}, [s.fixed(s.single, s.truth)]);
+    const attempt = (await start(s, id)).body;
+    await save(s, attempt.id, [pick(s.single, 'b')]);
+    await ctx.prisma.attempt.update({
+      where: { id: attempt.id },
+      data: { startedAt: new Date(Date.now() - 30 * MIN), deadlineAt: new Date(Date.now() - 5 * MIN) },
+    });
+    const result = await submit(s, attempt.id);
+    expect(result.status).toBe(200);
+    expect(result.body.summary.score).toBe(200);
+    const row = await ctx.prisma.attempt.findUniqueOrThrow({ where: { id: attempt.id } });
+    expect(row).toMatchObject({ status: 'completed', autoSubmitted: true });
+    expect(row.submittedAt).toEqual(row.deadlineAt);
+    // Starting again after a finished attempt makes a new one (unlimited retakes), never reopens the old.
+    const again = (await start(s, id)).body;
+    expect(again.id).not.toBe(attempt.id);
+  });
+});

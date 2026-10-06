@@ -1,6 +1,6 @@
 # Project State
 
-Current Phase: **Phase 10 — parts 1–3b merged (PR #16–#19); part 3c (mistake notebook) done** on `feature/mistake-notebook`
+Current Phase: **Phase 10 done** — parts 1–3c merged (PR #16–#20); hardening on `feature/exam-hardening`. Next: Phase 11 commerce
 Current Milestone: content API on `feature/content-cms` → Admin CMS content screens
 Overall Status: **IN PROGRESS**
 Last updated: 2026-10-04
@@ -33,8 +33,9 @@ Last updated: 2026-10-04
 - §10 part 2 merged (PR #17): grading queue, results, release (T-044); scope fix (KI-035).
 - §10 part 3a merged (PR #18, D-049, T-045): daily challenge + streak, leaderboards, practice; guard fix (KI-037).
 - §10 part 3b merged (PR #19, D-050, T-046): certificates.
-- §10 part 3c on `feature/mistake-notebook` (D-050, T-047): mistake notebook & revision mode. §10 parts left:
-  edge-case hardening listed in the plan (reconnect, double submit, expiry) — then Phase 11.
+- §10 part 3c merged (PR #20, T-047): mistake notebook.
+- §10 hardening on `feature/exam-hardening` (T-048): late saves, concurrent submits, offline answers kept (KI-039).
+- Q25 answered (D-051): eSewa + Khalti with official test credentials first; everything from `.env`.
 - Monitoring (T-042) merged (PR #14, #15): Sentry in the API, worker, admin and app; PostHog in the app. Google web client registered for `http://localhost:8081` (checked); a real
   sign-in by the owner and Android/iOS clients remain (KI-029).
 - Phase 9 part 2 merged (PR #13): practice questions with Check answer and locked Premium answers
@@ -91,5 +92,4 @@ and `pnpm --filter @tk/admin dev` → create your Super Admin:
 (code in Mailpit http://localhost:8025) → set password at http://localhost:5173/set-password → sign in → enrol 2FA.
 
 ## Exact Next Task
-- Owner merges the §10 part 3c PR; then close §10 (edge-case hardening: reconnect, double submit, expiry) and move to
-  Phase 11 commerce (needs the payment-gateway answers, Q25) — see SESSION_HANDOFF.
+- Owner merges the §10 hardening PR; then Phase 11 commerce (D-051) — see SESSION_HANDOFF.

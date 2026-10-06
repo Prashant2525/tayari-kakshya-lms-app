@@ -215,8 +215,13 @@ export function useAttempt(id: string) {
 export function saveAnswers(
   attemptId: string,
   answers: Array<{ questionId: string; response: AnswerResponseInput | null; markedForReview: boolean }>,
+  /** When this batch was made: the server ignores it if a newer one already arrived (lost connection, retry). */
+  clientSavedAt = Date.now(),
 ) {
-  return api.put<{ savedAt: string; serverNow: string }>(`/attempts/${attemptId}/answers`, { answers });
+  return api.put<{ savedAt: string; serverNow: string }>(`/attempts/${attemptId}/answers`, {
+    answers,
+    clientSavedAt,
+  });
 }
 
 export function submitAttempt(attemptId: string) {

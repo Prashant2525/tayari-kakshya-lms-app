@@ -44,11 +44,13 @@ export function useExamAnswers(view: AttemptView | undefined, onClosed: () => vo
   const dirty = useRef(new Set<string>());
   const inFlight = useRef<Promise<void> | null>(null);
   const restoredFor = useRef<string | null>(null);
+  /** The phone copy has been read back for this attempt; until then it must not be overwritten (KI-039). */
+  const readyFor = useRef<string | null>(null);
 
-  // Keep the phone copy of unsent answers in step with every change.
+  // Keep the phone copy of unsent answers in step with every change (once it has been read back).
   useEffect(() => {
     latest.current = entries;
-    if (!view) return;
+    if (!view || readyFor.current !== view.id) return;
     const unsent = Object.fromEntries([...dirty.current].map((id) => [id, entries[id]]));
     const write = Object.keys(unsent).length
       ? AsyncStorage.setItem(storageKey(view.id), JSON.stringify(unsent))
@@ -69,7 +71,15 @@ export function useExamAnswers(view: AttemptView | undefined, onClosed: () => vo
         setChanges((current) => ({ ...current, ...Object.fromEntries(known) }));
         setSaveState('saving');
       })
-      .catch(() => undefined);
+      .catch(() => undefined)
+      .finally(() => {
+        readyFor.current = view.id;
+        // Changes made while it was being read are written now.
+        if (dirty.current.size) {
+          const unsent = Object.fromEntries([...dirty.current].map((id) => [id, latest.current[id]]));
+          void AsyncStorage.setItem(storageKey(view.id), JSON.stringify(unsent)).catch(() => undefined);
+        }
+      });
   }, [view, base]);
 
   const bodies = useMemo(

@@ -129,7 +129,19 @@ function IssuedCard() {
       ),
     placeholderData: keepPreviousData,
   });
-  const refresh = () => qc.invalidateQueries({ queryKey: ['certificates'] });
+  /**
+   * Shows the new state, then reloads the list. A list request still in flight (e.g. a search typed just before)
+   * started before the change and would bring back the old state — and a first fetch is reused, not restarted, by
+   * invalidation — so it is cancelled first.
+   */
+  const applied = async (id: string, revoked: IssuedCertificate['revoked']) => {
+    await qc.cancelQueries({ queryKey: ['certificates'] });
+    qc.setQueriesData<{ data: IssuedCertificate[]; nextCursor: string | null }>(
+      { queryKey: ['certificates'] },
+      (page) => page && { ...page, data: page.data.map((c) => (c.id === id ? { ...c, revoked } : c)) },
+    );
+    await qc.invalidateQueries({ queryKey: ['certificates'] });
+  };
 
   return (
     <Card>
@@ -263,7 +275,7 @@ function IssuedCard() {
         <RevokeDialog
           certificate={revoking}
           onClose={() => setRevoking(null)}
-          onDone={() => void refresh()}
+          onDone={(reason) => void applied(revoking.id, { at: new Date().toISOString(), by: null, reason })}
         />
       ) : null}
       <ConfirmDialog
@@ -279,7 +291,7 @@ function IssuedCard() {
         }
         onConfirm={async () => {
           await api.post(`/admin/certificates/${reinstating!.id}/reinstate`);
-          await refresh();
+          await applied(reinstating!.id, null);
           toast.success('Certificate reinstated');
         }}
       />
@@ -294,7 +306,7 @@ function RevokeDialog({
 }: {
   certificate: IssuedCertificate;
   onClose: () => void;
-  onDone: () => void;
+  onDone: (reason: string) => void;
 }) {
   const [reason, setReason] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -306,7 +318,7 @@ function RevokeDialog({
     try {
       await api.post(`/admin/certificates/${certificate.id}/revoke`, { reason: reason.trim() });
       toast.success('Certificate revoked');
-      onDone();
+      onDone(reason.trim());
       onClose();
     } catch (err) {
       setError(errorMessage(err));

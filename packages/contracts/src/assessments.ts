@@ -231,6 +231,11 @@ export const SaveAnswersInput = z.object({
     )
     .min(1)
     .max(500),
+  /**
+   * When the app made this batch (epoch ms). A batch older than the answer the server already has is ignored, so a
+   * save that arrives late (lost connection, retried) never overwrites a newer answer. Optional for older apps.
+   */
+  clientSavedAt: z.number().int().positive().optional(),
 });
 export type SaveAnswersInput = z.infer<typeof SaveAnswersInput>;
 

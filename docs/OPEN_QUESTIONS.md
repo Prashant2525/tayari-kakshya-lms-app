@@ -71,6 +71,8 @@ Ans - Should be able to manage from admin portal
 Ans - Should be able to manage from admin portal
 - **Q25 🔴 Merchant accounts.** Do you already have **eSewa**, **Khalti** and **ConnectIPS** merchant accounts? Under which legal entity? (ConnectIPS merchant onboarding is through NCHL via a sponsoring bank and issues a signing certificate.) Which gateways are required at launch?
 Ans - At launch add esewa and khalti, Yes I have merchant account
+  **Follow-up (2026-10-06):** start with the gateways' official test credentials; all merchant IDs, keys, endpoints and
+  modes come from `.env` so production needs no code change (D-051).
 - **Q26 🔴 App-store payment policy.** Apple's App Store generally requires In-App Purchase for digital content unlocked in-app; Google Play also has billing-policy requirements for digital goods. Options: (a) Android-first with local gateways after confirming Google Play policy for Nepal, (b) sell on a website and let the app unlock purchases ("reader"-style, no in-app purchase links on iOS), (c) use Apple/Google billing on stores + local gateways on web. I will verify current store policy before Phase 11 — but I need your direction and risk appetite.
 Ans - If esewa, khalti, connectIPS provides in app support, integration then go with Apple/Google and the user are able to pay through app to esewa, khalti, etc, if not possible then go with option(b) sell on a website and let the app unlock purchases ("reader"-style, no in-app purchase links on iOS) and later both
 - **Q27 🟠 Account sharing.** Limit the number of devices/concurrent sessions per account (e.g. 1 phone + 1 tablet)? What happens when exceeded?
