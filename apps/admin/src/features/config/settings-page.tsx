@@ -773,6 +773,35 @@ export function SettingsPage() {
         </SettingCard>
 
         <SettingCard
+          row={row('commerce.receipts')}
+          title="Receipt numbers"
+          description="Every paid order gets the next number, e.g. TK-2083/84-000001. A change applies to receipts issued after it; issued receipts never change."
+        >
+          {(d, set, disabled) => (
+            <>
+              <Field label="Prefix" hint="1–10 capital letters or digits.">
+                {(a) => (
+                  <Input
+                    {...a}
+                    className="w-40 font-mono uppercase"
+                    value={d.prefix}
+                    disabled={disabled}
+                    onChange={(e) => set({ ...d, prefix: e.target.value.toUpperCase() })}
+                  />
+                )}
+              </Field>
+              <ToggleRow
+                label="Restart each fiscal year"
+                hint="Adds the Nepali fiscal year (from 1 Shrawan) and starts again from 000001."
+                checked={d.resetEachFiscalYear}
+                disabled={disabled}
+                onChange={(v) => set({ ...d, resetEachFiscalYear: v })}
+              />
+            </>
+          )}
+        </SettingCard>
+
+        <SettingCard
           row={row('mistakes.revision')}
           title="Mistake notebook"
           description="Wrong and partly correct answers from tests and practice are collected for revision. A question leaves the notebook after this many correct answers in a row (or when the student removes it)."

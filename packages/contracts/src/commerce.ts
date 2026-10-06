@@ -84,6 +84,31 @@ export const CouponInput = z
   });
 export type CouponInput = z.infer<typeof CouponInput>;
 
+// ───────────── Refunds (D-026, D-057) ─────────────
+
+export const RefundStatusName = z.enum(['requested', 'approved', 'rejected', 'refunded']);
+export type RefundStatusName = z.infer<typeof RefundStatusName>;
+
+/** Staff record a request; someone with `refunds:approve` decides. */
+export const RefundRequestInput = z.object({
+  amountPaisa: z.number().int().min(1).max(100_000_000),
+  reason: z.string().trim().min(3, 'Write the reason').max(1000),
+});
+export type RefundRequestInput = z.infer<typeof RefundRequestInput>;
+
+export const RefundDecisionInput = z.object({ note: z.string().trim().max(1000).nullable() });
+export type RefundDecisionInput = z.infer<typeof RefundDecisionInput>;
+
+/** The money was sent back (eSewa / Khalti merchant portal, or bank): its reference there. */
+export const RefundCompleteInput = z.object({
+  reference: z.string().trim().min(1, 'Enter the reference').max(200),
+  note: z.string().trim().max(1000).nullable(),
+});
+export type RefundCompleteInput = z.infer<typeof RefundCompleteInput>;
+
+export const AdminRefundQuery = CursorQuery.extend({ status: RefundStatusName.optional() });
+export type AdminRefundQuery = z.infer<typeof AdminRefundQuery>;
+
 export const AdminCouponQuery = CursorQuery.extend({
   q: z.string().trim().min(1).max(60).optional(),
   state: z.enum(['active', 'inactive']).optional(),
@@ -129,7 +154,7 @@ export const PayOrderInput = z.object({
 });
 export type PayOrderInput = z.infer<typeof PayOrderInput>;
 
-export const OrderStatusName = z.enum(['pending', 'paid', 'expired', 'cancelled']);
+export const OrderStatusName = z.enum(['pending', 'paid', 'refunded', 'expired', 'cancelled']);
 export const PaymentStatusName = z.enum([
   'initiated',
   'pending',

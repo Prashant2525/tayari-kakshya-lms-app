@@ -9,7 +9,15 @@ import { Alert, Badge, Card, CardHeader, ErrorState, Spinner } from '@/component
 import { api, errorMessage } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { formatDateTimeBs, localized } from '@/lib/format';
+import { RefundsCard } from '@/components/commerce/refunds-card';
 import { ORDER_STATUS, PAYMENT_STATUS, PROVIDER_LABEL, orderNo, type OrderDetail } from '@/lib/orders';
+
+const RECEIPT_EMAIL = {
+  pending: 'Email being sent',
+  sent: 'Emailed to the student',
+  skipped: 'No email address',
+  failed: 'Email failed',
+} as const;
 
 const npr = (paisa: number) => formatNpr(paisa, 'en');
 
@@ -90,6 +98,14 @@ export function OrderPage() {
               ) : null}
             </div>
           </Card>
+          {o.paidAt ? (
+            <RefundsCard
+              orderId={o.id}
+              orderStatus={o.status}
+              totalPaisa={o.totalPaisa}
+              refunds={o.refunds}
+            />
+          ) : null}
           <Card>
             <CardHeader
               title="Payments"
@@ -129,6 +145,17 @@ export function OrderPage() {
               <dd className="text-text">{formatDateTimeBs(o.paidAt)}</dd>
               <dt className="text-text-muted">Bought on</dt>
               <dd className="capitalize text-text">{o.channel}</dd>
+              <dt className="text-text-muted">Receipt</dt>
+              <dd className="text-text">
+                {o.receipt ? (
+                  <>
+                    <span className="font-mono">{o.receipt.number}</span>
+                    <span className="block text-xs text-text-muted">{RECEIPT_EMAIL[o.receipt.email]}</span>
+                  </>
+                ) : (
+                  '—'
+                )}
+              </dd>
             </dl>
           </Card>
           <Card>

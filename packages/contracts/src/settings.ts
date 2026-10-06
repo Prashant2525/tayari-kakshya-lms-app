@@ -234,6 +234,21 @@ export const SETTINGS = {
     },
     public: false,
   },
+  /**
+   * D-026, D-057: receipt numbers, e.g. TK-2083/84-000001 — the prefix, then (when it restarts each Nepali fiscal
+   * year, 1 Shrawan) the fiscal year, then a running number.
+   */
+  'commerce.receipts': {
+    schema: z.object({
+      prefix: z
+        .string()
+        .trim()
+        .regex(/^[A-Z0-9]{1,10}$/, 'Prefix: 1–10 capital letters or digits'),
+      resetEachFiscalYear: z.boolean(),
+    }),
+    default: { prefix: 'TK', resetEachFiscalYear: true },
+    public: false,
+  },
   /** D-050: a question leaves the mistake notebook after this many correct revision answers in a row (default 2). */
   'mistakes.revision': {
     schema: z.object({ correctInARow: z.number().int().min(1).max(10) }),

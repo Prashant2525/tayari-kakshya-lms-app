@@ -7,6 +7,7 @@ import { AttemptsService } from '../modules/attempts/attempts.service.js';
 import { AccountDeletionService } from '../modules/auth/account-deletion.service.js';
 import { AuthCleanupService } from '../modules/auth/auth-cleanup.service.js';
 import { PaymentsService } from '../modules/payments/payments.service.js';
+import { ReceiptsService } from '../modules/payments/receipts.service.js';
 
 export const MAINTENANCE_QUEUE = 'maintenance';
 
@@ -26,11 +27,14 @@ export async function startMaintenanceJobs(
   await queue.upsertJobScheduler('attempts-expire', { every: 60_000 }, { name: 'attempts-expire' });
   // Payments a student paid but never came back from are settled with their gateway; unpaid orders time out (Phase 11).
   await queue.upsertJobScheduler('payments-reconcile', { every: 60_000 }, { name: 'payments-reconcile' });
+  // Receipt emails that could not be sent straight away are retried (D-057).
+  await queue.upsertJobScheduler('receipts-email', { every: 60_000 }, { name: 'receipts-email' });
 
   const deletions = app.get(AccountDeletionService);
   const cleanup = app.get(AuthCleanupService);
   const attempts = app.get(AttemptsService);
   const payments = app.get(PaymentsService);
+  const receipts = app.get(ReceiptsService);
   const worker = new Worker(
     MAINTENANCE_QUEUE,
     async (job) => {
@@ -43,6 +47,8 @@ export async function startMaintenanceJobs(
           return { finished: await attempts.finishExpired() };
         case 'payments-reconcile':
           return payments.reconcile();
+        case 'receipts-email':
+          return { sent: await receipts.sendPending() };
         default:
           throw new Error(`Unknown maintenance job ${job.name}`);
       }

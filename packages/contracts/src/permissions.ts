@@ -31,6 +31,8 @@ export const PERMISSIONS = {
   'certificates:manage': 'Manage certificate templates; revoke and reinstate issued certificates',
   'plans:manage': 'Create, price and publish subscription plans and choose their courses',
   'coupons:manage': 'Create, change and switch off coupon codes',
+  'refunds:request': 'Ask for a refund on a paid order, with the reason',
+  'refunds:approve': 'Approve or reject refund requests and record refunds as sent',
   'orders:read': 'View orders, payments and what the payment gateways reported',
   'orders:manage': 'Check a payment again with its gateway',
 } as const;

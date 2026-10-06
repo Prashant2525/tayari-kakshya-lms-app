@@ -7,6 +7,7 @@ import { RateLimit } from '../../common/security/rate-limit.js';
 import { ApiZodBody, ZodBody } from '../../common/validation/zod.js';
 import { ClientPlatform } from '../content/request-helpers.js';
 import { PaymentsService } from './payments.service.js';
+import { ReceiptsService } from './receipts.service.js';
 
 const uuid = () => new ParseUUIDPipe();
 
@@ -19,7 +20,10 @@ const LOST_PAGE = `<!doctype html><html><head><meta charset="utf-8"><meta name="
 @Audiences('student')
 @Controller()
 export class PaymentsController {
-  constructor(private readonly payments: PaymentsService) {}
+  constructor(
+    private readonly payments: PaymentsService,
+    private readonly receipts: ReceiptsService,
+  ) {}
 
   @Get('payments/options')
   options(@ClientPlatform() platform: Platform) {
@@ -69,6 +73,30 @@ export class PaymentsController {
   @RateLimit({ name: 'orders.view', limit: 600, windowSeconds: 3600, by: ['user'] })
   order(@Param('id', uuid()) id: string, @CurrentAuth() auth: AuthContext) {
     return this.payments.orderView(id, auth.userId);
+  }
+
+  /** A short-lived link to the order's receipt PDF (path under the API base). */
+  @Get('orders/:id/receipt')
+  @RateLimit({ name: 'orders.receipt', limit: 120, windowSeconds: 3600, by: ['user'] })
+  receipt(@Param('id', uuid()) id: string, @CurrentAuth() auth: AuthContext) {
+    return this.receipts.link(id, auth.userId);
+  }
+
+  @Public()
+  @Get('receipts/:id/pdf')
+  @RateLimit({ name: 'receipts.pdf', limit: 120, windowSeconds: 3600, by: ['ip'] })
+  async receiptPdf(
+    @Param('id', uuid()) id: string,
+    @Query('exp') exp: string,
+    @Query('sig') sig: string,
+    @Res() reply: FastifyReply,
+  ) {
+    const file = await this.receipts.pdfFromLink(id, exp, sig);
+    void reply
+      .header('Content-Type', 'application/pdf')
+      .header('Cache-Control', 'private, no-store')
+      .header('Content-Disposition', `inline; filename="${file.filename}"`)
+      .send(file.body);
   }
 
   @Get('me/orders')

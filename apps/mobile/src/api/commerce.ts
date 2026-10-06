@@ -1,5 +1,8 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import type { LocalizedText } from '@tk/contracts';
+import * as WebBrowser from 'expo-web-browser';
+import { Platform } from 'react-native';
+import { env } from '@/lib/env';
 import { api, queryClient } from './client';
 
 /** Course and plan purchases (Phase 11). The server sets every amount; the app only shows them. */
@@ -9,7 +12,7 @@ export type ProviderName = 'esewa' | 'khalti';
 export interface OrderView {
   id: string;
   orderNo: number;
-  status: 'pending' | 'paid' | 'expired' | 'cancelled';
+  status: 'pending' | 'paid' | 'refunded' | 'expired' | 'cancelled';
   currency: string;
   subtotalPaisa: number;
   discountPaisa: number;
@@ -19,6 +22,8 @@ export interface OrderView {
   createdAt: string;
   expiresAt: string;
   paidAt: string | null;
+  /** The receipt, once paid (D-057). */
+  receipt: { number: string } | null;
   items: Array<{
     kind: 'course' | 'plan';
     courseId: string | null;
@@ -132,6 +137,21 @@ export function useOrder(id: string, poll: boolean) {
 
 export function useMyOrders() {
   return useQuery({ queryKey: commerceKeys.mine, queryFn: () => api.get<OrderView[]>('/me/orders') });
+}
+
+/**
+ * Opens the order's receipt PDF (D-057): the server gives a link that works for a few minutes; it opens in the
+ * browser, where the student can save or share it.
+ */
+export function useOpenReceipt() {
+  return useMutation({
+    mutationFn: async (orderId: string) => {
+      const { path } = await api.get<{ path: string }>(`/orders/${orderId}/receipt`);
+      const url = `${env.apiBaseUrl}${path}`;
+      if (Platform.OS === 'web') globalThis.open(url, '_blank', 'noopener');
+      else await WebBrowser.openBrowserAsync(url);
+    },
+  });
 }
 
 /** After a purchase: course pages, My courses, plans and orders show the new access. */

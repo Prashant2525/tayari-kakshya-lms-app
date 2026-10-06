@@ -154,7 +154,7 @@ certificates (issue + verify), mistake notebook & revision mode. Edge-case tests
   plan's current courses; app "Choose your plan" (Profile → Subscription plan)
 - ☑ Part 2b (T-051, D-055, D-056): coupons (CMS, checkout, share links, limits, Rs 0 orders) and VAT settings in the
   CMS (`commerce.tax`) with a VAT snapshot on each order
-- ☐ Part 3: VAT / invoice numbering + PDF receipts, refunds workflow (needs the owner's VAT / invoice details, D-026)
+- ☑ Part 3 (T-052, D-057): numbered receipts (PDF in the app and by email), refund workflow with approval
 - ☐ Part 4: website (Next.js) checkout for iOS users (D-027), referral programme
 
 Original plan: plans, course purchase, coupons/sales, orders, eSewa + Khalti providers (sandbox), callbacks,

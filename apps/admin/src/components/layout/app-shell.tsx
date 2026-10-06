@@ -6,6 +6,7 @@ import {
   ClipboardCheck,
   Crown,
   TicketPercent,
+  Undo2,
   FileQuestion,
   FileText,
   Flag,
@@ -76,6 +77,7 @@ const NAV: Array<{ group: string; items: NavItem[] }> = [
       { to: '/plans', label: 'Plans', icon: Crown, permission: 'plans:manage' },
       { to: '/coupons', label: 'Coupons', icon: TicketPercent, permission: 'coupons:manage' },
       { to: '/orders', label: 'Orders', icon: Receipt, permission: 'orders:read' },
+      { to: '/refunds', label: 'Refunds', icon: Undo2, permission: 'orders:read' },
     ],
   },
   {

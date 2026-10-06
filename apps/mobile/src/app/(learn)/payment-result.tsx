@@ -3,7 +3,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { CheckCircle2, Clock, XCircle } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { refreshAfterPurchase, useOrder } from '@/api/commerce';
+import { refreshAfterPurchase, useOpenReceipt, useOrder } from '@/api/commerce';
 import { localized } from '@/i18n/translate';
 import { useT } from '@/i18n/use-t';
 import { useTheme } from '@/theme/theme';
@@ -25,6 +25,7 @@ export default function PaymentResultScreen() {
   const { t, locale } = useT();
   const [waiting, setWaiting] = useState(true);
   const order = useOrder(orderId ?? '', waiting);
+  const receipt = useOpenReceipt();
   const status = order.data?.status;
   const last = order.data?.payments[0];
 
@@ -102,7 +103,17 @@ export default function PaymentResultScreen() {
         </Text>
       </Card>
       {state === 'paid' ? (
-        <Button label={t('payment.startLearning')} onPress={goCourse} />
+        <View style={{ gap: 10 }}>
+          <Button label={t('payment.startLearning')} onPress={goCourse} />
+          {o.receipt ? (
+            <Button
+              label={t('payment.receipt')}
+              variant="secondary"
+              loading={receipt.isPending}
+              onPress={() => receipt.mutate(o.id)}
+            />
+          ) : null}
+        </View>
       ) : state === 'notPaid' ? (
         <View style={{ gap: 10 }}>
           {o.status === 'pending' && tryAgain ? (

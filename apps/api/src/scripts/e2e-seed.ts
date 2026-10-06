@@ -31,6 +31,8 @@ const CONTENT_PERMISSIONS = [
   'orders:manage',
   'plans:manage',
   'coupons:manage',
+  'refunds:request',
+  'refunds:approve',
 ];
 
 /**

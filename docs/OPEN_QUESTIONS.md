@@ -67,7 +67,7 @@ Ans - Should be able to manage from admin portal
 Ans - Yes through admin portal
 - **Q23 🟠 Discounts.** The PDF has a "discount valid today" banner. Do you need coupon codes, time-limited sale prices, or both? Any per-user limits?
 Ans - Should be able to manage from admin portal
-- **Q24 🔴 Tax & invoices.** Is the business registered (PAN/VAT)? Must receipts be VAT invoices (IRD-compliant numbering)? Are displayed prices VAT-inclusive? Refund policy (any refunds? within how many days? who approves?).
+- **Q24 ✅ answered (D-055, D-057; VAT details pending, entered in the CMS).** Tax & invoices. Is the business registered (PAN/VAT)? Must receipts be VAT invoices (IRD-compliant numbering)? Are displayed prices VAT-inclusive? Refund policy (any refunds? within how many days? who approves?).
 Ans - Should be able to manage from admin portal
 - **Q25 🔴 Merchant accounts.** Do you already have **eSewa**, **Khalti** and **ConnectIPS** merchant accounts? Under which legal entity? (ConnectIPS merchant onboarding is through NCHL via a sponsoring bank and issues a signing certificate.) Which gateways are required at launch?
 Ans - At launch add esewa and khalti, Yes I have merchant account

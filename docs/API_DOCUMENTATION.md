@@ -179,6 +179,21 @@ Order items now carry `kind` (course / plan), `planId` and `planSlug`. Migration
 
 Setting `commerce.tax { vatRegistered, rateBps, pricesIncludeVat, businessName, panNumber, address }`. Migration `coupons_tax`. Env `PUBLIC_WEB_URL` (share links).
 
+## 1c-11d. Implemented endpoints (Phase 11 part 3 — receipts and refunds, T-052) ✅
+
+| Method | Path | Auth | Notes |
+|---|---|---|---|
+| GET | `/orders/:id`, `/me/orders` | student | orders carry `receipt { number }` once paid; status may be `refunded` |
+| GET | `/orders/:id/receipt` | student (own) | `{ path, expiresAt }` — a signed path under the API base, valid 10 minutes; 404 when not paid or not yours |
+| GET | `/receipts/:id/pdf?exp=&sig=` | public (signed) | the receipt PDF; 404 for a changed or expired link |
+| GET | `/admin/orders/:id` | `orders:read` | now with `receipt { number, issuedAt, email }` and `refunds[]` |
+| POST | `/admin/orders/:id/refunds` | `refunds:request` | `{ amountPaisa, reason }` → 201; 409 `CONFLICT` reason `not_paid`, `nothing_paid`, `exceeds_paid` |
+| GET | `/admin/refunds?status=&cursor=&limit=` | `orders:read` | the refund queue |
+| POST | `/admin/refunds/:id/approve` / `reject` | `refunds:approve` | `{ note }`; approve of the remaining amount refunds the order and removes its access; 409 `already_decided` |
+| POST | `/admin/refunds/:id/complete` | `refunds:approve` | `{ reference, note }` — money sent; 409 `not_approved` |
+
+Setting `commerce.receipts { prefix, resetEachFiscalYear }`. Migration `receipts_refunds`. Worker job `receipts-email`.
+
 Access change (D-053): premium items, practice answers, mistake-notebook answers and Premium tests are unlocked only by
 paid access (`order`), staff grants, coupons or referrals — not by `free_enrol`. `access.entitled` on a course still
 means "in My courses" (free enrolments included).
