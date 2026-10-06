@@ -5,9 +5,9 @@
   "type": "module",
   "description": "Public website (Next.js): course pages, sign-in, checkout for every channel (iOS users buy here, D-027), receipts.",
   "scripts": {
-    "dev": "node --env-file-if-exists=../../.env ./node_modules/next/dist/bin/next dev --port 3000",
+    "dev": "node scripts/next.mjs dev --port 3000",
     "build": "next build",
-    "start": "node --env-file-if-exists=../../.env ./node_modules/next/dist/bin/next start --port 3000",
+    "start": "node scripts/next.mjs start --port 3000",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint src e2e",
     "test": "vitest run",

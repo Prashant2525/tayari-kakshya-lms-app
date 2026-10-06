@@ -4,6 +4,14 @@ All notable changes to this project. Format based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Fixed — 2026-10-07 (local development, KI-047)
+- `pnpm --filter @tk/web dev` failed ("--env-file-if-exists= is not allowed in NODE_OPTIONS"): the website now loads
+  the root `.env` in a small launcher (`apps/web/scripts/next.mjs`).
+- With the website's dev server running, the API dev server kept restarting (Windows file-access events made
+  `node --watch-path` restart on mere reads), so pages failed: the API now restarts only when compiled files really
+  change (`apps/api/scripts/dev-run.mjs`).
+- The website shows a friendly "try again" page when the API cannot be reached.
+
 ### Added — 2026-10-07 (Phase 11 part 4a: public website)
 - `apps/web` (Next.js): home with featured courses, course list and pages (CMS description, subjects, instructors,
   price), plans, checkout with coupons (share links included) and eSewa / Khalti, payment result, sign in / create
