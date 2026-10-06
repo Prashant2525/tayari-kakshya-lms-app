@@ -4,5 +4,6 @@ export * from './assessment/scoring.js';
 export * from './bs-date/bs-date.js';
 export * from './certificate/certificate.js';
 export * from './engagement/leaderboard.js';
+export * from './engagement/mistakes.js';
 export * from './engagement/streak.js';
 export * from './money/money.js';

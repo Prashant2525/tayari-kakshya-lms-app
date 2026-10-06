@@ -1,18 +1,12 @@
-import { scoreQuestion, type AnswerResponse, type Outcome } from '@tk/domain';
+import { practiceOutcome as feedback, type AnswerKey, type AnswerResponse, type Outcome } from '@tk/domain';
 import type { PracticeAnswer, RichNode } from '@/api/learning';
 
 /**
- * Feedback for a practice answer, from the shared scoring engine. Practice is not marked or stored, so the scheme
- * only tells correct / partly correct / wrong apart; assessments use the rules chosen in the CMS (D-044).
+ * Instant feedback for a practice answer, from the shared engine the API also uses (@tk/domain): it only tells
+ * correct / partly correct / wrong apart. The API scores the answer again when recording it (mistake notebook, D-050).
  */
-const FEEDBACK = {
-  scheme: { marks: 100, negativeMarks: 0 },
-  rules: { multipleChoice: 'partial_if_no_wrong', match: 'per_pair', fillBlank: 'per_blank' },
-} as const;
-
 export function practiceOutcome(answer: PracticeAnswer, response: AnswerResponse | null): Outcome {
-  if (answer.type === 'subjective') return 'pending';
-  return scoreQuestion(answer, response, FEEDBACK.scheme, FEEDBACK.rules).outcome;
+  return feedback(answer as AnswerKey, response);
 }
 
 /** Replaces `[[b1]]` blank markers in a rich-text stem with numbered gaps "____ (1)" (fill in the blank). */

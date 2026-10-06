@@ -5,6 +5,7 @@ import { ChevronDown, Flag, Lock } from 'lucide-react-native';
 import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import type { MediaMap, PracticeQuestion } from '@/api/learning';
+import { useRecordPractice } from '@/api/mistakes';
 import { RichText } from '@/features/learn/rich-text';
 import { localized } from '@/i18n/translate';
 import { useT } from '@/i18n/use-t';
@@ -40,6 +41,7 @@ export function QuestionCard({
   const [outcome, setOutcome] = useState<Outcome | 'skipped' | null>(null);
   const [showPassage, setShowPassage] = useState(false);
   const [reporting, setReporting] = useState(false);
+  const record = useRecordPractice(q.id);
   const checked = outcome !== null && outcome !== 'skipped';
   const body = q.question;
   const answer = q.answer;
@@ -51,12 +53,16 @@ export function QuestionCard({
     const response = toResponse(q.question, draft);
     const result = response ? practiceOutcome(answer, response) : 'skipped';
     setOutcome(result);
-    if (result !== 'skipped')
+    if (result !== 'skipped') {
       track('practice_answer_checked', { question_type: q.question.type, outcome: result });
+      // Recorded and scored again on the server: mistakes go into the notebook (D-050).
+      if (response) record.mutate(response);
+    }
   };
   const reset = () => {
     setDraft(EMPTY_DRAFT);
     setOutcome(null);
+    record.reset();
   };
 
   return (
@@ -150,6 +156,11 @@ export function QuestionCard({
             <>
               {outcome === 'skipped' ? <Banner tone="info" message={t('practice.skipped')} /> : null}
               {checked ? <OutcomeBanner outcome={outcome} /> : null}
+              {checked && record.data?.addedToNotebook ? (
+                <Text variant="caption" color="textSecondary">
+                  {t('mistakes.added')}
+                </Text>
+              ) : null}
               {checked ? <Solution q={q} media={media} /> : null}
               <Button
                 label={checked ? t('practice.tryAgain') : t('practice.check')}
@@ -166,7 +177,7 @@ export function QuestionCard({
   );
 }
 
-function OutcomeBanner({ outcome }: { outcome: Outcome | 'skipped' | null }) {
+export function OutcomeBanner({ outcome }: { outcome: Outcome | 'skipped' | null }) {
   const { t } = useT();
   if (outcome === 'correct') return <Banner tone="success" message={t('practice.correct')} />;
   if (outcome === 'partial') return <Banner tone="info" message={t('practice.partial')} />;
@@ -174,7 +185,7 @@ function OutcomeBanner({ outcome }: { outcome: Outcome | 'skipped' | null }) {
 }
 
 /** The correct answer (choice questions show it on the options) and the explanation. */
-function Solution({ q, media }: { q: PracticeQuestion; media: MediaMap }) {
+export function Solution({ q, media }: { q: PracticeQuestion; media: MediaMap }) {
   const { t, locale } = useT();
   const a = q.answer!;
   let text: string | null = null;

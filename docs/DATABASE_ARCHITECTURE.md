@@ -91,7 +91,7 @@ partial indexes, generated `tsvector` columns, check constraints and triggers th
 | `study_sessions` | `user_id`, `started_at`, `ended_at`, `seconds`, `context` (item/assessment) — aggregated daily |
 | `user_streaks` | `user_id` PK, `current_days`, `longest_days`, `last_activity_date` (Kathmandu date) |
 | `bookmarks` | `user_id`, `entity_type` (question/learning_item/article), `entity_id` — unique triple |
-| `mistakes` | `user_id`, `question_id` unique pair, `last_attempt_answer` ref, `times_wrong`, `status` (active/mastered) |
+| `mistakes` | ✅ (T-047) PK (`user_id`, `question_id`), `status` (active / mastered / removed), `times_wrong` (≥ 1), `correct_streak`, `last_source` (test / practice), `last_wrong_at`, `last_reviewed_at`, `mastered_at` (set exactly when mastered — CHECK), `answer_visible`; `attempts.mistakes_synced_at` marks attempts already added |
 | `study_plans` / `study_plan_items` | `target_exam_node_id`, `exam_date`, generated weekly items with status |
 | `certificate_templates` / `certificates` | ✅ (T-046) template: wording (jsonb en/ne), `signatories`, `language`, `required_percent` (CHECK 1–100), `active`; `courses.certificate_template_id`. Issued: `code` unique (CHECK Crockford base32 ×12), `user_id`, `course_id` (unique pair), `template_id`, `content` snapshot, `issued_at`, `revoked_at` / `revoked_by` / `revoke_reason` (CHECK together). PDF generated on request, not stored |
 | `referral_codes` / `referrals` | code per user; referral status and reward (coupon/entitlement) |

@@ -167,6 +167,10 @@ function Released({ r }: { r: AttemptResult }) {
           onPress={() => router.push({ pathname: '/leaderboard/[id]', params: { id: r.assessment.id } })}
         />
       ) : null}
+      {/* Completed tests send their mistakes to the notebook (D-050). */}
+      {r.summary && r.summary.pending === 0 && r.summary.wrong + r.summary.partial > 0 ? (
+        <Button label={t('mistakes.revise')} variant="secondary" onPress={() => router.push('/mistakes')} />
+      ) : null}
     </>
   );
 }

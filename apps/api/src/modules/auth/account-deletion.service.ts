@@ -91,6 +91,7 @@ export class AccountDeletionService {
         await tx.attempt.deleteMany({ where: { userId: request.userId } });
         await tx.userStreak.deleteMany({ where: { userId: request.userId } });
         await tx.certificate.deleteMany({ where: { userId: request.userId } });
+        await tx.mistake.deleteMany({ where: { userId: request.userId } });
         await tx.user.update({
           where: { id: request.userId },
           data: {

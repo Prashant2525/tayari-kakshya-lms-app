@@ -4,6 +4,18 @@ All notable changes to this project. Format based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Added — 2026-10-06 (§10 part 3c: mistake notebook)
+- Student app: Profile → Mistake notebook — wrong and partly correct answers from tests and practice, revised one card
+  at a time until answered correctly N times in a row (D-050), filter by subject, self-review for written answers,
+  remove a question; "Saved to your mistake notebook" after a wrong practice answer; "Revise your mistakes" on
+  results.
+- API: migration `mistakes`; practice answers scored and recorded on the server; test mistakes join only after
+  results are released (T-047); revision and removal endpoints.
+- CMS: Settings → Mistake notebook (correct answers in a row, default 2).
+
+### Fixed — 2026-10-06 (part 3c)
+- Practice questions showed "1 marks"; now "Marks 1".
+
 ### Added — 2026-10-06 (§10 part 3b: certificates)
 - CMS: Certificates (templates with wording, signatories, share of lessons, language, sample PDF; issued certificates
   with search, revoke with a reason and reinstate), a Certificate tab on courses, Settings → Certificate verification.

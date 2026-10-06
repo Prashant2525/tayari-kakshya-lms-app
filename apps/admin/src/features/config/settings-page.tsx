@@ -647,6 +647,31 @@ export function SettingsPage() {
         </SettingCard>
 
         <SettingCard
+          row={row('mistakes.revision')}
+          title="Mistake notebook"
+          description="Wrong and partly correct answers from tests and practice are collected for revision. A question leaves the notebook after this many correct answers in a row (or when the student removes it)."
+        >
+          {(d, set, disabled) => (
+            <Field label="Correct answers in a row" hint="From 1 to 10.">
+              {(a) => (
+                <Input
+                  {...a}
+                  type="number"
+                  min={1}
+                  max={10}
+                  className="w-32"
+                  value={Number.isNaN(d.correctInARow) ? '' : d.correctInARow}
+                  disabled={disabled}
+                  onChange={(e) =>
+                    set({ correctInARow: e.target.value === '' ? Number.NaN : Number(e.target.value) })
+                  }
+                />
+              )}
+            </Field>
+          )}
+        </SettingCard>
+
+        <SettingCard
           row={row('certificates.verification')}
           title="Certificate verification"
           description="Printed on every certificate with a QR code, followed by the certificate number. Leave blank to print the number only."
