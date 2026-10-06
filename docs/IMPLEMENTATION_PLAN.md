@@ -10,13 +10,13 @@ Scope = approved decisions only (`DECISIONS.md`). Each phase ends with tests, do
 | 2 | Features + stack selection | All suggestions approved; stack approved (T-001…T-015) | ☑ |
 | 3 | Architecture | `ARCHITECTURE.md`, `DATABASE_ARCHITECTURE.md`, `API_DOCUMENTATION.md`, `DESIGN_SYSTEM.md` | ☑ approved by owner |
 | 4 | Monorepo + backend foundation | see §4 | ☑ merged (PR #3), CI green |
-| 5 | Admin CMS foundation | see §5 | ☑ verified (148 tests incl. browser E2E); 👀 PR review |
-| 6 | Academic/content CMS | see §6 | ☐ |
-| 7 | Question bank + assessment CMS | see §7 | ☐ |
-| 8 | Student mobile foundation | see §8 (includes design preview gate) | ☐ |
-| 9 | Student learning | see §9 | ☑ (part 2 in PR) |
+| 5 | Admin CMS foundation | see §5 | ☑ merged |
+| 6 | Academic/content CMS | see §6 | ☑ merged |
+| 7 | Question bank + assessment CMS | see §7 | ☑ merged |
+| 8 | Student mobile foundation | see §8 (includes design preview gate) | ☑ merged |
+| 9 | Student learning | see §9 | ☑ merged |
 | 10 | Exam engine + engagement | see §10 | ☑ |
-| 11 | Commerce + website checkout | see §11 | ◐ part 1 |
+| 11 | Commerce + website checkout | see §11 | ☑ (part 4b in PR) |
 | 12 | Communication & CMS content | see §12 | ☐ |
 | 13 | Progress & community | see §13 | ☐ |
 | 14 | Advanced approved features | see §14 | ☐ |
@@ -145,7 +145,7 @@ Original plan: assessments list, exam mode (timer, palette, autosave queue, resu
 auto-submit), results & solutions, attempt history, subjective self-grading, daily challenge + streaks, leaderboards,
 certificates (issue + verify), mistake notebook & revision mode. Edge-case tests (reconnect, double submit, expiry, duplicate start).
 
-**§11 Commerce** (branch `feature/commerce`) — ◐ IN PROGRESS
+**§11 Commerce** — ☑ COMPLETE (parts 1–4b)
 - ☑ Part 1 (T-049, D-051, D-052): course purchase — orders at the server's price, eSewa + Khalti (test credentials,
   everything from `.env`), server-side verification, idempotent settlement, duplicate / amount checks, reconciliation
   worker, access with the bought validity; app: Buy → checkout → gateway → result, Profile → Purchases; CMS: Orders
@@ -156,7 +156,9 @@ certificates (issue + verify), mistake notebook & revision mode. Edge-case tests
   CMS (`commerce.tax`) with a VAT snapshot on each order
 - ☑ Part 3 (T-052, D-057): numbered receipts (PDF in the app and by email), refund workflow with approval
 - ☑ Part 4a (T-053): public website (Next.js) — catalog, plans, checkout with coupons, sign-in, receipts, certificate check
-- ☐ Part 4b (D-058): referral programme — personal codes / links, friend's first-purchase discount, reward coupon
+- ☑ Part 4b (T-054, D-058, D-059): referral programme — personal codes / links, friend's first-purchase discount
+  (bigger of it and a coupon), owner-only reward coupon, cancelled on a full refund when unused
+- Later (release phase / §12): legal pages on the website, app links for share links (KI-044, KI-046), ConnectIPS (§14)
 
 Original plan: plans, course purchase, coupons/sales, orders, eSewa + Khalti providers (sandbox), callbacks,
 verification, reconciliation worker, entitlements, VAT/invoice numbering + PDF, refunds workflow, referral program,

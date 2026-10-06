@@ -249,6 +249,71 @@ export const SETTINGS = {
     default: { prefix: 'TK', resetEachFiscalYear: true },
     public: false,
   },
+  /**
+   * D-058, D-059: the referral programme. Off until staff switch it on and set both discounts. The friend's discount
+   * applies to their first purchase (the bigger of it and a coupon, never both); the referrer's reward is a one-time
+   * coupon only they can use, valid for `validDays`.
+   */
+  'referrals.rules': {
+    schema: z
+      .object({
+        enabled: z.boolean(),
+        friendDiscount: z.object({
+          type: z.enum(['percent', 'fixed']),
+          percentBps: z.number().int().min(1).max(10_000).nullable(),
+          amountPaisa: z.number().int().min(1).max(100_000_000).nullable(),
+          maxDiscountPaisa: z.number().int().min(1).max(100_000_000).nullable(),
+          /** As for coupons (D-054): off = no referral discount while a sale price applies. */
+          allowOnSale: z.boolean(),
+        }),
+        reward: z.object({
+          type: z.enum(['percent', 'fixed']),
+          percentBps: z.number().int().min(1).max(10_000).nullable(),
+          amountPaisa: z.number().int().min(1).max(100_000_000).nullable(),
+          maxDiscountPaisa: z.number().int().min(1).max(100_000_000).nullable(),
+          validDays: z.number().int().min(1).max(3650).nullable(),
+          allowOnSale: z.boolean(),
+        }),
+      })
+      .superRefine((v, ctx) => {
+        if (!v.enabled) return;
+        for (const part of ['friendDiscount', 'reward'] as const) {
+          const d = v[part];
+          if (d.type === 'percent' && d.percentBps === null) {
+            ctx.addIssue({ code: 'custom', path: [part, 'percentBps'], message: 'Enter the percentage' });
+          }
+          if (d.type === 'fixed' && d.amountPaisa === null) {
+            ctx.addIssue({ code: 'custom', path: [part, 'amountPaisa'], message: 'Enter the amount' });
+          }
+        }
+        if (v.reward.validDays === null) {
+          ctx.addIssue({
+            code: 'custom',
+            path: ['reward', 'validDays'],
+            message: 'Enter how many days the reward lasts',
+          });
+        }
+      }),
+    default: {
+      enabled: false,
+      friendDiscount: {
+        type: 'percent',
+        percentBps: null,
+        amountPaisa: null,
+        maxDiscountPaisa: null,
+        allowOnSale: false,
+      },
+      reward: {
+        type: 'percent',
+        percentBps: null,
+        amountPaisa: null,
+        maxDiscountPaisa: null,
+        validDays: null,
+        allowOnSale: false,
+      },
+    },
+    public: false,
+  },
   /** D-050: a question leaves the mistake notebook after this many correct revision answers in a row (default 2). */
   'mistakes.revision': {
     schema: z.object({ correctInARow: z.number().int().min(1).max(10) }),

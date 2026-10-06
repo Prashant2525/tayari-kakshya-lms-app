@@ -77,7 +77,17 @@ export function SignInForm({ next }: { next: string }) {
   );
 }
 
-export function RegisterForm({ next }: { next: string }) {
+export function RegisterForm({
+  next,
+  referralCode,
+  showReferral,
+}: {
+  next: string;
+  /** From a referral link (D-058). */
+  referralCode: string;
+  /** The programme is on (or a code came with the link): sign-up is the only time to give one (D-059). */
+  showReferral: boolean;
+}) {
   const { t } = useT();
   const [state, action, pending] = useActionState(registerAction, idle);
   return (
@@ -115,6 +125,19 @@ export function RegisterForm({ next }: { next: string }) {
           className={input}
         />
       </Field>
+      {showReferral ? (
+        <Field label={t('auth.referral')} hint={t('auth.referralHint')}>
+          <input
+            name="referralCode"
+            defaultValue={state.typed?.referralCode ?? referralCode}
+            pattern="[A-Za-z0-9]{6,12}"
+            maxLength={12}
+            autoCapitalize="characters"
+            autoComplete="off"
+            className={`${input} font-mono uppercase`}
+          />
+        </Field>
+      ) : null}
       <label className="flex items-start gap-3 text-sm text-text">
         <input
           type="checkbox"

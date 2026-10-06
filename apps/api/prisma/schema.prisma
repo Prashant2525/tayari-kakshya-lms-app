@@ -78,6 +78,10 @@ model User {
   grantedEntitlements Entitlement[]            @relation("EntitlementGrantedBy")
   orders              Order[]
   refundsRequested    Refund[]                 @relation("RefundRequester")
+  referralCode        ReferralCode?
+  referralsMade       Referral[]               @relation("Referrer")
+  referredBy          Referral?                @relation("Referee")
+  ownedCoupons        Coupon[]                 @relation("CouponOwner")
   refundsDecided      Refund[]                 @relation("RefundDecider")
   refundsCompleted    Refund[]                 @relation("RefundCompleter")
   questionReports     QuestionReport[]         @relation("QuestionReportUser")
@@ -1424,6 +1428,8 @@ model Order {
   taxRateBps    Int?         @map("tax_rate_bps")
   taxInclusive  Boolean?     @map("tax_inclusive")
   taxPaisa      Int          @default(0) @map("tax_paisa")
+  /// D-058: the friend's referral discount was applied to this order (instead of a coupon — never both, D-059).
+  referralId    String?      @map("referral_id") @db.Uuid
   expiresAt     DateTime     @map("expires_at") @db.Timestamptz(6)
   paidAt        DateTime?    @map("paid_at") @db.Timestamptz(6)
   createdAt     DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
@@ -1431,6 +1437,7 @@ model Order {
 
   user     User        @relation(fields: [userId], references: [id], onDelete: Restrict)
   coupon   Coupon?     @relation(fields: [couponId], references: [id], onDelete: Restrict)
+  referral Referral?   @relation("ReferralOrders", fields: [referralId], references: [id], onDelete: Restrict)
   items    OrderItem[]
   payments Payment[]
   invoice  Invoice?
@@ -1606,12 +1613,17 @@ model Coupon {
   /// D-054: off = the coupon does not work while a sale price applies.
   allowOnSale      Boolean            @default(false) @map("allow_on_sale")
   active           Boolean            @default(true)
+  /// Set for a referral reward (D-058): only this student can use the code.
+  ownerUserId      String?            @map("owner_user_id") @db.Uuid
   createdAt        DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt        DateTime           @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  targets CouponTarget[]
-  orders  Order[]
+  targets   CouponTarget[]
+  orders    Order[]
+  owner     User?          @relation("CouponOwner", fields: [ownerUserId], references: [id], onDelete: Restrict)
+  rewardFor Referral?      @relation("ReferralReward")
 
+  @@index([ownerUserId])
   @@map("coupons")
 }
 
@@ -1730,4 +1742,46 @@ model Refund {
   @@index([orderId])
   @@index([status, requestedAt])
   @@map("refunds")
+}
+
+/// A student's personal referral code (D-058), made the first time they open "Invite friends".
+model ReferralCode {
+  userId    String   @id @map("user_id") @db.Uuid
+  code      String   @unique
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@map("referral_codes")
+}
+
+enum ReferralStatus {
+  /// The friend signed up with the code; their first purchase gets the discount.
+  joined
+  /// The friend's first purchase was paid; the referrer got the reward coupon.
+  rewarded
+  /// That purchase was refunded in full: an unused reward was switched off.
+  cancelled
+}
+
+/// Who referred whom (D-058). One per friend; set only when the friend's account is created (D-059). Never deleted.
+model Referral {
+  id             String         @id @default(uuid(7)) @db.Uuid
+  referrerId     String         @map("referrer_id") @db.Uuid
+  refereeId      String         @unique @map("referee_id") @db.Uuid
+  code           String
+  status         ReferralStatus @default(joined)
+  firstOrderId   String?        @unique @map("first_order_id") @db.Uuid
+  rewardCouponId String?        @unique @map("reward_coupon_id") @db.Uuid
+  createdAt      DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  rewardedAt     DateTime?      @map("rewarded_at") @db.Timestamptz(6)
+  cancelledAt    DateTime?      @map("cancelled_at") @db.Timestamptz(6)
+
+  referrer     User    @relation("Referrer", fields: [referrerId], references: [id], onDelete: Restrict)
+  referee      User    @relation("Referee", fields: [refereeId], references: [id], onDelete: Restrict)
+  rewardCoupon Coupon? @relation("ReferralReward", fields: [rewardCouponId], references: [id], onDelete: Restrict)
+  orders       Order[] @relation("ReferralOrders")
+
+  @@index([referrerId, createdAt(sort: Desc)])
+  @@map("referrals")
 }

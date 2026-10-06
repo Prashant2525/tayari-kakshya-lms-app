@@ -79,6 +79,10 @@ export interface Quote {
   subtotalPaisa: number;
   discountPaisa: number;
   coupon: { code: string } | null;
+  /** D-058: the friend's referral discount on their first purchase. */
+  referral: { discountPaisa: number } | null;
+  /** A valid coupon smaller than the referral discount, so not used (D-059). */
+  couponSkipped: string | null;
   tax: { rateBps: number; inclusive: boolean; paisa: number } | null;
   totalPaisa: number;
 }

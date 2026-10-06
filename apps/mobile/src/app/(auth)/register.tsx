@@ -1,9 +1,10 @@
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
-import { useRegister } from '@/api/queries';
+import { useAppConfig, useRegister } from '@/api/queries';
 import { useT } from '@/i18n/use-t';
 import { GoogleButton, googleConfigured } from '@/features/auth/google-button';
+import { ApiError } from '@/lib/api-client';
 import { errorMessageKey } from '@/lib/error-message';
 import { checkEmail, checkName, checkPassword, hasErrors, type FieldErrors } from '@/lib/validation';
 import { LanguageToggle } from '@/ui/brand';
@@ -13,11 +14,16 @@ import { BackButton, Banner, Divider, Screen } from '@/ui/layout';
 import { Text } from '@/ui/text';
 import { TextField } from '@/ui/text-field';
 
-type Field = 'fullName' | 'email' | 'password' | 'terms';
+type Field = 'fullName' | 'email' | 'password' | 'terms' | 'referral';
 
 export default function RegisterScreen() {
   const { t, locale } = useT();
   const register = useRegister();
+  const config = useAppConfig();
+  // A referral link opens sign-up with the code filled in (D-058); it can only be given here (D-059).
+  const { ref } = useLocalSearchParams<{ ref?: string }>();
+  const [referral, setReferral] = useState(typeof ref === 'string' ? ref.toUpperCase() : '');
+  const showReferral = config.data?.referrals?.enabled === true || Boolean(ref);
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -31,14 +37,28 @@ export default function RegisterScreen() {
       email: checkEmail(email),
       password: checkPassword(password),
       terms: terms ? undefined : 'validation.terms',
+      referral:
+        !referral.trim() || /^[A-Za-z0-9]{6,12}$/.test(referral.trim()) ? undefined : 'validation.referral',
     };
     setErrors(next);
     setFormError(null);
     if (hasErrors(next)) return;
     register.mutate(
-      { fullName: fullName.trim(), email, password, locale, acceptTerms: true },
+      {
+        fullName: fullName.trim(),
+        email,
+        password,
+        locale,
+        acceptTerms: true,
+        ...(referral.trim() ? { referralCode: referral.trim() } : {}),
+      },
       // New accounts are shown verification next by the route guards (session.verifyPrompt).
-      { onError: (error) => setFormError(t(errorMessageKey(error))) },
+      {
+        onError: (error) =>
+          error instanceof ApiError && error.code === 'REFERRAL_CODE_NOT_VALID'
+            ? setErrors((e) => ({ ...e, referral: 'error.referralCode' }))
+            : setFormError(t(errorMessageKey(error))),
+      },
     );
   };
 
@@ -86,6 +106,17 @@ export default function RegisterScreen() {
         hint={t('auth.passwordHint')}
         error={errors.password && t(errors.password)}
       />
+      {showReferral ? (
+        <TextField
+          label={t('auth.register.referral')}
+          value={referral}
+          onChangeText={(v) => setReferral(v.toUpperCase())}
+          autoCapitalize="characters"
+          autoCorrect={false}
+          hint={t('auth.register.referralHint')}
+          error={errors.referral && t(errors.referral)}
+        />
+      ) : null}
       <Checkbox
         label={t('auth.register.terms')}
         checked={terms}
@@ -96,7 +127,10 @@ export default function RegisterScreen() {
       {googleConfigured() ? (
         <>
           <Divider label={t('common.or')} />
-          <GoogleButton onError={(e) => setFormError(t(errorMessageKey(e)))} />
+          <GoogleButton
+            onError={(e) => setFormError(t(errorMessageKey(e)))}
+            referralCode={referral.trim() || undefined}
+          />
         </>
       ) : null}
       <View style={styles.footer}>

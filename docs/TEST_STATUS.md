@@ -1,6 +1,6 @@
 # Test Status
 
-Last updated: 2026-10-07 (Phase 11 part 4a: website). `pnpm test` runs unit + integration suites (needs `pnpm infra:up`);
+Last updated: 2026-10-07 (Phase 11 part 4b: referrals). `pnpm test` runs unit + integration suites (needs `pnpm infra:up`);
 `pnpm build && pnpm --filter @tk/admin e2e` and `pnpm build && pnpm --filter @tk/mobile e2e` run the browser suites
 (the student suite also needs Mailpit, part of `pnpm infra:up`).
 
@@ -11,14 +11,29 @@ Last updated: 2026-10-07 (Phase 11 part 4a: website). `pnpm test` runs unit + in
 | `@tk/design-tokens` | 39 | WCAG contrast for every text/background pair (light + dark), CSS generation |
 | `@tk/domain` | 58 | BS calendar, Kathmandu day boundary, fiscal year, money/VAT/discounts, access validity |
 | `@tk/contracts` | 21 | Schema behaviour (localized text, email normalisation, mass assignment, settings defaults, rich-text validation) |
-| `@tk/api` | 256 | Integration against real PostgreSQL + Redis + S3 (SeaweedFS) through the HTTP stack; TOTP RFC 6238 vectors; RBAC, video, watermark unit |
+| `@tk/api` | 262 | Integration against real PostgreSQL + Redis + S3 (SeaweedFS) through the HTTP stack; TOTP RFC 6238 vectors; RBAC, video, watermark unit |
 | `@tk/admin` (unit) | 35 | API client (headers, refresh single-flight, retry, session loss, error mapping), BS formatting, Button `asChild` regression |
 | `@tk/admin` (E2E, Playwright) | 28 | Real browser + real API + `*_e2e` database |
 | `@tk/mobile` (unit) | 36 | API client (single-flight refresh, early refresh, session end, maintenance), translations complete in both languages, BS dates and Kathmandu weekday, force-update/maintenance gate, form checks, Nepali phone numbers |
-| `@tk/mobile` (E2E, Playwright, phone viewport) | 30 | Web build + real API + `*_mobile_e2e` database + Mailpit |
+| `@tk/mobile` (E2E, Playwright, phone viewport) | 31 | Web build + real API + `*_mobile_e2e` database + Mailpit |
 | `@tk/web` (unit) | 6 | Session refresh used once (concurrent / late requests share it; refused → signed out; unreachable → retried), token expiry, both languages complete, failure messages |
-| `@tk/web` (E2E, Playwright) | 4 | `next start` production build + real API + `*_web_e2e` database + Mailpit + gateway stand-in; access tokens last 60 s so every page load refreshes |
-| **Total** | **513** | |
+| `@tk/web` (E2E, Playwright) | 5 | `next start` production build + real API + `*_web_e2e` database + Mailpit + gateway stand-in; access tokens last 60 s so every page load refreshes |
+| **Total** | **521** | |
+
+### Added with referrals (Phase 11 part 4b, T-054, D-058, D-059)
+- **API (6 integration tests):** code made once and stable; unknown code refused at sign-up (no account made), any
+  case accepted; first purchase gets the friend discount, paid → referral rewarded and the referrer's one-use coupon;
+  second purchase no discount; reward usable only by its owner; audit; staff list; bigger of coupon / referral (tie →
+  referral, coupon left), invalid coupon still explained, a coupon win leaves the referral unused; full refund turns
+  off an unused reward, a used one stays; programme off ignores codes, config flag, sale-price switch; CMS refuses
+  switching on without discounts. Mutation-checked (bigger-wins, owner-only, used-reward rule).
+- **Website E2E (1):** `/r/<code>` → sign-up with the code filled in → email code → checkout shows the referral
+  discount → Khalti → the referrer's reward appears. Suites start with the programme on through `E2E_SETTINGS`
+  (seeded test values, website and app suites only).
+- **App E2E (1):** Profile → Invite friends (code, both offers, no rewards yet); a sign-up link fills the code in.
+- **CMS E2E (extended):** the referral card refuses switching on without the percentage.
+- Screens checked; fixed: the CMS card's amount fields overflowed the card.
+- Local only (KI-036): the CMS E2E web server stopped after the monitoring spec twice; the affected specs pass alone (8/8).
 
 ### Added with the website (Phase 11 part 4a, T-053)
 - **Unit (6)** as above.

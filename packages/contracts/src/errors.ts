@@ -54,6 +54,8 @@ export const ErrorCode = {
    * below_minimum | on_sale
    */
   COUPON_NOT_VALID: 'COUPON_NOT_VALID',
+  /** A referral code given at sign-up does not exist (D-058). */
+  REFERRAL_CODE_NOT_VALID: 'REFERRAL_CODE_NOT_VALID',
   /** The order is paid, or can no longer be paid (time ran out). */
   ORDER_CLOSED: 'ORDER_CLOSED',
   /** The chosen gateway is switched off or not configured. */

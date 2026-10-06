@@ -12,7 +12,7 @@ export class AppConfigController {
   @Public()
   @Get('config')
   async config() {
-    const [maintenance, minVersions, storeLinks, purchaseChannels, verification, questionTypes] =
+    const [maintenance, minVersions, storeLinks, purchaseChannels, verification, questionTypes, referrals] =
       await Promise.all([
         this.settings.get('app.maintenance'),
         this.settings.get('app.minVersions'),
@@ -20,12 +20,15 @@ export class AppConfigController {
         this.settings.get('purchase.channels'),
         this.settings.get('auth.verification'),
         this.settings.get('questions.types'),
+        this.settings.get('referrals.rules'),
       ]);
     return {
       maintenance,
       minVersions,
       storeLinks,
       purchaseChannels,
+      /** D-059: whether sign-up forms show the referral code field. */
+      referrals: { enabled: referrals.enabled },
       verification: {
         channels: verification.channels,
         requiredForLearning: verification.requiredForLearning,

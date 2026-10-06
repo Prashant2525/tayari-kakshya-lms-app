@@ -98,6 +98,7 @@ export class AdminOrdersService {
       discountPaisa: o.discountPaisa,
       couponCode: o.couponCode,
       couponId: o.couponId,
+      referralDiscount: o.referralId !== null,
       tax:
         o.taxRateBps === null
           ? null

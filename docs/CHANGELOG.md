@@ -4,6 +4,14 @@ All notable changes to this project. Format based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Added — 2026-10-07 (Phase 11 part 4b: referrals)
+- Students: Profile → Invite friends (personal code, share, what each side gets, reward coupons). Sign-up in the app
+  and on the website takes a referral code (pre-filled from a `/r/<code>` link). The friend's first purchase gets
+  the referral discount — or their coupon if bigger; the referrer then gets a one-time coupon only they can use.
+- CMS: System settings → Referral programme (on/off, both discounts, reward validity, sale-price switches);
+  Sales → Referrals; order pages show the referral discount. A full refund switches off an unused reward.
+- API: migration `referrals`; `GET /me/referral`, `GET /admin/referrals`.
+
 ### Fixed — 2026-10-07 (local development, KI-047)
 - `pnpm --filter @tk/web dev` failed ("--env-file-if-exists= is not allowed in NODE_OPTIONS"): the website now loads
   the root `.env` in a small launcher (`apps/web/scripts/next.mjs`).

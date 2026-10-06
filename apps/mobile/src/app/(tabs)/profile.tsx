@@ -8,6 +8,7 @@ import {
   Bookmark,
   ChevronRight,
   ClipboardList,
+  Gift,
   Crown,
   KeyRound,
   LogOut,
@@ -20,7 +21,7 @@ import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useCancelDeletion, useRequestDeletion } from '@/api/account';
 import { appVersion } from '@/api/client';
-import { logout, useMe, useTargetPosts } from '@/api/queries';
+import { logout, useAppConfig, useMe, useTargetPosts } from '@/api/queries';
 import { localized } from '@/i18n/translate';
 import { useT } from '@/i18n/use-t';
 import { usePrefs, type ThemePref } from '@/state/prefs';
@@ -38,6 +39,8 @@ export default function ProfileScreen() {
   const { t, locale } = useT();
   const { colors } = useTheme();
   const me = useMe();
+  const config = useAppConfig();
+  const referralsOn = config.data?.referrals?.enabled === true;
   const targets = useTargetPosts();
   const theme = usePrefs((s) => s.theme);
   const [leaving, setLeaving] = useState(false);
@@ -149,6 +152,7 @@ export default function ProfileScreen() {
           <LinkRow icon={ClipboardList} label={t('history.title')} href="/attempts" />
           <LinkRow icon={NotebookPen} label={t('mistakes.title')} href="/mistakes" />
           <LinkRow icon={Crown} label={t('plans.menu')} href="/plans" />
+          {referralsOn ? <LinkRow icon={Gift} label={t('invite.menu')} href="/invite" /> : null}
           <LinkRow icon={Receipt} label={t('purchases.title')} href="/purchases" />
           <LinkRow icon={Award} label={t('cert.title')} href="/certificates" last />
         </Card>
@@ -188,7 +192,8 @@ function LinkRow({
     | '/certificates'
     | '/mistakes'
     | '/purchases'
-    | '/plans';
+    | '/plans'
+    | '/invite';
   last?: boolean;
 }) {
   const { colors } = useTheme();

@@ -11,6 +11,8 @@ export interface AppConfig {
     web: 'enabled' | 'disabled';
   };
   verification: { channels: { email: boolean; phone: boolean }; requiredForLearning: boolean };
+  /** D-059: whether sign-up shows the referral code field (older servers do not send it). */
+  referrals?: { enabled: boolean };
   questionTypeLabels: Record<string, LocalizedText>;
   enabledQuestionTypes: string[];
 }
