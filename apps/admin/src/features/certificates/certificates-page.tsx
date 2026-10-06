@@ -129,8 +129,13 @@ function IssuedCard() {
       ),
     placeholderData: keepPreviousData,
   });
-  /** Shows the new state at once (whatever refetches are in flight), then reloads the list for the details. */
+  /**
+   * Shows the new state, then reloads the list. A list request still in flight (e.g. a search typed just before)
+   * started before the change and would bring back the old state — and a first fetch is reused, not restarted, by
+   * invalidation — so it is cancelled first.
+   */
   const applied = async (id: string, revoked: IssuedCertificate['revoked']) => {
+    await qc.cancelQueries({ queryKey: ['certificates'] });
     qc.setQueriesData<{ data: IssuedCertificate[]; nextCursor: string | null }>(
       { queryKey: ['certificates'] },
       (page) => page && { ...page, data: page.data.map((c) => (c.id === id ? { ...c, revoked } : c)) },

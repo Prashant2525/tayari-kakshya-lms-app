@@ -27,8 +27,9 @@ Last updated: 2026-10-06 (§10 hardening — phase 10 complete). `pnpm test` run
 - **Browser E2E (student app, 1 new):** answer online → connection drops → answer offline ("Offline — your answers
   are kept on this phone") → close the app → reopen online → "Continue test" → answers sent → score 2 of 2. It failed
   before the KI-039 fix.
-- **CMS:** one intermittent failure of the certificates spec (list still "Revoked" after reinstating) seen once
-  locally, not reproduced in 20 runs; revoke / reinstate now update the cached list directly, then reload it.
+- **CMS:** the certificates spec failed in CI (KI-040): revoking while a search was still loading left the list on
+  the old state. The spec now delivers that search response late on purpose, so the race happens every run; it fails
+  without the fix and passes with it.
 
 ### Added with the mistake notebook (§10 part 3c)
 - **Domain (unit, 5):** practice feedback (correct / partial / wrong / skipped, written answers self-reviewed); what

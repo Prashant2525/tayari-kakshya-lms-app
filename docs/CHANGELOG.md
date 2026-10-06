@@ -8,6 +8,8 @@ All notable changes to this project. Format based on Keep a Changelog.
 - Exam answers given offline were lost if the app was closed before the connection came back (KI-039).
 - A save that reached the server late (after a lost connection) could overwrite a newer answer; it is now skipped
   (T-048, migration `answer_client_time`).
+- CMS: revoking or reinstating a certificate right after typing a search could leave the list showing the old
+  state (KI-040).
 
 ### Added — 2026-10-06 (§10 part 3c: mistake notebook)
 - Student app: Profile → Mistake notebook — wrong and partly correct answers from tests and practice, revised one card

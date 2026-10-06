@@ -146,6 +146,17 @@ test('a student who finishes the course receives it; staff revoke and reinstate 
   const code = progress.newCertificates[0]!.code;
 
   await page.goto('/certificates');
+  // The search result arrives late (answered before the revoke, delivered after it): the list must not fall back to
+  // the old state when it lands (found in CI).
+  await page.route(
+    /\/admin\/certificates\?q=/,
+    async (route) => {
+      const response = await route.fetch();
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+      await route.fulfill({ response });
+    },
+    { times: 1 },
+  );
   await page.getByLabel('Search certificates').fill(code.toLowerCase());
   const row = page.getByRole('row', { name: new RegExp(studentName) });
   await expect(row.getByText(code)).toBeVisible();
