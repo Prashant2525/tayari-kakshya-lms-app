@@ -192,6 +192,16 @@ const routes = [
   }),
   createRoute({
     getParentRoute: () => appRoute,
+    path: '/orders',
+    component: lazyRouteComponent(() => import('./features/orders/orders-page'), 'OrdersPage'),
+  }),
+  createRoute({
+    getParentRoute: () => appRoute,
+    path: '/orders/$orderId',
+    component: lazyRouteComponent(() => import('./features/orders/order-page'), 'OrderPage'),
+  }),
+  createRoute({
+    getParentRoute: () => appRoute,
     path: '/certificates',
     component: lazyRouteComponent(
       () => import('./features/certificates/certificates-page'),

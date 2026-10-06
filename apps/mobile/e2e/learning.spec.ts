@@ -164,7 +164,7 @@ test('catalog for my exam, prices, and enrolling in a free course', async () => 
 
   await link('Constable Complete').click();
   await expect(heading('Constable Complete')).toBeVisible();
-  await expect(text('Buying in the app is coming soon.')).toBeVisible();
+  await expect(button('Buy')).toBeVisible();
   await expect(button('Enrol for free')).toHaveCount(0);
   await visible(page.getByRole('button', { name: 'Back' })).click();
 

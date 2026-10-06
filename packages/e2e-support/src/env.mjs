@@ -4,6 +4,7 @@ import { randomBytes } from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { E2E_ADMIN_EMAIL, E2E_ADMIN_PASSWORD, E2E_EDITOR2_EMAIL, E2E_EDITOR_EMAIL } from './accounts.mjs';
+import { fakeGatewayEnv } from './fake-gateway.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 config({ path: path.resolve(here, '../../../.env'), quiet: true });
@@ -75,5 +76,25 @@ export function createE2eEnv({ name, apiPort, webOrigin, redisDb, email = 'log' 
     E2E_EDITOR_EMAIL,
     E2E_EDITOR2_EMAIL,
     E2E_ADMIN_PASSWORD,
+    ...gatewayEnv(apiPort, webOrigin),
   };
+}
+
+/**
+ * Payment gateways for an E2E run: a local stand-in (fake-gateway.mjs) by default, so runs never touch real gateways.
+ * E2E_REAL_GATEWAYS=1 keeps the developer's .env gateway values instead — test (sandbox) credentials only.
+ */
+function gatewayEnv(apiPort, webOrigin) {
+  const urls = { callbackBase: webOrigin, webReturnUrl: `${webOrigin}/payment-result` };
+  if (process.env.E2E_REAL_GATEWAYS === '1') {
+    if (process.env.ESEWA_ENV === 'production' || process.env.KHALTI_ENV === 'production') {
+      throw new Error('E2E_REAL_GATEWAYS is for test (sandbox) credentials only');
+    }
+    return {
+      PAYMENT_CALLBACK_BASE_URL: urls.callbackBase,
+      PAYMENT_RETURN_URL_WEB: urls.webReturnUrl,
+      E2E_GATEWAY_PORT: '',
+    };
+  }
+  return fakeGatewayEnv(apiPort + 1, urls);
 }

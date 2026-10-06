@@ -4,6 +4,7 @@ import { execFileSync, execSync, spawn } from 'node:child_process';
 import path from 'node:path';
 import pg from 'pg';
 import { apiDir } from './env.mjs';
+import { startFakeGateway } from './fake-gateway.mjs';
 
 /** @param {NodeJS.ProcessEnv} env from createE2eEnv */
 export async function startE2eApi(env) {
@@ -22,8 +23,13 @@ export async function startE2eApi(env) {
   execSync('pnpm exec prisma migrate deploy', { cwd: apiDir, env, stdio: 'inherit' });
   execFileSync(process.execPath, [path.join(apiDir, 'dist/scripts/e2e-seed.js')], { env, stdio: 'inherit' });
 
+  // The payment gateway stand-in (unless the run uses the real test gateways).
+  const gateway = env.E2E_GATEWAY_PORT ? startFakeGateway(Number(env.E2E_GATEWAY_PORT)) : null;
   const child = spawn(process.execPath, [path.join(apiDir, 'dist/main.js')], { env, stdio: 'inherit' });
-  const stop = () => child.kill();
+  const stop = () => {
+    child.kill();
+    gateway?.close();
+  };
   process.on('SIGINT', stop);
   process.on('SIGTERM', stop);
   child.on('exit', (code) => process.exit(code ?? 0));

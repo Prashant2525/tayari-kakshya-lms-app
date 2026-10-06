@@ -17,6 +17,13 @@ const optional = z
   .string()
   .optional()
   .transform((v) => (v && v.trim() ? v.trim() : undefined));
+/** An integer setting that may be left empty in .env (then the default applies). */
+const int = (min: number, max: number, fallback: number) =>
+  z.preprocess(
+    (v) => (typeof v === 'string' && v.trim() === '' ? undefined : v),
+    z.coerce.number().int().min(min).max(max).default(fallback),
+  );
+const gatewayMode = z.enum(['sandbox', 'production']).default('sandbox');
 
 export const EnvSchema = z
   .object({
@@ -90,6 +97,25 @@ export const EnvSchema = z
       .optional()
       .or(z.literal('').transform(() => undefined)),
     APP_RELEASE: optional,
+
+    // Payments (D-003, D-051). Every merchant value comes from here: switching a gateway from test to production is a
+    // .env change only. A gateway is available when its credentials are set; its endpoints follow its mode unless
+    // given explicitly.
+    /** Public origin of this API that the gateways send students back to, e.g. https://api.example.com. */
+    PAYMENT_CALLBACK_BASE_URL: optional,
+    /** Where students land after paying (allow-listed): the app's deep link and the website page. */
+    PAYMENT_RETURN_URL_APP: z.string().default('tayarikakshya://payment-result'),
+    PAYMENT_RETURN_URL_WEB: optional,
+    /** How long an unpaid order can still be paid. */
+    PAYMENT_ORDER_TTL_MINUTES: int(5, 1440, 60),
+    ESEWA_ENV: gatewayMode,
+    ESEWA_PRODUCT_CODE: optional,
+    ESEWA_SECRET_KEY: optional,
+    ESEWA_FORM_URL: optional,
+    ESEWA_STATUS_URL: optional,
+    KHALTI_ENV: gatewayMode,
+    KHALTI_BASE_URL: optional,
+    KHALTI_SECRET_KEY: optional,
   })
   .superRefine((env, ctx) => {
     const prodLike = env.APP_ENV === 'production' || env.APP_ENV === 'staging';
@@ -112,6 +138,30 @@ export const EnvSchema = z
         code: 'custom',
         path: ['PUBLIC_MEDIA_PROXY'],
         message: 'media proxy / bucket auto-creation are development-only',
+      });
+    }
+    // A test gateway in production would hand out access for test money.
+    for (const [name, mode, configured] of [
+      ['ESEWA_ENV', env.ESEWA_ENV, Boolean(env.ESEWA_SECRET_KEY)],
+      ['KHALTI_ENV', env.KHALTI_ENV, Boolean(env.KHALTI_SECRET_KEY)],
+    ] as const) {
+      if (env.APP_ENV === 'production' && configured && mode !== 'production') {
+        ctx.addIssue({
+          code: 'custom',
+          path: [name],
+          message: 'a sandbox payment gateway is not allowed in production',
+        });
+      }
+    }
+    if (
+      prodLike &&
+      (env.ESEWA_SECRET_KEY || env.KHALTI_SECRET_KEY) &&
+      !env.PAYMENT_CALLBACK_BASE_URL?.startsWith('https://')
+    ) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['PAYMENT_CALLBACK_BASE_URL'],
+        message: 'an https address is required when a payment gateway is configured',
       });
     }
     if (env.EMAIL_PROVIDER === 'smtp' && (!env.SMTP_HOST || !env.SMTP_PORT)) {

@@ -29,6 +29,8 @@ export const PERMISSIONS = {
   'assessments:publish': 'Publish, schedule, archive and delete assessments; release results',
   'grading:manage': 'Grade subjective answers',
   'certificates:manage': 'Manage certificate templates; revoke and reinstate issued certificates',
+  'orders:read': 'View orders, payments and what the payment gateways reported',
+  'orders:manage': 'Check a payment again with its gateway',
 } as const;
 
 export type Permission = keyof typeof PERMISSIONS;

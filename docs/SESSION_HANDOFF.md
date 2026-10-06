@@ -2,7 +2,7 @@
 
 Session date: 2026-10-02 (session 4 — resumed after a VS Code crash)
 Current phase: **Phase 6 — content CMS, API layer complete and verified locally**
-Current task: §10 hardening done (phase 10 complete); PR open from `feature/exam-hardening`; next Phase 11 commerce
+Current task: Phase 11 part 1 (course purchase) done; PR open from `feature/commerce`; next part 2 (plans, coupons)
 
 ## Completed this session
 - Recovered the interrupted work from the repository (nothing lost). Verified the uncommitted content API:
@@ -68,6 +68,21 @@ Current task: §10 hardening done (phase 10 complete); PR open from `feature/exa
 - PR #9 / #10 merged. Branch `feature/student-learning`. API part committed first (`485f5f7`): progress, Continue,
   self-hosted PDF reader. Then the app: Courses tab, course page, Home current course, subject outline, lessons.
 - Verified with 8 browser tests (real API, PDF rendered by pdf.js) and screenshots; four defects fixed (TEST_STATUS).
+
+## Session 20 (2026-10-06)
+- PR #21 merged. Owner gave Khalti test keys (labelled "Live" in Khalti's test panel; confirmed sandbox: dev.khalti.com
+  accepts them) → only in the git-ignored `.env`. eSewa uses its published UAT merchant (EPAYTEST).
+- Owner decided D-052 (no rebuying while access is active; manual grant/revoke stays in CMS → Students).
+- Branch `feature/commerce` (T-049). Verified against the **real test gateways**: eSewa accepts our signed form (302
+  to its payment page) and rejects a bad signature (ES104); eSewa's status API answers NOT_FOUND for unpaid; Khalti
+  initiate returns a pidx + test-pay.khalti.com page, lookup answers Pending. eSewa's published UAT key is
+  `8gBm/:&EnhH.1/q` — the docs page shows a stray "(" — proven by reproducing eSewa's own signed success response.
+- Not automated: completing a payment on the gateways' own pages — eSewa's UAT login has a reCAPTCHA (not to be
+  bypassed) and Khalti's shared test wallet 9800000000 reports "MPIN locked". Manual check below.
+- **Manual test purchase (owner):** restart the API (migration `commerce`), run the app on the web
+  (`pnpm --filter @tk/mobile dev`, `w`), open a paid course → Buy → Khalti → pay with a Khalti test ID
+  (9800000000–9800000005, MPIN 1111, OTP 987654) or eSewa (ID 9711111111, password Nepal@123, OTP 123456) → you
+  should land on "Payment successful"; CMS → Orders shows the order with every gateway message.
 
 ## Session 19 (2026-10-06)
 - PR #20 merged. Owner answered Q25's follow-up → D-051 (test credentials first, all gateway config from `.env`).
@@ -186,9 +201,10 @@ Current task: §10 hardening done (phase 10 complete); PR open from `feature/exa
 - Nothing partially implemented. Admin screens for Phase 6 not started.
 
 ## Exact next steps
-1. Owner reviews and merges the §10 hardening PR (`feature/exam-hardening` → `main`); CI must be green.
-2. Phase 11 commerce (D-003, D-023–D-027, D-051): read the gateways' current official docs for test credentials and
-   endpoints; every merchant value from `.env`; server-side verification, idempotent callbacks, audit.
+1. Owner reviews and merges the Phase 11 part 1 PR (`feature/commerce` → `main`); CI must be green; owner tries a
+   test purchase (above).
+2. Phase 11 part 2: plans (subscriptions: contents, validity — D-023) and coupons (D-025) — CMS + checkout.
+3. Part 3 needs the owner's VAT / invoice / refund details (D-026): VAT registered? rate? inclusive? PAN/VAT no.?
 3. Google Android/iOS clients after the app identifiers (L5, KI-029); Sentry source maps with the first EAS build.
 
 ## Files changed

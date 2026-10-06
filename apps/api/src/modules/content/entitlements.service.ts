@@ -17,6 +17,13 @@ export function activeEntitlementWhere(now = new Date()) {
   };
 }
 
+/**
+ * D-053: premium content needs paid access (a purchase, later a plan), a staff grant, a coupon or a referral. Joining
+ * a free course (Enrol) does not unlock premium lessons, answers or tests — lessons belong to subjects that courses
+ * share, so it would otherwise unlock them in every paid course with the same subject.
+ */
+export const premiumSourceWhere = { sourceType: { not: 'free_enrol' as const } };
+
 /** When access starting at `start` ends under the course's validity setting (null = lifetime). */
 export function courseAccessEndsAt(
   course: Pick<Course, 'validityType' | 'validityDays' | 'validityEndsOn'>,
@@ -203,13 +210,23 @@ export class EntitlementsService {
     return new Set(rows.map((r) => r.courseId).filter((id): id is string => Boolean(id)));
   }
 
-  /** True if any active course entitlement covers a course that includes this subject. */
+  /** Course ids whose premium content the user can open (D-053: not through a free enrolment). */
+  async premiumCourseIds(userId: string, now = new Date()): Promise<Set<string>> {
+    const rows = await this.prisma.entitlement.findMany({
+      where: { userId, scopeType: 'course', ...activeEntitlementWhere(now), ...premiumSourceWhere },
+      select: { courseId: true },
+    });
+    return new Set(rows.map((r) => r.courseId).filter((id): id is string => Boolean(id)));
+  }
+
+  /** True if the user has premium access (D-053) to a course that includes this subject. */
   async hasSubjectAccess(userId: string, subjectId: string, now = new Date()): Promise<boolean> {
     const count = await this.prisma.entitlement.count({
       where: {
         userId,
         scopeType: 'course',
         ...activeEntitlementWhere(now),
+        ...premiumSourceWhere,
         course: { deletedAt: null, subjects: { some: { subjectId } } },
       },
     });

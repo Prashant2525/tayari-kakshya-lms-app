@@ -13,6 +13,10 @@
       "types": "./src/env.d.mts",
       "default": "./src/env.mjs"
     },
+    "./fake-gateway": {
+      "types": "./src/fake-gateway.d.mts",
+      "default": "./src/fake-gateway.mjs"
+    },
     "./start-api": {
       "types": "./src/start-api.d.mts",
       "default": "./src/start-api.mjs"

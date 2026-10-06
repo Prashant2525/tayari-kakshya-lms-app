@@ -47,6 +47,14 @@ export const ErrorCode = {
   ATTEMPT_CLOSED: 'ATTEMPT_CLOSED',
   /** The certificate was revoked by staff; it no longer verifies and its PDF is not served. */
   CERTIFICATE_REVOKED: 'CERTIFICATE_REVOKED',
+  /** details.reason: channel_closed | already_has_access | free_course | not_for_sale | access_period_ended */
+  PURCHASE_NOT_AVAILABLE: 'PURCHASE_NOT_AVAILABLE',
+  /** The order is paid, or can no longer be paid (time ran out). */
+  ORDER_CLOSED: 'ORDER_CLOSED',
+  /** The chosen gateway is switched off or not configured. */
+  PAYMENT_PROVIDER_UNAVAILABLE: 'PAYMENT_PROVIDER_UNAVAILABLE',
+  /** The gateway could not be reached or refused to start the payment; trying again may work. */
+  PAYMENT_GATEWAY_ERROR: 'PAYMENT_GATEWAY_ERROR',
 } as const;
 export type ErrorCode = (typeof ErrorCode)[keyof typeof ErrorCode];
 

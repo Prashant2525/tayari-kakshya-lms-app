@@ -13,6 +13,8 @@ import { RbacService } from '../src/modules/rbac/rbac.service.js';
 import { SettingsService } from '../src/modules/settings/settings.service.js';
 import type { SettingKey } from '@tk/contracts';
 import { DEFAULT_NODE_TYPES } from '../src/modules/content/default-node-types.js';
+import { GatewayHttp } from '../src/modules/payments/gateway-http.js';
+import { FakeGateways } from './fake-gateways.js';
 
 export class FakeGoogleVerifier extends GoogleVerifier {
   readonly tokens = new Map<string, GoogleIdentity>();
@@ -32,6 +34,7 @@ export interface TestContext {
   mail: MailService;
   sms: SmsService;
   google: FakeGoogleVerifier;
+  gateways: FakeGateways;
   reset(): Promise<void>;
   close(): Promise<void>;
 }
@@ -39,9 +42,12 @@ export interface TestContext {
 export async function createTestApp(): Promise<TestContext> {
   const env = loadEnv();
   const google = new FakeGoogleVerifier();
+  const gateways = new FakeGateways();
   const moduleRef = await Test.createTestingModule({ imports: [AppModule] })
     .overrideProvider(GoogleVerifier)
     .useValue(google)
+    .overrideProvider(GatewayHttp)
+    .useValue(gateways)
     .compile();
   const app = moduleRef.createNestApplication<NestFastifyApplication>(createFastifyAdapter(env), {
     logger: false,
@@ -62,6 +68,7 @@ export async function createTestApp(): Promise<TestContext> {
     mail,
     sms,
     google,
+    gateways,
     async reset() {
       const tables = await prisma.$queryRaw<Array<{ tablename: string }>>`
         SELECT tablename FROM pg_tables WHERE schemaname = 'public' AND tablename <> '_prisma_migrations'`;
@@ -77,6 +84,7 @@ export async function createTestApp(): Promise<TestContext> {
       mail.outbox.length = 0;
       sms.outbox.length = 0;
       google.tokens.clear();
+      gateways.reset();
     },
     async close() {
       await app.close();

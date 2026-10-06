@@ -144,3 +144,5 @@ supported merchant locations (Nepal: developer ✔, merchant ✘); YouTube priva
 - **§10 part 3b (asked 2026-10-06):** how certificates are issued, what feeds the mistake notebook, what counts as a
   mistake, when a question leaves it. **Answered 2026-10-06** (D-050).
 - **L5 (Phase 18):** App identifiers (`com.<org>.<app>`), store account ownership (Play Console organisation account, Apple Developer).
+- **Phase 11 part 2 (asked 2026-10-06):** free enrolment and shared subjects, plan contents changing, coupons on sale
+  prices, renewing a plan. **Answered 2026-10-06** (D-053, D-054).

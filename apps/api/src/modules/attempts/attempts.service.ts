@@ -27,7 +27,11 @@ import { Prisma, type Assessment, type Attempt } from '../../generated/prisma/cl
 import { PrismaService } from '../../infra/prisma/prisma.service.js';
 import { poolWhere } from '../assessments/assessments.service.js';
 import { CatalogService, type Viewer } from '../content/catalog.service.js';
-import { activeEntitlementWhere, EntitlementsService } from '../content/entitlements.service.js';
+import {
+  activeEntitlementWhere,
+  EntitlementsService,
+  premiumSourceWhere,
+} from '../content/entitlements.service.js';
 import { mediaIdsIn, splitQuestion } from '../content/practice-view.js';
 import { isLive, liveWhere } from '../content/publishing.js';
 import { MediaService } from '../media/media.service.js';
@@ -712,8 +716,9 @@ export class AttemptsService {
 
   // ───────────── Access ─────────────
 
+  /** Courses whose Premium tests the student may take (D-053: not through a free enrolment). */
   private async accessContext(viewer: Viewer) {
-    return { courses: await this.entitlements.activeCourseIds(viewer.userId) };
+    return { courses: await this.entitlements.premiumCourseIds(viewer.userId) };
   }
 
   /** D-048: free for everyone; Premium per the assessment's rule. */
@@ -730,7 +735,9 @@ export class AttemptsService {
           examNodeId: { in: [...nodes] },
           course: {
             deletedAt: null,
-            entitlements: { some: { userId: viewer.userId, ...activeEntitlementWhere() } },
+            entitlements: {
+              some: { userId: viewer.userId, ...activeEntitlementWhere(), ...premiumSourceWhere },
+            },
           },
         },
       });

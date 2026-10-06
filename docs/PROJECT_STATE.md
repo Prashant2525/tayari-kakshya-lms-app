@@ -1,6 +1,6 @@
 # Project State
 
-Current Phase: **Phase 10 done** — parts 1–3c merged (PR #16–#20); hardening on `feature/exam-hardening`. Next: Phase 11 commerce
+Current Phase: **Phase 11 commerce — part 1 (course purchase) done** on `feature/commerce`; Phase 10 merged (PR #16–#21)
 Current Milestone: content API on `feature/content-cms` → Admin CMS content screens
 Overall Status: **IN PROGRESS**
 Last updated: 2026-10-04
@@ -36,6 +36,8 @@ Last updated: 2026-10-04
 - §10 part 3c merged (PR #20, T-047): mistake notebook.
 - §10 hardening on `feature/exam-hardening` (T-048): late saves, concurrent submits, offline answers kept (KI-039).
 - Q25 answered (D-051): eSewa + Khalti with official test credentials first; everything from `.env`.
+- Phase 11 part 1 on `feature/commerce` (T-049, D-052): course purchase with eSewa + Khalti (test mode), server-side
+  verification, Orders in the CMS. Next: part 2 (plans, coupons), part 3 (VAT/invoices/refunds — owner details).
 - Monitoring (T-042) merged (PR #14, #15): Sentry in the API, worker, admin and app; PostHog in the app. Google web client registered for `http://localhost:8081` (checked); a real
   sign-in by the owner and Android/iOS clients remain (KI-029).
 - Phase 9 part 2 merged (PR #13): practice questions with Check answer and locked Premium answers
@@ -92,4 +94,4 @@ and `pnpm --filter @tk/admin dev` → create your Super Admin:
 (code in Mailpit http://localhost:8025) → set password at http://localhost:5173/set-password → sign in → enrol 2FA.
 
 ## Exact Next Task
-- Owner merges the §10 hardening PR; then Phase 11 commerce (D-051) — see SESSION_HANDOFF.
+- Owner merges the Phase 11 part 1 PR and tries a test purchase (SESSION_HANDOFF); then part 2 (plans, coupons).

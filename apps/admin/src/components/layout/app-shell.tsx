@@ -8,6 +8,7 @@ import {
   FileText,
   Flag,
   PenLine,
+  Receipt,
   FolderTree,
   GraduationCap,
   Library,
@@ -66,6 +67,10 @@ const NAV: Array<{ group: string; items: NavItem[] }> = [
       { to: '/media', label: 'Media library', icon: Images, permission: 'media:manage' },
       { to: '/instructors', label: 'Instructors', icon: Presentation, permission: 'instructors:manage' },
     ],
+  },
+  {
+    group: 'Sales',
+    items: [{ to: '/orders', label: 'Orders', icon: Receipt, permission: 'orders:read' }],
   },
   {
     group: 'People',
