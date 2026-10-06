@@ -59,6 +59,36 @@ function stripSecrets(value: unknown): unknown {
   return value;
 }
 
+/**
+ * Where gateways send the student back: the configured public address — except in development, where it is the
+ * address the device itself used (http://10.0.2.2:4000 from the Android emulator, the computer's network address from
+ * a phone), because "localhost" in the configuration means the device itself there.
+ */
+export function resolveCallbackBase(
+  env: Pick<Env, 'APP_ENV' | 'PAYMENT_CALLBACK_BASE_URL'>,
+  requestOrigin: string | null,
+): string | undefined {
+  if (env.APP_ENV === 'development' && requestOrigin && /^https?:\/\/[\w.-]+(:\d+)?$/.test(requestOrigin)) {
+    return requestOrigin;
+  }
+  return env.PAYMENT_CALLBACK_BASE_URL?.replace(/\/+$/, '');
+}
+
+/**
+ * The app's return link when allowed — the configured one (`tayarikakshya://payment-result`), or Expo Go's
+ * (`exp://<host>/--/payment-result`) in development — otherwise the configured one. Never an arbitrary address.
+ */
+export function resolveAppReturnUrl(
+  env: Pick<Env, 'APP_ENV' | 'PAYMENT_RETURN_URL_APP'>,
+  requested: string | undefined,
+): string {
+  const configured = env.PAYMENT_RETURN_URL_APP;
+  if (!requested || requested === configured) return configured;
+  const expoGo = /^exps?:\/\/[\w.-]+(:\d+)?\/--\/payment-result$/;
+  if (env.APP_ENV === 'development' && expoGo.test(requested)) return requested;
+  return configured;
+}
+
 const escapeHtml = (s: string) =>
   s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
 
@@ -166,8 +196,17 @@ export class PaymentsService {
     return this.orderView(order.id, userId);
   }
 
-  /** Starts paying an order with a gateway; returns where to send the student. */
-  async pay(orderId: string, input: PayOrderInput, userId: string, now = new Date()) {
+  /**
+   * Starts paying an order with a gateway; returns where to send the student. `requestOrigin` is how the device
+   * reached the API (used as the callback address in development only).
+   */
+  async pay(
+    orderId: string,
+    input: PayOrderInput,
+    userId: string,
+    requestOrigin: string | null = null,
+    now = new Date(),
+  ) {
     const order = await this.prisma.order.findFirst({
       where: { id: orderId, userId },
       include: { items: true, user: true },
@@ -175,19 +214,24 @@ export class PaymentsService {
     if (!order) throw Errors.notFound('Order');
     if (order.status !== 'pending' || order.expiresAt <= now) throw orderClosed();
     const enabled = await this.settings.get('payments.providers');
-    const callbackBase = this.env.PAYMENT_CALLBACK_BASE_URL?.replace(/\/+$/, '');
+    const callbackBase = resolveCallbackBase(this.env, requestOrigin);
     if (!enabled[input.provider] || !this.gateways[input.provider] || !callbackBase)
       throw providerUnavailable();
     if (input.returnTo === 'web' && !this.env.PAYMENT_RETURN_URL_WEB) {
       throw Errors.validation([{ path: 'returnTo', message: 'Paying from the website is not set up' }]);
     }
+    const returnTo =
+      input.returnTo === 'web'
+        ? this.env.PAYMENT_RETURN_URL_WEB!
+        : resolveAppReturnUrl(this.env, input.appReturnUrl);
 
     const payment = await this.prisma.payment.create({
       data: {
         orderId,
         provider: input.provider,
         amountPaisa: order.totalPaisa,
-        returnTo: input.returnTo,
+        returnTo,
+        callbackBase,
       },
     });
     const title = order.items[0]?.titleSnapshot as LocalizedText | undefined;
@@ -255,7 +299,7 @@ export class PaymentsService {
       amountPaisa: payment.amountPaisa,
       orderName: `#${payment.order.orderNo}`,
       customer: { name: payment.order.user.fullName, email: null, phone: null },
-      callbackBase: this.env.PAYMENT_CALLBACK_BASE_URL!.replace(/\/+$/, ''),
+      callbackBase: payment.callbackBase ?? this.env.PAYMENT_CALLBACK_BASE_URL!.replace(/\/+$/, ''),
     });
     const inputs = Object.entries(fields)
       .map(([k, v]) => `<input type="hidden" name="${escapeHtml(k)}" value="${escapeHtml(v)}">`)
@@ -553,7 +597,11 @@ export class PaymentsService {
 
   private returnUrl(payment: Payment): string | null {
     const base =
-      payment.returnTo === 'web' ? this.env.PAYMENT_RETURN_URL_WEB : this.env.PAYMENT_RETURN_URL_APP;
+      payment.returnTo === 'web'
+        ? this.env.PAYMENT_RETURN_URL_WEB
+        : payment.returnTo === 'app'
+          ? this.env.PAYMENT_RETURN_URL_APP
+          : payment.returnTo;
     if (!base) return null;
     const sep = base.includes('?') ? '&' : '?';
     return `${base}${sep}order=${payment.orderId}`;

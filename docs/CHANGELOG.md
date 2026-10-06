@@ -4,6 +4,10 @@ All notable changes to this project. Format based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Fixed — 2026-10-06 (payments on Android, KI-042)
+- eSewa showed "localhost refused to connect" on the Android emulator: in development the gateways now send the
+  student back to the address the device reached the API on, and the app returns via its own link (Expo Go too).
+
 ### Fixed — 2026-10-06 (access, D-053)
 - Joining a free course unlocked premium lessons of paid courses that share its subjects (KI-043). Premium content
   now needs paid access, a staff grant, a coupon or a referral; free enrolment opens free lessons only. Locked
