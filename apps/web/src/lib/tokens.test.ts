@@ -54,7 +54,8 @@ describe('website session (T-053)', () => {
     });
     await expect(refreshOnce('rt-3', down)).rejects.toThrow('ECONNREFUSED');
     await new Promise((r) => setTimeout(r, 0));
-    const up = vi.fn(async () => tokens(9));
-    expect(await refreshOnce('rt-3', up)).toEqual(tokens(9));
+    const fresh = tokens(9);
+    const up = vi.fn(async () => fresh);
+    expect(await refreshOnce('rt-3', up)).toBe(fresh);
   });
 });
