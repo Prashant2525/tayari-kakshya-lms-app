@@ -28,6 +28,7 @@ export const PERMISSIONS = {
   'assessments:edit': 'Create and edit quizzes, tests and mock exams (drafts)',
   'assessments:publish': 'Publish, schedule, archive and delete assessments; release results',
   'grading:manage': 'Grade subjective answers',
+  'certificates:manage': 'Manage certificate templates; revoke and reinstate issued certificates',
 } as const;
 
 export type Permission = keyof typeof PERMISSIONS;

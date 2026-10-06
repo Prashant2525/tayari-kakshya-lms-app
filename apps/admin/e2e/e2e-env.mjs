@@ -1,7 +1,13 @@
 // Admin CMS browser E2E: API environment from the shared harness (@tk/e2e-support). Test-only values.
 import { createE2eEnv } from '@tk/e2e-support/env';
 
-export { apiDir, E2E_ADMIN_EMAIL, E2E_ADMIN_PASSWORD, E2E_EDITOR_EMAIL } from '@tk/e2e-support/env';
+export {
+  apiDir,
+  E2E_ADMIN_EMAIL,
+  E2E_ADMIN_PASSWORD,
+  E2E_EDITOR2_EMAIL,
+  E2E_EDITOR_EMAIL,
+} from '@tk/e2e-support/env';
 
 /**
  * The admin under test reports errors to this fake Sentry host (never the real project, even when apps/admin/.env

@@ -93,7 +93,7 @@ partial indexes, generated `tsvector` columns, check constraints and triggers th
 | `bookmarks` | `user_id`, `entity_type` (question/learning_item/article), `entity_id` — unique triple |
 | `mistakes` | `user_id`, `question_id` unique pair, `last_attempt_answer` ref, `times_wrong`, `status` (active/mastered) |
 | `study_plans` / `study_plan_items` | `target_exam_node_id`, `exam_date`, generated weekly items with status |
-| `certificate_templates` / `certificates` | rule config; issued: `code` unique (public verification), `user_id`, `course_id`/`assessment_id`, `issued_at`, `pdf_media_id` |
+| `certificate_templates` / `certificates` | ✅ (T-046) template: wording (jsonb en/ne), `signatories`, `language`, `required_percent` (CHECK 1–100), `active`; `courses.certificate_template_id`. Issued: `code` unique (CHECK Crockford base32 ×12), `user_id`, `course_id` (unique pair), `template_id`, `content` snapshot, `issued_at`, `revoked_at` / `revoked_by` / `revoke_reason` (CHECK together). PDF generated on request, not stored |
 | `referral_codes` / `referrals` | code per user; referral status and reward (coupon/entitlement) |
 | `discussion_threads` / `discussion_posts` | anchored to `question_id` or `topic_id`; `status` (visible/hidden); moderation fields |
 

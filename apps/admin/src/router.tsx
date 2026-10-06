@@ -137,9 +137,15 @@ const routes = [
   createRoute({
     getParentRoute: () => appRoute,
     path: '/courses/$courseId',
-    validateSearch: (s: Record<string, unknown>): { tab?: 'details' | 'pricing' | 'subjects' | 'links' } => ({
+    validateSearch: (
+      s: Record<string, unknown>,
+    ): { tab?: 'details' | 'pricing' | 'subjects' | 'links' | 'certificate' } => ({
       tab:
-        s['tab'] === 'pricing' || s['tab'] === 'subjects' || s['tab'] === 'links' || s['tab'] === 'details'
+        s['tab'] === 'pricing' ||
+        s['tab'] === 'subjects' ||
+        s['tab'] === 'links' ||
+        s['tab'] === 'details' ||
+        s['tab'] === 'certificate'
           ? s['tab']
           : undefined,
     }),
@@ -183,6 +189,30 @@ const routes = [
     getParentRoute: () => appRoute,
     path: '/attempts/$attemptId',
     component: lazyRouteComponent(() => import('./features/grading/attempt-page'), 'AttemptPage'),
+  }),
+  createRoute({
+    getParentRoute: () => appRoute,
+    path: '/certificates',
+    component: lazyRouteComponent(
+      () => import('./features/certificates/certificates-page'),
+      'CertificatesPage',
+    ),
+  }),
+  createRoute({
+    getParentRoute: () => appRoute,
+    path: '/certificates/templates/new',
+    component: lazyRouteComponent(
+      () => import('./features/certificates/template-page'),
+      'NewCertificateTemplatePage',
+    ),
+  }),
+  createRoute({
+    getParentRoute: () => appRoute,
+    path: '/certificates/templates/$templateId',
+    component: lazyRouteComponent(
+      () => import('./features/certificates/template-page'),
+      'CertificateTemplatePage',
+    ),
   }),
   createRoute({
     getParentRoute: () => appRoute,

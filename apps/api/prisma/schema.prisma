@@ -86,6 +86,8 @@ model User {
   attempts            Attempt[]
   streak              UserStreak?
   gradedAnswers       AttemptAnswer[]          @relation("AttemptAnswerGrader")
+  certificates        Certificate[]
+  revokedCertificates Certificate[]            @relation("CertificateRevoker")
 
   @@index([kind, status])
   @@map("users")
@@ -612,41 +614,46 @@ enum ValidityType {
 }
 
 model Course {
-  id               String          @id @default(uuid(7)) @db.Uuid
-  slug             String
-  title            Json
-  shortDescription Json?           @map("short_description")
-  description      Json?
-  thumbnailMediaId String?         @map("thumbnail_media_id") @db.Uuid
-  language         ContentLanguage @default(both)
+  id                    String          @id @default(uuid(7)) @db.Uuid
+  slug                  String
+  title                 Json
+  shortDescription      Json?           @map("short_description")
+  description           Json?
+  thumbnailMediaId      String?         @map("thumbnail_media_id") @db.Uuid
+  language              ContentLanguage @default(both)
   /// Paisa (NPR x 100). 0 = free course. Set by admins (D-023).
-  pricePaisa       Int             @default(0) @map("price_paisa")
-  salePricePaisa   Int?            @map("sale_price_paisa")
-  saleStartsAt     DateTime?       @map("sale_starts_at") @db.Timestamptz(6)
-  saleEndsAt       DateTime?       @map("sale_ends_at") @db.Timestamptz(6)
-  validityType     ValidityType    @default(lifetime) @map("validity_type")
-  validityDays     Int?            @map("validity_days")
-  validityEndsOn   DateTime?       @map("validity_ends_on") @db.Date
-  isFeatured       Boolean         @default(false) @map("is_featured")
-  popularityRank   Int?            @map("popularity_rank")
-  status           PublishStatus   @default(draft)
-  publishAt        DateTime?       @map("publish_at") @db.Timestamptz(6)
-  createdById      String?         @map("created_by") @db.Uuid
-  updatedById      String?         @map("updated_by") @db.Uuid
-  createdAt        DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt        DateTime        @updatedAt @map("updated_at") @db.Timestamptz(6)
-  deletedAt        DateTime?       @map("deleted_at") @db.Timestamptz(6)
+  pricePaisa            Int             @default(0) @map("price_paisa")
+  salePricePaisa        Int?            @map("sale_price_paisa")
+  saleStartsAt          DateTime?       @map("sale_starts_at") @db.Timestamptz(6)
+  saleEndsAt            DateTime?       @map("sale_ends_at") @db.Timestamptz(6)
+  validityType          ValidityType    @default(lifetime) @map("validity_type")
+  validityDays          Int?            @map("validity_days")
+  validityEndsOn        DateTime?       @map("validity_ends_on") @db.Date
+  isFeatured            Boolean         @default(false) @map("is_featured")
+  popularityRank        Int?            @map("popularity_rank")
+  /// Certificate for finishing this course (D-049); none when null.
+  certificateTemplateId String?         @map("certificate_template_id") @db.Uuid
+  status                PublishStatus   @default(draft)
+  publishAt             DateTime?       @map("publish_at") @db.Timestamptz(6)
+  createdById           String?         @map("created_by") @db.Uuid
+  updatedById           String?         @map("updated_by") @db.Uuid
+  createdAt             DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt             DateTime        @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt             DateTime?       @map("deleted_at") @db.Timestamptz(6)
 
-  thumbnail    MediaAsset?        @relation(fields: [thumbnailMediaId], references: [id], onDelete: SetNull)
-  examNodes    CourseExamNode[]
-  subjects     CourseSubject[]
-  instructors  CourseInstructor[]
-  entitlements Entitlement[]
+  thumbnail           MediaAsset?          @relation(fields: [thumbnailMediaId], references: [id], onDelete: SetNull)
+  certificateTemplate CertificateTemplate? @relation(fields: [certificateTemplateId], references: [id], onDelete: Restrict)
+  certificates        Certificate[]
+  examNodes           CourseExamNode[]
+  subjects            CourseSubject[]
+  instructors         CourseInstructor[]
+  entitlements        Entitlement[]
 
   assessments Assessment[]
   progress    LearningProgress[]
 
   @@index([status, isFeatured, popularityRank])
+  @@index([certificateTemplateId])
   @@map("courses")
 }
 
@@ -1244,4 +1251,64 @@ model UserStreak {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("user_streaks")
+}
+
+enum CertificateLanguage {
+  en
+  ne
+}
+
+/// Wording and rule of a course-completion certificate (D-049, D-050), shared by any number of courses.
+model CertificateTemplate {
+  id              String              @id @default(uuid(7)) @db.Uuid
+  /// Name for staff in the CMS.
+  name            String
+  language        CertificateLanguage @default(en)
+  /// Share of the course's lessons a student must finish, in percent (1–100).
+  requiredPercent Int                 @map("required_percent")
+  /// LocalizedText: heading, line before the name, line between name and course, issuer.
+  title           Json
+  intro           Json?
+  statement       Json
+  issuerName      Json                @map("issuer_name")
+  /// [{ name: LocalizedText, role: LocalizedText }], at most 3.
+  signatories     Json                @default("[]")
+  /// No new certificates are issued from an inactive template; issued ones stay valid.
+  active          Boolean             @default(true)
+  createdById     String?             @map("created_by") @db.Uuid
+  updatedById     String?             @map("updated_by") @db.Uuid
+  createdAt       DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime            @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  courses      Course[]
+  certificates Certificate[]
+
+  @@map("certificate_templates")
+}
+
+/// An issued certificate. `content` is a snapshot of what was printed, so later template or name edits do not
+/// change it. Verified publicly by `code`.
+model Certificate {
+  id           String    @id @default(uuid(7)) @db.Uuid
+  /// 12 characters (Crockford base32), stored without dashes.
+  code         String    @unique
+  userId       String    @map("user_id") @db.Uuid
+  courseId     String    @map("course_id") @db.Uuid
+  templateId   String    @map("template_id") @db.Uuid
+  /// { holderName, courseTitle, title, intro, statement, issuerName, signatories, language }
+  content      Json
+  issuedAt     DateTime  @default(now()) @map("issued_at") @db.Timestamptz(6)
+  revokedAt    DateTime? @map("revoked_at") @db.Timestamptz(6)
+  revokedById  String?   @map("revoked_by") @db.Uuid
+  revokeReason String?   @map("revoke_reason")
+
+  user      User                @relation(fields: [userId], references: [id], onDelete: Restrict)
+  course    Course              @relation(fields: [courseId], references: [id], onDelete: Restrict)
+  template  CertificateTemplate @relation(fields: [templateId], references: [id], onDelete: Restrict)
+  revokedBy User?               @relation("CertificateRevoker", fields: [revokedById], references: [id], onDelete: SetNull)
+
+  @@unique([userId, courseId])
+  @@index([courseId, issuedAt(sort: Desc)])
+  @@index([templateId])
+  @@map("certificates")
 }

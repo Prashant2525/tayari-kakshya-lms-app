@@ -45,6 +45,8 @@ export const ErrorCode = {
   ASSESSMENT_NOT_AVAILABLE: 'ASSESSMENT_NOT_AVAILABLE',
   /** The attempt is finished (submitted, or its time is over) and cannot change. */
   ATTEMPT_CLOSED: 'ATTEMPT_CLOSED',
+  /** The certificate was revoked by staff; it no longer verifies and its PDF is not served. */
+  CERTIFICATE_REVOKED: 'CERTIFICATE_REVOKED',
 } as const;
 export type ErrorCode = (typeof ErrorCode)[keyof typeof ErrorCode];
 

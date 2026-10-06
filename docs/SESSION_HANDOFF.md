@@ -2,7 +2,7 @@
 
 Session date: 2026-10-02 (session 4 — resumed after a VS Code crash)
 Current phase: **Phase 6 — content CMS, API layer complete and verified locally**
-Current task: §10 part 3a (daily challenge, streaks, leaderboards) done; PR open from `feature/daily-challenge`; next part 3b
+Current task: §10 part 3b (certificates) done; PR open from `feature/certificates`; next part 3c (mistake notebook)
 
 ## Completed this session
 - Recovered the interrupted work from the repository (nothing lost). Verified the uncommitted content API:
@@ -68,6 +68,16 @@ Current task: §10 part 3a (daily challenge, streaks, leaderboards) done; PR ope
 - PR #9 / #10 merged. Branch `feature/student-learning`. API part committed first (`485f5f7`): progress, Continue,
   self-hosted PDF reader. Then the app: Courses tab, course page, Home current course, subject outline, lessons.
 - Verified with 8 browser tests (real API, PDF rendered by pdf.js) and screenshots; four defects fixed (TEST_STATUS).
+
+## Session 17 (2026-10-06)
+- PR #18 merged. Owner answered the part 3b questions → D-050 (certificates issued automatically; mistake notebook fed
+  by tests + practice; wrong or partly correct; leaves after N correct in a row, N in CMS settings, or on removal).
+- Branch `feature/certificates` (T-046): certificates only — the notebook is part 3c, a separate PR.
+- PDF: pdfkit with the app's Mukta font (copied with its OFL licence to `apps/api/assets/fonts`) shapes Devanagari
+  correctly (checked visually: conjuncts, reph, vowel signs). **Deployment:** the API image must include
+  `apps/api/assets`.
+- Screenshots fixed: certificate number / date wrapping in the CMS list; the course hero back arrow in dark mode;
+  Nepali wording uses "कोर्स" like the rest of the app.
 
 ## Session 16 (2026-10-06)
 - PR #17 merged. Owner shared the design canvas (D-047) from another account as reference; reviewed it and mapped
@@ -163,9 +173,9 @@ Current task: §10 part 3a (daily challenge, streaks, leaderboards) done; PR ope
 - Nothing partially implemented. Admin screens for Phase 6 not started.
 
 ## Exact next steps
-1. Owner reviews and merges the §10 part 3a PR (`feature/daily-challenge` → `main`); CI must be green.
-2. §10 part 3b: certificates for finishing a course (CMS template: wording, signatory, share of lessons; PDF;
-   public verification), mistake notebook & revision mode.
+1. Owner reviews and merges the §10 part 3b PR (`feature/certificates` → `main`); CI must be green.
+2. §10 part 3c: mistake notebook & revision mode (D-050) — record practice answers, notebook API + CMS setting for N,
+   student notebook and revision screens.
 3. Google Android/iOS clients after the app identifiers (L5, KI-029); Sentry source maps with the first EAS build.
 
 ## Files changed

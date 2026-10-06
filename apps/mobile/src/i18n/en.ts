@@ -424,6 +424,24 @@ export const en = {
   'test.practiceNote':
     'This challenge’s day has passed: you can practise it, but it won’t count for your streak or ranking.',
   'test.practiceChip': 'Practice',
+  'cert.title': 'Certificates',
+  'cert.empty': 'No certificates yet',
+  'cert.emptyBody': 'Finish the lessons of a course to earn its certificate.',
+  'cert.issued': 'Issued {date}',
+  'cert.number': 'Certificate no. {code}',
+  'cert.open': 'Open certificate',
+  'cert.share': 'Share',
+  'cert.shareMessage': '{course} — certificate no. {code}: {url}',
+  'cert.revoked': 'Revoked',
+  'cert.revokedBody': 'This certificate was revoked. Contact support if you think this is a mistake.',
+  'cert.courseTitle': 'Certificate',
+  'cert.courseRule': 'Finish {percent}% of the lessons to earn the certificate.',
+  'cert.courseProgress': '{completed} of {total} lessons finished',
+  'cert.courseEarned': 'You earned this course’s certificate.',
+  'cert.view': 'View certificate',
+  'cert.earnedTitle': 'Certificate earned!',
+  'cert.earnedBody': 'You finished enough lessons of {course} to earn its certificate.',
+  'cert.later': 'Later',
 } as const;
 
 export type MessageKey = keyof typeof en;

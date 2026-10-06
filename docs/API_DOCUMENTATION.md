@@ -133,6 +133,27 @@ Admin: `AssessmentInput` gains optional `premiumAccess` (linked/any_course/plans
 
 Students: released results include `graderComment` on written answers.
 
+## 1b-6. Implemented endpoints (§10 part 3b — certificates) ✅
+
+| Method | Path | Auth | Notes |
+|---|---|---|---|
+| GET | `/me/certificates` | student | issues any earned first; `[{ id, code, course: { id, slug, title }, issuedAt, revoked }]`, newest first |
+| GET | `/certificates/:code` | public | `{ code, status: valid / revoked, holderName, courseTitle, issuerName, language, issuedAt, revokedAt }`; 404 unknown; dashes, case, O/0 and I/L/1 ignored; 120 per IP per hour |
+| GET | `/certificates/:code/pdf` | public | `application/pdf` (inline); 410 `CERTIFICATE_REVOKED`; 60 per IP per hour |
+| GET | `/admin/certificate-templates` | `certificates:manage` or `courses:edit` | `[{ id, name, language, requiredPercent, active, courseCount, issuedCount, updatedAt }]` |
+| POST | `/admin/certificate-templates` | `certificates:manage` | `CertificateTemplateInput` → 201 `{ id }` |
+| GET / PUT | `/admin/certificate-templates/:id` | `certificates:manage` | detail + `courses`; PUT returns the detail |
+| GET | `/admin/certificate-templates/:id/preview` | `certificates:manage` | sample PDF |
+| PUT | `/admin/courses/:id/certificate` | `certificates:manage` or `courses:edit` (+ course scope) | `{ templateId }` (null = no certificate) |
+| GET | `/admin/certificates?q=&status=&courseId=&cursor=&limit=` | `certificates:manage` | `q` = student name, email or certificate number; `status` valid / revoked; scoped staff see their courses only |
+| POST | `/admin/certificates/:id/revoke` | `certificates:manage` | `{ reason }` (3–500) → 204; 409 when already revoked |
+| POST | `/admin/certificates/:id/reinstate` | `certificates:manage` | 204; 409 when not revoked |
+
+Changes: `PUT /learning-items/:id/progress` adds `newCertificates: [{ id, code, course: { id, title } }]` (issued by
+this call); `GET /courses/:slug` adds `access.certificate: { requiredPercent, progress: { completed, total }, earned:
+{ id, code, revoked } or null } or null`; admin course detail adds `certificateTemplateId`. Setting
+`certificates.verification { baseUrl }` (https, no trailing /). Migration `certificates`.
+
 ## 1b-5. Implemented endpoints (§10 part 3a — daily challenge, streaks, leaderboards) ✅
 
 | Method | Path | Auth | Notes |

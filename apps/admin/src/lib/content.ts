@@ -263,6 +263,7 @@ export interface CourseDetail {
   examNodes: Array<{ id: string; name: LocalizedText; nodeType: string }>;
   instructors: Array<{ id: string; fullName: string }>;
   activeStudents: number;
+  certificateTemplateId: string | null;
 }
 
 export interface InstructorRow {

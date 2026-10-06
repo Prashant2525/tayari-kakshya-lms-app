@@ -1,6 +1,7 @@
 export * from './admin.js';
 export * from './assessments.js';
 export * from './auth.js';
+export * from './certificates.js';
 export * from './common.js';
 export * from './content.js';
 export * from './errors.js';

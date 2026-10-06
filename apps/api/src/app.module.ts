@@ -37,6 +37,10 @@ import { AdminAttemptsService } from './modules/attempts/admin-attempts.service.
 import { AttemptsController } from './modules/attempts/attempts.controller.js';
 import { AttemptsService } from './modules/attempts/attempts.service.js';
 import { EngagementService } from './modules/attempts/engagement.service.js';
+import { AdminCertificatesController } from './modules/certificates/admin-certificates.controller.js';
+import { AdminCertificatesService } from './modules/certificates/admin-certificates.service.js';
+import { CertificatesController } from './modules/certificates/certificates.controller.js';
+import { CertificatesService } from './modules/certificates/certificates.service.js';
 import { PracticeController } from './modules/content/practice.controller.js';
 import { PracticeService } from './modules/content/practice.service.js';
 import { CatalogService } from './modules/content/catalog.service.js';
@@ -116,6 +120,8 @@ export class InfraModule {}
     AttemptsService,
     EngagementService,
     AdminAttemptsService,
+    CertificatesService,
+    AdminCertificatesService,
     ScopeService,
     QuestionsService,
     QuestionReportsService,
@@ -151,6 +157,8 @@ export class InfraModule {}
     AttemptsService,
     EngagementService,
     AdminAttemptsService,
+    CertificatesService,
+    AdminCertificatesService,
     ScopeService,
     QuestionsService,
     QuestionReportsService,
@@ -206,6 +214,8 @@ export class DomainModule {}
     PracticeController,
     AttemptsController,
     AdminAttemptsController,
+    CertificatesController,
+    AdminCertificatesController,
     AdminQuestionsController,
     QuestionReportsController,
     AdminAssessmentsController,

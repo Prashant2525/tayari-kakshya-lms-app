@@ -40,6 +40,7 @@ export type AnalyticsEvent =
   | 'course_enrolled'
   | 'lesson_opened'
   | 'lesson_completed'
+  | 'certificate_earned'
   | 'practice_answer_checked'
   | 'question_reported'
   | 'bookmark_added'

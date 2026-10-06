@@ -10,8 +10,10 @@ import { AppError, Errors } from '../../common/errors/app-error.js';
 import { Prisma, type Course, type MediaAsset } from '../../generated/prisma/client.js';
 import { PrismaService } from '../../infra/prisma/prisma.service.js';
 import { StorageService } from '../../infra/storage/storage.service.js';
+import { CertificatesService } from '../certificates/certificates.service.js';
 import { MediaService } from '../media/media.service.js';
 import { SettingsService } from '../settings/settings.service.js';
+import { courseProgress } from './course-progress.js';
 import { EntitlementsService, isFreeEnrollable } from './entitlements.service.js';
 import { isLive, liveWhere, publishedWhere } from './publishing.js';
 import { watermarkPdf } from './pdf-watermark.js';
@@ -41,6 +43,7 @@ export class CatalogService {
     private readonly settings: SettingsService,
     private readonly entitlements: EntitlementsService,
     private readonly video: VideoService,
+    private readonly certificates: CertificatesService,
   ) {}
 
   // ───────────── Courses ─────────────
@@ -156,7 +159,13 @@ export class CatalogService {
             : null,
         })),
       // Free courses are joined with POST /courses/:id/enrol (L6); entitled students skip it.
-      access: viewer ? { entitled, canEnrol: !entitled && isFreeEnrollable(course) } : null,
+      access: viewer
+        ? {
+            entitled,
+            canEnrol: !entitled && isFreeEnrollable(course),
+            certificate: await this.certificates.forCourse(viewer.userId, course.id),
+          }
+        : null,
     };
   }
 
@@ -168,7 +177,8 @@ export class CatalogService {
       include: { thumbnail: true },
       orderBy: { updatedAt: 'desc' },
     });
-    const progress = await this.courseProgress(
+    const progress = await courseProgress(
+      this.prisma,
       viewer.userId,
       courses.map((c) => c.id),
     );
@@ -300,7 +310,8 @@ export class CatalogService {
 
   /**
    * Saves where the student is in an item (video seconds / PDF page) and/or that it is finished. Finishing is
-   * permanent; positions keep moving. The same access rules as opening the item apply.
+   * permanent; positions keep moving. The same access rules as opening the item apply. Finishing an item can earn
+   * course certificates (D-050); those issued now are returned so the app can say so.
    */
   async recordProgress(itemId: string, viewer: Viewer, input: LearningProgressInput) {
     const { item } = await this.accessibleItem(itemId, viewer);
@@ -327,7 +338,12 @@ export class CatalogService {
     const row = existing
       ? await this.prisma.learningProgress.update({ where: { userId_learningItemId: key }, data })
       : await this.prisma.learningProgress.create({ data: { ...key, ...data } });
-    return { position: row.position, completed: row.completedAt !== null };
+    const finishedNow = !existing?.completedAt && row.completedAt !== null;
+    return {
+      position: row.position,
+      completed: row.completedAt !== null,
+      newCertificates: finishedNow ? await this.certificates.issueEarned(viewer.userId) : [],
+    };
   }
 
   /** The most recently opened unfinished item the student can still open, with where it was opened from. */
@@ -362,42 +378,6 @@ export class CatalogService {
       };
     }
     return null;
-  }
-
-  /** Finished / total live items per course (subjects are shared, so an item counts in every course it is in). */
-  private async courseProgress(userId: string, courseIds: string[]) {
-    const links = await this.prisma.courseSubject.findMany({
-      where: { courseId: { in: courseIds }, subject: publishedWhere },
-      select: { courseId: true, subjectId: true },
-    });
-    const items = await this.prisma.learningItem.findMany({
-      where: {
-        ...liveWhere(),
-        topic: {
-          ...publishedWhere,
-          chapter: { ...publishedWhere, subjectId: { in: [...new Set(links.map((l) => l.subjectId))] } },
-        },
-      },
-      select: { id: true, topic: { select: { chapter: { select: { subjectId: true } } } } },
-    });
-    const done = new Set(
-      (
-        await this.prisma.learningProgress.findMany({
-          where: { userId, completedAt: { not: null }, learningItemId: { in: items.map((i) => i.id) } },
-          select: { learningItemId: true },
-        })
-      ).map((r) => r.learningItemId),
-    );
-    const result = new Map<string, { completed: number; total: number }>();
-    for (const courseId of courseIds) {
-      const subjects = new Set(links.filter((l) => l.courseId === courseId).map((l) => l.subjectId));
-      const inCourse = items.filter((i) => subjects.has(i.topic.chapter.subjectId));
-      result.set(courseId, {
-        completed: inCourse.filter((i) => done.has(i.id)).length,
-        total: inCourse.length,
-      });
-    }
-    return result;
   }
 
   // ───────────── helpers ─────────────

@@ -1,6 +1,7 @@
 import { palette, radius } from '@tk/design-tokens';
 import { router } from 'expo-router';
 import {
+  Award,
   BadgeCheck,
   Bookmark,
   ChevronRight,
@@ -142,7 +143,8 @@ export default function ProfileScreen() {
           />
           <LinkRow icon={Smartphone} label={t('profile.devices')} href="/profile/devices" />
           <LinkRow icon={Bookmark} label={t('profile.saved.list')} href="/bookmarks" />
-          <LinkRow icon={ClipboardList} label={t('history.title')} href="/attempts" last />
+          <LinkRow icon={ClipboardList} label={t('history.title')} href="/attempts" />
+          <LinkRow icon={Award} label={t('cert.title')} href="/certificates" last />
         </Card>
         <Button
           label={t('profile.logout')}
@@ -171,7 +173,8 @@ function LinkRow({
 }: {
   icon: LucideIcon;
   label: string;
-  href: '/profile/edit' | '/profile/password' | '/profile/devices' | '/bookmarks' | '/attempts';
+  href:
+    '/profile/edit' | '/profile/password' | '/profile/devices' | '/bookmarks' | '/attempts' | '/certificates';
   last?: boolean;
 }) {
   const { colors } = useTheme();

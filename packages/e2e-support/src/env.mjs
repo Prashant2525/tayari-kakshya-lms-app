@@ -3,12 +3,12 @@ import { config } from 'dotenv';
 import { randomBytes } from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { E2E_ADMIN_EMAIL, E2E_ADMIN_PASSWORD, E2E_EDITOR_EMAIL } from './accounts.mjs';
+import { E2E_ADMIN_EMAIL, E2E_ADMIN_PASSWORD, E2E_EDITOR2_EMAIL, E2E_EDITOR_EMAIL } from './accounts.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 config({ path: path.resolve(here, '../../../.env'), quiet: true });
 
-export { E2E_ADMIN_EMAIL, E2E_ADMIN_PASSWORD, E2E_EDITOR_EMAIL } from './accounts.mjs';
+export { E2E_ADMIN_EMAIL, E2E_ADMIN_PASSWORD, E2E_EDITOR2_EMAIL, E2E_EDITOR_EMAIL } from './accounts.mjs';
 
 export const apiDir = path.resolve(here, '../../../apps/api');
 
@@ -69,8 +69,11 @@ export function createE2eEnv({ name, apiPort, webOrigin, redisDb, email = 'log' 
     GOOGLE_OAUTH_ANDROID_CLIENT_ID: '',
     GOOGLE_OAUTH_IOS_CLIENT_ID: '',
     SENTRY_DSN_API: '',
+    // A whole browser suite runs from one IP (127.0.0.1); real students and staff each have their own.
+    RATE_LIMIT_DEFAULT_PER_MINUTE: '5000',
     E2E_ADMIN_EMAIL,
     E2E_EDITOR_EMAIL,
+    E2E_EDITOR2_EMAIL,
     E2E_ADMIN_PASSWORD,
   };
 }

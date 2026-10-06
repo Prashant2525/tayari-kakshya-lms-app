@@ -4,6 +4,19 @@ All notable changes to this project. Format based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Added — 2026-10-06 (§10 part 3b: certificates)
+- CMS: Certificates (templates with wording, signatories, share of lessons, language, sample PDF; issued certificates
+  with search, revoke with a reason and reinstate), a Certificate tab on courses, Settings → Certificate verification.
+- Student app: Profile → Certificates (open the PDF, share), certificate progress on the course page, a "Certificate
+  earned!" dialog when finishing a lesson earns one (D-050).
+- API: migration `certificates`; automatic issue (T-046), public verification and PDF by certificate number (Nepali
+  shaping with the Mukta font, BS date, QR code), permission `certificates:manage`.
+
+### Fixed — 2026-10-06 (part 3b)
+- The back arrow over a course's image was almost invisible in dark mode.
+- The API's default per-IP request limit (300 a minute) can now be raised with `RATE_LIMIT_DEFAULT_PER_MINUTE`
+  (KI-038); browser test suites no longer run into it or into the staff sign-in limit.
+
 ### Added — 2026-10-06 (§10 part 3a: daily challenge, streaks, leaderboards)
 - Student app: daily challenge card on Home with the streak (D-049), past challenges as practice, rank on results,
   leaderboard screen, "answered · marked" counter in exam mode; time warning in the last minute for short tests.

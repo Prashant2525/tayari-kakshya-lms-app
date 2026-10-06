@@ -14,6 +14,7 @@ import { Field, Input, Select, Textarea } from '@/components/ui/form';
 import { Alert, Card, CardHeader, Checkbox, ErrorState, Spinner, Switch } from '@/components/ui/primitives';
 import { api, errorMessage } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
+import type { CertificateTemplateRow } from '@/lib/certificates';
 import {
   isoToNepalLocal,
   nepalLocalToIso,
@@ -32,12 +33,13 @@ import { isEmptyDoc, type JsonNode } from '@/lib/rich-doc';
 import { cn } from '@/lib/utils';
 import { useNodeTypes } from '@/lib/node-types';
 
-type Tab = 'details' | 'pricing' | 'subjects' | 'links';
+type Tab = 'details' | 'pricing' | 'subjects' | 'links' | 'certificate';
 const TABS: Array<[Tab, string]> = [
   ['details', 'Details'],
   ['pricing', 'Pricing & validity'],
   ['subjects', 'Subjects'],
   ['links', 'Exams & instructors'],
+  ['certificate', 'Certificate'],
 ];
 
 /** Saves one section and refreshes the course; shows the server's message on failure. */
@@ -816,6 +818,81 @@ function LinksSection({ course, readOnly }: { course: CourseDetail; readOnly: bo
   );
 }
 
+// ───────────── Certificate ─────────────
+
+function CertificateSection({ course, readOnly }: { course: CourseDetail; readOnly: boolean }) {
+  const s = useSection(course.id);
+  const { can } = useAuth();
+  const templates = useQuery({
+    queryKey: ['certificate-templates'],
+    queryFn: () => api.get<CertificateTemplateRow[]>('/admin/certificate-templates'),
+  });
+  const [templateId, setTemplateId] = useState(course.certificateTemplateId ?? '');
+  const chosen = templates.data?.find((t) => t.id === templateId);
+  return (
+    <Card>
+      <CardHeader
+        title="Certificate"
+        description="Students with access to this course receive a certificate automatically once they finish the share of lessons the template asks for."
+      />
+      <div className="flex flex-col gap-4 p-5">
+        {s.error ? <Alert tone="danger" title={s.error} /> : null}
+        {templates.isPending ? (
+          <Spinner />
+        ) : templates.isError ? (
+          <ErrorState error={templates.error} onRetry={() => void templates.refetch()} />
+        ) : (
+          <Field
+            label="Certificate template"
+            hint={
+              chosen
+                ? `${chosen.requiredPercent}% of lessons to finish${chosen.active ? '' : ' · inactive: no new certificates'}`
+                : 'No certificate for this course.'
+            }
+          >
+            {(a) => (
+              <Select
+                {...a}
+                value={templateId}
+                disabled={readOnly}
+                onChange={(e) => setTemplateId(e.target.value)}
+              >
+                <option value="">No certificate</option>
+                {templates.data.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.name}
+                    {t.active ? '' : ' (inactive)'}
+                  </option>
+                ))}
+              </Select>
+            )}
+          </Field>
+        )}
+        {can('certificates:manage') ? (
+          <p className="text-xs text-text-muted">
+            Write or change templates under{' '}
+            <Link to="/certificates" className="text-link">
+              Certificates
+            </Link>
+            .
+          </p>
+        ) : null}
+      </div>
+      <SectionFooter
+        saving={s.saving}
+        disabled={readOnly}
+        note="Students who already qualify receive it the next time they open the course or their certificates."
+        onSave={() =>
+          void s.save(
+            () => api.put(`/admin/courses/${course.id}/certificate`, { templateId: templateId || null }),
+            'Certificate saved',
+          )
+        }
+      />
+    </Card>
+  );
+}
+
 // ───────────── Publishing ─────────────
 
 function PublishingCard({ course }: { course: CourseDetail }) {
@@ -931,6 +1008,7 @@ export function CoursePage() {
     c.examNodes.length,
     c.instructors.length,
     c.slug,
+    c.certificateTemplateId,
   ]);
   return (
     <>
@@ -997,6 +1075,9 @@ export function CoursePage() {
           ) : null}
           {active === 'subjects' ? <SubjectsSection key={key} course={c} readOnly={editReadOnly} /> : null}
           {active === 'links' ? <LinksSection key={key} course={c} readOnly={editReadOnly} /> : null}
+          {active === 'certificate' ? (
+            <CertificateSection key={key} course={c} readOnly={editReadOnly} />
+          ) : null}
         </div>
         <div>
           <PublishingCard key={key} course={c} />

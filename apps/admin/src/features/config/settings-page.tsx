@@ -647,6 +647,30 @@ export function SettingsPage() {
         </SettingCard>
 
         <SettingCard
+          row={row('certificates.verification')}
+          title="Certificate verification"
+          description="Printed on every certificate with a QR code, followed by the certificate number. Leave blank to print the number only."
+        >
+          {(d, set, disabled) => (
+            <Field
+              label="Verification page"
+              hint="https address without the trailing /, e.g. your website's certificate page."
+            >
+              {(a) => (
+                <Input
+                  {...a}
+                  type="url"
+                  value={d.baseUrl ?? ''}
+                  placeholder="https://example.com/certificates"
+                  disabled={disabled}
+                  onChange={(e) => set({ baseUrl: e.target.value.trim() || null })}
+                />
+              )}
+            </Field>
+          )}
+        </SettingCard>
+
+        <SettingCard
           row={row('app.maintenance')}
           title="Maintenance mode"
           description="Temporarily closes the student app and website. This admin panel stays available."

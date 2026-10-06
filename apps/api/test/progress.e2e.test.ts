@@ -30,12 +30,12 @@ describe('learning progress', () => {
     const video = seeded.freeVideo.id as string;
     let res = await progress(student, video, { courseId: seeded.course.id, position: 95 });
     expect(res.status).toBe(200);
-    expect(res.body).toEqual({ position: 95, completed: false });
+    expect(res.body).toEqual({ position: 95, completed: false, newCertificates: [] });
     res = await progress(student, video, { position: 200, completed: true });
-    expect(res.body).toEqual({ position: 200, completed: true });
+    expect(res.body).toEqual({ position: 200, completed: true, newCertificates: [] });
     // Finishing is permanent: a later position update does not undo it.
     res = await progress(student, video, { position: 10 });
-    expect(res.body).toEqual({ position: 10, completed: true });
+    expect(res.body).toEqual({ position: 10, completed: true, newCertificates: [] });
 
     const outline = await call(
       ctx,
