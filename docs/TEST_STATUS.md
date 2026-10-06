@@ -1,6 +1,6 @@
 # Test Status
 
-Last updated: 2026-10-06 (§10 part 3b: certificates). `pnpm test` runs unit + integration suites (needs `pnpm infra:up`);
+Last updated: 2026-10-06 (§10 part 3c: mistake notebook). `pnpm test` runs unit + integration suites (needs `pnpm infra:up`);
 `pnpm build && pnpm --filter @tk/admin e2e` and `pnpm build && pnpm --filter @tk/mobile e2e` run the browser suites
 (the student suite also needs Mailpit, part of `pnpm infra:up`).
 
@@ -9,14 +9,31 @@ Last updated: 2026-10-06 (§10 part 3b: certificates). `pnpm test` runs unit + i
 | Package | Tests | Kind |
 |---|---|---|
 | `@tk/design-tokens` | 39 | WCAG contrast for every text/background pair (light + dark), CSS generation |
-| `@tk/domain` | 53 | BS calendar, Kathmandu day boundary, fiscal year, money/VAT/discounts, access validity |
+| `@tk/domain` | 58 | BS calendar, Kathmandu day boundary, fiscal year, money/VAT/discounts, access validity |
 | `@tk/contracts` | 21 | Schema behaviour (localized text, email normalisation, mass assignment, settings defaults, rich-text validation) |
-| `@tk/api` | 211 | Integration against real PostgreSQL + Redis + S3 (SeaweedFS) through the HTTP stack; TOTP RFC 6238 vectors; RBAC, video, watermark unit |
+| `@tk/api` | 216 | Integration against real PostgreSQL + Redis + S3 (SeaweedFS) through the HTTP stack; TOTP RFC 6238 vectors; RBAC, video, watermark unit |
 | `@tk/admin` (unit) | 35 | API client (headers, refresh single-flight, retry, session loss, error mapping), BS formatting, Button `asChild` regression |
 | `@tk/admin` (E2E, Playwright) | 23 | Real browser + real API + `*_e2e` database |
 | `@tk/mobile` (unit) | 36 | API client (single-flight refresh, early refresh, session end, maintenance), translations complete in both languages, BS dates and Kathmandu weekday, force-update/maintenance gate, form checks, Nepali phone numbers |
-| `@tk/mobile` (E2E, Playwright, phone viewport) | 22 | Web build + real API + `*_mobile_e2e` database + Mailpit |
-| **Total** | **440** | |
+| `@tk/mobile` (E2E, Playwright, phone viewport) | 24 | Web build + real API + `*_mobile_e2e` database + Mailpit |
+| **Total** | **452** | |
+
+### Added with the mistake notebook (§10 part 3c)
+- **Domain (unit, 5):** practice feedback (correct / partial / wrong / skipped, written answers self-reviewed); what
+  counts as a mistake (D-050); first mistake → N correct in a row masters it, a wrong one resets the run, N = 1; a
+  mastered or removed question returns on a new mistake with its history; a mistake older than the latest revision
+  only counts in the history.
+- **API (5 integration tests):** practice answers scored on the server (wrong and partial kept, correct and
+  unanswered not; written answers and mismatched types refused); notebook list and summary; revision to mastery with
+  the CMS N (2, then 1), reset on a wrong answer, partial is not correct, 404 once mastered or never answered,
+  removal, return with history; test mistakes **only after results are released** (mutation-checked), never skipped
+  answers, not twice, history across tests; premium answers locked without access unless a released test showed the
+  solution (mutation-checked); self-graded written answers join once completed and are self-reviewed; sign-in
+  required; bad cursor refused; erasure removes the notebook.
+- **Browser E2E (student app, 2 new):** wrong practice answers → "Saved to your mistake notebook."; Profile →
+  Mistake notebook → 2 to revise → correct twice in a row → mastered → remove the other → 0 to revise · 1 mastered.
+- **Screenshots reviewed** (notebook, revision answer, mastered, practice note, Nepali dark). Fixed "1 marks" on
+  practice questions.
 
 ### Added with certificates (§10 part 3b)
 - **Domain (unit, 4):** certificate earned at exactly the share (66.7 % vs 66 / 67 %, empty course never); 8 bytes →

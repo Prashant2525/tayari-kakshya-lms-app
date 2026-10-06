@@ -11,7 +11,7 @@ import { mediaIdsIn, splitQuestion } from './practice-view.js';
 import { liveWhere, publishedWhere } from './publishing.js';
 
 /** A question is shown to students when it is published and its topic (if any) is published too. */
-const visibleQuestion: Prisma.QuestionWhereInput = {
+export const visibleQuestion: Prisma.QuestionWhereInput = {
   deletedAt: null,
   status: 'published',
   currentVersionId: { not: null },
@@ -23,12 +23,12 @@ const visibleItem = (): Prisma.LearningItemWhereInput => ({
   topic: { ...publishedWhere, chapter: { ...publishedWhere, subject: publishedWhere } },
 });
 
-const questionInclude = {
+export const questionInclude = {
   currentVersion: true,
   group: true,
   sources: { include: { examNode: true } },
 } satisfies Prisma.QuestionInclude;
-type QuestionRow = Prisma.QuestionGetPayload<{ include: typeof questionInclude }>;
+export type QuestionRow = Prisma.QuestionGetPayload<{ include: typeof questionInclude }>;
 
 type Subject = { id: string; name: LocalizedText };
 export type BookmarkView =
@@ -96,7 +96,8 @@ export class PracticeService {
     return { ...view, media: await this.media.publicImageUrls([...mediaIdsIn(view)]) };
   }
 
-  private view(q: QuestionRow, hasSubjectAccess: boolean) {
+  /** The student view of a question; the answer only when it is not locked (rule 5). */
+  view(q: QuestionRow, hasSubjectAccess: boolean) {
     const locked = q.accessLevel === 'premium' && !hasSubjectAccess;
     const { question, answer } = splitQuestion(q.currentVersion!.content as QuestionContent);
     return {

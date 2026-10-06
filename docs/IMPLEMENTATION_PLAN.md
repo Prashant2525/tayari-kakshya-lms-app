@@ -15,7 +15,7 @@ Scope = approved decisions only (`DECISIONS.md`). Each phase ends with tests, do
 | 7 | Question bank + assessment CMS | see §7 | ☐ |
 | 8 | Student mobile foundation | see §8 (includes design preview gate) | ☐ |
 | 9 | Student learning | see §9 | ☑ (part 2 in PR) |
-| 10 | Exam engine + engagement | see §10 | ◐ parts 1–3b |
+| 10 | Exam engine + engagement | see §10 | ◐ parts 1–3c |
 | 11 | Commerce + website checkout | see §11 | ☐ |
 | 12 | Communication & CMS content | see §12 | ☐ |
 | 13 | Progress & community | see §13 | ☐ |
@@ -133,8 +133,10 @@ Tests: scoring per type, negative marking, blueprint generation.
   (wording, signatories, share of lessons, preview), course Certificate tab, automatic issue, Profile → Certificates,
   course-page progress, "certificate earned" dialog, PDF (Nepali shaping, BS date, QR), public verification,
   revoke / reinstate (audited), Settings → Certificate verification
-- ☐ Part 3c: mistake notebook & revision mode (D-050 rules: tests + practice feed it; wrong or partly correct;
-  leaves after N correct in a row, N in CMS settings, or when the student removes it)
+- ☑ Part 3c (branch `feature/mistake-notebook`, D-050, T-047): mistake notebook & revision mode — practice
+  answers recorded and scored on the server, test mistakes after release, Profile → Mistake notebook (subject filter,
+  revision cards, self-review for written answers, remove), "Revise your mistakes" on results, Settings → Mistake
+  notebook (N)
 
 Original plan: assessments list, exam mode (timer, palette, autosave queue, resume, submit,
 auto-submit), results & solutions, attempt history, subjective self-grading, daily challenge + streaks, leaderboards,

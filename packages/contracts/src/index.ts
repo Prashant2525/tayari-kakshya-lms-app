@@ -5,6 +5,7 @@ export * from './certificates.js';
 export * from './common.js';
 export * from './content.js';
 export * from './errors.js';
+export * from './mistakes.js';
 export * from './permissions.js';
 export * from './questions.js';
 export * from './rich-text.js';

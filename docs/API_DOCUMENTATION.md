@@ -133,6 +133,19 @@ Admin: `AssessmentInput` gains optional `premiumAccess` (linked/any_course/plans
 
 Students: released results include `graderComment` on written answers.
 
+## 1b-7. Implemented endpoints (§10 part 3c — mistake notebook) ✅
+
+| Method | Path | Auth | Notes |
+|---|---|---|---|
+| POST | `/practice-questions/:id/check` | student | `{ response }` → `{ outcome, addedToNotebook }`; scored on the server; 400 for written answers or a response of another type; 403 `CONTENT_LOCKED` without access; 600 per user per hour |
+| GET | `/me/mistakes?subjectId=&cursor=&limit=` | student | active questions, newest mistake first: `{ data: [{ questionId, timesWrong, correctStreak, lastWrongAt, lastSource, subject, question }], nextCursor, required, media }`; `question` is the practice view (answer null when locked) |
+| GET | `/me/mistakes/summary` | student | `{ active, mastered, required, subjects: [{ id, name, count }] }` |
+| POST | `/me/mistakes/:questionId/review` | student | `{ response }` or, for written answers, `{ selfCorrect }` → `{ outcome, correctStreak, required, mastered }`; 404 when not in the notebook; 403 when locked |
+| DELETE | `/me/mistakes/:questionId` | student | 204; 404 when not in the notebook |
+
+Reading the notebook first adds the mistakes of completed attempts whose results are now released. Setting
+`mistakes.revision { correctInARow }` (1–10, default 2). Migration `mistakes`.
+
 ## 1b-6. Implemented endpoints (§10 part 3b — certificates) ✅
 
 | Method | Path | Auth | Notes |

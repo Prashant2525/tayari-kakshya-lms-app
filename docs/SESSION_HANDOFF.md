@@ -2,7 +2,7 @@
 
 Session date: 2026-10-02 (session 4 — resumed after a VS Code crash)
 Current phase: **Phase 6 — content CMS, API layer complete and verified locally**
-Current task: §10 part 3b (certificates) done; PR open from `feature/certificates`; next part 3c (mistake notebook)
+Current task: §10 part 3c (mistake notebook) done; PR open from `feature/mistake-notebook`
 
 ## Completed this session
 - Recovered the interrupted work from the repository (nothing lost). Verified the uncommitted content API:
@@ -68,6 +68,13 @@ Current task: §10 part 3b (certificates) done; PR open from `feature/certificat
 - PR #9 / #10 merged. Branch `feature/student-learning`. API part committed first (`485f5f7`): progress, Continue,
   self-hosted PDF reader. Then the app: Courses tab, course page, Home current course, subject outline, lessons.
 - Verified with 8 browser tests (real API, PDF rendered by pdf.js) and screenshots; four defects fixed (TEST_STATUS).
+
+## Session 18 (2026-10-06)
+- PR #19 merged. Branch `feature/mistake-notebook` (D-050, T-047).
+- Design point: a test's mistakes join the notebook only once its results are released — adding them at submit
+  would reveal which answers were wrong before release (manual / after-close release).
+- Practice answers are now also sent to the API (scored again there); T-041's "not stored" no longer holds.
+- Screenshots: fixed "1 marks" on practice questions.
 
 ## Session 17 (2026-10-06)
 - PR #18 merged. Owner answered the part 3b questions → D-050 (certificates issued automatically; mistake notebook fed
@@ -173,9 +180,9 @@ Current task: §10 part 3b (certificates) done; PR open from `feature/certificat
 - Nothing partially implemented. Admin screens for Phase 6 not started.
 
 ## Exact next steps
-1. Owner reviews and merges the §10 part 3b PR (`feature/certificates` → `main`); CI must be green.
-2. §10 part 3c: mistake notebook & revision mode (D-050) — record practice answers, notebook API + CMS setting for N,
-   student notebook and revision screens.
+1. Owner reviews and merges the §10 part 3c PR (`feature/mistake-notebook` → `main`); CI must be green.
+2. Review what remains of §10 in IMPLEMENTATION_PLAN (edge-case hardening: reconnect, double submit, expiry) and
+   close the phase; then Phase 11 (commerce) — needs the payment-gateway answers (Q25).
 3. Google Android/iOS clients after the app identifiers (L5, KI-029); Sentry source maps with the first EAS build.
 
 ## Files changed

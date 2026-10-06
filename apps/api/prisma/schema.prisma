@@ -87,6 +87,7 @@ model User {
   streak              UserStreak?
   gradedAnswers       AttemptAnswer[]          @relation("AttemptAnswerGrader")
   certificates        Certificate[]
+  mistakes            Mistake[]
   revokedCertificates Certificate[]            @relation("CertificateRevoker")
 
   @@index([kind, status])
@@ -891,6 +892,7 @@ model Question {
 
   assessmentLinks AssessmentQuestion[]
   attemptAnswers  AttemptAnswer[]
+  mistakes        Mistake[]
 
   @@index([subjectId, topicId, type, difficulty, status])
   @@index([groupId])
@@ -1185,6 +1187,9 @@ model Attempt {
   autoSubmitted    Boolean       @default(false) @map("auto_submitted")
   /// A past daily challenge taken as practice (D-049): never counts for streaks or rankings.
   practice         Boolean       @default(false)
+  /// When this attempt's wrong / partly correct answers were added to the mistake notebook (D-050): only once it is
+  /// completed and its results are released, so the notebook never reveals unreleased results.
+  mistakesSyncedAt DateTime?     @map("mistakes_synced_at") @db.Timestamptz(6)
   startedAt        DateTime      @default(now()) @map("started_at") @db.Timestamptz(6)
   deadlineAt       DateTime?     @map("deadline_at") @db.Timestamptz(6)
   submittedAt      DateTime?     @map("submitted_at") @db.Timestamptz(6)
@@ -1311,4 +1316,43 @@ model Certificate {
   @@index([courseId, issuedAt(sort: Desc)])
   @@index([templateId])
   @@map("certificates")
+}
+
+enum MistakeStatus {
+  active
+  mastered
+  removed
+}
+
+enum MistakeSource {
+  test
+  practice
+}
+
+/// The mistake notebook (D-050): one row per student and question, kept after it is mastered or removed so a new
+/// mistake brings it back with its history.
+model Mistake {
+  userId         String        @map("user_id") @db.Uuid
+  questionId     String        @map("question_id") @db.Uuid
+  status         MistakeStatus @default(active)
+  timesWrong     Int           @default(1) @map("times_wrong")
+  /// Correct answers in revision in a row; mastered at the CMS setting `mistakes.revision.correctInARow`.
+  correctStreak  Int           @default(0) @map("correct_streak")
+  lastSource     MistakeSource @map("last_source")
+  lastWrongAt    DateTime      @map("last_wrong_at") @db.Timestamptz(6)
+  lastReviewedAt DateTime?     @map("last_reviewed_at") @db.Timestamptz(6)
+  masteredAt     DateTime?     @map("mastered_at") @db.Timestamptz(6)
+  /// The answer and explanation may be shown even without access to the subject: the student already saw them in
+  /// the released solutions of a test they took.
+  answerVisible  Boolean       @default(false) @map("answer_visible")
+  createdAt      DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@id([userId, questionId])
+  @@index([userId, status, lastWrongAt(sort: Desc)])
+  @@index([questionId])
+  @@map("mistakes")
 }

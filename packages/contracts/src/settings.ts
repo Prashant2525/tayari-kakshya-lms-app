@@ -182,6 +182,12 @@ export const SETTINGS = {
     default: { baseUrl: null },
     public: false,
   },
+  /** D-050: a question leaves the mistake notebook after this many correct revision answers in a row (default 2). */
+  'mistakes.revision': {
+    schema: z.object({ correctInARow: z.number().int().min(1).max(10) }),
+    default: { correctInARow: 2 },
+    public: false,
+  },
 } as const satisfies Record<string, { schema: z.ZodType; default: unknown; public: boolean }>;
 
 export type SettingKey = keyof typeof SETTINGS;
