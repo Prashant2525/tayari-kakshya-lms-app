@@ -3,6 +3,7 @@ import { router } from 'expo-router';
 import {
   Award,
   BadgeCheck,
+  BellRing,
   NotebookPen,
   Receipt,
   Bookmark,
@@ -148,6 +149,7 @@ export default function ProfileScreen() {
             href="/profile/password"
           />
           <LinkRow icon={Smartphone} label={t('profile.devices')} href="/profile/devices" />
+          <LinkRow icon={BellRing} label={t('notifSettings.title')} href="/profile/notifications" />
           <LinkRow icon={Bookmark} label={t('profile.saved.list')} href="/bookmarks" />
           <LinkRow icon={ClipboardList} label={t('history.title')} href="/attempts" />
           <LinkRow icon={NotebookPen} label={t('mistakes.title')} href="/mistakes" />
@@ -187,6 +189,7 @@ function LinkRow({
     | '/profile/edit'
     | '/profile/password'
     | '/profile/devices'
+    | '/profile/notifications'
     | '/bookmarks'
     | '/attempts'
     | '/certificates'

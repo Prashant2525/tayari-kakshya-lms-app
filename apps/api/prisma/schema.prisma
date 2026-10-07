@@ -51,6 +51,8 @@ model User {
   passwordHash        String?    @map("password_hash")
   fullName            String     @map("full_name")
   locale              Locale     @default(en)
+  /// When the student last opened the Notice tab (for its "new" badge).
+  noticesSeenAt       DateTime?  @map("notices_seen_at") @db.Timestamptz(6)
   dob                 DateTime?  @db.Date
   gender              String?
   educationLevelId    String?    @map("education_level_id") @db.Uuid
@@ -78,6 +80,10 @@ model User {
   grantedEntitlements Entitlement[]            @relation("EntitlementGrantedBy")
   orders              Order[]
   refundsRequested    Refund[]                 @relation("RefundRequester")
+  notifications       Notification[]
+  deliveries          NotificationDelivery[]
+  pushTokens          PushToken[]
+  notificationPrefs   NotificationPreference?
   referralCode        ReferralCode?
   referralsMade       Referral[]               @relation("Referrer")
   referredBy          Referral?                @relation("Referee")
@@ -1784,4 +1790,128 @@ model Referral {
 
   @@index([referrerId, createdAt(sort: Desc)])
   @@map("referrals")
+}
+
+enum NoticeKind {
+  official
+  announcement
+  instructor
+}
+
+/// Notices (D-019, D-060): written and published in the CMS, shown in the app's Notice tab to their audience (for now
+/// everyone). When `notify` is set, going live also pushes and emails students (their preferences apply).
+model Notice {
+  id          String        @id @default(uuid(7)) @db.Uuid
+  kind        NoticeKind
+  title       Json
+  body        Json
+  /// {"type":"all"} — kept as data so narrower audiences can be added without a migration.
+  audience    Json          @default("{\"type\":\"all\"}")
+  isPinned    Boolean       @default(false) @map("is_pinned")
+  expiresAt   DateTime?     @map("expires_at") @db.Timestamptz(6)
+  notify      Boolean       @default(false)
+  status      PublishStatus @default(draft)
+  publishAt   DateTime?     @map("publish_at") @db.Timestamptz(6)
+  /// Set when push / email deliveries were queued (once).
+  notifiedAt  DateTime?     @map("notified_at") @db.Timestamptz(6)
+  createdById String?       @map("created_by") @db.Uuid
+  updatedById String?       @map("updated_by") @db.Uuid
+  createdAt   DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt   DateTime?     @map("deleted_at") @db.Timestamptz(6)
+
+  @@index([status, publishAt])
+  @@map("notices")
+}
+
+enum NotificationCategory {
+  notice
+  course_update
+  exam_reminder
+  result
+  purchase
+}
+
+/// A student's in-app notification (D-033). `sourceKey` makes each event land once per student.
+model Notification {
+  id        String               @id @default(uuid(7)) @db.Uuid
+  userId    String               @map("user_id") @db.Uuid
+  category  NotificationCategory
+  title     Json
+  body      Json
+  /// Where tapping it leads, e.g. {"type":"order","id":"…"}.
+  link      Json?
+  sourceKey String               @map("source_key")
+  createdAt DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
+  readAt    DateTime?            @map("read_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@unique([userId, sourceKey])
+  @@index([userId, createdAt(sort: Desc)])
+  @@map("notifications")
+}
+
+enum DeliveryChannel {
+  push
+  email
+}
+
+enum DeliveryStatus {
+  pending
+  sent
+  failed
+  /// Nothing to send to (no device registered, no email address).
+  skipped
+}
+
+/// Push and email waiting to go out, sent by the worker and retried; one per student, channel and event.
+model NotificationDelivery {
+  id            String               @id @default(uuid(7)) @db.Uuid
+  userId        String               @map("user_id") @db.Uuid
+  channel       DeliveryChannel
+  category      NotificationCategory
+  title         Json
+  body          Json
+  link          Json?
+  sourceKey     String               @map("source_key")
+  status        DeliveryStatus       @default(pending)
+  attempts      Int                  @default(0)
+  nextAttemptAt DateTime             @default(now()) @map("next_attempt_at") @db.Timestamptz(6)
+  sentAt        DateTime?            @map("sent_at") @db.Timestamptz(6)
+  error         String?
+  createdAt     DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@unique([userId, channel, sourceKey])
+  @@index([status, nextAttemptAt])
+  @@map("notification_deliveries")
+}
+
+/// Expo push tokens of the student's devices; switched off when Expo says the device is gone.
+model PushToken {
+  id            String    @id @default(uuid(7)) @db.Uuid
+  userId        String    @map("user_id") @db.Uuid
+  token         String    @unique
+  platform      String
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  lastSeenAt    DateTime  @default(now()) @map("last_seen_at") @db.Timestamptz(6)
+  invalidatedAt DateTime? @map("invalidated_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@index([userId])
+  @@map("push_tokens")
+}
+
+/// What a student chose to hear about by push / email (D-033); missing = everything on.
+model NotificationPreference {
+  userId    String   @id @map("user_id") @db.Uuid
+  prefs     Json
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@map("notification_preferences")
 }

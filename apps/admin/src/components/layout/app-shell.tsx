@@ -6,6 +6,7 @@ import {
   ClipboardCheck,
   Crown,
   Gift,
+  Megaphone,
   TicketPercent,
   Undo2,
   FileQuestion,
@@ -81,6 +82,10 @@ const NAV: Array<{ group: string; items: NavItem[] }> = [
       { to: '/refunds', label: 'Refunds', icon: Undo2, permission: 'orders:read' },
       { to: '/referrals', label: 'Referrals', icon: Gift, permission: 'orders:read' },
     ],
+  },
+  {
+    group: 'Communication',
+    items: [{ to: '/notices', label: 'Notices', icon: Megaphone, permission: 'notices:edit' }],
   },
   {
     group: 'People',

@@ -1,6 +1,6 @@
 import { palette, radius } from '@tk/design-tokens';
 import { router } from 'expo-router';
-import { Search } from 'lucide-react-native';
+import { Bell, Search } from 'lucide-react-native';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useMe, useTargetPosts } from '@/api/queries';
@@ -17,6 +17,7 @@ import { Button } from '@/ui/button';
 import { Card } from '@/ui/layout';
 import { OfflineBanner } from '@/ui/states';
 import { Text } from '@/ui/text';
+import { useUnreadNotifications } from '@/api/notices';
 
 /**
  * Home: greeting with today's BS date, the exam being prepared for, the current course with Continue, and courses
@@ -29,6 +30,7 @@ export default function HomeScreen() {
   const targets = useTargetPosts();
   const firstName = me.data?.fullName.trim().split(/\s+/)[0] ?? '';
   const target = targets.data?.[0];
+  const unread = useUnreadNotifications(true).data?.count ?? 0;
 
   return (
     <View style={[styles.fill, { backgroundColor: colors.bg }]}>
@@ -48,6 +50,28 @@ export default function HomeScreen() {
               {todayLabel(new Date(), locale)}
             </Text>
           </View>
+          <Pressable
+            role="link"
+            aria-label={
+              unread > 0 ? t('notifications.bellUnread', { count: unread }) : t('notifications.title')
+            }
+            onPress={() => router.push('/notifications')}
+            hitSlop={8}
+            style={styles.bell}
+          >
+            <Bell size={24} color={palette.white} strokeWidth={1.75} />
+            {unread > 0 ? (
+              <View style={[styles.badge, { backgroundColor: colors.danger }]}>
+                <Text
+                  variant="caption"
+                  weight={700}
+                  style={{ color: palette.white, fontSize: 11, lineHeight: 14 }}
+                >
+                  {unread > 9 ? '9+' : unread}
+                </Text>
+              </View>
+            ) : null}
+          </Pressable>
         </View>
       </SafeAreaView>
       <ScrollView contentContainerStyle={styles.body}>
@@ -124,6 +148,18 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 640,
     alignSelf: 'center',
+  },
+  bell: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+  badge: {
+    position: 'absolute',
+    top: 4,
+    right: 2,
+    minWidth: 18,
+    height: 18,
+    borderRadius: 9,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 4,
   },
   avatar: {
     width: 44,

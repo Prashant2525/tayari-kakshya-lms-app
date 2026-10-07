@@ -1,11 +1,13 @@
 import { Tabs } from 'expo-router';
 import { BookOpen, House, Megaphone, User } from 'lucide-react-native';
+import { useUnseenNotices } from '@/api/notices';
 import { useT } from '@/i18n/use-t';
 import { fontFamilies, useTheme } from '@/theme/theme';
 
 export default function TabsLayout() {
   const { t } = useT();
   const { colors } = useTheme();
+  const unseen = useUnseenNotices(true).data?.count ?? 0;
   return (
     <Tabs
       screenOptions={{
@@ -36,6 +38,8 @@ export default function TabsLayout() {
         name="notices"
         options={{
           title: t('tabs.notices'),
+          tabBarBadge: unseen > 0 ? (unseen > 9 ? '9+' : unseen) : undefined,
+          tabBarAccessibilityLabel: unseen > 0 ? t('notices.tabNew', { count: unseen }) : t('tabs.notices'),
           tabBarIcon: ({ color }) => <Megaphone size={24} color={color} strokeWidth={1.75} />,
         }}
       />

@@ -8,3 +8,10 @@ export const E2E_EDITOR_EMAIL = 'e2e-editor@example.test';
  * minutes (a security limit, not loosened for tests), so specs beyond that budget sign in with this one.
  */
 export const E2E_EDITOR2_EMAIL = 'e2e-editor-2@example.test';
+/** A third one, for the same reason. */
+export const E2E_EDITOR3_EMAIL = 'e2e-editor-3@example.test';
+/**
+ * A student made by the seed (same password), for specs that need one but not the sign-up itself: sign-up allows 10
+ * accounts per IP per hour, and a whole suite runs from one IP.
+ */
+export const E2E_STUDENT_EMAIL = 'e2e-student@example.test';

@@ -17,6 +17,7 @@ import { track } from '@/lib/analytics';
 import { deviceInfo } from '@/lib/device';
 import { useSession } from '@/state/session';
 import { api, queryClient } from './client';
+import { unregisterPush } from '@/lib/push';
 
 export interface ExamNodeView {
   id: string;
@@ -152,6 +153,7 @@ export function useResetPassword() {
 }
 
 export async function logout() {
+  await unregisterPush();
   try {
     await api.post('/auth/logout');
   } catch {

@@ -202,6 +202,15 @@ Current task: Phase 11 part 3 (receipts + refunds) done on `feature/receipts-ref
 - Nothing partially implemented. Admin screens for Phase 6 not started.
 
 ## Exact next steps
+0f. 2026-10-07 (Phase 12a): PR #29 merged. Owner answered the Phase 12 questions (D-060). `feature/notices` (T-055):
+   notices + notification pipeline (`NotificationsService.notify()` → in-app row + outbox; worker job
+   `notifications`; Expo push via `PushClient`, fake in tests). Next: **12b** — use `notify()` for (1) purchase paid
+   (category `purchase`, link order, in `settle()` after commit), (2) results released (manual release, after-close
+   by the worker, grading release; add `assessments.results_notified_at` to send once), (3) exam reminders: setting
+   `notifications.examReminders` (minutes before, default 1440 and 60) in the SETTINGS registry, worker sends them to
+   students who can take the test (course / subject / exam-node scope), keyed by assessment + offset + opens_at so a
+   moved test is reminded again, (4) CMS "Notify students" on a course page (course_update, enrolled students).
+   Then 12c articles, 12d static pages / FAQs / contact options / banners (DRAFT legal texts, D-038).
 0e. 2026-10-07 (later): PR #27 and #28 merged. Part 4b on `feature/referrals` (T-054, D-058, D-059) completes
    Phase 11. Next: Phase 12 (§12) — articles with BS dates and quizzes, notices with audiences, notification pipeline
    (in-app, Expo push, email) with preferences, banners / home sections, FAQs, contact options, static pages

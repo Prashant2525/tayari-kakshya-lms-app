@@ -6,6 +6,8 @@ import type { ExpoConfig } from 'expo/config';
  */
 const androidPackage = process.env.APP_ANDROID_PACKAGE || undefined;
 const iosBundleId = process.env.APP_IOS_BUNDLE_ID || undefined;
+/** The EAS project (push notification tokens need it, D-033); set when the owner creates it (release phase). */
+const easProjectId = process.env.EAS_PROJECT_ID || undefined;
 
 const config: ExpoConfig = {
   name: 'Tayari Kakshya',
@@ -28,11 +30,13 @@ const config: ExpoConfig = {
     'expo-font',
     'expo-localization',
     'expo-web-browser',
+    'expo-notifications',
     // Native crash reporting in development / store builds (T-042). Source maps are uploaded by release builds
     // with SENTRY_AUTH_TOKEN (+ SENTRY_ORG / SENTRY_PROJECT) set as EAS secrets.
     '@sentry/react-native/expo',
   ],
   experiments: { typedRoutes: true },
+  ...(easProjectId ? { extra: { eas: { projectId: easProjectId } } } : {}),
 };
 
 export default config;

@@ -121,10 +121,12 @@ partial indexes, generated `tsvector` columns, check constraints and triggers th
 |---|---|
 | `article_categories` | `kind` scope, `name` localized, `sort_order` |
 | `articles` | `kind` (current_affairs/gorkhapatra/news/blog), `period` (daily/weekly/monthly/yearly/null), `period_date` (AD, displayed BS), `title`, `summary`, `body` (localized rich), `cover_media_id`, `category_id`, `source_name`, `source_url`, `author_id`, `quiz_assessment_id` null, `course_id` null (null = global), `is_featured`, `status`, `publish_at`, `search_vector` (generated), `deleted_at` |
-| `notices` | `kind` (official/announcement/instructor_message), `title`, `body` localized, `attachments` (media ids), `audience` jsonb (all / course ids / post ids / users), `is_pinned`, `author_id`, `status`, `publish_at`, `expires_at` |
-| `notifications` | per-user inbox: `user_id`, `type`, `title`, `body` localized, `data` jsonb (deep link), `read_at`, `created_at` — index `(user_id, read_at, created_at desc)` |
-| `notification_preferences` | `user_id`, `category`, `push`, `email`, `in_app` |
-| `push_tokens` | `user_id`, `session_id`, `expo_token` unique, `platform`, `last_seen_at`, `invalidated_at` |
+| `notices` | `kind` (official/announcement/instructor), `title`, `body` localized rich, `audience` jsonb (CHECK object with `type`; `{"type":"all"}` only, D-060), `is_pinned`, `expires_at`, `notify`, `notified_at` (fan-out claimed once), `status`, `publish_at`, `created_by` / `updated_by`, `deleted_at` — partial index `notices_live_idx` (pinned, publish_at desc) where not deleted |
+| `notifications` | per-user inbox: `user_id`, `category`, `title`, `body` localized, `link` jsonb (deep link), `source_key` (UNIQUE with user — an event is never shown twice), `read_at`, `created_at` — index `(user_id, created_at desc)` |
+| `notification_deliveries` | push / email **outbox**: `user_id`, `channel`, `category`, title / body / link, `source_key` (UNIQUE with user + channel), `status` (pending/sent/failed/skipped), `attempts`, `next_attempt_at`, `sent_at` (CHECK set exactly when sent), `error` — index `(status, next_attempt_at)` |
+| `notification_preferences` | `user_id` PK, `prefs` jsonb (`{category: {push, email}}`; missing = on) |
+| `push_tokens` | `user_id`, `token` unique (Expo push token), `platform`, `last_seen_at`, `invalidated_at` |
+| `users.notices_seen_at` | when the student last opened the Notice tab (badge) |
 | `notification_templates` | `key` unique, localized subject/body per channel |
 | `notification_campaigns` | CMS broadcasts: audience, channels, schedule, status, stats |
 | `banners` | `placement`, `title`, `image_media_id`, `cta_label`, `deep_link`, `audience` jsonb, `starts_at`, `ends_at`, `sort_order`, `status` |
