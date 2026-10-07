@@ -6,11 +6,16 @@ import type { ExpoConfig } from 'expo/config';
  */
 const androidPackage = process.env.APP_ANDROID_PACKAGE || undefined;
 const iosBundleId = process.env.APP_IOS_BUNDLE_ID || undefined;
-/** The EAS project (push notification tokens need it, D-033); set when the owner creates it (release phase). */
-const easProjectId = process.env.EAS_PROJECT_ID || undefined;
+/**
+ * The owner's EAS project (expo.dev: prashantdhimals-team / tayari-kakshya). Its id is public (it is in every build)
+ * and push tokens need it (D-033); EAS_PROJECT_ID can point a build at another project.
+ */
+const EAS_OWNER = 'prashantdhimals-team';
+const easProjectId = process.env.EAS_PROJECT_ID || 'ba6edf8d-8869-4213-97c9-99e9ddf12cdd';
 
 const config: ExpoConfig = {
   name: 'Tayari Kakshya',
+  owner: EAS_OWNER,
   slug: 'tayari-kakshya',
   scheme: 'tayarikakshya',
   version: '1.0.0',
@@ -36,7 +41,7 @@ const config: ExpoConfig = {
     '@sentry/react-native/expo',
   ],
   experiments: { typedRoutes: true },
-  ...(easProjectId ? { extra: { eas: { projectId: easProjectId } } } : {}),
+  extra: { eas: { projectId: easProjectId } },
 };
 
 export default config;

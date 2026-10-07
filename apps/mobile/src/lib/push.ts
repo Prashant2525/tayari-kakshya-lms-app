@@ -14,7 +14,10 @@ const projectId: string | undefined =
   (Constants.expoConfig?.extra?.['eas'] as { projectId?: string } | undefined)?.projectId ??
   Constants.easConfig?.projectId;
 
-export const pushAvailable = Platform.OS !== 'web' && Boolean(projectId);
+/** Expo Go on Android cannot receive push (SDK 53+): only development and store builds can. */
+const expoGoAndroid = Platform.OS === 'android' && Constants.executionEnvironment === 'storeClient';
+
+export const pushAvailable = Platform.OS !== 'web' && !expoGoAndroid && Boolean(projectId);
 
 let registered: string | null = null;
 
