@@ -150,6 +150,8 @@ supported merchant locations (Nepal: developer ✔, merchant ✘); YouTube priva
   Details chosen while building (T-056, tell us to change any): purchases are not emailed separately (the receipt is
   the email); a result is not announced to a student who already opened it; reminders go to the students a test is
   listed for who may take it; course updates go to everyone with access now.
+- **§12d (asked 2026-10-07):** refund rule, minimum age, banners, where Help goes. **Answered 2026-10-07** (D-064):
+  case by case, any age, banners in the app and on the website, Help in Profile and the website footer.
 - **Articles (asked 2026-10-07):** audience, Premium, website, notifications. **Answered 2026-10-07** (D-063): all
   students, always free, on the website too, staff tick push / email per article.
 - **iPhone buying (asked 2026-10-07):** keep web-only (A) or add Apple In-App Purchase (B)? How do iPhone users

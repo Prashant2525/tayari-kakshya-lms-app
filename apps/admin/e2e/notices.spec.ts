@@ -193,3 +193,31 @@ test('staff write a weekly current-affairs digest in a category and publish it',
   await expect(row).toContainText(`Economy ${run}`);
   await expect(row).toContainText('Published');
 });
+
+test('pages start as drafts that cannot be published; FAQs and contact options are added', async () => {
+  await nav('Pages').click();
+  await expect(page.getByRole('heading', { name: 'Pages', level: 1 })).toBeVisible();
+  await page.getByRole('link', { name: 'Terms of use' }).click();
+  await expect(page.getByText('Not ready to publish')).toBeVisible();
+  await expect(page.getByText('Delete the DRAFT line at the top')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Publish' })).toBeDisabled();
+
+  await nav('Help & support').click();
+  await page.getByRole('button', { name: 'Add a question' }).click();
+  let dialog = page.getByRole('dialog', { name: 'Add a question' });
+  await dialog.getByLabel('Question (English)').fill(`Can I study offline? ${run}`);
+  await dialog.getByLabel('Answer (English)').fill('Yes: download PDFs and videos in the app.');
+  await dialog.getByRole('button', { name: 'Save' }).click();
+  await expect(page.getByText(`Can I study offline? ${run}`)).toBeVisible();
+
+  await page.getByRole('button', { name: 'Add a contact option' }).click();
+  dialog = page.getByRole('dialog', { name: 'Add a contact option' });
+  await dialog.getByLabel('Type').selectOption('whatsapp');
+  await dialog.getByLabel('Value').fill('call us');
+  await dialog.getByLabel('Label (English)').fill(`WhatsApp ${run}`);
+  await dialog.getByRole('button', { name: 'Save' }).click();
+  await expect(dialog.getByText(/Enter a phone number/)).toBeVisible();
+  await dialog.getByLabel('Value').fill('+977 9800000000');
+  await dialog.getByRole('button', { name: 'Save' }).click();
+  await expect(page.getByText(`WhatsApp ${run}`)).toBeVisible();
+});

@@ -4,6 +4,11 @@ import {
   Award,
   BadgeCheck,
   BellRing,
+  FileText,
+  Info,
+  LifeBuoy,
+  ShieldCheck,
+  Undo2,
   BookText,
   NotebookPen,
   Receipt,
@@ -22,6 +27,7 @@ import {
 import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useCancelDeletion, useRequestDeletion } from '@/api/account';
+import { usePages } from '@/api/support';
 import { appVersion } from '@/api/client';
 import { logout, useAppConfig, useMe, useTargetPosts } from '@/api/queries';
 import { localized } from '@/i18n/translate';
@@ -39,6 +45,7 @@ import { errorMessageKey } from '@/lib/error-message';
 /** Foundation version: account summary, language, theme, verification and log out. Editing etc. come in §9. */
 export default function ProfileScreen() {
   const { t, locale } = useT();
+  const pages = usePages();
   const { colors } = useTheme();
   const me = useMe();
   const config = useAppConfig();
@@ -158,6 +165,7 @@ export default function ProfileScreen() {
           {referralsOn ? <LinkRow icon={Gift} label={t('invite.menu')} href="/invite" /> : null}
           <LinkRow icon={Receipt} label={t('purchases.title')} href="/purchases" />
           <LinkRow icon={Award} label={t('cert.title')} href="/certificates" />
+          <LinkRow icon={LifeBuoy} label={t('help.title')} href="/help" />
           <LinkRow
             icon={BookText}
             label={t('articles.kind.blog')}
@@ -165,6 +173,19 @@ export default function ProfileScreen() {
             last
           />
         </Card>
+        {pages.data && pages.data.length > 0 ? (
+          <Card style={styles.linkGroup}>
+            {pages.data.map((p, i) => (
+              <LinkRow
+                key={p.slug}
+                icon={PAGE_ICONS[p.slug]}
+                label={localized(p.title, locale)}
+                href={{ pathname: '/page/[slug]', params: { slug: p.slug } }}
+                last={i === pages.data.length - 1}
+              />
+            ))}
+          </Card>
+        ) : null}
         <Button
           label={t('profile.logout')}
           variant="secondary"
@@ -183,6 +204,8 @@ export default function ProfileScreen() {
     </Screen>
   );
 }
+
+const PAGE_ICONS = { about: Info, terms: FileText, privacy: ShieldCheck, refund: Undo2 } as const;
 
 function LinkRow({
   icon: Icon,

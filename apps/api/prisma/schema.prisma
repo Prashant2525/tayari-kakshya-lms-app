@@ -2080,3 +2080,82 @@ model Article {
   @@index([categoryId])
   @@map("articles")
 }
+
+enum StaticPageSlug {
+  about
+  terms
+  privacy
+  refund
+}
+
+/// The working copy of a static page (D-038): staff edit it; readers see the last published version.
+model StaticPage {
+  slug        StaticPageSlug @id
+  title       Json
+  body        Json
+  updatedById String?        @map("updated_by") @db.Uuid
+  createdAt   DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime       @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  versions StaticPageVersion[]
+
+  @@map("static_pages")
+}
+
+/// Every published version of a page, kept as it was (a legal record; cannot be changed or deleted).
+model StaticPageVersion {
+  id            String         @id @default(uuid(7)) @db.Uuid
+  slug          StaticPageSlug
+  version       Int
+  title         Json
+  body          Json
+  publishedAt   DateTime       @default(now()) @map("published_at") @db.Timestamptz(6)
+  publishedById String         @map("published_by") @db.Uuid
+
+  page StaticPage @relation(fields: [slug], references: [slug], onDelete: Restrict)
+
+  @@unique([slug, version])
+  @@map("static_page_versions")
+}
+
+/// Questions and answers in Help & support (D-064).
+model Faq {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  question  Json
+  answer    Json
+  sortOrder Int      @default(0) @map("sort_order")
+  active    Boolean  @default(true)
+  /// Not shown in the iPhone app (answers that mention buying, D-027).
+  hideOnIos Boolean  @default(false) @map("hide_on_ios")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([sortOrder])
+  @@map("faqs")
+}
+
+enum ContactType {
+  phone
+  whatsapp
+  viber
+  email
+  website
+  facebook
+  address
+}
+
+/// Ways to reach support (D-034), shown in Help & support.
+model ContactOption {
+  id        String      @id @default(uuid(7)) @db.Uuid
+  type      ContactType
+  label     Json
+  value     String
+  note      Json?
+  sortOrder Int         @default(0) @map("sort_order")
+  active    Boolean     @default(true)
+  createdAt DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime    @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([sortOrder])
+  @@map("contact_options")
+}

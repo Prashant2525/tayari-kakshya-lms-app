@@ -6,6 +6,7 @@ import { LanguageToggle } from '@/components/language-toggle';
 import { signedIn } from '@/lib/api';
 import { serverEnv } from '@/lib/env';
 import { getI18n } from '@/lib/i18n';
+import { PAGE_PATH, publishedPages } from '@/lib/pages';
 import './globals.css';
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -18,8 +19,9 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
-  const { locale, t } = await getI18n();
+  const { locale, t, localized } = await getI18n();
   const account = await signedIn();
+  const pages = await publishedPages();
   return (
     <html lang={locale}>
       <body className="flex min-h-dvh flex-col">
@@ -66,9 +68,19 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
               <p>
                 © {new Date().getFullYear()} {t('brand.name')} · {t('footer.app')}
               </p>
-              <Link href="/certificates" className="font-medium text-link">
-                {t('footer.verify')}
-              </Link>
+              <nav aria-label={t('footer.nav')} className="flex flex-wrap gap-x-5 gap-y-2">
+                <Link href="/help" className="font-medium text-link">
+                  {t('help.title')}
+                </Link>
+                {pages.map((p) => (
+                  <Link key={p.slug} href={PAGE_PATH[p.slug]} className="font-medium text-link">
+                    {localized(p.title)}
+                  </Link>
+                ))}
+                <Link href="/certificates" className="font-medium text-link">
+                  {t('footer.verify')}
+                </Link>
+              </nav>
             </div>
           </footer>
         </I18nProvider>

@@ -176,7 +176,9 @@ banners & home sections, FAQs, contact options, static pages with **draft legal 
   email per article
 - ☑ Part 12c-2 (T-061): articles on the website (list, pages, home section, SEO metadata, JSON-LD, sitemap) and in
   unified search (app)
-- ☐ Part 12d: static pages (DRAFT legal texts, D-038), FAQs, contact options, banners / home sections
+- ☑ Part 12d-1 (T-062, D-064): static pages (DRAFT legal texts with versions, D-038), FAQs, contact options — CMS,
+  app (Profile → Help & support, pages) and website (/help, legal pages, footer, sign-up links)
+- ☐ Part 12d-2: banners on the app Home and the website home page (D-064)
 
 **§13 Progress & community** — progress analytics (accuracy, weak/strong topics, study time), study planner,
 course reviews + moderation, discussions/doubts + moderation, admin dashboards & exports.

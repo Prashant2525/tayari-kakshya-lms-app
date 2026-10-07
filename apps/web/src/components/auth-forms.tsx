@@ -81,12 +81,15 @@ export function RegisterForm({
   next,
   referralCode,
   showReferral,
+  legal = [],
 }: {
   next: string;
   /** From a referral link (D-058). */
   referralCode: string;
   /** The programme is on (or a code came with the link): sign-up is the only time to give one (D-059). */
   showReferral: boolean;
+  /** The published Terms and Privacy pages (D-038). */
+  legal?: Array<{ href: string; label: string }>;
 }) {
   const { t } = useT();
   const [state, action, pending] = useActionState(registerAction, idle);
@@ -147,6 +150,16 @@ export function RegisterForm({
         />
         <span>{t('auth.acceptTerms')}</span>
       </label>
+      {legal.length ? (
+        <p className="-mt-2 flex flex-wrap gap-x-4 text-sm text-text-secondary">
+          <span>{t('auth.readTerms')}</span>
+          {legal.map((l) => (
+            <Link key={l.href} href={l.href} target="_blank" className={button.link}>
+              {l.label}
+            </Link>
+          ))}
+        </p>
+      ) : null}
       <button className={button.primary} disabled={pending}>
         {t('auth.register')}
       </button>

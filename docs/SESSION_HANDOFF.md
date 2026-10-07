@@ -202,6 +202,10 @@ Current task: Phase 11 part 3 (receipts + refunds) done on `feature/receipts-ref
 - Nothing partially implemented. Admin screens for Phase 6 not started.
 
 ## Exact next steps
+0m. 2026-10-07: PR #36 merged; owner answered §12d (D-064). `feature/help-pages` (T-062): pages + Help &
+   support. Next: **12d-2 banners** — `banners` (image, title, link: course / plan / article / page / https URL,
+   starts / ends, placement app / website / both, order, active); app Home carousel and website home; links to plans
+   or buying hidden on iPhone (D-027); CMS Communication → Banners. Then Phase 13 (progress & community).
 0l. 2026-10-07: PR #35 merged. `feature/articles-web` (T-061): website articles + search (KI-050 fixed).
    Next: **12d** — static pages (Terms / Privacy / Refund / About as DRAFT texts for the owner, D-038; privacy must
    cover KI-049), FAQs, contact options (D-034) and Profile → Help, banners / home sections; legal pages on the website
