@@ -365,8 +365,12 @@ Changes: attempt start on a daily challenge — before its day 409 `not_open`; a
 | Method | Path | Notes |
 |---|---|---|
 | GET | `/articles?kind=&period=&categoryId=&courseId=` / `/articles/:id` | current affairs, Gorkhapatra summaries, news, blog |
-| GET | `/notices?kind=` / `/notices/:id` | audience-filtered |
-| GET | `/me/notifications`, POST `/me/notifications/read` | inbox |
+| GET | `/notices?cursor=&limit=` / `/notices/:id` | live, unexpired notices, pinned first (T-055); detail with media |
+| GET / POST | `/me/notices/unseen`, `/me/notices/seen` | Notice tab badge: published since the tab was last opened |
+| GET | `/me/notifications?cursor=&limit=`, `/me/notifications/unread` | inbox (category, title, body, link, read) and unread count |
+| POST | `/me/notifications/read` `{ids}` | mark read (empty list = all) |
+| GET / PUT | `/me/notification-preferences` | `{notice: {push, email}, course_update, exam_reminder, result, purchase}` |
+| POST | `/me/push-tokens` `{token, platform}`, `/me/push-tokens/remove` `{token}` | Expo push token of this device |
 | GET | `/pages/:slug`, `/faqs`, `/contact-options` | |
 | GET | `/search?q=&types=` | unified search |
 
@@ -397,6 +401,7 @@ Every module exposes `GET list` (search/filter/sort/paginate), `GET :id`, `POST`
 - `/admin/articles`, `/admin/notices`, `/admin/notification-campaigns`, `/admin/banners`, `/admin/home-sections`
 - `/admin/plans`, `/admin/coupons`, `/admin/orders`, `/admin/payments` (+ `reconcile`), `/admin/refunds` (+ approve/process), `/admin/invoices`
 - `/admin/reviews`, `/admin/discussions`, `/admin/faqs`, `/admin/pages`, `/admin/contact-options`, `/admin/certificates`
+- Notices (built, T-055): `GET|POST /admin/notices`, `GET|PUT|DELETE /admin/notices/:id`, `PUT /admin/notices/:id/status` — `notices:edit`; publishing and live edits need `notices:publish`
 - `/admin/settings`, `/admin/audit-logs`, `/admin/dashboard` (KPIs), `/admin/reports/*` (exports CSV/XLSX)
 
 ## 10. Webhooks / provider endpoints

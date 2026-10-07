@@ -1,10 +1,10 @@
 import { radius } from '@tk/design-tokens';
-import { Check, CircleDashed, Lock, Star } from 'lucide-react-native';
+import { BadgeCheck, Check, CircleDashed, Lock, Star } from 'lucide-react-native';
 import { StyleSheet, View } from 'react-native';
 import { useTheme } from '@/theme/theme';
 import { Text } from './text';
 
-export type ChipTone = 'done' | 'progress' | 'premium' | 'featured' | 'neutral';
+export type ChipTone = 'done' | 'progress' | 'premium' | 'featured' | 'official' | 'neutral';
 
 /** Status chip: icon + text, never colour alone (DESIGN_SYSTEM §1). */
 export function StatusChip({ tone, label }: { tone: ChipTone; label: string }) {
@@ -14,6 +14,7 @@ export function StatusChip({ tone, label }: { tone: ChipTone; label: string }) {
     progress: { bg: colors.primarySoft, fg: colors.onPrimarySoft, Icon: CircleDashed },
     premium: { bg: colors.premium, fg: colors.onPremium, Icon: Lock },
     featured: { bg: colors.premium, fg: colors.onPremium, Icon: Star },
+    official: { bg: colors.primarySoft, fg: colors.onPrimarySoft, Icon: BadgeCheck },
     neutral: { bg: colors.surfaceMuted, fg: colors.textSecondary, Icon: null },
   }[tone];
   return (

@@ -34,6 +34,8 @@ const CONTENT_PERMISSIONS = [
   'coupons:manage',
   'refunds:request',
   'refunds:approve',
+  'notices:edit',
+  'notices:publish',
 ];
 
 /**

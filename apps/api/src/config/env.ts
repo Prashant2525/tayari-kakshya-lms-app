@@ -106,6 +106,9 @@ export const EnvSchema = z
     /** Where students land after paying (allow-listed): the app's deep link and the website page. */
     PAYMENT_RETURN_URL_APP: z.string().default('tayarikakshya://payment-result'),
     PAYMENT_RETURN_URL_WEB: optional,
+    // Push notifications through Expo (T-011). The access token is optional (Expo's 'enhanced security' for push).
+    EXPO_PUSH_URL: z.url().default('https://exp.host/--/api/v2/push/send'),
+    EXPO_ACCESS_TOKEN: optional,
     /** Where students open Tayari Kakshya on the web (coupon share links, D-056), e.g. https://app.example.com. */
     PUBLIC_WEB_URL: optional,
     /** How long an unpaid order can still be paid. */

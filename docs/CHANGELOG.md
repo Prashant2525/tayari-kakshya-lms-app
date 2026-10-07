@@ -4,6 +4,17 @@ All notable changes to this project. Format based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Added — 2026-10-07 (Phase 12a: notices and notifications)
+- Students: the Notice tab lists official notices, announcements and instructor messages (pinned first, a badge for
+  new ones) and opens them in full; Home has a bell with unread notifications; Profile → Notifications chooses push /
+  email per category. The app registers for push after sign-in (builds with an EAS project, KI-048) and opens the
+  linked screen on tap.
+- CMS: Communication → Notices — bilingual title and rich text, pin, expiry, "Send as push notification and email",
+  review / publish / schedule, delete.
+- API: migration `notices` (notices, notifications, notification outbox, push tokens, preferences); worker job
+  `notifications` (fan-out and delivery with retries); endpoints under `/notices`, `/me/notifications`,
+  `/me/notification-preferences`, `/me/push-tokens`, `/admin/notices`.
+
 ### Added — 2026-10-07 (Phase 11 part 4b: referrals)
 - Students: Profile → Invite friends (personal code, share, what each side gets, reward coupons). Sign-up in the app
   and on the website takes a referral code (pre-filled from a `/r/<code>` link). The friend's first purchase gets

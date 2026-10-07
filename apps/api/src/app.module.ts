@@ -51,6 +51,11 @@ import { AdminRefundsController } from './modules/payments/refunds.controller.js
 import { RefundsService } from './modules/payments/refunds.service.js';
 import { AdminReferralsController, ReferralsController } from './modules/payments/referrals.controller.js';
 import { ReferralsService } from './modules/payments/referrals.service.js';
+import { AdminNoticesController, NoticesController } from './modules/notices/notices.controller.js';
+import { NoticesService } from './modules/notices/notices.service.js';
+import { NotificationsController } from './modules/notifications/notifications.controller.js';
+import { NotificationsService } from './modules/notifications/notifications.service.js';
+import { PushClient } from './infra/messaging/push.client.js';
 import { AdminOrdersService } from './modules/payments/admin-orders.service.js';
 import { GatewayHttp } from './modules/payments/gateway-http.js';
 import { PaymentsController } from './modules/payments/payments.controller.js';
@@ -147,6 +152,9 @@ export class InfraModule {}
     ReceiptsService,
     RefundsService,
     ReferralsService,
+    PushClient,
+    NotificationsService,
+    NoticesService,
     ScopeService,
     QuestionsService,
     QuestionReportsService,
@@ -193,6 +201,9 @@ export class InfraModule {}
     ReceiptsService,
     RefundsService,
     ReferralsService,
+    PushClient,
+    NotificationsService,
+    NoticesService,
     ScopeService,
     QuestionsService,
     QuestionReportsService,
@@ -259,6 +270,9 @@ export class DomainModule {}
     AdminRefundsController,
     ReferralsController,
     AdminReferralsController,
+    NoticesController,
+    AdminNoticesController,
+    NotificationsController,
     AdminQuestionsController,
     QuestionReportsController,
     AdminAssessmentsController,

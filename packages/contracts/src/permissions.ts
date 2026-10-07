@@ -33,6 +33,8 @@ export const PERMISSIONS = {
   'coupons:manage': 'Create, change and switch off coupon codes',
   'refunds:request': 'Ask for a refund on a paid order, with the reason',
   'refunds:approve': 'Approve or reject refund requests and record refunds as sent',
+  'notices:edit': 'Write and change notices (drafts)',
+  'notices:publish': 'Publish, schedule and archive notices (sends them to students)',
   'orders:read': 'View orders, payments and what the payment gateways reported',
   'orders:manage': 'Check a payment again with its gateway',
 } as const;

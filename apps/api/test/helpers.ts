@@ -15,6 +15,8 @@ import type { SettingKey } from '@tk/contracts';
 import { DEFAULT_NODE_TYPES } from '../src/modules/content/default-node-types.js';
 import { GatewayHttp } from '../src/modules/payments/gateway-http.js';
 import { FakeGateways } from './fake-gateways.js';
+import { FakePush } from './fake-push.js';
+import { PushClient } from '../src/infra/messaging/push.client.js';
 
 export class FakeGoogleVerifier extends GoogleVerifier {
   readonly tokens = new Map<string, GoogleIdentity>();
@@ -35,6 +37,7 @@ export interface TestContext {
   sms: SmsService;
   google: FakeGoogleVerifier;
   gateways: FakeGateways;
+  push: FakePush;
   reset(): Promise<void>;
   close(): Promise<void>;
 }
@@ -43,11 +46,14 @@ export async function createTestApp(): Promise<TestContext> {
   const env = loadEnv();
   const google = new FakeGoogleVerifier();
   const gateways = new FakeGateways();
+  const push = new FakePush();
   const moduleRef = await Test.createTestingModule({ imports: [AppModule] })
     .overrideProvider(GoogleVerifier)
     .useValue(google)
     .overrideProvider(GatewayHttp)
     .useValue(gateways)
+    .overrideProvider(PushClient)
+    .useValue(push)
     .compile();
   const app = moduleRef.createNestApplication<NestFastifyApplication>(createFastifyAdapter(env), {
     logger: false,
@@ -69,6 +75,7 @@ export async function createTestApp(): Promise<TestContext> {
     sms,
     google,
     gateways,
+    push,
     async reset() {
       const tables = await prisma.$queryRaw<Array<{ tablename: string }>>`
         SELECT tablename FROM pg_tables WHERE schemaname = 'public' AND tablename <> '_prisma_migrations'`;
@@ -85,6 +92,7 @@ export async function createTestApp(): Promise<TestContext> {
       sms.outbox.length = 0;
       google.tokens.clear();
       gateways.reset();
+      push.reset();
     },
     async close() {
       await app.close();

@@ -20,6 +20,7 @@ import { useGuards } from '@/features/guards';
 import { useAnalyticsIdentity, useScreenTracking } from '@/lib/analytics';
 import { initMonitoring } from '@/lib/monitoring';
 import { checkoutHref, usePendingLink } from '@/lib/pending-link';
+import { listenForTaps, registerForPush } from '@/lib/push';
 import { usePrefs } from '@/state/prefs';
 import { useSession } from '@/state/session';
 import { ThemeProvider, useTheme } from '@/theme/theme';
@@ -100,6 +101,14 @@ function RootNavigator() {
     if (href && !signedIn) usePendingLink.getState().set(href);
   }, [url, signedIn]);
   const inside = signedIn && !mustVerify && !needsOnboarding && !blocking;
+  // Push (D-033): asked for once the student is in; tapped notifications open their screen.
+  useEffect(() => {
+    if (inside) void registerForPush();
+  }, [inside]);
+  useEffect(() => {
+    const subscription = listenForTaps();
+    return () => subscription?.remove();
+  }, []);
   useEffect(() => {
     if (!inside || !pending) return;
     usePendingLink.getState().set(null);
