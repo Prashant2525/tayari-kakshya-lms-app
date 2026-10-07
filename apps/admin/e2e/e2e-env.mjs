@@ -6,6 +6,7 @@ export {
   E2E_ADMIN_EMAIL,
   E2E_ADMIN_PASSWORD,
   E2E_EDITOR2_EMAIL,
+  E2E_EDITOR3_EMAIL,
   E2E_EDITOR_EMAIL,
 } from '@tk/e2e-support/env';
 

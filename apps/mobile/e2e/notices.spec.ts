@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { E2E_WEB_ORIGIN } from './constants.mjs';
+import { E2E_ADMIN_PASSWORD, E2E_STUDENT_EMAIL } from '@tk/e2e-support/accounts';
 import { apiCall, editorToken } from './helpers';
 
 /**
@@ -7,8 +7,6 @@ import { apiCall, editorToken } from './helpers';
  * opened) and open in full; the notifications list and settings are there for the student.
  */
 const run = Date.now().toString(36);
-const email = `notices.${run}@example.com`;
-const password = 'reads the notices';
 const doc = (text: string) => ({
   en: { type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text }] }] },
 });
@@ -16,17 +14,7 @@ let page: Page;
 test.describe.configure({ mode: 'serial' });
 
 test.beforeAll(async ({ browser, request }) => {
-  const registered = await request.post(`${E2E_WEB_ORIGIN}/api/v1/auth/register`, {
-    data: {
-      fullName: 'Notice Reader',
-      email,
-      password,
-      acceptTerms: true,
-      device: { deviceId: `e2e-notices-${run}`, deviceName: 'E2E', platform: 'web' },
-    },
-  });
-  expect(registered.ok(), await registered.text()).toBe(true);
-  // Published after the student joined, so they count as new.
+  // The seeded student (sign-up has an hourly limit per IP); published after they joined, so these count as new.
   const token = await editorToken(request);
   for (const [title, isPinned] of [
     [`Kharidar form open ${run}`, false],
@@ -53,8 +41,8 @@ const text = (value: string | RegExp) => visible(page.getByText(value));
 
 test('the Notice tab shows new notices, pinned first, and opens one', async () => {
   await page.goto('/');
-  await visible(page.getByLabel('Email', { exact: true })).fill(email);
-  await visible(page.getByLabel('Password', { exact: true })).fill(password);
+  await visible(page.getByLabel('Email', { exact: true })).fill(E2E_STUDENT_EMAIL);
+  await visible(page.getByLabel('Password', { exact: true })).fill(E2E_ADMIN_PASSWORD);
   await visible(page.getByRole('button', { name: 'Log in', exact: true })).click();
   await visible(page.getByRole('button', { name: 'Skip', exact: true })).click();
 

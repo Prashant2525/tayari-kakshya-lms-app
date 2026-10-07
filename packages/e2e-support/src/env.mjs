@@ -3,13 +3,27 @@ import { config } from 'dotenv';
 import { randomBytes } from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { E2E_ADMIN_EMAIL, E2E_ADMIN_PASSWORD, E2E_EDITOR2_EMAIL, E2E_EDITOR_EMAIL } from './accounts.mjs';
+import {
+  E2E_ADMIN_EMAIL,
+  E2E_ADMIN_PASSWORD,
+  E2E_EDITOR2_EMAIL,
+  E2E_EDITOR3_EMAIL,
+  E2E_EDITOR_EMAIL,
+  E2E_STUDENT_EMAIL,
+} from './accounts.mjs';
 import { fakeGatewayEnv } from './fake-gateway.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 config({ path: path.resolve(here, '../../../.env'), quiet: true });
 
-export { E2E_ADMIN_EMAIL, E2E_ADMIN_PASSWORD, E2E_EDITOR2_EMAIL, E2E_EDITOR_EMAIL } from './accounts.mjs';
+export {
+  E2E_ADMIN_EMAIL,
+  E2E_ADMIN_PASSWORD,
+  E2E_EDITOR2_EMAIL,
+  E2E_EDITOR3_EMAIL,
+  E2E_EDITOR_EMAIL,
+  E2E_STUDENT_EMAIL,
+} from './accounts.mjs';
 
 export const apiDir = path.resolve(here, '../../../apps/api');
 
@@ -79,6 +93,8 @@ export function createE2eEnv({ name, apiPort, webOrigin, apiOrigin, redisDb, ema
     E2E_ADMIN_EMAIL,
     E2E_EDITOR_EMAIL,
     E2E_EDITOR2_EMAIL,
+    E2E_EDITOR3_EMAIL,
+    E2E_STUDENT_EMAIL,
     E2E_ADMIN_PASSWORD,
     ...gatewayEnv(apiPort, webOrigin, browserApi),
     // Coupon share links open the app served by this run.

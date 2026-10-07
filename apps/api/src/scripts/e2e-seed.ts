@@ -86,11 +86,14 @@ async function main(): Promise<void> {
           permissions: { create: CONTENT_PERMISSIONS.map((permission) => ({ permission })) },
         },
       });
-      // A second editor keeps each account under the staff sign-in limit (5 per 15 minutes) across a full run.
+      // More editors keep each account under the staff sign-in limit (5 per 15 minutes) across a full run.
       const editors = [
         { email: editorEmail, fullName: 'E2E Editor' },
         ...(process.env['E2E_EDITOR2_EMAIL']
           ? [{ email: process.env['E2E_EDITOR2_EMAIL'], fullName: 'E2E Second Editor' }]
+          : []),
+        ...(process.env['E2E_EDITOR3_EMAIL']
+          ? [{ email: process.env['E2E_EDITOR3_EMAIL'], fullName: 'E2E Third Editor' }]
           : []),
       ];
       for (const editor of editors) {
@@ -98,6 +101,13 @@ async function main(): Promise<void> {
           data: { kind: 'staff', ...editor, passwordHash, roles: { create: { roleId: editorRole.id } } },
         });
       }
+    }
+    const studentEmail = process.env['E2E_STUDENT_EMAIL'];
+    if (studentEmail) {
+      // Made here rather than through sign-up, which allows 10 accounts per IP per hour.
+      await prisma.user.create({
+        data: { kind: 'student', email: studentEmail, fullName: 'E2E Student', passwordHash },
+      });
     }
     // CMS settings a suite starts with (test values), e.g. the referral programme switched on.
     const settings = JSON.parse(process.env['E2E_SETTINGS'] ?? '{}') as Record<string, unknown>;

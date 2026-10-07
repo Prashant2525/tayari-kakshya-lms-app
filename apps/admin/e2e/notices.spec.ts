@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { E2E_ADMIN_PASSWORD, E2E_EDITOR2_EMAIL } from './e2e-env.mjs';
+import { E2E_ADMIN_PASSWORD, E2E_EDITOR3_EMAIL } from './e2e-env.mjs';
 
 /** Phase 12a in the CMS: write a notice (bilingual title, rich text), pin it, ask for push / email, publish it. */
 let page: Page;
@@ -11,7 +11,7 @@ const nav = (name: string) => page.getByRole('navigation', { name: 'Main' }).get
 test.beforeAll(async ({ browser }) => {
   page = await browser.newPage();
   await page.goto('/login');
-  await page.getByLabel('Email').fill(E2E_EDITOR2_EMAIL);
+  await page.getByLabel('Email').fill(E2E_EDITOR3_EMAIL);
   await page.getByLabel('Password', { exact: true }).fill(E2E_ADMIN_PASSWORD);
   await page.getByRole('button', { name: 'Sign in' }).click();
   await expect(nav('Notices')).toBeVisible();

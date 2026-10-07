@@ -33,9 +33,13 @@ Last updated: 2026-10-07 (Phase 12a: notices and notifications). `pnpm test` run
 - **CMS E2E (1):** an empty notice refused; write, pin, tick push / email, create, publish; list shows pinned,
   kind, "When live" and Published.
 - Screens checked; fixed: the "Official notice" chip showed the Premium lock icon, and switch thumbs were teal.
-- Local only (KI-036): with the admin and app suites running at the same time, the E2E servers crashed mid-run
-  (CMS: certificates, questions, refunds; app: reconnect — "Cannot reach the server" / 0 ms setups); each passes
-  when run again on its own. Website suite 5/5.
+- The new specs pushed both suites past the API's security limits, which a whole suite meets from one IP: the
+  sixth CMS sign-in of one editor (5 per account per 15 minutes) and the eleventh app sign-up (10 per IP per hour)
+  were refused, so the refunds (CMS) and reconnect (app) specs failed in CI. The limits stay as they are: the CMS
+  notices spec signs in with a third seeded editor, and the app notices spec uses a student made by the seed
+  (`E2E_STUDENT_EMAIL`) instead of signing up.
+- Local only (KI-036): with two suites running at the same time, servers crashed mid-run (certificates, questions);
+  each passes when run again on its own. Website suite 5/5.
 
 ### Added with referrals (Phase 11 part 4b, T-054, D-058, D-059)
 - **API (6 integration tests):** code made once and stable; unknown code refused at sign-up (no account made), any
