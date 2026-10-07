@@ -7,6 +7,7 @@ import { useMe, useTargetPosts } from '@/api/queries';
 import { CurrentCourse } from '@/features/courses/current-course';
 import { CatalogList } from '@/features/courses/my-courses';
 import { ReadTiles } from '@/features/articles/read-tiles';
+import { BannerCarousel } from '@/features/home/banner-carousel';
 import { DailyChallengeCard } from '@/features/tests/daily-challenge-card';
 import { TestsLink } from '@/features/tests/tests-link';
 import { localized } from '@/i18n/translate';
@@ -87,6 +88,7 @@ export default function HomeScreen() {
             {t('search.placeholder')}
           </Text>
         </Pressable>
+        <BannerCarousel />
         <Card style={{ gap: 10 }}>
           {target ? (
             <>

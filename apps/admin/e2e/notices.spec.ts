@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import { E2E_ADMIN_PASSWORD, E2E_EDITOR3_EMAIL, E2E_STUDENT_EMAIL } from './e2e-env.mjs';
+import { pngFixture } from './fixtures';
 
 /**
  * Phase 12 in the CMS: write a notice (bilingual title, rich text), pin it, ask for push / email, publish it; tell a
@@ -220,4 +221,33 @@ test('pages start as drafts that cannot be published; FAQs and contact options a
   await dialog.getByLabel('Value').fill('+977 9800000000');
   await dialog.getByRole('button', { name: 'Save' }).click();
   await expect(page.getByText(`WhatsApp ${run}`)).toBeVisible();
+});
+
+test('staff add a scheduled banner with a picture; a web link is checked and not shown on iPhone', async () => {
+  await nav('Media library').click();
+  await page
+    .getByLabel('Upload files')
+    .setInputFiles([{ name: `banner-${run}.png`, mimeType: 'image/png', buffer: pngFixture(1600, 700) }]);
+  await expect(page.getByRole('button', { name: new RegExp(`banner-${run}\\.png`) })).toBeVisible();
+
+  await nav('Banners').click();
+  await page.getByRole('button', { name: 'New banner' }).click();
+  const dialog = page.getByRole('dialog', { name: 'New banner' });
+  await dialog.getByRole('button', { name: 'Choose' }).click();
+  await page
+    .getByRole('dialog', { name: 'Choose an image' })
+    .getByRole('button', { name: new RegExp(`banner-${run}\\.png`) })
+    .click();
+  await dialog.getByLabel('Title (English)').fill(`Dashain offer ${run}`);
+  await dialog.getByLabel('Opens').selectOption('url');
+  await dialog.getByLabel('Link').fill('http://insecure.example');
+  await dialog.getByRole('button', { name: 'Save' }).click();
+  await expect(dialog.getByText('Enter an https:// link').first()).toBeVisible();
+  await dialog.getByLabel('Link').fill('https://tayarikakshya.com/dashain');
+  await dialog.getByLabel('Ends (Nepal time)').fill('2099-01-01T10:00');
+  await dialog.getByRole('button', { name: 'Save' }).click();
+  await expect(page.getByText('Banner saved')).toBeVisible();
+  const row = page.getByRole('listitem').filter({ hasText: `Dashain offer ${run}` });
+  await expect(row).toContainText('Showing');
+  await expect(row).toContainText('Not on iPhone');
 });

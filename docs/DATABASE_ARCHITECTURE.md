@@ -134,7 +134,7 @@ partial indexes, generated `tsvector` columns, check constraints and triggers th
 | `course_updates` | `course_id`, `title` / `message` localized plain text, `recipients`, `sent_by`, `created_at` — kept as a record (never deleted), index `(course_id, created_at desc)` |
 | `notification_templates` | `key` unique, localized subject/body per channel |
 | `notification_campaigns` | CMS broadcasts: audience, channels, schedule, status, stats |
-| `banners` | `placement`, `title`, `image_media_id`, `cta_label`, `deep_link`, `audience` jsonb, `starts_at`, `ends_at`, `sort_order`, `status` |
+| `banners` | `title` localized, `image_media_id`, `link_type` (none/course/plan/article/page/url) + `link_value`, `placement` (app/website/both), `starts_at`, `ends_at`, `sort_order`, `active`, `hide_on_ios` — CHECK ends after starts, link value only with a link, https URLs (T-063) |
 | `home_sections` | `type` (featured_courses/category_row/continue/daily_challenge/articles/custom), `config` jsonb, `sort_order`, `visible` |
 | `static_pages` | `slug` PK (about/terms/privacy/refund), working-copy `title` / `body` localized rich, `updated_by` — created from the DRAFT texts on first use (D-038) |
 | `static_page_versions` | `slug` + `version` UNIQUE, `title`, `body`, `published_at`, `published_by` — immutable (trigger refuses UPDATE / DELETE): what readers saw |

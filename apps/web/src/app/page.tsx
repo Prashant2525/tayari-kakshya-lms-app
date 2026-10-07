@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { ArticleCard } from '@/components/article-card';
+import { Banners, type Banner } from '@/components/banners';
 import { CourseCard } from '@/components/course-card';
 import { button } from '@/components/ui';
 import { api } from '@/lib/api';
@@ -11,6 +12,9 @@ export default async function HomePage() {
   const { locale, t, localized, bsDate } = await getI18n();
   const featured = await api<{ data: Course[] }>('/courses?featured=true&limit=6', { revalidate: 60 }).catch(
     () => ({ data: [] }),
+  );
+  const banners = await api<Banner[]>('/banners?placement=website', { revalidate: 60, auth: false }).catch(
+    () => [] as Banner[],
   );
   const latest = await api<{ data: Article[] }>('/articles?limit=3', { revalidate: 60, auth: false }).catch(
     () => ({
@@ -31,6 +35,8 @@ export default async function HomePage() {
           </Link>
         </div>
       </section>
+
+      <Banners banners={banners} localized={localized} label={t('home.banners')} />
 
       {featured.data.length ? (
         <section aria-labelledby="featured">

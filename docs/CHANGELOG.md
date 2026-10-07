@@ -4,6 +4,11 @@ All notable changes to this project. Format based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Added — 2026-10-08 (Phase 12d part 2: banners)
+- CMS: Communication → Banners — picture, title, link (course, plan, article, page or web address), app / website /
+  both, start and end, order; plan and web links (and banners marked so) are not shown on iPhone.
+- App: banners swipe at the top of Home. Website: a row of banners on the home page.
+
 ### Added — 2026-10-07 (Phase 12d part 1: pages and Help & support)
 - CMS: Communication → Pages (About, Terms, Privacy, Refund — DRAFT texts to review, publish refused until the
   placeholders are filled in; every published version kept) and Help & support (FAQs, contact options).

@@ -1,7 +1,8 @@
 import { expect, test, type Page } from '@playwright/test';
 import { E2E_ADMIN_PASSWORD, E2E_STUDENT_EMAIL } from '@tk/e2e-support/accounts';
 import { E2E_WEB_ORIGIN } from './constants.mjs';
-import { apiCall, editorToken } from './helpers';
+import { pngFixture } from '@tk/e2e-support/png';
+import { apiCall, editorToken, uploadImage } from './helpers';
 
 /**
  * Phase 12a: notices from the CMS appear in the Notice tab (pinned first, with a "new" badge until the tab is
@@ -198,4 +199,26 @@ test('Profile → Help & support (contacts, FAQs) and a published page', async (
   await page.goto('/profile');
   await visible(page.getByRole('link', { name: 'About us' })).click();
   await expect(text(`We help Lok Sewa candidates ${run}.`)).toBeVisible();
+});
+
+test('a banner on Home opens the article it promotes', async ({ request }) => {
+  const token = await editorToken(request);
+  const imageMediaId = await uploadImage(request, token, pngFixture());
+  await apiCall(request, token, 'POST', '/admin/banners', {
+    title: { en: `Weekly current affairs ${run}` },
+    imageMediaId,
+    linkType: 'article',
+    linkValue: `weekly-${run}`,
+    placement: 'app',
+    startsAt: null,
+    endsAt: null,
+    sortOrder: 0,
+    active: true,
+    hideOnIos: false,
+  });
+  await page.goto('/');
+  await visible(page.getByRole('link', { name: `Weekly current affairs ${run}` })).click();
+  await expect(
+    visible(page.getByRole('heading', { name: `This week ${run}: budget and monsoon` })),
+  ).toBeVisible();
 });

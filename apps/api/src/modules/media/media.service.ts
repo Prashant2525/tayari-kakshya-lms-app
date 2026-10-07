@@ -201,13 +201,14 @@ export class MediaService {
 
   private async usageCount(id: string): Promise<number> {
     const like = `%${id}%`;
-    const [items, courses, nodes, subjects, instructors, covers, inNotes] = await Promise.all([
+    const [items, courses, nodes, subjects, instructors, covers, banners, inNotes] = await Promise.all([
       this.prisma.learningItem.count({ where: { pdfMediaId: id, deletedAt: null } }),
       this.prisma.course.count({ where: { thumbnailMediaId: id, deletedAt: null } }),
       this.prisma.examNode.count({ where: { iconMediaId: id, deletedAt: null } }),
       this.prisma.subject.count({ where: { iconMediaId: id, deletedAt: null } }),
       this.prisma.instructorProfile.count({ where: { photoMediaId: id } }),
       this.prisma.article.count({ where: { coverMediaId: id, deletedAt: null } }),
+      this.prisma.banner.count({ where: { imageMediaId: id } }),
       // Images embedded in rich text: notes, course descriptions, question passages, every question version (old
       // versions count too — past attempts still show them), notices and articles.
       this.prisma.$queryRaw<Array<{ n: bigint }>>`
@@ -220,7 +221,7 @@ export class MediaService {
           + (SELECT COUNT(*) FROM articles WHERE deleted_at IS NULL AND body::text LIKE ${like})
         )::bigint AS n`,
     ]);
-    return items + courses + nodes + subjects + instructors + covers + Number(inNotes[0]?.n ?? 0);
+    return items + courses + nodes + subjects + instructors + covers + banners + Number(inNotes[0]?.n ?? 0);
   }
 
   private assertSize(buffer: Buffer, maxMb: number, label: string): void {

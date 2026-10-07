@@ -42,6 +42,7 @@ const CONTENT_PERMISSIONS = [
   'articles:publish',
   'pages:manage',
   'support:manage',
+  'banners:manage',
 ];
 
 /**

@@ -58,6 +58,8 @@ import { AdminArticlesController, ArticlesController } from './modules/articles/
 import { ArticlesService } from './modules/articles/articles.service.js';
 import { AdminSupportController, SupportController } from './modules/support/support.controller.js';
 import { SupportService } from './modules/support/support.service.js';
+import { AdminBannersController, BannersController } from './modules/support/banners.controller.js';
+import { BannersService } from './modules/support/banners.service.js';
 import { AccountEmailsService } from './modules/notifications/account-emails.service.js';
 import { BuyingGuideService } from './modules/notifications/buying-guide.service.js';
 import { CourseInterestsController } from './modules/notifications/course-interests.controller.js';
@@ -173,6 +175,7 @@ export class InfraModule {}
     BuyingGuideService,
     ArticlesService,
     SupportService,
+    BannersService,
     ScopeService,
     QuestionsService,
     QuestionReportsService,
@@ -229,6 +232,7 @@ export class InfraModule {}
     BuyingGuideService,
     ArticlesService,
     SupportService,
+    BannersService,
     ScopeService,
     QuestionsService,
     QuestionReportsService,
@@ -304,6 +308,8 @@ export class DomainModule {}
     AdminArticlesController,
     SupportController,
     AdminSupportController,
+    BannersController,
+    AdminBannersController,
     AdminQuestionsController,
     QuestionReportsController,
     AdminAssessmentsController,

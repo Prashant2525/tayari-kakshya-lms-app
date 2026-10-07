@@ -91,3 +91,17 @@ export async function uploadPdf(request: APIRequestContext, token: string, buffe
   expect(res.ok(), await res.text()).toBe(true);
   return ((await res.json()) as { id: string }).id;
 }
+
+/** Uploads a public picture to the media library (as staff do) and returns its id. */
+export async function uploadImage(
+  request: APIRequestContext,
+  token: string,
+  buffer: Buffer,
+): Promise<string> {
+  const res = await request.post(api('/admin/media'), {
+    headers: { Authorization: `Bearer ${token}`, 'X-TK-Client': 'admin' },
+    multipart: { visibility: 'public', file: { name: 'banner.png', mimeType: 'image/png', buffer } },
+  });
+  expect(res.ok(), await res.text()).toBe(true);
+  return ((await res.json()) as { id: string }).id;
+}
