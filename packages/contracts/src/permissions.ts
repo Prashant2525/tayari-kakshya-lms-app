@@ -42,6 +42,7 @@ export const PERMISSIONS = {
   'articles:publish': 'Publish, schedule and archive articles (they go to the app and the website)',
   'pages:manage': 'Edit and publish the About, Terms, Privacy and Refund pages',
   'support:manage': 'Edit the FAQs and the contact options in Help & support',
+  'banners:manage': 'Add, schedule and remove the promotional banners in the app and on the website',
   'orders:read': 'View orders, payments and what the payment gateways reported',
   'orders:manage': 'Check a payment again with its gateway',
 } as const;

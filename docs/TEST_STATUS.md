@@ -1,6 +1,6 @@
 # Test Status
 
-Last updated: 2026-10-07 (Phase 12d part 1: pages, Help & support). `pnpm test` runs unit + integration suites (needs `pnpm infra:up`);
+Last updated: 2026-10-08 (Phase 12d part 2: banners). `pnpm test` runs unit + integration suites (needs `pnpm infra:up`);
 `pnpm build && pnpm --filter @tk/admin e2e` and `pnpm build && pnpm --filter @tk/mobile e2e` run the browser suites
 (the student suite also needs Mailpit, part of `pnpm infra:up`).
 
@@ -11,14 +11,25 @@ Last updated: 2026-10-07 (Phase 12d part 1: pages, Help & support). `pnpm test` 
 | `@tk/design-tokens` | 39 | WCAG contrast for every text/background pair (light + dark), CSS generation |
 | `@tk/domain` | 58 | BS calendar, Kathmandu day boundary, fiscal year, money/VAT/discounts, access validity |
 | `@tk/contracts` | 21 | Schema behaviour (localized text, email normalisation, mass assignment, settings defaults, rich-text validation) |
-| `@tk/api` | 285 | Integration against real PostgreSQL + Redis + S3 (SeaweedFS) through the HTTP stack; TOTP RFC 6238 vectors; RBAC, video, watermark unit |
+| `@tk/api` | 287 | Integration against real PostgreSQL + Redis + S3 (SeaweedFS) through the HTTP stack; TOTP RFC 6238 vectors; RBAC, video, watermark unit |
 | `@tk/admin` (unit) | 35 | API client (headers, refresh single-flight, retry, session loss, error mapping), BS formatting, Button `asChild` regression |
-| `@tk/admin` (E2E, Playwright) | 33 | Real browser + real API + `*_e2e` database |
+| `@tk/admin` (E2E, Playwright) | 34 | Real browser + real API + `*_e2e` database |
 | `@tk/mobile` (unit) | 36 | API client (single-flight refresh, early refresh, session end, maintenance), translations complete in both languages, BS dates and Kathmandu weekday, force-update/maintenance gate, form checks, Nepali phone numbers |
-| `@tk/mobile` (E2E, Playwright, phone viewport) | 35 | Web build + real API + `*_mobile_e2e` database + Mailpit |
+| `@tk/mobile` (E2E, Playwright, phone viewport) | 36 | Web build + real API + `*_mobile_e2e` database + Mailpit |
 | `@tk/web` (unit) | 8 | Session refresh used once (concurrent / late requests share it; refused → signed out; unreachable → retried), token expiry, both languages complete, failure messages |
-| `@tk/web` (E2E, Playwright) | 8 | `next start` production build + real API + `*_web_e2e` database + Mailpit + gateway stand-in; access tokens last 60 s so every page load refreshes |
-| **Total** | **558** | |
+| `@tk/web` (E2E, Playwright) | 9 | `next start` production build + real API + `*_web_e2e` database + Mailpit + gateway stand-in; access tokens last 60 s so every page load refreshes |
+| **Total** | **563** | |
+
+### Added with banners (Phase 12d part 2, T-063)
+- **API (2 integration tests):** banners by placement, order, switch and dates; on iPhone no plan or web links and
+  no iPhone-hidden ones; images and links in the answer; the picture is in use until the banners go; changes
+  audited; http links, unknown courses, unknown pages, a value without a link, an end before the start and a
+  missing picture refused; only banner managers. Mutation-checked (6: plan / web links on iPhone, iPhone-hidden
+  ignored, dates, placement, unknown course accepted, picture not counted — each fails a test).
+- **CMS E2E (1):** upload a picture, add a banner (http refused, https saved, end date) → "Showing", "Not on iPhone".
+  **App E2E (1):** a Home banner opens its article. **Website E2E (1):** a home-page banner opens its page.
+- Screens checked: CMS banners list, app Home with a banner, website home; fixed: a single banner was too tall on
+  wide screens.
 
 ### Added with pages and Help & support (Phase 12d part 1, T-062, D-064)
 - **API (3 integration tests):** the four pages start as unseen drafts; publishing refused while the DRAFT line or

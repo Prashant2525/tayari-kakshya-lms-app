@@ -202,6 +202,11 @@ Current task: Phase 11 part 3 (receipts + refunds) done on `feature/receipts-ref
 - Nothing partially implemented. Admin screens for Phase 6 not started.
 
 ## Exact next steps
+0n. 2026-10-08: PR #37 merged. `feature/banners` (T-063) completes Phase 12. Next: **Phase 13** (§13):
+   progress analytics (accuracy, weak / strong topics, study time), study planner, course reviews + moderation,
+   discussions / doubts + moderation (S12), admin dashboards and exports. Ask the owner first: reviews (stars +
+   text? only after N% progress? shown publicly on the website?), discussions (per lesson or per course? who
+   answers — instructors only?), and what the dashboards must show.
 0m. 2026-10-07: PR #36 merged; owner answered §12d (D-064). `feature/help-pages` (T-062): pages + Help &
    support. Next: **12d-2 banners** — `banners` (image, title, link: course / plan / article / page / https URL,
    starts / ends, placement app / website / both, order, active); app Home carousel and website home; links to plans

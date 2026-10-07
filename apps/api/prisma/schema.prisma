@@ -370,6 +370,7 @@ model MediaAsset {
   pdfItems         LearningItem[]
   instructorPhotos InstructorProfile[]
   articleCovers    Article[]
+  bannerImages     Banner[]
 
   @@index([kind, createdAt(sort: Desc)])
   @@index([sha256])
@@ -2158,4 +2159,42 @@ model ContactOption {
 
   @@index([sortOrder])
   @@map("contact_options")
+}
+
+enum BannerPlacement {
+  app
+  website
+  both
+}
+
+enum BannerLinkType {
+  none
+  course
+  plan
+  article
+  page
+  url
+}
+
+/// Promotional banners (D-064) on the app's Home and the website's home page.
+model Banner {
+  id           String          @id @default(uuid(7)) @db.Uuid
+  title        Json
+  imageMediaId String          @map("image_media_id") @db.Uuid
+  linkType     BannerLinkType  @map("link_type")
+  linkValue    String          @default("") @map("link_value")
+  placement    BannerPlacement
+  startsAt     DateTime?       @map("starts_at") @db.Timestamptz(6)
+  endsAt       DateTime?       @map("ends_at") @db.Timestamptz(6)
+  sortOrder    Int             @default(0) @map("sort_order")
+  active       Boolean         @default(true)
+  /// Not shown in the iPhone app (D-027); plan and web links never are.
+  hideOnIos    Boolean         @default(false) @map("hide_on_ios")
+  createdAt    DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime        @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  image MediaAsset @relation(fields: [imageMediaId], references: [id], onDelete: Restrict)
+
+  @@index([active, sortOrder])
+  @@map("banners")
 }

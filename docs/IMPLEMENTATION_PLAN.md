@@ -17,7 +17,7 @@ Scope = approved decisions only (`DECISIONS.md`). Each phase ends with tests, do
 | 9 | Student learning | see §9 | ☑ merged |
 | 10 | Exam engine + engagement | see §10 | ☑ |
 | 11 | Commerce + website checkout | see §11 | ☑ (part 4b in PR) |
-| 12 | Communication & CMS content | see §12 | ☐ |
+| 12 | Communication & CMS content | see §12 | ☑ |
 | 13 | Progress & community | see §13 | ☐ |
 | 14 | Advanced approved features | see §14 | ☐ |
 | 15 | Security hardening | authn/authz/IDOR/uploads/payments/rate limits/secrets review | ☐ |
@@ -178,7 +178,9 @@ banners & home sections, FAQs, contact options, static pages with **draft legal 
   unified search (app)
 - ☑ Part 12d-1 (T-062, D-064): static pages (DRAFT legal texts with versions, D-038), FAQs, contact options — CMS,
   app (Profile → Help & support, pages) and website (/help, legal pages, footer, sign-up links)
-- ☐ Part 12d-2: banners on the app Home and the website home page (D-064)
+- ☑ Part 12d-2 (T-063): banners on the app Home and the website home page (D-064)
+- Not built (not requested): general notification campaigns (notices with push / email and course updates cover
+  broadcasts) and configurable home sections (Home order is fixed). Ask the owner if wanted.
 
 **§13 Progress & community** — progress analytics (accuracy, weak/strong topics, study time), study planner,
 course reviews + moderation, discussions/doubts + moderation, admin dashboards & exports.

@@ -10,6 +10,7 @@ import {
   Megaphone,
   Newspaper,
   LifeBuoy,
+  GalleryHorizontal,
   FileType,
   TicketPercent,
   Undo2,
@@ -93,6 +94,7 @@ const NAV: Array<{ group: string; items: NavItem[] }> = [
     items: [
       { to: '/notices', label: 'Notices', icon: Megaphone, permission: 'notices:edit' },
       { to: '/articles', label: 'Articles', icon: Newspaper, permission: 'articles:edit' },
+      { to: '/banners', label: 'Banners', icon: GalleryHorizontal, permission: 'banners:manage' },
       { to: '/help', label: 'Help & support', icon: LifeBuoy, permission: 'support:manage' },
       { to: '/pages', label: 'Pages', icon: FileType, permission: 'pages:manage' },
     ],
