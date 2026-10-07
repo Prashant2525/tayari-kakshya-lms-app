@@ -4,6 +4,10 @@ All notable changes to this project. Format based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Fixed — 2026-10-08 (CI)
+- Browser-test jobs no longer hang until cancelled when the runner's package mirror stops answering: the browser
+  install has time limits and up to three attempts (KI-052).
+
 ### Fixed — 2026-10-08
 - App in development on a real phone (Expo Go / dev build): pictures (courses, banners, articles) did not load because
   the local API gives `http://localhost:4000/...` addresses; the app now points them at the computer it already

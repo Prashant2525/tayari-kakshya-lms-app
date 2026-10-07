@@ -68,7 +68,8 @@ jobs:
 
   admin-e2e:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    # Room for a retried browser install (.github/scripts/install-playwright.sh); a normal run takes 6-9 minutes.
+    timeout-minutes: 30
 
     services:
       postgres:
@@ -116,7 +117,8 @@ jobs:
           docker logs seaweedfs | tail -50
           exit 1
       - run: pnpm build
-      - run: pnpm --filter @tk/admin exec playwright install --with-deps chromium
+      - run: bash .github/scripts/install-playwright.sh @tk/admin
+        timeout-minutes: 12
       - run: pnpm --filter @tk/admin e2e
       - uses: actions/upload-artifact@v4
         if: failure()
@@ -129,7 +131,8 @@ jobs:
 
   mobile-e2e:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    # Room for a retried browser install (.github/scripts/install-playwright.sh); a normal run takes 6-9 minutes.
+    timeout-minutes: 30
 
     services:
       postgres:
@@ -181,7 +184,8 @@ jobs:
           docker logs seaweedfs | tail -50
           exit 1
       - run: pnpm build
-      - run: pnpm --filter @tk/mobile exec playwright install --with-deps chromium
+      - run: bash .github/scripts/install-playwright.sh @tk/mobile
+        timeout-minutes: 12
       - run: pnpm --filter @tk/mobile e2e
       - uses: actions/upload-artifact@v4
         if: failure()
@@ -194,7 +198,8 @@ jobs:
 
   web-e2e:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    # Room for a retried browser install (.github/scripts/install-playwright.sh); a normal run takes 6-9 minutes.
+    timeout-minutes: 30
 
     services:
       postgres:
@@ -246,7 +251,8 @@ jobs:
           docker logs seaweedfs | tail -50
           exit 1
       - run: pnpm build
-      - run: pnpm --filter @tk/web exec playwright install --with-deps chromium
+      - run: bash .github/scripts/install-playwright.sh @tk/web
+        timeout-minutes: 12
       - run: pnpm --filter @tk/web e2e
       - uses: actions/upload-artifact@v4
         if: failure()
