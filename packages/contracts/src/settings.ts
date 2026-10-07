@@ -2,6 +2,13 @@ import { z } from 'zod';
 import { LocalizedText } from './common.js';
 import { QuestionType } from './questions.js';
 
+/** Email text in both languages (both required: the student's language picks one). */
+const EmailText = (max: number) =>
+  z.object({
+    en: z.string().trim().min(1, 'Write the English text').max(max),
+    ne: z.string().trim().min(1, 'Write the Nepali text').max(max),
+  });
+
 /**
  * Typed registry of CMS-editable system settings. Each key has a schema and a default.
  * Defaults are *technical* starting points, not owner business decisions: values marked
@@ -333,6 +340,76 @@ export const SETTINGS = {
         .refine((v) => new Set(v).size === v.length, { message: 'Each reminder time once' }),
     }),
     default: { enabled: true, minutesBefore: [1440, 60] },
+    public: false,
+  },
+  /**
+   * D-061: the email every new student account gets (from any device), sent outside the app — Apple allows telling
+   * users by email where to buy (App Review 3.1.3). `{name}` and `{website}` are filled in. DRAFT text for the owner.
+   */
+  'emails.welcome': {
+    schema: z.object({ enabled: z.boolean(), subject: EmailText(150), body: EmailText(4000) }),
+    default: {
+      enabled: true,
+      subject: { en: 'Welcome to Tayari Kakshya', ne: 'तयारी कक्षामा स्वागत छ' },
+      body: {
+        en: [
+          'Namaste {name},',
+          '',
+          'Welcome to Tayari Kakshya. Your account is ready.',
+          '',
+          'Free lessons and practice are open in the app. Courses and plans can be bought on our website, {website}: ' +
+            'sign in there with this same account and everything you buy opens in the app straight away, on any phone.',
+          '',
+          'The Tayari Kakshya team',
+        ].join('\n'),
+        ne: [
+          'नमस्ते {name},',
+          '',
+          'तयारी कक्षामा स्वागत छ। तपाईंको खाता तयार भयो।',
+          '',
+          'निःशुल्क पाठ र अभ्यास एपमै खुला छन्। कोर्स र प्लानहरू हाम्रो वेबसाइट {website} बाट किन्न सकिन्छ: त्यहाँ यही ' +
+            'खाताबाट साइन इन गर्नुहोस्, किनेका सबै कुरा कुनै पनि फोनको एपमा तुरुन्तै खुल्छन्।',
+          '',
+          'तयारी कक्षा टिम',
+        ].join('\n'),
+      },
+    },
+    public: false,
+  },
+  /**
+   * D-061: the email staff send to a student on an Apple device who opened a course they cannot buy in the app.
+   * `{name}`, `{course}` and `{link}` (the course on the website) are filled in; staff can change it before sending.
+   */
+  'emails.purchaseLink': {
+    schema: z.object({
+      subject: EmailText(150),
+      body: EmailText(4000).refine((v) => v.en.includes('{link}') && v.ne.includes('{link}'), {
+        message: 'Keep {link} in both messages (the course on the website)',
+      }),
+    }),
+    default: {
+      subject: { en: '{course} on Tayari Kakshya', ne: '{course} — तयारी कक्षा' },
+      body: {
+        en: [
+          'Namaste {name},',
+          '',
+          'You looked at {course} in the Tayari Kakshya app. You can get it on our website: {link}',
+          '',
+          'Sign in there with the same account you use in the app; the course opens in the app straight away.',
+          '',
+          'The Tayari Kakshya team',
+        ].join('\n'),
+        ne: [
+          'नमस्ते {name},',
+          '',
+          'तपाईंले तयारी कक्षा एपमा {course} हेर्नुभएको थियो। यो कोर्स हाम्रो वेबसाइटबाट लिन सक्नुहुन्छ: {link}',
+          '',
+          'त्यहाँ एपमा प्रयोग गर्ने खाताबाटै साइन इन गर्नुहोस्; कोर्स एपमा तुरुन्तै खुल्छ।',
+          '',
+          'तयारी कक्षा टिम',
+        ].join('\n'),
+      },
+    },
     public: false,
   },
   /** D-050: a question leaves the mistake notebook after this many correct revision answers in a row (default 2). */

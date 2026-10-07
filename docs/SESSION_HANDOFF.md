@@ -202,6 +202,10 @@ Current task: Phase 11 part 3 (receipts + refunds) done on `feature/receipts-ref
 - Nothing partially implemented. Admin screens for Phase 6 not started.
 
 ## Exact next steps
+0i. 2026-10-07: owner chose option A for iPhones (D-061). `feature/ios-buy-guidance` (T-058, branched from
+   `feature/eas-setup`): welcome email (`AccountEmailsService`), course interest (`CourseInterestsService`,
+   Sales → Interested on iPhone), locked-course wording, erasure of notification data. Never add an in-app pointer to
+   buying elsewhere on iOS (App Review 3.1.1). Next: 12c articles once the owner answers the three questions.
 0h. 2026-10-07: PR #31 merged. Owner created the EAS project (`prashantdhimals-team / tayari-kakshya`,
    id `ba6edf8d-8869-4213-97c9-99e9ddf12cdd`). `feature/eas-setup` (T-057): owner + project id in app config, `eas.json`
    profiles, dev client, post-install build of shared packages. An iOS build still needs the bundle id (L5) and an Apple

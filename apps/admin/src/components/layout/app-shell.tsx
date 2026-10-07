@@ -6,6 +6,7 @@ import {
   ClipboardCheck,
   Crown,
   Gift,
+  Smartphone,
   Megaphone,
   TicketPercent,
   Undo2,
@@ -81,6 +82,7 @@ const NAV: Array<{ group: string; items: NavItem[] }> = [
       { to: '/orders', label: 'Orders', icon: Receipt, permission: 'orders:read' },
       { to: '/refunds', label: 'Refunds', icon: Undo2, permission: 'orders:read' },
       { to: '/referrals', label: 'Referrals', icon: Gift, permission: 'orders:read' },
+      { to: '/interests', label: 'Interested on iPhone', icon: Smartphone, permission: 'interests:manage' },
     ],
   },
   {

@@ -43,6 +43,26 @@ const PlainText = (max: number) =>
 export const CourseUpdateInput = z.object({ title: PlainText(120), message: PlainText(1000) });
 export type CourseUpdateInput = z.infer<typeof CourseUpdateInput>;
 
+/** D-061: students on Apple devices who opened courses they cannot buy in the app. */
+export const CourseInterestQuery = CursorQuery.extend({
+  status: z.enum(['open', 'contacted']).optional(),
+});
+export type CourseInterestQuery = z.infer<typeof CourseInterestQuery>;
+
+/** The email staff send (from the CMS template, changed if they like); it must keep the course link. */
+export const CourseInterestContactInput = z.object({
+  subject: z.string().trim().min(1).max(150),
+  body: z
+    .string()
+    .trim()
+    .min(1)
+    .max(4000)
+    .refine((v) => v.includes('{link}'), {
+      message: 'Keep {link} in the message (the course on the website)',
+    }),
+});
+export type CourseInterestContactInput = z.infer<typeof CourseInterestContactInput>;
+
 /** What students can choose to hear about (D-033); the in-app list always shows everything. */
 export const NotificationCategory = z.enum([
   'notice',

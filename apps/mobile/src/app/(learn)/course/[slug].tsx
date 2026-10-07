@@ -274,9 +274,15 @@ function AccessBar({
     );
   } else {
     content = (
-      <View style={styles.priceBar}>
-        <Lock size={20} color={colors.textSecondary} strokeWidth={1.75} />
-        <Text variant="bodySm" color="textSecondary" style={{ flex: 1 }}>
+      // D-027 / D-061: no price, purchase button or pointer to buying elsewhere (App Review 3.1.1) — only access.
+      <View style={styles.locked}>
+        <View style={styles.priceBar}>
+          <Lock size={20} color={colors.textSecondary} strokeWidth={1.75} />
+          <Text variant="body" weight={600}>
+            {t('course.lockedTitle')}
+          </Text>
+        </View>
+        <Text variant="bodySm" color="textSecondary">
           {t('course.lockedNoPrice')}
         </Text>
         <Button
@@ -334,4 +340,5 @@ const styles = StyleSheet.create({
   index: { width: 32, height: 32, borderRadius: radius.sm, alignItems: 'center', justifyContent: 'center' },
   bar: { borderTopWidth: StyleSheet.hairlineWidth, paddingHorizontal: 20, paddingTop: 12, paddingBottom: 12 },
   priceBar: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  locked: { gap: 10, alignItems: 'flex-start' },
 });

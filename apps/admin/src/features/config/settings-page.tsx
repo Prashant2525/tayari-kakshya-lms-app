@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useId, useState, type ReactNode } from 'react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { Field, Input, Select } from '@/components/ui/form';
+import { Field, Input, Select, Textarea } from '@/components/ui/form';
 import {
   Alert,
   Badge,
@@ -304,6 +304,74 @@ function DiscountFields<D extends DiscountDraft>({
           onChange={(p) => onChange({ ...value, amountPaisa: p })}
         />
       )}
+    </div>
+  );
+}
+
+type EmailTemplate = { subject: { en: string; ne: string }; body: { en: string; ne: string } };
+
+/** Subject and message of an email in both languages. */
+function EmailTemplateFields({
+  value,
+  onChange,
+  disabled,
+}: {
+  value: EmailTemplate;
+  onChange: (next: EmailTemplate) => void;
+  disabled: boolean;
+}) {
+  const set = (part: 'subject' | 'body', lang: 'en' | 'ne', text: string) =>
+    onChange({ subject: value.subject, body: value.body, [part]: { ...value[part], [lang]: text } });
+  return (
+    <div className="grid gap-4 sm:grid-cols-2">
+      <Field label="Subject (English)">
+        {(a) => (
+          <Input
+            {...a}
+            maxLength={150}
+            value={value.subject.en}
+            disabled={disabled}
+            onChange={(e) => set('subject', 'en', e.target.value)}
+          />
+        )}
+      </Field>
+      <Field label="विषय (नेपाली)">
+        {(a) => (
+          <Input
+            {...a}
+            lang="ne"
+            maxLength={150}
+            value={value.subject.ne}
+            disabled={disabled}
+            onChange={(e) => set('subject', 'ne', e.target.value)}
+          />
+        )}
+      </Field>
+      <Field label="Message (English)">
+        {(a) => (
+          <Textarea
+            {...a}
+            rows={8}
+            maxLength={4000}
+            value={value.body.en}
+            disabled={disabled}
+            onChange={(e) => set('body', 'en', e.target.value)}
+          />
+        )}
+      </Field>
+      <Field label="सन्देश (नेपाली)">
+        {(a) => (
+          <Textarea
+            {...a}
+            lang="ne"
+            rows={8}
+            maxLength={4000}
+            value={value.body.ne}
+            disabled={disabled}
+            onChange={(e) => set('body', 'ne', e.target.value)}
+          />
+        )}
+      </Field>
     </div>
   );
 }
@@ -864,6 +932,38 @@ export function SettingsPage() {
                 />
               ) : null}
             </>
+          )}
+        </SettingCard>
+
+        <SettingCard
+          row={row('emails.welcome')}
+          title="Welcome email"
+          description="Sent once to every new student account (any phone or the website). It may say where courses are bought: emails are outside the app, which Apple allows. {name} and {website} are filled in."
+        >
+          {(d, set, disabled) => (
+            <>
+              <ToggleRow
+                label="Send the welcome email"
+                checked={d.enabled}
+                disabled={disabled}
+                onChange={(v) => set({ ...d, enabled: v })}
+              />
+              <EmailTemplateFields
+                value={d}
+                disabled={disabled}
+                onChange={(next) => set({ ...d, ...next })}
+              />
+            </>
+          )}
+        </SettingCard>
+
+        <SettingCard
+          row={row('emails.purchaseLink')}
+          title="Buying link email"
+          description="What staff send from Sales → Interested on iPhone, in the student's language (they can change it before sending). {name}, {course} and {link} are filled in; keep {link}."
+        >
+          {(d, set, disabled) => (
+            <EmailTemplateFields value={d} disabled={disabled} onChange={(next) => set({ ...d, ...next })} />
           )}
         </SettingCard>
 

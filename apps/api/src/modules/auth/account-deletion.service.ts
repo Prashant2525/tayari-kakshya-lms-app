@@ -92,6 +92,13 @@ export class AccountDeletionService {
         await tx.userStreak.deleteMany({ where: { userId: request.userId } });
         await tx.certificate.deleteMany({ where: { userId: request.userId } });
         await tx.mistake.deleteMany({ where: { userId: request.userId } });
+        // Notifications (D-033) and Apple-device course interest / account emails (D-061).
+        await tx.pushToken.deleteMany({ where: { userId: request.userId } });
+        await tx.notificationDelivery.deleteMany({ where: { userId: request.userId } });
+        await tx.notification.deleteMany({ where: { userId: request.userId } });
+        await tx.notificationPreference.deleteMany({ where: { userId: request.userId } });
+        await tx.courseInterest.deleteMany({ where: { userId: request.userId } });
+        await tx.accountEmail.deleteMany({ where: { userId: request.userId } });
         await tx.user.update({
           where: { id: request.userId },
           data: {

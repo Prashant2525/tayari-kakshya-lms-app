@@ -21,6 +21,8 @@ export const PERMISSIONS = {
   'courses:publish': 'Publish, schedule, archive and delete courses',
   'courses:pricing': 'Change course prices, sales and validity',
   'courses:notify': "Send course updates to the course's students (in-app, push and email)",
+  'interests:manage':
+    'See students on Apple devices who opened courses they cannot buy in the app, and email them',
   'instructors:manage': 'Manage public instructor profiles',
   'entitlements:grant': "Grant or revoke a student's access to courses",
   'questions:edit': 'Create and edit questions in the question bank (drafts), import questions',

@@ -37,6 +37,7 @@ const CONTENT_PERMISSIONS = [
   'notices:edit',
   'notices:publish',
   'courses:notify',
+  'interests:manage',
 ];
 
 /**

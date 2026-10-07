@@ -4,6 +4,17 @@ All notable changes to this project. Format based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Added — 2026-10-07 (iPhone buyers, D-061)
+- Every new student gets a welcome email (text in System settings) saying where courses are bought.
+- CMS Sales → Interested on iPhone: students who opened a paid course they cannot buy in the iPhone app (noted
+  quietly, with the device), and an "Email link" dialog that sends the course's website link (template in System
+  settings → Buying link email).
+- iPhone: a locked course now says "Course locked — your account doesn't have access to this course yet" with
+  "Refresh access" (still no prices or buying pointers, as Apple requires).
+
+### Fixed — 2026-10-07
+- Erasing an account now also removes its push tokens, notifications and notification settings.
+
 ### Added — 2026-10-07 (EAS builds)
 - The app is linked to the owner's EAS project (push tokens work in builds); `eas.json` with development, preview and
   production profiles; development client; shared packages are built during EAS builds.

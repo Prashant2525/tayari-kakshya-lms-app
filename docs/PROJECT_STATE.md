@@ -51,7 +51,9 @@ Last updated: 2026-10-07
   notification pipeline (in-app, outbox, Expo push, email, preferences). Push on phones waits for the owner's EAS
   project (KI-048). Merged (PR #30).
 - Phase 12b on `feature/event-notifications` (T-056): purchase, result and exam-reminder notifications; CMS
-  "Notify students" on the course page; exam reminder times in System settings. Next: 12c — articles.
+  "Notify students" on the course page; exam reminder times in System settings. Merged (PR #31).
+- EAS setup (T-057, PR #32) and iPhone buyers on `feature/ios-buy-guidance` (D-061, T-058): welcome email,
+  "Interested on iPhone" list with buying-link emails, Apple-safe locked-course text. Next: 12c — articles.
 - Monitoring (T-042) merged (PR #14, #15): Sentry in the API, worker, admin and app; PostHog in the app. Google web client registered for `http://localhost:8081` (checked); a real
   sign-in by the owner and Android/iOS clients remain (KI-029).
 - Phase 9 part 2 merged (PR #13): practice questions with Check answer and locked Premium answers
