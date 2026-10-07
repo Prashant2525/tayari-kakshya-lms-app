@@ -202,6 +202,10 @@ Current task: Phase 11 part 3 (receipts + refunds) done on `feature/receipts-ref
 - Nothing partially implemented. Admin screens for Phase 6 not started.
 
 ## Exact next steps
+0l. 2026-10-07: PR #35 merged. `feature/articles-web` (T-061): website articles + search (KI-050 fixed).
+   Next: **12d** — static pages (Terms / Privacy / Refund / About as DRAFT texts for the owner, D-038; privacy must
+   cover KI-049), FAQs, contact options (D-034) and Profile → Help, banners / home sections; legal pages on the website
+   (KI-046). Ask the owner first: business name / address / contact details to show, and which home sections.
 0k. 2026-10-07: PR #32–#34 merged. Owner answered the article questions (D-063). `feature/articles` (T-060):
    articles part 1. Next: **12c-2** — website `/articles` index (kind tabs) and `/articles/[slug]` pages (BS dates,
    cover, source link, SEO metadata, sitemap), and articles in unified search (`/search`, app and CMS). Then 12d.

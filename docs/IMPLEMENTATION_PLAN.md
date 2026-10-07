@@ -174,7 +174,8 @@ banners & home sections, FAQs, contact options, static pages with **draft legal 
   (unless already opened), exam reminders (CMS times, default 1 day / 1 hour), "Notify students" on the course page
 - ☑ Part 12c-1 (T-060, D-063): articles — CMS, public API, app (Home tiles, lists, article page, quiz link), push /
   email per article
-- ☐ Part 12c-2: articles on the website (pages, sitemap, SEO) and in unified search
+- ☑ Part 12c-2 (T-061): articles on the website (list, pages, home section, SEO metadata, JSON-LD, sitemap) and in
+  unified search (app)
 - ☐ Part 12d: static pages (DRAFT legal texts, D-038), FAQs, contact options, banners / home sections
 
 **§13 Progress & community** — progress analytics (accuracy, weak/strong topics, study time), study planner,

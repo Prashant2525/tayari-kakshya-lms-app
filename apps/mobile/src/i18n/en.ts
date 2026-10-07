@@ -209,6 +209,7 @@ export const en = {
   'search.courses': 'Courses',
   'search.lessons': 'Lessons',
   'search.questions': 'Questions',
+  'search.articles': 'Articles',
   'search.none': 'Nothing found for “{q}”',
   'profile.edit': 'Edit profile',
   'profile.saved': 'Your profile is saved.',

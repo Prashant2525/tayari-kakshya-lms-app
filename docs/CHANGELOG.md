@@ -4,6 +4,14 @@ All notable changes to this project. Format based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Added — 2026-10-07 (Phase 12c part 2: articles on the website and in search)
+- Website: Articles in the header, "Latest articles" on the home page, the list by kind (and period for current
+  affairs), article pages with their source link, search-engine data and sitemap entries.
+- App search also finds articles.
+
+### Fixed — 2026-10-07 (KI-050)
+- Student search showed the titles of lessons that were still drafts or scheduled.
+
 ### Added — 2026-10-07 (Phase 12c part 1: articles)
 - CMS: Communication → Articles — current affairs (daily / weekly / monthly / yearly), Gorkhapatra summaries (issue
   date and source link), news and blog; categories; cover image; practice quiz; featured; push / email per article;

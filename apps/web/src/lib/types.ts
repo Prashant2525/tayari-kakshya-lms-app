@@ -129,3 +129,27 @@ export interface CertificateCheck {
 }
 
 export type CheckoutItem = { courseId: string } | { planId: string };
+
+/** Articles (D-063): free for everyone. */
+export interface ArticleCard {
+  id: string;
+  kind: 'current_affairs' | 'gorkhapatra' | 'news' | 'blog';
+  slug: string;
+  title: LocalizedText;
+  summary: LocalizedText;
+  cover: { url: string; variants: Record<string, string> } | null;
+  category: { id: string; name: LocalizedText } | null;
+  period: 'daily' | 'weekly' | 'monthly' | 'yearly' | null;
+  periodDate: string | null;
+  sourceName: string | null;
+  isFeatured: boolean;
+  publishedAt: string;
+}
+
+export interface ArticleDetail extends ArticleCard {
+  body: { en?: RichNode; ne?: RichNode };
+  media: Record<string, { url: string; variants: Record<string, string> }>;
+  sourceUrl: string | null;
+  quiz: { id: string; type: string; title: LocalizedText } | null;
+  updatedAt: string;
+}

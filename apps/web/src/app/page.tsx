@@ -1,15 +1,21 @@
 import Link from 'next/link';
+import { ArticleCard } from '@/components/article-card';
 import { CourseCard } from '@/components/course-card';
 import { button } from '@/components/ui';
 import { api } from '@/lib/api';
 import { getI18n } from '@/lib/i18n';
-import type { CourseCard as Course } from '@/lib/types';
+import type { ArticleCard as Article, CourseCard as Course } from '@/lib/types';
 
 /** Home: what the CMS features, and the way to every course and plan. */
 export default async function HomePage() {
-  const { locale, t, localized } = await getI18n();
+  const { locale, t, localized, bsDate } = await getI18n();
   const featured = await api<{ data: Course[] }>('/courses?featured=true&limit=6', { revalidate: 60 }).catch(
     () => ({ data: [] }),
+  );
+  const latest = await api<{ data: Article[] }>('/articles?limit=3', { revalidate: 60, auth: false }).catch(
+    () => ({
+      data: [] as Article[],
+    }),
   );
   return (
     <div className="flex flex-col gap-12">
@@ -48,6 +54,23 @@ export default async function HomePage() {
           {t('home.seePlans')} →
         </Link>
       </section>
+      {latest.data.length ? (
+        <section aria-labelledby="latest-articles">
+          <div className="mb-4 flex items-baseline justify-between gap-4">
+            <h2 id="latest-articles" className="text-2xl font-bold text-text">
+              {t('home.articles')}
+            </h2>
+            <Link href="/articles" className="text-sm font-semibold text-link hover:underline">
+              {t('home.allArticles')}
+            </Link>
+          </div>
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {latest.data.map((a) => (
+              <ArticleCard key={a.id} article={a} t={t} localized={localized} bsDate={bsDate} />
+            ))}
+          </div>
+        </section>
+      ) : null}
     </div>
   );
 }

@@ -42,6 +42,12 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
                 >
                   {t('nav.plans')}
                 </Link>
+                <Link
+                  href="/articles"
+                  className="rounded-md px-3 py-2 text-[15px] font-medium text-text hover:bg-surface-muted"
+                >
+                  {t('nav.articles')}
+                </Link>
               </nav>
               <div className="flex items-center gap-1">
                 <LanguageToggle />

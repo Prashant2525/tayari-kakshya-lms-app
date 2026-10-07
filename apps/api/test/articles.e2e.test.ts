@@ -254,6 +254,17 @@ describe('reading articles (D-063)', () => {
     }
     const asha = (await registerStudent(ctx, 'asha@example.com')).accessToken;
     expect((await call(ctx, 'GET', '/articles?limit=50', { token: asha })).body.data).toHaveLength(3);
+    // Unified search finds live articles only (the draft, scheduled and deleted ones share this title).
+    const found = (await call(ctx, 'GET', '/search?q=calendar', { token: asha })).body;
+    expect(found.articles).toEqual([
+      expect.objectContaining({ kind: 'news', slug: 'psc-calendar-2083', title: article().title }),
+    ]);
+    expect(
+      (await call(ctx, 'GET', `/search?q=${encodeURIComponent('बजेट')}`, { token: asha })).body.articles,
+    ).toEqual([]);
+    expect((await call(ctx, 'GET', '/search?q=budget', { token: asha })).body.articles).toEqual([
+      expect.objectContaining({ slug: 'weekly-asoj-3', period: 'weekly', periodDate: '2026-10-04' }),
+    ]);
     // Only active categories are offered.
     expect((await call(ctx, 'GET', '/article-categories?kind=current_affairs')).body).toEqual([
       { id: economy, kind: 'current_affairs', name: { en: 'Economy', ne: 'अर्थतन्त्र' } },

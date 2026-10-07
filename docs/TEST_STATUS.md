@@ -1,6 +1,6 @@
 # Test Status
 
-Last updated: 2026-10-07 (Phase 12c part 1: articles). `pnpm test` runs unit + integration suites (needs `pnpm infra:up`);
+Last updated: 2026-10-07 (Phase 12c part 2: articles on the website, search). `pnpm test` runs unit + integration suites (needs `pnpm infra:up`);
 `pnpm build && pnpm --filter @tk/admin e2e` and `pnpm build && pnpm --filter @tk/mobile e2e` run the browser suites
 (the student suite also needs Mailpit, part of `pnpm infra:up`).
 
@@ -16,9 +16,19 @@ Last updated: 2026-10-07 (Phase 12c part 1: articles). `pnpm test` runs unit + i
 | `@tk/admin` (E2E, Playwright) | 32 | Real browser + real API + `*_e2e` database |
 | `@tk/mobile` (unit) | 36 | API client (single-flight refresh, early refresh, session end, maintenance), translations complete in both languages, BS dates and Kathmandu weekday, force-update/maintenance gate, form checks, Nepali phone numbers |
 | `@tk/mobile` (E2E, Playwright, phone viewport) | 34 | Web build + real API + `*_mobile_e2e` database + Mailpit |
-| `@tk/web` (unit) | 6 | Session refresh used once (concurrent / late requests share it; refused → signed out; unreachable → retried), token expiry, both languages complete, failure messages |
-| `@tk/web` (E2E, Playwright) | 5 | `next start` production build + real API + `*_web_e2e` database + Mailpit + gateway stand-in; access tokens last 60 s so every page load refreshes |
-| **Total** | **548** | |
+| `@tk/web` (unit) | 8 | Session refresh used once (concurrent / late requests share it; refused → signed out; unreachable → retried), token expiry, both languages complete, failure messages |
+| `@tk/web` (E2E, Playwright) | 7 | `next start` production build + real API + `*_web_e2e` database + Mailpit + gateway stand-in; access tokens last 60 s so every page load refreshes |
+| **Total** | **552** | |
+
+### Added with articles on the website and in search (Phase 12c part 2, T-061)
+- **API (extended):** search finds live articles by title or address — not the draft, scheduled or deleted ones
+  with the same title; a draft lesson is not found either (KI-050: both failed with the old filters).
+- **Website unit (2):** the sitemap lists the fixed pages, every course and every article across pages; still the
+  fixed pages when the API is down.
+- **Website E2E (2):** home → Latest articles → All articles → Gorkhapatra tab → card (summary, BS date) → article
+  (text, source link with nofollow, page title, NewsArticle data); `/articles` in the sitemap; an unknown address
+  is a 404. **App E2E (extended):** search finds the article and opens it.
+- Screens checked: article page (desktop), articles list (phone).
 
 ### Added with articles (Phase 12c part 1, T-060, D-063)
 - **API (3 integration tests):** rules per kind (current affairs period and date; Gorkhapatra date and https

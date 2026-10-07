@@ -199,10 +199,11 @@ export class PracticeService {
     const text = (path: 'en' | 'ne') => ({
       title: { path: [path], string_contains: q, mode: 'insensitive' as const },
     });
-    const [courses, items, questions] = await Promise.all([
+    const [courses, items, questions, articles] = await Promise.all([
       this.catalog.listCourses({ q, limit: 10, platform }),
       this.prisma.learningItem.findMany({
-        where: { ...visibleItem(), OR: [text('en'), text('ne')] },
+        // AND, not a spread: being live is itself an OR, which a second OR would replace (drafts were found).
+        where: { AND: [visibleItem(), { OR: [text('en'), text('ne')] }] },
         include: { topic: { select: { chapter: { select: { subject: true } } } } },
         orderBy: { id: 'asc' },
         take: 10,
@@ -211,6 +212,15 @@ export class PracticeService {
         where: { ...visibleQuestion, searchText: { contains: q, mode: 'insensitive' } },
         include: { currentVersion: true, subject: true },
         orderBy: { id: 'asc' },
+        take: 10,
+      }),
+      // Articles (D-063): free for everyone; newest first.
+      this.prisma.article.findMany({
+        // AND: live itself is an OR (published, or scheduled and due); spreading both would drop it.
+        where: {
+          AND: [liveWhere(), { OR: [text('en'), text('ne'), { slug: { contains: q.toLowerCase() } }] }],
+        },
+        orderBy: [{ publishAt: { sort: 'desc', nulls: 'last' } }, { id: 'desc' }],
         take: 10,
       }),
     ]);
@@ -228,6 +238,15 @@ export class PracticeService {
         preview: stemPreview(x.currentVersion?.content as QuestionContent | undefined),
         accessLevel: x.accessLevel,
         subject: { id: x.subject.id, name: x.subject.name as LocalizedText },
+      })),
+      articles: articles.map((a) => ({
+        id: a.id,
+        kind: a.kind,
+        slug: a.slug,
+        title: a.title as LocalizedText,
+        period: a.period,
+        periodDate: a.periodDate?.toISOString().slice(0, 10) ?? null,
+        publishedAt: (a.publishAt ?? a.createdAt).toISOString(),
       })),
     };
   }
