@@ -85,6 +85,9 @@ model User {
   pushTokens          PushToken[]
   notificationPrefs   NotificationPreference?
   courseUpdatesSent   CourseUpdate[]
+  courseInterests     CourseInterest[]         @relation("InterestedStudent")
+  interestsContacted  CourseInterest[]         @relation("InterestContactedBy")
+  accountEmails       AccountEmail[]
   referralCode        ReferralCode?
   referralsMade       Referral[]               @relation("Referrer")
   referredBy          Referral?                @relation("Referee")
@@ -671,6 +674,7 @@ model Course {
   assessments Assessment[]
   progress    LearningProgress[]
   updates     CourseUpdate[]
+  interests   CourseInterest[]
 
   @@index([status, isFeatured, popularityRank])
   @@index([certificateTemplateId])
@@ -1954,4 +1958,53 @@ model CourseUpdate {
 
   @@index([courseId, createdAt(sort: Desc)])
   @@map("course_updates")
+}
+
+/// D-061: a student on an Apple device opened a paid course they cannot buy in the app (no button: recorded when the
+/// course page loads). Staff can email them the website link (App Review 3.1.3). Erased with the account.
+model CourseInterest {
+  id            String    @id @default(uuid(7)) @db.Uuid
+  userId        String    @map("user_id") @db.Uuid
+  courseId      String    @map("course_id") @db.Uuid
+  /// From the student's signed-in session, e.g. "iPhone 15".
+  deviceName    String    @map("device_name")
+  /// Visits, counted at most once per 30 minutes.
+  views         Int       @default(1)
+  firstSeenAt   DateTime  @default(now()) @map("first_seen_at") @db.Timestamptz(6)
+  lastSeenAt    DateTime  @default(now()) @map("last_seen_at") @db.Timestamptz(6)
+  contactedAt   DateTime? @map("contacted_at") @db.Timestamptz(6)
+  contactedById String?   @map("contacted_by") @db.Uuid
+
+  user        User   @relation("InterestedStudent", fields: [userId], references: [id], onDelete: Cascade)
+  course      Course @relation(fields: [courseId], references: [id], onDelete: Restrict)
+  contactedBy User?  @relation("InterestContactedBy", fields: [contactedById], references: [id], onDelete: SetNull)
+
+  @@unique([userId, courseId])
+  @@index([lastSeenAt(sort: Desc)])
+  @@map("course_interests")
+}
+
+enum AccountEmailStatus {
+  pending
+  sent
+  skipped
+  failed
+}
+
+/// Account emails the worker sends once per student (D-061: the welcome email), retried a few times.
+model AccountEmail {
+  id        String             @id @default(uuid(7)) @db.Uuid
+  userId    String             @map("user_id") @db.Uuid
+  kind      String
+  status    AccountEmailStatus @default(pending)
+  attempts  Int                @default(0)
+  attemptAt DateTime?          @map("attempt_at") @db.Timestamptz(6)
+  sentAt    DateTime?          @map("sent_at") @db.Timestamptz(6)
+  createdAt DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, kind])
+  @@index([status, attemptAt])
+  @@map("account_emails")
 }

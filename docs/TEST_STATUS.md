@@ -1,6 +1,6 @@
 # Test Status
 
-Last updated: 2026-10-07 (Phase 12b: event notifications). `pnpm test` runs unit + integration suites (needs `pnpm infra:up`);
+Last updated: 2026-10-07 (iPhone buyers, D-061). `pnpm test` runs unit + integration suites (needs `pnpm infra:up`);
 `pnpm build && pnpm --filter @tk/admin e2e` and `pnpm build && pnpm --filter @tk/mobile e2e` run the browser suites
 (the student suite also needs Mailpit, part of `pnpm infra:up`).
 
@@ -11,14 +11,28 @@ Last updated: 2026-10-07 (Phase 12b: event notifications). `pnpm test` runs unit
 | `@tk/design-tokens` | 39 | WCAG contrast for every text/background pair (light + dark), CSS generation |
 | `@tk/domain` | 58 | BS calendar, Kathmandu day boundary, fiscal year, money/VAT/discounts, access validity |
 | `@tk/contracts` | 21 | Schema behaviour (localized text, email normalisation, mass assignment, settings defaults, rich-text validation) |
-| `@tk/api` | 273 | Integration against real PostgreSQL + Redis + S3 (SeaweedFS) through the HTTP stack; TOTP RFC 6238 vectors; RBAC, video, watermark unit |
+| `@tk/api` | 277 | Integration against real PostgreSQL + Redis + S3 (SeaweedFS) through the HTTP stack; TOTP RFC 6238 vectors; RBAC, video, watermark unit |
 | `@tk/admin` (unit) | 35 | API client (headers, refresh single-flight, retry, session loss, error mapping), BS formatting, Button `asChild` regression |
-| `@tk/admin` (E2E, Playwright) | 30 | Real browser + real API + `*_e2e` database |
+| `@tk/admin` (E2E, Playwright) | 31 | Real browser + real API + `*_e2e` database |
 | `@tk/mobile` (unit) | 36 | API client (single-flight refresh, early refresh, session end, maintenance), translations complete in both languages, BS dates and Kathmandu weekday, force-update/maintenance gate, form checks, Nepali phone numbers |
 | `@tk/mobile` (E2E, Playwright, phone viewport) | 33 | Web build + real API + `*_mobile_e2e` database + Mailpit |
 | `@tk/web` (unit) | 6 | Session refresh used once (concurrent / late requests share it; refused → signed out; unreachable → retried), token expiry, both languages complete, failure messages |
 | `@tk/web` (E2E, Playwright) | 5 | `next start` production build + real API + `*_web_e2e` database + Mailpit + gateway stand-in; access tokens last 60 s so every page load refreshes |
-| **Total** | **536** | |
+| **Total** | **541** | |
+
+### Added with iPhone buyers (T-058, D-061)
+- **API (4 integration tests):** the welcome email goes once to each new student in their language with the
+  website (not staff, not accounts older than 3 days); CMS text and switch followed (off → those who joined then are
+  never sent one); retried after an email failure (not before 10 minutes); an iPhone session opening a paid course
+  without access is noted with its device (visits once per 30 minutes) — not Android (even claiming iOS in the
+  header), not signed out, not a student with access; staff see it, get the filled-in email, are refused without
+  `{link}`, send it (link in the email, audit, moved to "emailed"), see "has access now" after a purchase; refused
+  without `interests:manage`; erasure removes interest, account emails, push tokens, notifications, deliveries
+  and preferences. Mutation-checked (6 mutations: any device, students with access, push tokens kept, old
+  accounts, welcome while off, staff welcomed — each fails a test).
+- **CMS E2E (1):** an iPhone sign-in opens a paid course → listed with "iPhone 15" → Email link → sent → "Emailed".
+- Screens checked: the CMS list and email dialog; the iPhone locked course (requests rewritten to iOS in a
+  throwaway browser run).
 
 ### Added with event notifications (Phase 12b, T-056, D-060)
 - **API (6 integration tests):** a Khalti payment tells the student once in the app and by push (repeated returns

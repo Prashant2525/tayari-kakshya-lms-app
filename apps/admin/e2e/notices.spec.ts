@@ -91,3 +91,69 @@ test("staff tell a course's students about an update", async () => {
   await expect(sent).toContainText('1 student');
   await expect(page.getByLabel('Title (English)')).toHaveValue('');
 });
+
+test('an iPhone student who opened a paid course is listed, and staff email them the link', async () => {
+  const token = (
+    (await (
+      await page.request.post('/api/v1/admin/auth/refresh', { headers: { 'X-TK-Client': 'admin' } })
+    ).json()) as { accessToken: string }
+  ).accessToken;
+  const staff = async (method: 'POST' | 'PUT', path: string, data: unknown) => {
+    const res = await page.request.fetch(`/api/v1${path}`, {
+      method,
+      data,
+      headers: { Authorization: `Bearer ${token}`, 'X-TK-Client': 'admin' },
+    });
+    expect(res.ok(), `${method} ${path}: ${await res.text()}`).toBe(true);
+    return (res.status() === 204 ? null : await res.json()) as { id: string };
+  };
+  // A paid, published course (test price, not a business value).
+  const subject = await staff('POST', '/admin/subjects', { name: { en: `Nepali ${run}` } });
+  await staff('PUT', `/admin/subjects/${subject.id}/status`, { status: 'published' });
+  const course = await staff('POST', '/admin/courses', {
+    slug: `kharidar-${run}`,
+    title: { en: `Kharidar Complete ${run}` },
+  });
+  await staff('PUT', `/admin/courses/${course.id}/pricing`, {
+    pricePaisa: 150_000,
+    salePricePaisa: null,
+    saleStartsAt: null,
+    saleEndsAt: null,
+    validityType: 'lifetime',
+    validityDays: null,
+    validityEndsOn: null,
+  });
+  await staff('PUT', `/admin/courses/${course.id}/subjects`, { subjects: [{ subjectId: subject.id }] });
+  await staff('PUT', `/admin/courses/${course.id}/publishing`, { status: 'published' });
+
+  // The seeded student opens it on an iPhone: no price there, the visit is noted quietly (D-061).
+  const login = await page.request.post('/api/v1/auth/login', {
+    data: {
+      email: E2E_STUDENT_EMAIL,
+      password: E2E_ADMIN_PASSWORD,
+      device: { deviceId: `e2e-iphone-${run}`, deviceName: 'iPhone 15', platform: 'ios' },
+    },
+  });
+  expect(login.ok(), await login.text()).toBe(true);
+  const student = ((await login.json()) as { accessToken: string }).accessToken;
+  const opened = await page.request.get(`/api/v1/courses/kharidar-${run}`, {
+    headers: { Authorization: `Bearer ${student}`, 'X-TK-Platform': 'ios' },
+  });
+  expect(opened.ok()).toBe(true);
+
+  await nav('Interested on iPhone').click();
+  const row = page.getByRole('row', { name: new RegExp(`Kharidar Complete ${run}`) });
+  await expect(row).toContainText('iPhone 15');
+  await expect(row).toContainText('Not emailed');
+  await row.getByRole('button', { name: /Email .* the link/ }).click();
+  const dialog = page.getByRole('dialog');
+  await expect(dialog.getByLabel('Subject')).toHaveValue(`Kharidar Complete ${run} on Tayari Kakshya`);
+  await expect(dialog).toContainText(`/courses/kharidar-${run}`);
+  await dialog.getByRole('button', { name: 'Send email' }).click();
+  await expect(page.getByText(/Email sent to/)).toBeVisible();
+  await expect(page.getByRole('row', { name: new RegExp(`Kharidar Complete ${run}`) })).toHaveCount(0);
+  await page.getByLabel('Show').selectOption('contacted');
+  await expect(page.getByRole('row', { name: new RegExp(`Kharidar Complete ${run}`) })).toContainText(
+    'Emailed',
+  );
+});

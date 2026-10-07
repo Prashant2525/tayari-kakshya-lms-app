@@ -117,8 +117,10 @@ export const en = {
   'course.enrol': 'Enrol for free',
   'course.enrolled': 'You have access to this course.',
   'course.start': 'Start learning',
-  'course.lockedNoPrice': 'Some lessons are locked. If this account has access, it appears here.',
-  'course.refresh': 'Refresh',
+  'course.lockedTitle': 'Course locked',
+  'course.lockedNoPrice':
+    "Your account doesn't have access to this course yet. Already have access? Make sure you're signed in with the account you used.",
+  'course.refresh': 'Refresh access',
   'subject.notes': 'Notes',
   'subject.videos': 'Videos',
   'subject.progress': '{done} of {total} done',

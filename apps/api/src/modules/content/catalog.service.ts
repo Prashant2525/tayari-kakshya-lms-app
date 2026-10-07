@@ -18,6 +18,7 @@ import { EntitlementsService, isFreeEnrollable } from './entitlements.service.js
 import { isLive, liveWhere, publishedWhere } from './publishing.js';
 import { watermarkPdf } from './pdf-watermark.js';
 import { VideoService } from './video.service.js';
+import { CourseInterestsService } from '../notifications/course-interests.service.js';
 
 const num = (d: Prisma.Decimal | null) => (d === null ? null : Number(d));
 const locked = () => new AppError(403, ErrorCode.CONTENT_LOCKED, 'This content is part of a premium course');
@@ -26,6 +27,8 @@ const verificationRequired = () =>
 
 export interface Viewer {
   userId: string;
+  /** The signed-in session, when the caller has one (course interest from Apple devices, D-061). */
+  sessionId?: string;
 }
 
 type CourseWithThumb = Course & { thumbnail: MediaAsset | null };
@@ -44,6 +47,7 @@ export class CatalogService {
     private readonly entitlements: EntitlementsService,
     private readonly video: VideoService,
     private readonly certificates: CertificatesService,
+    private readonly interests: CourseInterestsService,
   ) {}
 
   // ───────────── Courses ─────────────
@@ -121,6 +125,10 @@ export class CatalogService {
       _count: { _all: true },
     });
     const purchasable = await this.purchasable(platform);
+    // D-061: an Apple device cannot buy here; note the interest so staff can email the website link.
+    if (viewer?.sessionId && platform === 'ios' && !entitled && course.pricePaisa > 0 && isLive(course)) {
+      await this.interests.record(viewer.userId, viewer.sessionId, course.id);
+    }
     return {
       ...this.courseCard(course, purchasable),
       description: (course.description as LocalizedRichDoc | null) ?? null,

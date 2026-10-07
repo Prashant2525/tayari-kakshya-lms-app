@@ -150,3 +150,5 @@ supported merchant locations (Nepal: developer ✔, merchant ✘); YouTube priva
   Details chosen while building (T-056, tell us to change any): purchases are not emailed separately (the receipt is
   the email); a result is not announced to a student who already opened it; reminders go to the students a test is
   listed for who may take it; course updates go to everyone with access now.
+- **iPhone buying (asked 2026-10-07):** keep web-only (A) or add Apple In-App Purchase (B)? How do iPhone users
+  learn where to buy? **Answered 2026-10-07:** A, with a welcome email and the "interested on iPhone" list (D-061).

@@ -81,7 +81,8 @@ export class CatalogController {
   @OptionalAuth()
   @Get('courses/:slug')
   course(@Param('slug') slug: string, @ClientPlatform() platform: Platform, @Req() req: FastifyRequest) {
-    const viewer = req.auth?.audience === 'student' ? { userId: req.auth.userId } : null;
+    const viewer =
+      req.auth?.audience === 'student' ? { userId: req.auth.userId, sessionId: req.auth.sessionId } : null;
     return this.catalog.courseDetail(slug, platform, viewer);
   }
 }

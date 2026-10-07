@@ -61,4 +61,5 @@ Object.assign(process.env, {
   PAYMENT_RETURN_URL_APP: 'tayarikakshya://payment-result',
   PAYMENT_RETURN_URL_WEB: 'https://web.test.invalid/payment-result',
   PAYMENT_ORDER_TTL_MINUTES: '60',
+  PUBLIC_WEB_URL: 'https://web.test.invalid',
 });

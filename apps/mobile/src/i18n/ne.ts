@@ -116,8 +116,10 @@ export const ne: Record<MessageKey, string> = {
   'course.enrol': 'निःशुल्क भर्ना हुनुहोस्',
   'course.enrolled': 'यो कोर्समा तपाईंको पहुँच छ।',
   'course.start': 'पढ्न सुरु गर्नुहोस्',
-  'course.lockedNoPrice': 'केही पाठ बन्द छन्। यो खातासँग पहुँच भए यहाँ देखिनेछ।',
-  'course.refresh': 'रिफ्रेस गर्नुहोस्',
+  'course.lockedTitle': 'कोर्स बन्द छ',
+  'course.lockedNoPrice':
+    'तपाईंको खातामा यो कोर्सको पहुँच अझै छैन। पहुँच छ भने, प्रयोग गरेको खाताबाटै साइन इन भएको निश्चित गर्नुहोस्।',
+  'course.refresh': 'पहुँच रिफ्रेस गर्नुहोस्',
   'subject.notes': 'नोट',
   'subject.videos': 'भिडियो',
   'subject.progress': '{total} मध्ये {done} पूरा',

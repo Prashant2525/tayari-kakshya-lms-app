@@ -129,6 +129,8 @@ partial indexes, generated `tsvector` columns, check constraints and triggers th
 | `users.notices_seen_at` | when the student last opened the Notice tab (badge) |
 | `attempts.result_notified_at` | the student was told (or saw on screen) that this attempt's result is out — partial index `attempts_result_unnotified_idx` (submitted_at) where completed, not told, not practice (T-056) |
 | `assessment_reminders` | `assessment_id`, `minutes_before`, `opens_at` (UNIQUE together: a moved test is reminded again), `sent` (false = skipped for a nearer one), `recipients` — CHECK minutes > 0, recipients ≥ 0, unsent ⇒ 0 |
+| `course_interests` | `user_id` + `course_id` UNIQUE, `device_name`, `views` (≥ 1, a visit per 30 min), `first_seen_at` / `last_seen_at` (CHECK order), `contacted_at`, `contacted_by` — D-061, removed on erasure |
+| `account_emails` | `user_id` + `kind` UNIQUE (`welcome`), `status` (pending/sent/skipped/failed, CHECK sent ⇔ `sent_at`), `attempts`, `attempt_at` — the worker's queue; removed on erasure |
 | `course_updates` | `course_id`, `title` / `message` localized plain text, `recipients`, `sent_by`, `created_at` — kept as a record (never deleted), index `(course_id, created_at desc)` |
 | `notification_templates` | `key` unique, localized subject/body per channel |
 | `notification_campaigns` | CMS broadcasts: audience, channels, schedule, status, stats |
