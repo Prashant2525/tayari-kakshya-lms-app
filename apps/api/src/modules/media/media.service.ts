@@ -201,23 +201,26 @@ export class MediaService {
 
   private async usageCount(id: string): Promise<number> {
     const like = `%${id}%`;
-    const [items, courses, nodes, subjects, instructors, inNotes] = await Promise.all([
+    const [items, courses, nodes, subjects, instructors, covers, inNotes] = await Promise.all([
       this.prisma.learningItem.count({ where: { pdfMediaId: id, deletedAt: null } }),
       this.prisma.course.count({ where: { thumbnailMediaId: id, deletedAt: null } }),
       this.prisma.examNode.count({ where: { iconMediaId: id, deletedAt: null } }),
       this.prisma.subject.count({ where: { iconMediaId: id, deletedAt: null } }),
       this.prisma.instructorProfile.count({ where: { photoMediaId: id } }),
-      // Images embedded in rich text: notes, course descriptions, question passages and every question version
-      // (old versions count too — past attempts still show them).
+      this.prisma.article.count({ where: { coverMediaId: id, deletedAt: null } }),
+      // Images embedded in rich text: notes, course descriptions, question passages, every question version (old
+      // versions count too — past attempts still show them), notices and articles.
       this.prisma.$queryRaw<Array<{ n: bigint }>>`
         SELECT (
           (SELECT COUNT(*) FROM learning_items WHERE deleted_at IS NULL AND note_content::text LIKE ${like})
           + (SELECT COUNT(*) FROM courses WHERE deleted_at IS NULL AND description::text LIKE ${like})
           + (SELECT COUNT(*) FROM question_groups WHERE deleted_at IS NULL AND passage::text LIKE ${like})
           + (SELECT COUNT(*) FROM question_versions WHERE content::text LIKE ${like})
+          + (SELECT COUNT(*) FROM notices WHERE deleted_at IS NULL AND body::text LIKE ${like})
+          + (SELECT COUNT(*) FROM articles WHERE deleted_at IS NULL AND body::text LIKE ${like})
         )::bigint AS n`,
     ]);
-    return items + courses + nodes + subjects + instructors + Number(inNotes[0]?.n ?? 0);
+    return items + courses + nodes + subjects + instructors + covers + Number(inNotes[0]?.n ?? 0);
   }
 
   private assertSize(buffer: Buffer, maxMb: number, label: string): void {

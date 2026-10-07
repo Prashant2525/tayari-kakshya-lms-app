@@ -364,7 +364,8 @@ Changes: attempt start on a daily challenge — before its day 409 `not_open`; a
 ## 7. Content & communication
 | Method | Path | Notes |
 |---|---|---|
-| GET | `/articles?kind=&period=&categoryId=&courseId=` / `/articles/:id` | current affairs, Gorkhapatra summaries, news, blog |
+| GET | `/articles?kind=&period=&categoryId=&featured=&cursor=` / `/articles/:slug` | public (no sign-in, T-060): live articles; detail with body, media, source, live quiz |
+| GET | `/article-categories?kind=` | public: shown categories |
 | GET | `/notices?cursor=&limit=` / `/notices/:id` | live, unexpired notices, pinned first (T-055); detail with media |
 | GET / POST | `/me/notices/unseen`, `/me/notices/seen` | Notice tab badge: published since the tab was last opened |
 | GET | `/me/notifications?cursor=&limit=`, `/me/notifications/unread` | inbox (category, title, body, link, read) and unread count |
@@ -401,6 +402,7 @@ Every module exposes `GET list` (search/filter/sort/paginate), `GET :id`, `POST`
 - `/admin/articles`, `/admin/notices`, `/admin/notification-campaigns`, `/admin/banners`, `/admin/home-sections`
 - `/admin/plans`, `/admin/coupons`, `/admin/orders`, `/admin/payments` (+ `reconcile`), `/admin/refunds` (+ approve/process), `/admin/invoices`
 - `/admin/reviews`, `/admin/discussions`, `/admin/faqs`, `/admin/pages`, `/admin/contact-options`, `/admin/certificates`
+- Articles (built, T-060): `GET|POST /admin/articles`, `GET|PUT|DELETE /admin/articles/:id`, `PUT /admin/articles/:id/status`, `GET /admin/article-quizzes` — `articles:edit` (publishing and live edits `articles:publish`); `GET /admin/article-categories`, `POST /admin/article-categories`, `PUT /admin/article-categories/:id` — `articles:publish`
 - Interested on iPhone (built, T-058): `GET /admin/course-interests?status=open|contacted`, `GET /admin/course-interests/:id/email` (filled-in draft), `POST /admin/course-interests/:id/contact` `{subject, body}` — `interests:manage`
 - Course updates (built, T-056): `GET|POST /admin/courses/:id/updates` — `courses:notify` (history + students with access; send `{title, message}` to them)
 - Notices (built, T-055): `GET|POST /admin/notices`, `GET|PUT|DELETE /admin/notices/:id`, `PUT /admin/notices/:id/status` — `notices:edit`; publishing and live edits need `notices:publish`

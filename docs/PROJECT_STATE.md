@@ -54,7 +54,9 @@ Last updated: 2026-10-07
   "Notify students" on the course page; exam reminder times in System settings. Merged (PR #31).
 - EAS setup (T-057, PR #32) and iPhone buyers on `feature/ios-buy-guidance` (D-061, T-058): welcome email,
   "Interested on iPhone" list with buying-link emails, Apple-safe locked-course text. Then `feature/email-buying-guide`
-  (D-062, T-059): the how-to-get-courses box in student emails. Next: 12c — articles.
+  (D-062, T-059): the how-to-get-courses box in student emails. Merged (PR #32–#34).
+- Phase 12c part 1 on `feature/articles` (T-060, D-063): articles in the CMS, API and app. Next: part 2 — website
+  pages and unified search.
 - Monitoring (T-042) merged (PR #14, #15): Sentry in the API, worker, admin and app; PostHog in the app. Google web client registered for `http://localhost:8081` (checked); a real
   sign-in by the owner and Android/iOS clients remain (KI-029).
 - Phase 9 part 2 merged (PR #13): practice questions with Check answer and locked Premium answers

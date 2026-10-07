@@ -11,8 +11,6 @@ import { MediaService } from '../media/media.service.js';
 import { NotificationsService } from '../notifications/notifications.service.js';
 import { plainLocalized, shorten } from '../notifications/plain-text.js';
 
-const STUDENT_BATCH = 2000;
-
 /** Live and not expired: what the Notice tab shows. */
 const visibleWhere = (now: Date) => ({
   deletedAt: null,
@@ -206,32 +204,16 @@ export class NoticesService {
       const short = Object.fromEntries(
         Object.entries(body).map(([k, v]) => [k, shorten(v as string, 160)]),
       ) as LocalizedText;
-      let cursor: string | undefined;
-      for (;;) {
-        const students = await this.prisma.user.findMany({
-          where: { kind: 'student', status: 'active' },
-          select: { id: true },
-          orderBy: { id: 'asc' },
-          take: STUDENT_BATCH,
-          ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
-        });
-        if (!students.length) break;
-        await this.notifications.notify(
-          students.map((s) => s.id),
-          {
-            category: 'notice',
-            title: notice.title as LocalizedText,
-            body: short,
-            link: { type: 'notice', id: notice.id },
-            sourceKey: `notice:${notice.id}`,
-            inApp: false,
-            push: true,
-            email: true,
-          },
-        );
-        cursor = students.at(-1)!.id;
-        if (students.length < STUDENT_BATCH) break;
-      }
+      await this.notifications.notifyAllStudents({
+        category: 'notice',
+        title: notice.title as LocalizedText,
+        body: short,
+        link: { type: 'notice', id: notice.id },
+        sourceKey: `notice:${notice.id}`,
+        inApp: false,
+        push: true,
+        email: true,
+      });
       dispatched += 1;
     }
     return dispatched;

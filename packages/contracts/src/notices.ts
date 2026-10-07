@@ -70,6 +70,7 @@ export const NotificationCategory = z.enum([
   'exam_reminder',
   'result',
   'purchase',
+  'article',
 ]);
 export type NotificationCategory = z.infer<typeof NotificationCategory>;
 
@@ -80,6 +81,8 @@ export const NotificationPreferencesInput = z.object({
   exam_reminder: Channels,
   result: Channels,
   purchase: Channels,
+  /** Added later (D-063): older app versions do not send it. */
+  article: Channels.default({ push: true, email: true }),
 });
 export type NotificationPreferencesInput = z.infer<typeof NotificationPreferencesInput>;
 

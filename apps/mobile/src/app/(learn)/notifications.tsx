@@ -1,6 +1,15 @@
 import { radius } from '@tk/design-tokens';
 import { router } from 'expo-router';
-import { AlarmClock, Award, Bell, BookOpen, Megaphone, Receipt, type LucideIcon } from 'lucide-react-native';
+import {
+  AlarmClock,
+  Award,
+  Bell,
+  BookOpen,
+  Megaphone,
+  Newspaper,
+  Receipt,
+  type LucideIcon,
+} from 'lucide-react-native';
 import { FlatList, Pressable, StyleSheet, View } from 'react-native';
 import { markNotificationsRead, useNotificationsInbox, type NotificationRow } from '@/api/notices';
 import type { NotificationCategory } from '@tk/contracts';
@@ -100,6 +109,7 @@ const ICONS: Record<NotificationCategory, LucideIcon> = {
   exam_reminder: AlarmClock,
   result: Award,
   purchase: Receipt,
+  article: Newspaper,
 };
 
 const styles = StyleSheet.create({

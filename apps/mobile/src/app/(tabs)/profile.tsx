@@ -1,9 +1,10 @@
 import { palette, radius } from '@tk/design-tokens';
-import { router } from 'expo-router';
+import { router, type Href } from 'expo-router';
 import {
   Award,
   BadgeCheck,
   BellRing,
+  BookText,
   NotebookPen,
   Receipt,
   Bookmark,
@@ -156,7 +157,13 @@ export default function ProfileScreen() {
           <LinkRow icon={Crown} label={t('plans.menu')} href="/plans" />
           {referralsOn ? <LinkRow icon={Gift} label={t('invite.menu')} href="/invite" /> : null}
           <LinkRow icon={Receipt} label={t('purchases.title')} href="/purchases" />
-          <LinkRow icon={Award} label={t('cert.title')} href="/certificates" last />
+          <LinkRow icon={Award} label={t('cert.title')} href="/certificates" />
+          <LinkRow
+            icon={BookText}
+            label={t('articles.kind.blog')}
+            href={{ pathname: '/articles/[kind]', params: { kind: 'blog' } }}
+            last
+          />
         </Card>
         <Button
           label={t('profile.logout')}
@@ -185,18 +192,7 @@ function LinkRow({
 }: {
   icon: LucideIcon;
   label: string;
-  href:
-    | '/profile/edit'
-    | '/profile/password'
-    | '/profile/devices'
-    | '/profile/notifications'
-    | '/bookmarks'
-    | '/attempts'
-    | '/certificates'
-    | '/mistakes'
-    | '/purchases'
-    | '/plans'
-    | '/invite';
+  href: Href;
   last?: boolean;
 }) {
   const { colors } = useTheme();

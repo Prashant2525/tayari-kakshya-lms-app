@@ -202,6 +202,9 @@ Current task: Phase 11 part 3 (receipts + refunds) done on `feature/receipts-ref
 - Nothing partially implemented. Admin screens for Phase 6 not started.
 
 ## Exact next steps
+0k. 2026-10-07: PR #32–#34 merged. Owner answered the article questions (D-063). `feature/articles` (T-060):
+   articles part 1. Next: **12c-2** — website `/articles` index (kind tabs) and `/articles/[slug]` pages (BS dates,
+   cover, source link, SEO metadata, sitemap), and articles in unified search (`/search`, app and CMS). Then 12d.
 0j. 2026-10-07: owner asked for the "how to get courses" box in emails and a "check your email" note (D-062).
    `feature/email-buying-guide` (T-059, on top of `feature/ios-buy-guidance`): `BuyingGuideService`, HTML emails.
    Keep security codes and receipts without the box.

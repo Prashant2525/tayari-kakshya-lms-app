@@ -1,6 +1,6 @@
 # Test Status
 
-Last updated: 2026-10-07 (email box, D-062). `pnpm test` runs unit + integration suites (needs `pnpm infra:up`);
+Last updated: 2026-10-07 (Phase 12c part 1: articles). `pnpm test` runs unit + integration suites (needs `pnpm infra:up`);
 `pnpm build && pnpm --filter @tk/admin e2e` and `pnpm build && pnpm --filter @tk/mobile e2e` run the browser suites
 (the student suite also needs Mailpit, part of `pnpm infra:up`).
 
@@ -11,14 +11,28 @@ Last updated: 2026-10-07 (email box, D-062). `pnpm test` runs unit + integration
 | `@tk/design-tokens` | 39 | WCAG contrast for every text/background pair (light + dark), CSS generation |
 | `@tk/domain` | 58 | BS calendar, Kathmandu day boundary, fiscal year, money/VAT/discounts, access validity |
 | `@tk/contracts` | 21 | Schema behaviour (localized text, email normalisation, mass assignment, settings defaults, rich-text validation) |
-| `@tk/api` | 279 | Integration against real PostgreSQL + Redis + S3 (SeaweedFS) through the HTTP stack; TOTP RFC 6238 vectors; RBAC, video, watermark unit |
+| `@tk/api` | 282 | Integration against real PostgreSQL + Redis + S3 (SeaweedFS) through the HTTP stack; TOTP RFC 6238 vectors; RBAC, video, watermark unit |
 | `@tk/admin` (unit) | 35 | API client (headers, refresh single-flight, retry, session loss, error mapping), BS formatting, Button `asChild` regression |
-| `@tk/admin` (E2E, Playwright) | 31 | Real browser + real API + `*_e2e` database |
+| `@tk/admin` (E2E, Playwright) | 32 | Real browser + real API + `*_e2e` database |
 | `@tk/mobile` (unit) | 36 | API client (single-flight refresh, early refresh, session end, maintenance), translations complete in both languages, BS dates and Kathmandu weekday, force-update/maintenance gate, form checks, Nepali phone numbers |
-| `@tk/mobile` (E2E, Playwright, phone viewport) | 33 | Web build + real API + `*_mobile_e2e` database + Mailpit |
+| `@tk/mobile` (E2E, Playwright, phone viewport) | 34 | Web build + real API + `*_mobile_e2e` database + Mailpit |
 | `@tk/web` (unit) | 6 | Session refresh used once (concurrent / late requests share it; refused → signed out; unreachable → retried), token expiry, both languages complete, failure messages |
 | `@tk/web` (E2E, Playwright) | 5 | `next start` production build + real API + `*_web_e2e` database + Mailpit + gateway stand-in; access tokens last 60 s so every page load refreshes |
-| **Total** | **543** | |
+| **Total** | **548** | |
+
+### Added with articles (Phase 12c part 1, T-060, D-063)
+- **API (3 integration tests):** rules per kind (current affairs period and date; Gorkhapatra date and https
+  source; no period elsewhere; address format and unique); writers draft, only publishers publish, change live ones,
+  delete (which frees the address) and manage categories; categories must match the kind; signed out and signed in
+  read the same live list — not drafts, scheduled or deleted ones — filtered by kind, period, category, featured;
+  summary from the text when empty; only shown categories; "notify" reaches every student once (each student's
+  choice kept, email sent); article covers and pictures, and pictures in notices, cannot be deleted while used.
+  Mutation-checked (7: drafts listed, category kind, both send guards, address not freed, cover not counted,
+  notice pictures not counted — each fails a test; the list filter alone is not a guard, the claim is).
+- **CMS E2E (1):** a category, then a weekly digest (address from the title, date required) published and listed.
+- **App E2E (1):** Home → Current affairs → Weekly → the digest with summary and source.
+- Screens checked: CMS editor, app Home tiles (moved up under the current course), list and article page.
+- Local only (KI-036): the CMS suite's database seed crashed once (0xC0000409) before any test; it passed on re-run.
 
 ### Added with the email box (T-059, D-062)
 - **API (2 integration tests):** the box (plain text and HTML: bold iPhone line, linked website) is under the

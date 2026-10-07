@@ -12,6 +12,7 @@ import { NoticesService } from '../modules/notices/notices.service.js';
 import { NotificationsService } from '../modules/notifications/notifications.service.js';
 import { ExamNotificationsService } from '../modules/attempts/exam-notifications.service.js';
 import { AccountEmailsService } from '../modules/notifications/account-emails.service.js';
+import { ArticlesService } from '../modules/articles/articles.service.js';
 
 export const MAINTENANCE_QUEUE = 'maintenance';
 
@@ -46,6 +47,7 @@ export async function startMaintenanceJobs(
   const notifications = app.get(NotificationsService);
   const exams = app.get(ExamNotificationsService);
   const accountEmails = app.get(AccountEmailsService);
+  const articles = app.get(ArticlesService);
   const worker = new Worker(
     MAINTENANCE_QUEUE,
     async (job) => {
@@ -63,6 +65,7 @@ export async function startMaintenanceJobs(
         case 'notifications':
           return {
             notices: await notices.dispatchDue(),
+            articles: await articles.dispatchDue(),
             results: await exams.notifyResults(),
             reminders: await exams.sendReminders(),
             sent: await notifications.processDeliveries(),

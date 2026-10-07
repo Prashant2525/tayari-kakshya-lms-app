@@ -1,10 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
-import type {
-  LocalizedText,
+import {
   NotificationCategory,
-  NotificationPreferencesInput,
-  NotificationsQuery,
-  PushTokenInput,
+  type LocalizedText,
+  type NotificationPreferencesInput,
+  type NotificationsQuery,
+  type PushTokenInput,
 } from '@tk/contracts';
 import { Prisma, type NotificationDelivery } from '../../generated/prisma/client.js';
 import { MailService } from '../../infra/messaging/mail.service.js';
@@ -19,7 +19,8 @@ export type NotificationLink =
   | { type: 'plan'; slug: string }
   | { type: 'order'; id: string }
   | { type: 'assessment'; id: string }
-  | { type: 'attempt'; id: string };
+  | { type: 'attempt'; id: string }
+  | { type: 'article'; slug: string };
 
 export interface OutgoingNotification {
   category: NotificationCategory;
@@ -35,13 +36,14 @@ export interface OutgoingNotification {
 }
 
 type Prefs = NotificationPreferencesInput;
-const CATEGORIES = ['notice', 'course_update', 'exam_reminder', 'result', 'purchase'] as const;
+const CATEGORIES = NotificationCategory.options;
 /** D-033: everything is on until the student turns it off. */
 export const DEFAULT_PREFERENCES: Prefs = Object.fromEntries(
   CATEGORIES.map((c) => [c, { push: true, email: true }]),
 ) as Prefs;
 
 const BATCH = 1000;
+const STUDENT_BATCH = 2000;
 const MAX_ATTEMPTS = 5;
 const RETRY_MS = 5 * 60_000;
 
@@ -104,6 +106,27 @@ export class NotificationsService {
       if (deliveries.length) {
         await db.notificationDelivery.createMany({ data: deliveries, skipDuplicates: true });
       }
+    }
+  }
+
+  /** Queues a notification for every active student (notices and articles that went live), in batches. */
+  async notifyAllStudents(n: OutgoingNotification): Promise<void> {
+    let cursor: string | undefined;
+    for (;;) {
+      const students = await this.prisma.user.findMany({
+        where: { kind: 'student', status: 'active' },
+        select: { id: true },
+        orderBy: { id: 'asc' },
+        take: STUDENT_BATCH,
+        ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
+      });
+      if (!students.length) return;
+      await this.notify(
+        students.map((s) => s.id),
+        n,
+      );
+      cursor = students.at(-1)!.id;
+      if (students.length < STUDENT_BATCH) return;
     }
   }
 
