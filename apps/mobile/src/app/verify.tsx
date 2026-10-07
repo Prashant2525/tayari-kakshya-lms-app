@@ -1,5 +1,5 @@
 import { OTP_POLICY } from '@tk/contracts';
-import { Mail, Smartphone } from 'lucide-react-native';
+import { Mail, MailWarning, Smartphone } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { logout, useAppConfig, useMe, useSendVerification, useVerify } from '@/api/queries';
@@ -149,6 +149,21 @@ export default function VerifyScreen() {
           }}
         />
       ) : null}
+      {channels.email ? (
+        // D-061: the emails carry account information; neutral wording (no buying pointers in the app, D-027).
+        <View
+          role="note"
+          style={[styles.notice, { backgroundColor: colors.warningSoft, borderColor: colors.warning }]}
+        >
+          <MailWarning size={22} color={colors.text} strokeWidth={1.75} />
+          <View style={{ flex: 1, gap: 4 }}>
+            <Text variant="body" weight={700}>
+              {t('verify.checkEmailTitle')}
+            </Text>
+            <Text variant="bodySm">{t('verify.checkEmailBody')}</Text>
+          </View>
+        </View>
+      ) : null}
       {!channels.email && !channels.phone ? <Banner message={t('error.channelDisabled')} /> : null}
       {formError ? <Banner message={formError} /> : null}
 
@@ -204,6 +219,7 @@ export default function VerifyScreen() {
 const styles = StyleSheet.create({
   content: { gap: 18, paddingBottom: 24 },
   sent: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  notice: { flexDirection: 'row', gap: 12, borderWidth: 1, borderRadius: 12, padding: 14 },
   start: { alignSelf: 'flex-start', paddingHorizontal: 0 },
   wide: { alignSelf: 'stretch', marginTop: 12 },
 });

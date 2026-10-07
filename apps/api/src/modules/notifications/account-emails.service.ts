@@ -3,6 +3,7 @@ import { ENV, type Env } from '../../config/env.js';
 import { MailService } from '../../infra/messaging/mail.service.js';
 import { PrismaService } from '../../infra/prisma/prisma.service.js';
 import { SettingsService } from '../settings/settings.service.js';
+import { BuyingGuideService } from './buying-guide.service.js';
 
 /** Only accounts made this recently are welcomed (a long outage does not send old welcomes). */
 const WINDOW_MS = 3 * 24 * 3_600_000;
@@ -27,6 +28,7 @@ export class AccountEmailsService {
     private readonly prisma: PrismaService,
     private readonly settings: SettingsService,
     private readonly mail: MailService,
+    private readonly guide: BuyingGuideService,
     @Inject(ENV) private readonly env: Pick<Env, 'PUBLIC_WEB_URL'>,
   ) {}
 
@@ -70,7 +72,7 @@ export class AccountEmailsService {
         await this.mail.send({
           to: user.email,
           subject: fillTemplate(welcome.subject[user.locale], values),
-          text: fillTemplate(welcome.body[user.locale], values),
+          ...(await this.guide.compose(fillTemplate(welcome.body[user.locale], values), user.locale)),
         });
         await this.prisma.accountEmail.update({
           where: { id: row.id },

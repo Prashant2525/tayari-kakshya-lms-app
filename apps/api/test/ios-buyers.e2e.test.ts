@@ -1,7 +1,8 @@
-import type { DeviceInfo } from '@tk/contracts';
+import { SETTINGS, type DeviceInfo } from '@tk/contracts';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { AccountDeletionService } from '../src/modules/auth/account-deletion.service.js';
 import { AccountEmailsService } from '../src/modules/notifications/account-emails.service.js';
+import { NotificationsService } from '../src/modules/notifications/notifications.service.js';
 import { CourseInterestsService } from '../src/modules/notifications/course-interests.service.js';
 import { ALL_CONTENT_PERMISSIONS, seedPublishedCourse } from './content-helpers.js';
 import {
@@ -65,9 +66,8 @@ describe('welcome email (D-061)', () => {
     expect(await welcome.sendWelcome()).toBe(0);
     const [asha] = mailsTo('asha@example.com').filter((m) => m.subject === 'Welcome to Tayari Kakshya');
     expect(asha!.text).toContain('Namaste Asha Rai,');
-    expect(asha!.text).toContain(
-      'our website, https://web.test.invalid: sign in there with this same account',
-    );
+    expect(asha!.text).toContain('Welcome to Tayari Kakshya. Your account is ready');
+    expect(asha!.text).toContain('Sign in at https://web.test.invalid with the same account');
     const [bina] = mailsTo('bina@example.com').filter((m) => m.subject === 'तयारी कक्षामा स्वागत छ');
     expect(bina!.text).toContain('नमस्ते Bina Thapa,');
     expect(bina!.text).toContain('https://web.test.invalid');
@@ -103,8 +103,8 @@ describe('welcome email (D-061)', () => {
     }
     expect(await welcome.sendWelcome()).toBe(0);
     expect(await welcome.sendWelcome(new Date(Date.now() + 11 * MIN))).toBe(1);
-    expect(mailsTo('asha@example.com').find((m) => m.subject === 'Hello Asha Rai')?.text).toBe(
-      'Courses: https://web.test.invalid',
+    expect(mailsTo('asha@example.com').find((m) => m.subject === 'Hello Asha Rai')?.text).toMatch(
+      /^Courses: https:\/\/web\.test\.invalid\n\n— How to get courses —/,
     );
   });
 });
@@ -195,6 +195,10 @@ describe('interest from Apple devices (D-061)', () => {
     expect(mail!.text).toContain(
       'You can get it on our website: https://web.test.invalid/courses/sainey-likhit',
     );
+    // The course link can be tapped in the HTML copy (the full stop after it is not part of the link).
+    expect(mail!.html).toContain(
+      '<a href="https://web.test.invalid/courses/sainey-likhit" style="color:#2563D6;font-weight:700">',
+    );
     expect((await s.list('?status=open')).data).toEqual([]);
     expect((await s.list('?status=contacted')).data[0]).toMatchObject({
       contactedBy: 'Staff sales@example.com',
@@ -264,5 +268,81 @@ describe('interest from Apple devices (D-061)', () => {
     expect(await ctx.prisma.notification.count(where)).toBe(0);
     expect(await ctx.prisma.notificationDelivery.count(where)).toBe(0);
     expect(await ctx.prisma.notificationPreference.count(where)).toBe(0);
+  });
+});
+
+describe('the "how to get courses" box in emails (D-061)', () => {
+  const box = (to: string, subject: string) => mailsTo(to).find((m) => m.subject === subject);
+
+  it('is under the sign-up verification, welcome, notification and buying-link emails, not security codes', async () => {
+    await registerStudent(ctx, 'asha@example.com');
+    const verify = box('asha@example.com', 'Verify your email')!;
+    expect(verify.text).toMatch(/verification code is: \d{6}\./);
+    expect(verify.text).toContain('— How to get courses —');
+    expect(verify.text).toContain(
+      '* On iPhone or iPad, courses and plans cannot be bought in the app. Sign in at https://web.test.invalid with the same account',
+    );
+    expect(verify.text).toContain('* On Android, buy in the app, or on https://web.test.invalid.');
+    expect(verify.text).toContain('Already bought a course? You can ignore this.');
+    // The HTML copy highlights the iPhone line and links the website.
+    expect(verify.html).toContain('font-weight:700');
+    expect(verify.html).toContain('<a href="https://web.test.invalid"');
+    expect(verify.html).toContain('On iPhone or iPad, courses and plans cannot be bought in the app.');
+
+    await ctx.app.get(AccountEmailsService).sendWelcome();
+    expect(box('asha@example.com', 'Welcome to Tayari Kakshya')!.html).toContain('How to get courses');
+
+    // A password reset code stays short: no box, no links.
+    await call(ctx, 'POST', '/auth/password/forgot', { body: { email: 'asha@example.com' } });
+    const reset = box('asha@example.com', 'Your password reset code')!;
+    expect(reset.text).not.toContain('How to get courses');
+    expect(reset.html).toBeUndefined();
+
+    // Notification emails (a course update) carry it too.
+    await createStaff(ctx, 'notify@example.com', {
+      permissions: [...ALL_CONTENT_PERMISSIONS, 'courses:notify'],
+    });
+    const staff = (await staffLogin(ctx, 'notify@example.com')).token;
+    const seeded = await seedPublishedCourse(ctx, staff);
+    const asha = await ctx.prisma.user.findUniqueOrThrow({ where: { email: 'asha@example.com' } });
+    await call(ctx, 'POST', `/admin/users/${asha.id}/entitlements`, {
+      token: staff,
+      body: { courseId: seeded.course.id, endsAt: null },
+    });
+    await call(ctx, 'POST', `/admin/courses/${seeded.course.id}/updates`, {
+      token: staff,
+      body: { title: { en: 'New mock tests' }, message: { en: 'Three new mocks.' } },
+    });
+    await ctx.app.get(NotificationsService).processDeliveries();
+    const update = box('asha@example.com', 'New mock tests')!;
+    expect(update.text).toMatch(
+      /^Three new mocks\.\n\n.*Profile → Notifications\.\n\n— How to get courses —/s,
+    );
+  });
+
+  it("follows the student's language, and the CMS switch", async () => {
+    const ne = await call(ctx, 'POST', '/auth/register', {
+      body: {
+        fullName: 'Bina Thapa',
+        email: 'bina@example.com',
+        password: PASSWORD,
+        acceptTerms: true,
+        locale: 'ne',
+        device: iphone(7),
+      },
+    });
+    expect(ne.status).toBe(201);
+    const verify = box('bina@example.com', 'इमेल प्रमाणीकरण')!;
+    expect(verify.text).toContain('— कोर्स कसरी लिने —');
+    expect(verify.text).toContain(
+      'आइफोन वा आइप्याडको एपबाट कोर्स र प्लान किन्न मिल्दैन। https://web.test.invalid मा',
+    );
+
+    const guide = SETTINGS['emails.buyingGuide'].default;
+    await setSetting(ctx, 'emails.buyingGuide', { ...guide, enabled: false });
+    await registerStudent(ctx, 'off@example.com');
+    const off = box('off@example.com', 'Verify your email')!;
+    expect(off.text).not.toContain('How to get courses');
+    expect(off.html).toBeUndefined();
   });
 });

@@ -55,6 +55,7 @@ import { ReferralsService } from './modules/payments/referrals.service.js';
 import { AdminNoticesController, NoticesController } from './modules/notices/notices.controller.js';
 import { NoticesService } from './modules/notices/notices.service.js';
 import { AccountEmailsService } from './modules/notifications/account-emails.service.js';
+import { BuyingGuideService } from './modules/notifications/buying-guide.service.js';
 import { CourseInterestsController } from './modules/notifications/course-interests.controller.js';
 import { CourseInterestsService } from './modules/notifications/course-interests.service.js';
 import { CourseUpdatesController } from './modules/notifications/course-updates.controller.js';
@@ -165,6 +166,7 @@ export class InfraModule {}
     CourseUpdatesService,
     CourseInterestsService,
     AccountEmailsService,
+    BuyingGuideService,
     ScopeService,
     QuestionsService,
     QuestionReportsService,
@@ -218,6 +220,7 @@ export class InfraModule {}
     CourseUpdatesService,
     CourseInterestsService,
     AccountEmailsService,
+    BuyingGuideService,
     ScopeService,
     QuestionsService,
     QuestionReportsService,

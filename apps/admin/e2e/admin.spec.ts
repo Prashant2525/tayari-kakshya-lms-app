@@ -146,6 +146,11 @@ test('signing in again requires the authenticator code, and the session survives
   await referrals.getByRole('button', { name: 'Save' }).click();
   await expect(referrals.getByText('Enter the percentage')).toBeVisible();
   await referrals.getByRole('button', { name: 'Discard' }).click();
+  // The how-to-get-courses box under student emails is CMS text (D-061).
+  const guide = page.getByRole('region', { name: 'How-to-get-courses box in emails' });
+  await expect(guide.getByLabel('iPhone / iPad (highlighted) (English)')).toHaveValue(
+    /cannot be bought in the app/,
+  );
   // Exam reminder times are CMS data (D-060): 1 day and 1 hour to start; the same time twice is refused.
   const reminders = page.getByRole('region', { name: 'Exam reminders' });
   await expect(reminders.getByLabel('Reminder 1', { exact: true })).toHaveValue('1');

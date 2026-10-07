@@ -308,6 +308,54 @@ function DiscountFields<D extends DiscountDraft>({
   );
 }
 
+/** One text in English and Nepali, side by side (a textarea when `rows` is given). */
+function BilingualFields({
+  label,
+  value,
+  onChange,
+  disabled,
+  max,
+  rows,
+}: {
+  label: string;
+  value: { en: string; ne: string };
+  onChange: (next: { en: string; ne: string }) => void;
+  disabled: boolean;
+  max: number;
+  rows?: number;
+}) {
+  return (
+    <div className="grid gap-4 sm:grid-cols-2">
+      {(['en', 'ne'] as const).map((lang) => (
+        <Field key={lang} label={`${label} (${lang === 'en' ? 'English' : 'नेपाली'})`}>
+          {(a) =>
+            rows ? (
+              <Textarea
+                {...a}
+                lang={lang}
+                rows={rows}
+                maxLength={max}
+                value={value[lang]}
+                disabled={disabled}
+                onChange={(e) => onChange({ ...value, [lang]: e.target.value })}
+              />
+            ) : (
+              <Input
+                {...a}
+                lang={lang}
+                maxLength={max}
+                value={value[lang]}
+                disabled={disabled}
+                onChange={(e) => onChange({ ...value, [lang]: e.target.value })}
+              />
+            )
+          }
+        </Field>
+      ))}
+    </div>
+  );
+}
+
 type EmailTemplate = { subject: { en: string; ne: string }; body: { en: string; ne: string } };
 
 /** Subject and message of an email in both languages. */
@@ -938,7 +986,7 @@ export function SettingsPage() {
         <SettingCard
           row={row('emails.welcome')}
           title="Welcome email"
-          description="Sent once to every new student account (any phone or the website). It may say where courses are bought: emails are outside the app, which Apple allows. {name} and {website} are filled in."
+          description="Sent once to every new student account (any phone or the website), with the How-to-get-courses box below it. {name} and {website} are filled in."
         >
           {(d, set, disabled) => (
             <>
@@ -952,6 +1000,54 @@ export function SettingsPage() {
                 value={d}
                 disabled={disabled}
                 onChange={(next) => set({ ...d, ...next })}
+              />
+            </>
+          )}
+        </SettingCard>
+
+        <SettingCard
+          row={row('emails.buyingGuide')}
+          title="How-to-get-courses box in emails"
+          description="Shown under the welcome, sign-up verification, notice, course update, exam reminder, result and buying-link emails — not password or sign-in codes, and not receipts. The iPhone line is highlighted. {website} is filled in. Emails are outside the app, so Apple allows this."
+        >
+          {(d, set, disabled) => (
+            <>
+              <ToggleRow
+                label="Show the box"
+                checked={d.enabled}
+                disabled={disabled}
+                onChange={(v) => set({ ...d, enabled: v })}
+              />
+              <BilingualFields
+                label="Heading"
+                value={d.title}
+                max={80}
+                disabled={disabled}
+                onChange={(title) => set({ ...d, title })}
+              />
+              <BilingualFields
+                label="iPhone / iPad (highlighted)"
+                value={d.iphone}
+                max={400}
+                rows={5}
+                disabled={disabled}
+                onChange={(iphone) => set({ ...d, iphone })}
+              />
+              <BilingualFields
+                label="Android"
+                value={d.android}
+                max={400}
+                rows={2}
+                disabled={disabled}
+                onChange={(android) => set({ ...d, android })}
+              />
+              <BilingualFields
+                label="Already bought"
+                value={d.alreadyBought}
+                max={200}
+                rows={2}
+                disabled={disabled}
+                onChange={(alreadyBought) => set({ ...d, alreadyBought })}
               />
             </>
           )}

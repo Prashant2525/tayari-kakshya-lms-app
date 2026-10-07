@@ -8,6 +8,7 @@ import { MailService } from '../../infra/messaging/mail.service.js';
 import { SmsService } from '../../infra/messaging/sms.service.js';
 import { TokenService } from './token.service.js';
 import { otpMessage } from './otp-messages.js';
+import { BuyingGuideService } from '../notifications/buying-guide.service.js';
 
 @Injectable()
 export class OtpService {
@@ -16,6 +17,7 @@ export class OtpService {
     private readonly tokens: TokenService,
     private readonly mail: MailService,
     private readonly sms: SmsService,
+    private readonly guide: BuyingGuideService,
   ) {}
 
   async send(params: {
@@ -64,9 +66,12 @@ export class OtpService {
     ]);
 
     const message = otpMessage(purpose, locale, code, OTP_POLICY.ttlMinutes);
-    if (channel === 'email')
-      await this.mail.send({ to: target, subject: message.subject, text: message.text });
-    else await this.sms.send({ to: target, text: message.text });
+    if (channel === 'email') {
+      // D-061: the sign-up verification email also says how to get courses; other codes stay short (security).
+      const body =
+        purpose === 'verify_email' ? await this.guide.compose(message.text, locale) : { text: message.text };
+      await this.mail.send({ to: target, subject: message.subject, ...body });
+    } else await this.sms.send({ to: target, text: message.text });
   }
 
   /** Consumes the newest valid code or throws OTP_INVALID / OTP_EXPIRED / OTP_TOO_MANY_ATTEMPTS. */
