@@ -30,6 +30,8 @@ export interface ApiClientOptions {
   onSessionEnded: (reason: string) => void;
   /** Called when the server reports maintenance mode, so the app can re-check its config. */
   onMaintenance?: () => void;
+  /** Applied to each successful response body before parsing (development: local picture addresses). */
+  rewriteResponse?: ((text: string) => string) | null;
   fetch?: typeof fetch;
 }
 
@@ -120,7 +122,8 @@ export function createApiClient(options: ApiClientOptions) {
     if (!res.ok) throw await toError(res);
     if (res.status === 204) return undefined as T;
     const text = await res.text();
-    return (text ? JSON.parse(text) : undefined) as T;
+    if (!text) return undefined as T;
+    return JSON.parse(options.rewriteResponse ? options.rewriteResponse(text) : text) as T;
   }
 
   return {

@@ -12,7 +12,7 @@ import {
   nepalToday,
   todayLabel,
 } from './dates';
-import { devApiOrigin } from './dev-api';
+import { devApiOrigin, localAddressRewriter } from './dev-api';
 import { formatDuration, marks, percent, price } from './format';
 import { initialsOf } from './names';
 import { routeGate } from './route-gate';
@@ -145,6 +145,24 @@ describe('development API address', () => {
     expect(devApiOrigin('android', undefined, undefined)).toBe('http://10.0.2.2:4000');
     expect(devApiOrigin('android', undefined, '127.0.0.1:8081')).toBe('http://10.0.2.2:4000');
     expect(devApiOrigin('ios', undefined, undefined)).toBe('http://localhost:4000');
+  });
+
+  it('points local picture addresses at the computer a phone reaches', () => {
+    const body = JSON.stringify({
+      thumbnailUrl: 'http://localhost:4000/api/v1/public-media/a.png',
+      body: '<img src="http://127.0.0.1:4000/api/v1/public-media/b.png"><img src="http://localhost:4000/c.png">',
+      other: 'https://cdn.example.com/d.png',
+    });
+    const rewrite = localAddressRewriter('http://192.168.1.20:4000');
+    expect(JSON.parse(rewrite!(body))).toEqual({
+      thumbnailUrl: 'http://192.168.1.20:4000/api/v1/public-media/a.png',
+      body: '<img src="http://192.168.1.20:4000/api/v1/public-media/b.png"><img src="http://192.168.1.20:4000/c.png">',
+      other: 'https://cdn.example.com/d.png',
+    });
+    // The web build and simulators reach localhost themselves; nothing to change.
+    expect(localAddressRewriter('http://127.0.0.1:4000')).toBeNull();
+    expect(localAddressRewriter('http://localhost:4000')).toBeNull();
+    expect(localAddressRewriter('')).toBeNull();
   });
 });
 

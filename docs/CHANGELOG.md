@@ -4,6 +4,11 @@ All notable changes to this project. Format based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Fixed — 2026-10-08
+- App in development on a real phone (Expo Go / dev build): pictures (courses, banners, articles) did not load because
+  the local API gives `http://localhost:4000/...` addresses; the app now points them at the computer it already
+  reaches. Release builds are unaffected (public media domain).
+
 ### Added — 2026-10-08 (Phase 12d part 2: banners)
 - CMS: Communication → Banners — picture, title, link (course, plan, article, page or web address), app / website /
   both, start and end, order; plan and web links (and banners marked so) are not shown on iPhone.

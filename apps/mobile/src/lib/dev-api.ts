@@ -22,3 +22,15 @@ export function devApiOrigin(
   }
   return `http://${host || 'localhost'}:${DEV_API_PORT}`;
 }
+
+const LOCAL_ORIGINS = [`http://localhost:${DEV_API_PORT}`, `http://127.0.0.1:${DEV_API_PORT}`];
+
+/**
+ * Development: the local API gives picture addresses on `http://localhost:4000` (PUBLIC_MEDIA_BASE_URL). On a phone
+ * "localhost" is the phone itself, so point those addresses at the computer the app already reaches (`apiOrigin`).
+ * Returns null when nothing needs changing. Release builds use the public media domain and never rewrite.
+ */
+export function localAddressRewriter(apiOrigin: string): ((text: string) => string) | null {
+  if (!apiOrigin || LOCAL_ORIGINS.includes(apiOrigin)) return null;
+  return (text) => LOCAL_ORIGINS.reduce((out, origin) => out.split(origin).join(apiOrigin), text);
+}

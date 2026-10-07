@@ -21,6 +21,7 @@ export const queryClient = new QueryClient({
 
 export const api = createApiClient({
   baseUrl: env.apiBaseUrl,
+  rewriteResponse: env.rewriteResponse,
   tokens: {
     get: () => useSession.getState().tokens,
     set: (tokens) => useSession.getState().setTokens(tokens),
