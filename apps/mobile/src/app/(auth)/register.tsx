@@ -2,6 +2,8 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { useAppConfig, useRegister } from '@/api/queries';
+import { usePages } from '@/api/support';
+import { localized } from '@/i18n/translate';
 import { useT } from '@/i18n/use-t';
 import { GoogleButton, googleConfigured } from '@/features/auth/google-button';
 import { ApiError } from '@/lib/api-client';
@@ -18,6 +20,8 @@ type Field = 'fullName' | 'email' | 'password' | 'terms' | 'referral';
 
 export default function RegisterScreen() {
   const { t, locale } = useT();
+  const pages = usePages();
+  const legal = (pages.data ?? []).filter((p) => p.slug === 'terms' || p.slug === 'privacy');
   const register = useRegister();
   const config = useAppConfig();
   // A referral link opens sign-up with the code filled in (D-058); it can only be given here (D-059).
@@ -123,6 +127,22 @@ export default function RegisterScreen() {
         onChange={setTerms}
         error={errors.terms && t(errors.terms)}
       />
+      {legal.length ? (
+        <View style={styles.legal}>
+          {legal.map((p) => (
+            <Pressable
+              key={p.slug}
+              role="link"
+              onPress={() => router.push({ pathname: '/page/[slug]', params: { slug: p.slug } })}
+              hitSlop={6}
+            >
+              <Text variant="bodySm" color="link">
+                {localized(p.title, locale)}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+      ) : null}
       <Button label={t('auth.register.submit')} loading={register.isPending} onPress={submit} />
       {googleConfigured() ? (
         <>
@@ -151,4 +171,5 @@ const styles = StyleSheet.create({
   content: { gap: 16, paddingBottom: 24 },
   top: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingTop: 8 },
   footer: { flexDirection: 'row', gap: 6, justifyContent: 'center', flexWrap: 'wrap', alignItems: 'center' },
+  legal: { flexDirection: 'row', flexWrap: 'wrap', gap: 16, marginTop: -6 },
 });

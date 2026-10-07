@@ -14,9 +14,23 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${site}/courses`, changeFrequency: 'daily' },
     { url: `${site}/plans`, changeFrequency: 'weekly' },
     { url: `${site}/articles`, changeFrequency: 'daily' },
+    { url: `${site}/help`, changeFrequency: 'monthly' },
   ];
   let cursor: string | null = null;
   try {
+    // Published static pages (D-038).
+    const paths: Record<string, string> = {
+      about: '/about',
+      terms: '/terms',
+      privacy: '/privacy',
+      refund: '/refund-policy',
+    };
+    const res = await fetch(`${API}/pages`, { headers: { 'X-TK-Platform': 'web' }, next: { revalidate } });
+    if (res.ok) {
+      for (const p of (await res.json()) as Array<{ slug: string }>) {
+        if (paths[p.slug]) pages.push({ url: `${site}${paths[p.slug]}`, changeFrequency: 'yearly' });
+      }
+    }
     do {
       const qs: string = new URLSearchParams({ limit: '100', ...(cursor ? { cursor } : {}) }).toString();
       const res = await fetch(`${API}/courses?${qs}`, {

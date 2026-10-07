@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import { E2E_ADMIN_PASSWORD, E2E_STUDENT_EMAIL } from '@tk/e2e-support/accounts';
+import { E2E_WEB_ORIGIN } from './constants.mjs';
 import { apiCall, editorToken } from './helpers';
 
 /**
@@ -151,4 +152,50 @@ test('articles: Home → Current affairs → a weekly digest, with its source', 
   await expect(
     visible(page.getByRole('heading', { name: `This week ${run}: budget and monsoon` })),
   ).toBeVisible();
+});
+
+test('Profile → Help & support (contacts, FAQs) and a published page', async ({ request }) => {
+  const token = await editorToken(request);
+  await apiCall(request, token, 'POST', '/admin/contact-options', {
+    type: 'email',
+    label: { en: `Support email ${run}` },
+    value: 'help@example.com',
+    note: { en: 'We reply within a day.' },
+    sortOrder: 0,
+    active: true,
+  });
+  await apiCall(request, token, 'POST', '/admin/faqs', {
+    question: { en: `How do I reset my password? ${run}` },
+    answer: { en: 'Tap "Forgot password" on the sign-in screen.' },
+    sortOrder: 0,
+    active: true,
+    hideOnIos: false,
+  });
+  await apiCall(request, token, 'PUT', '/admin/pages/about', {
+    title: { en: 'About us' },
+    body: {
+      en: {
+        type: 'doc',
+        content: [
+          { type: 'paragraph', content: [{ type: 'text', text: `We help Lok Sewa candidates ${run}.` }] },
+        ],
+      },
+    },
+  });
+  await request.post(`${E2E_WEB_ORIGIN}/api/v1/admin/pages/about/publish`, {
+    headers: { Authorization: `Bearer ${token}`, 'X-TK-Client': 'admin' },
+  });
+
+  await page.goto('/profile');
+  await visible(page.getByRole('link', { name: 'Help & support' })).click();
+  await expect(
+    visible(page.getByRole('link', { name: `Support email ${run}: help@example.com` })),
+  ).toBeVisible();
+  await expect(text('We reply within a day.')).toBeVisible();
+  await visible(page.getByRole('button', { name: `How do I reset my password? ${run}` })).click();
+  await expect(text('Tap "Forgot password" on the sign-in screen.')).toBeVisible();
+
+  await page.goto('/profile');
+  await visible(page.getByRole('link', { name: 'About us' })).click();
+  await expect(text(`We help Lok Sewa candidates ${run}.`)).toBeVisible();
 });

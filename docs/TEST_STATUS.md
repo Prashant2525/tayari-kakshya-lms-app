@@ -1,6 +1,6 @@
 # Test Status
 
-Last updated: 2026-10-07 (Phase 12c part 2: articles on the website, search). `pnpm test` runs unit + integration suites (needs `pnpm infra:up`);
+Last updated: 2026-10-07 (Phase 12d part 1: pages, Help & support). `pnpm test` runs unit + integration suites (needs `pnpm infra:up`);
 `pnpm build && pnpm --filter @tk/admin e2e` and `pnpm build && pnpm --filter @tk/mobile e2e` run the browser suites
 (the student suite also needs Mailpit, part of `pnpm infra:up`).
 
@@ -11,14 +11,30 @@ Last updated: 2026-10-07 (Phase 12c part 2: articles on the website, search). `p
 | `@tk/design-tokens` | 39 | WCAG contrast for every text/background pair (light + dark), CSS generation |
 | `@tk/domain` | 58 | BS calendar, Kathmandu day boundary, fiscal year, money/VAT/discounts, access validity |
 | `@tk/contracts` | 21 | Schema behaviour (localized text, email normalisation, mass assignment, settings defaults, rich-text validation) |
-| `@tk/api` | 282 | Integration against real PostgreSQL + Redis + S3 (SeaweedFS) through the HTTP stack; TOTP RFC 6238 vectors; RBAC, video, watermark unit |
+| `@tk/api` | 285 | Integration against real PostgreSQL + Redis + S3 (SeaweedFS) through the HTTP stack; TOTP RFC 6238 vectors; RBAC, video, watermark unit |
 | `@tk/admin` (unit) | 35 | API client (headers, refresh single-flight, retry, session loss, error mapping), BS formatting, Button `asChild` regression |
-| `@tk/admin` (E2E, Playwright) | 32 | Real browser + real API + `*_e2e` database |
+| `@tk/admin` (E2E, Playwright) | 33 | Real browser + real API + `*_e2e` database |
 | `@tk/mobile` (unit) | 36 | API client (single-flight refresh, early refresh, session end, maintenance), translations complete in both languages, BS dates and Kathmandu weekday, force-update/maintenance gate, form checks, Nepali phone numbers |
-| `@tk/mobile` (E2E, Playwright, phone viewport) | 34 | Web build + real API + `*_mobile_e2e` database + Mailpit |
+| `@tk/mobile` (E2E, Playwright, phone viewport) | 35 | Web build + real API + `*_mobile_e2e` database + Mailpit |
 | `@tk/web` (unit) | 8 | Session refresh used once (concurrent / late requests share it; refused → signed out; unreachable → retried), token expiry, both languages complete, failure messages |
-| `@tk/web` (E2E, Playwright) | 7 | `next start` production build + real API + `*_web_e2e` database + Mailpit + gateway stand-in; access tokens last 60 s so every page load refreshes |
-| **Total** | **552** | |
+| `@tk/web` (E2E, Playwright) | 8 | `next start` production build + real API + `*_web_e2e` database + Mailpit + gateway stand-in; access tokens last 60 s so every page load refreshes |
+| **Total** | **558** | |
+
+### Added with pages and Help & support (Phase 12d part 1, T-062, D-064)
+- **API (3 integration tests):** the four pages start as unseen drafts; publishing refused while the DRAFT line or
+  placeholders remain, and when nothing changed; readers keep the last published version; versions numbered and
+  kept — the database refuses to change or delete one; the refund page not served to the iPhone app; only page
+  managers; FAQs in order, hidden and iPhone-hidden ones left out; contact values checked by type (phone, email,
+  https), hidden ones left out, deletes audited; only support managers. Mutation-checked (5: drafts publishable,
+  refund on iPhone, iPhone-hidden FAQs, unchanged republished, inactive FAQs — each fails a test).
+- **CMS E2E (1):** the Terms draft is "not ready" and cannot be published; an FAQ and a WhatsApp contact (a wrong
+  number refused first) are added. **App E2E (1):** Profile → Help & support (contact link, FAQ opens) and a
+  published About page. **Website E2E (1):** footer → Help (WhatsApp link, an iPhone-hidden FAQ is on the web) →
+  About; an unpublished page is a 404; sign-up links the Terms page. Sitemap unit test extended.
+- Screens checked: CMS page editor and Help & support, app Help & support, website Help with footer links.
+- Website page links (footer, sign-up) are cached for a minute; the test waits for them (an earlier spec may have
+  loaded the list before the pages were published). Local only (KI-036, ~1 GB free memory): the CMS suite's servers
+  stopped at the grading spec once; the 15 tests after it passed on their own. App 35/35, website 8/8.
 
 ### Added with articles on the website and in search (Phase 12c part 2, T-061)
 - **API (extended):** search finds live articles by title or address — not the draft, scheduled or deleted ones

@@ -4,6 +4,13 @@ All notable changes to this project. Format based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Added — 2026-10-07 (Phase 12d part 1: pages and Help & support)
+- CMS: Communication → Pages (About, Terms, Privacy, Refund — DRAFT texts to review, publish refused until the
+  placeholders are filled in; every published version kept) and Help & support (FAQs, contact options).
+- App: Profile → Help & support (tap to call, WhatsApp or email; questions open on tap) and the published pages;
+  sign-up links to Terms and Privacy. The refund policy is not shown in the iPhone app.
+- Website: Help page, About / Terms / Privacy / Refund policy pages, footer links, sign-up links, sitemap.
+
 ### Added — 2026-10-07 (Phase 12c part 2: articles on the website and in search)
 - Website: Articles in the header, "Latest articles" on the home page, the list by kind (and period for current
   affairs), article pages with their source link, search-engine data and sitemap entries.

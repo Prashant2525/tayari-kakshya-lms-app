@@ -372,7 +372,7 @@ Changes: attempt start on a daily challenge — before its day 409 `not_open`; a
 | POST | `/me/notifications/read` `{ids}` | mark read (empty list = all) |
 | GET / PUT | `/me/notification-preferences` | `{notice: {push, email}, course_update, exam_reminder, result, purchase}` |
 | POST | `/me/push-tokens` `{token, platform}`, `/me/push-tokens/remove` `{token}` | Expo push token of this device |
-| GET | `/pages/:slug`, `/faqs`, `/contact-options` | |
+| GET | `/pages`, `/pages/:slug`, `/faqs`, `/contact-options` | public (T-062): published pages (last version; no refund page for iPhone), active FAQs (iPhone-hidden ones left out), active contact options |
 | GET | `/search?q=` | unified search: courses, lessons, questions and articles (live only) |
 
 ## 8. Commerce & payments
@@ -402,6 +402,7 @@ Every module exposes `GET list` (search/filter/sort/paginate), `GET :id`, `POST`
 - `/admin/articles`, `/admin/notices`, `/admin/notification-campaigns`, `/admin/banners`, `/admin/home-sections`
 - `/admin/plans`, `/admin/coupons`, `/admin/orders`, `/admin/payments` (+ `reconcile`), `/admin/refunds` (+ approve/process), `/admin/invoices`
 - `/admin/reviews`, `/admin/discussions`, `/admin/faqs`, `/admin/pages`, `/admin/contact-options`, `/admin/certificates`
+- Pages and Help (built, T-062): `GET /admin/pages`, `GET|PUT /admin/pages/:slug`, `POST /admin/pages/:slug/publish` — `pages:manage`; `GET|POST /admin/faqs`, `PUT|DELETE /admin/faqs/:id`, `GET|POST /admin/contact-options`, `PUT|DELETE /admin/contact-options/:id` — `support:manage`
 - Articles (built, T-060): `GET|POST /admin/articles`, `GET|PUT|DELETE /admin/articles/:id`, `PUT /admin/articles/:id/status`, `GET /admin/article-quizzes` — `articles:edit` (publishing and live edits `articles:publish`); `GET /admin/article-categories`, `POST /admin/article-categories`, `PUT /admin/article-categories/:id` — `articles:publish`
 - Interested on iPhone (built, T-058): `GET /admin/course-interests?status=open|contacted`, `GET /admin/course-interests/:id/email` (filled-in draft), `POST /admin/course-interests/:id/contact` `{subject, body}` — `interests:manage`
 - Course updates (built, T-056): `GET|POST /admin/courses/:id/updates` — `courses:notify` (history + students with access; send `{title, message}` to them)

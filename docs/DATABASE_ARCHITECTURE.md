@@ -136,10 +136,10 @@ partial indexes, generated `tsvector` columns, check constraints and triggers th
 | `notification_campaigns` | CMS broadcasts: audience, channels, schedule, status, stats |
 | `banners` | `placement`, `title`, `image_media_id`, `cta_label`, `deep_link`, `audience` jsonb, `starts_at`, `ends_at`, `sort_order`, `status` |
 | `home_sections` | `type` (featured_courses/category_row/continue/daily_challenge/articles/custom), `config` jsonb, `sort_order`, `visible` |
-| `faqs` | `question`, `answer` localized, `category`, `sort_order`, `status` |
-| `static_pages` | `slug` unique (terms/privacy/refund/about), `title`, `body` localized, `version`, `status`, `published_at` |
-| `static_page_versions` | history of legal pages |
-| `contact_options` | `type` (phone/whatsapp/viber/email/address/website), `label` localized, `value`, `sort_order`, `active` |
+| `static_pages` | `slug` PK (about/terms/privacy/refund), working-copy `title` / `body` localized rich, `updated_by` — created from the DRAFT texts on first use (D-038) |
+| `static_page_versions` | `slug` + `version` UNIQUE, `title`, `body`, `published_at`, `published_by` — immutable (trigger refuses UPDATE / DELETE): what readers saw |
+| `faqs` | `question`, `answer` localized plain text, `sort_order`, `active`, `hide_on_ios` (answers that mention buying, D-027) |
+| `contact_options` | `type` (phone/whatsapp/viber/email/website/facebook/address), `label`, `value` (checked by type), `note` localized, `sort_order`, `active` |
 | `live_classes` | (S22, later) |
 
 ### 2.10 Operations

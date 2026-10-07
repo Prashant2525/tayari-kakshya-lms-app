@@ -40,6 +40,8 @@ const CONTENT_PERMISSIONS = [
   'interests:manage',
   'articles:edit',
   'articles:publish',
+  'pages:manage',
+  'support:manage',
 ];
 
 /**

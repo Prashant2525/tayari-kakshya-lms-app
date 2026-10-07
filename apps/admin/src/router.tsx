@@ -203,6 +203,21 @@ const routes = [
   }),
   createRoute({
     getParentRoute: () => appRoute,
+    path: '/help',
+    component: lazyRouteComponent(() => import('./features/support/help-page'), 'HelpPage'),
+  }),
+  createRoute({
+    getParentRoute: () => appRoute,
+    path: '/pages',
+    component: lazyRouteComponent(() => import('./features/support/pages-page'), 'PagesPage'),
+  }),
+  createRoute({
+    getParentRoute: () => appRoute,
+    path: '/pages/$slug',
+    component: lazyRouteComponent(() => import('./features/support/pages-page'), 'PageEditor'),
+  }),
+  createRoute({
+    getParentRoute: () => appRoute,
     path: '/articles',
     component: lazyRouteComponent(() => import('./features/articles/articles-page'), 'ArticlesPage'),
   }),

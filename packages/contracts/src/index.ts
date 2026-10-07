@@ -13,3 +13,4 @@ export * from './permissions.js';
 export * from './questions.js';
 export * from './rich-text.js';
 export * from './settings.js';
+export * from './support.js';

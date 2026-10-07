@@ -7,12 +7,15 @@ const page = (data: unknown[], nextCursor: string | null = null) =>
 afterEach(() => vi.unstubAllGlobals());
 
 describe('sitemap (search engines)', () => {
-  it('lists the fixed pages, every course and every article, page after page', async () => {
+  it('lists the fixed pages, published pages, every course and every article, page after page', async () => {
     const calls: string[] = [];
     vi.stubGlobal(
       'fetch',
       vi.fn(async (url: string) => {
         calls.push(url);
+        if (url.endsWith('/pages')) {
+          return new Response(JSON.stringify([{ slug: 'terms' }, { slug: 'unknown' }]), { status: 200 });
+        }
         if (url.includes('/courses?')) return page([{ slug: 'sainey-likhit' }]);
         if (url.includes('/articles?') && !url.includes('cursor=')) {
           return page([{ slug: 'budget-week', publishedAt: '2026-10-07T00:00:00.000Z' }], 'c1');
@@ -26,6 +29,8 @@ describe('sitemap (search engines)', () => {
       '/courses',
       '/plans',
       '/articles',
+      '/help',
+      '/terms',
       '/courses/sainey-likhit',
       '/articles/budget-week',
       '/articles/gorkhapatra-21-asoj',
@@ -43,6 +48,7 @@ describe('sitemap (search engines)', () => {
       '/courses',
       '/plans',
       '/articles',
+      '/help',
     ]);
   });
 });

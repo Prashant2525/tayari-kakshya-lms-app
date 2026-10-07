@@ -40,6 +40,8 @@ export const PERMISSIONS = {
   'notices:publish': 'Publish, schedule and archive notices (sends them to students)',
   'articles:edit': 'Write and change articles — current affairs, Gorkhapatra, news, blog (drafts)',
   'articles:publish': 'Publish, schedule and archive articles (they go to the app and the website)',
+  'pages:manage': 'Edit and publish the About, Terms, Privacy and Refund pages',
+  'support:manage': 'Edit the FAQs and the contact options in Help & support',
   'orders:read': 'View orders, payments and what the payment gateways reported',
   'orders:manage': 'Check a payment again with its gateway',
 } as const;
