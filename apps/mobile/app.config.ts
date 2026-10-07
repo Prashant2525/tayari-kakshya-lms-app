@@ -1,11 +1,13 @@
 import type { ExpoConfig } from 'expo/config';
 
 /**
- * Store identifiers (Android package / iOS bundle id) are the owner's choice and are not set yet
- * (OPEN_QUESTIONS L5). They are read from the environment so EAS builds can supply them.
+ * Store identifiers (Android package / iOS bundle id), chosen by the owner (D-065). To change them, edit APP_ID or
+ * set APP_ANDROID_PACKAGE / APP_IOS_BUNDLE_ID (locally or as EAS environment variables). Once the app is published
+ * the stores tie the listing to the identifier for good: a new identifier is a new app.
  */
-const androidPackage = process.env.APP_ANDROID_PACKAGE || undefined;
-const iosBundleId = process.env.APP_IOS_BUNDLE_ID || undefined;
+const APP_ID = 'com.tayarikakshya.app';
+const androidPackage = process.env.APP_ANDROID_PACKAGE || APP_ID;
+const iosBundleId = process.env.APP_IOS_BUNDLE_ID || APP_ID;
 /**
  * The owner's EAS project (expo.dev: prashantdhimals-team / tayari-kakshya). Its id is public (it is in every build)
  * and push tokens need it (D-033); EAS_PROJECT_ID can point a build at another project.
@@ -22,9 +24,9 @@ const config: ExpoConfig = {
   orientation: 'portrait',
   userInterfaceStyle: 'automatic',
   backgroundColor: '#F6F8FC',
-  ios: { supportsTablet: true, ...(iosBundleId ? { bundleIdentifier: iosBundleId } : {}) },
+  ios: { supportsTablet: true, bundleIdentifier: iosBundleId },
   android: {
-    ...(androidPackage ? { package: androidPackage } : {}),
+    package: androidPackage,
     // Tokens and the device id live in the Keystore-backed secure store; never in auto backups.
     allowBackup: false,
   },
