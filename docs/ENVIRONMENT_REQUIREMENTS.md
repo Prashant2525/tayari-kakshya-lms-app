@@ -59,7 +59,8 @@ Verified against official docs on 2026-10-02 (summary; full re-check required at
 | Item | Phase | Who | Notes |
 |---|---|---|---|
 | App identifiers (`com.<org>.<app>`) | 8 | owner decides | cannot change after store release |
-| Expo account / EAS project ID | 8 | owner | |
+| Expo account / EAS project ID | 8 | owner | ✅ 2026-10-07 — `prashantdhimals-team / tayari-kakshya` (public id, committed in `app.config.ts`) |
+| Apple Developer Program membership (iPhone test builds, TestFlight, App Store) | 12 / 20 | owner | needed before any iOS build; EAS makes the certificates and APNs key |
 | Android upload keystore | 20 | generated, stored in EAS/secret store | never committed |
 | Google Play Console account (organisation) | 20 | owner | org account requires D-U-N-S; personal accounts have testing requirements |
 | Apple Developer Program + App Store Connect | 18 | owner | required (iOS in scope) |

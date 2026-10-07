@@ -41,6 +41,6 @@ Note: Docker Desktop is free for small businesses (<250 employees and <$10M reve
 | Cloudflare R2 | SeaweedFS (local + CI) | — | Phase 6 local / 18 |
 | Bunny Stream | — | **Provided 2026-10-02** (library 768559): in the owner's local `.env` only; API key verified (HTTP 200). Set the same values on the server in Phase 18. Tests always run with Bunny disabled. | Phase 6 |
 | YouTube Data API key (optional, metadata import) | — | — | Phase 6 |
-| Expo / EAS, FCM, APNs | — | — | Phase 8 / 12 |
+| Expo / EAS, FCM, APNs | EAS project ✅ (owner `prashantdhimals-team`, slug `tayari-kakshya`, id in `apps/mobile/app.config.ts`); FCM / APNs ❌ | owner | Phase 12 / 18 |
 | Sentry, PostHog | — | — | Phase 8 |
 | VPS, domain, DNS | — | — (L4) | Phase 18 |

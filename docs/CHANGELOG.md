@@ -4,6 +4,10 @@ All notable changes to this project. Format based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Added — 2026-10-07 (EAS builds)
+- The app is linked to the owner's EAS project (push tokens work in builds); `eas.json` with development, preview and
+  production profiles; development client; shared packages are built during EAS builds.
+
 ### Added — 2026-10-07 (Phase 12b: event notifications)
 - Students are told when a payment goes through (in the app and by push; the receipt stays the email), when a test
   result is out (unless they already opened it), and before a scheduled test opens (by default 1 day and 1 hour

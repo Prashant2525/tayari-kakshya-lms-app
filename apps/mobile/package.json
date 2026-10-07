@@ -13,7 +13,8 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint src e2e",
     "test": "vitest run",
-    "e2e": "playwright test"
+    "e2e": "playwright test",
+    "eas-build-post-install": "pnpm --filter \"@tk/mobile^...\" build"
   },
   "dependencies": {
     "@expo-google-fonts/mukta": "0.4.1",
@@ -30,6 +31,7 @@
     "expo-auth-session": "57.0.13",
     "expo-constants": "57.0.20",
     "expo-crypto": "57.0.3",
+    "expo-dev-client": "57.0.19",
     "expo-device": "57.0.2",
     "expo-font": "57.0.4",
     "expo-linking": "57.0.11",

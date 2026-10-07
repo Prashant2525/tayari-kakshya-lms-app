@@ -202,6 +202,10 @@ Current task: Phase 11 part 3 (receipts + refunds) done on `feature/receipts-ref
 - Nothing partially implemented. Admin screens for Phase 6 not started.
 
 ## Exact next steps
+0h. 2026-10-07: PR #31 merged. Owner created the EAS project (`prashantdhimals-team / tayari-kakshya`,
+   id `ba6edf8d-8869-4213-97c9-99e9ddf12cdd`). `feature/eas-setup` (T-057): owner + project id in app config, `eas.json`
+   profiles, dev client, post-install build of shared packages. An iOS build still needs the bundle id (L5) and an Apple
+   Developer membership; not yet built (first `eas build` may need small fixes). 12c waits for the owner's article answers.
 0g. 2026-10-07 (Phase 12b): PR #30 merged. `feature/event-notifications` (T-056): purchase / result / reminder
    notifications (`ExamNotificationsService` in the worker's `notifications` job), course updates
    (`CourseUpdatesService`, permission `courses:notify`), setting `notifications.examReminders`. Next: **12c** —
