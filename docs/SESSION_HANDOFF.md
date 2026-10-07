@@ -202,6 +202,9 @@ Current task: Phase 11 part 3 (receipts + refunds) done on `feature/receipts-ref
 - Nothing partially implemented. Admin screens for Phase 6 not started.
 
 ## Exact next steps
+0o. 2026-10-08: PR #38 merged. `fix/phone-images` (PR #39): pictures on real phones in development, Expo Go on
+   Android again (KI-051: `--go`, lazy expo-notifications), app identifiers `com.tayarikakshya.app` (D-065). Next: the
+   owner makes a development build (`eas build --profile development`), then Phase 13 after the owner's answers.
 0n. 2026-10-08: PR #37 merged. `feature/banners` (T-063) completes Phase 12. Next: **Phase 13** (§13):
    progress analytics (accuracy, weak / strong topics, study time), study planner, course reviews + moderation,
    discussions / doubts + moderation (S12), admin dashboards and exports. Ask the owner first: reviews (stars +

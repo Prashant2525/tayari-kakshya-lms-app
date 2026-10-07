@@ -1,5 +1,5 @@
 import Constants from 'expo-constants';
-import * as Notifications from 'expo-notifications';
+import type * as NotificationsModule from 'expo-notifications';
 import { router, type Href } from 'expo-router';
 import { Platform } from 'react-native';
 import { api } from '@/api/client';
@@ -19,9 +19,18 @@ const expoGoAndroid = Platform.OS === 'android' && Constants.executionEnvironmen
 
 export const pushAvailable = Platform.OS !== 'web' && !expoGoAndroid && Boolean(projectId);
 
+/**
+ * Loaded only where push works: in Expo Go on Android merely importing expo-notifications throws (SDK 53+), which
+ * broke every screen that imports this file.
+ */
+const Notifications: typeof NotificationsModule | null = pushAvailable
+  ? // eslint-disable-next-line @typescript-eslint/no-require-imports
+    (require('expo-notifications') as typeof NotificationsModule)
+  : null;
+
 let registered: string | null = null;
 
-if (pushAvailable) {
+if (Notifications) {
   // Shown while the app is open, too.
   Notifications.setNotificationHandler({
     handleNotification: async () => ({
@@ -56,7 +65,7 @@ export function hrefFor(link: NotificationLink | null | undefined): Href | null 
 
 /** Asks for permission (once the student is signed in) and registers this device with the API. */
 export async function registerForPush(): Promise<void> {
-  if (!pushAvailable || registered) return;
+  if (!Notifications || registered) return;
   try {
     if (Platform.OS === 'android') {
       await Notifications.setNotificationChannelAsync('default', {
@@ -85,7 +94,7 @@ export async function unregisterPush(): Promise<void> {
 
 /** Opens the screen of a tapped notification. Returns the subscription to remove. */
 export function listenForTaps(): { remove(): void } | null {
-  if (!pushAvailable) return null;
+  if (!Notifications) return null;
   return Notifications.addNotificationResponseReceivedListener((response) => {
     const data = response.notification.request.content.data as { link?: NotificationLink } | undefined;
     const href = hrefFor(data?.link);

@@ -4,6 +4,17 @@ All notable changes to this project. Format based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Fixed — 2026-10-08
+- App in development on a real phone (Expo Go / dev build): pictures (courses, banners, articles) did not load because
+  the local API gives `http://localhost:4000/...` addresses; the app now points them at the computer it already
+  reaches. Release builds are unaffected (public media domain).
+- App on Android in Expo Go: "Required property 'android.package' is not found" — since `expo-dev-client` was added
+  (T-057) `expo start` targets a development build, which needs the app identifiers (L5). `dev`, `android` and `ios`
+  now open Expo Go (`--go`); `dev:client` is for development builds. Then a black screen: importing
+  `expo-notifications` throws in Expo Go on Android (SDK 53+); it is now loaded only where push works.
+- App identifiers set to `com.tayarikakshya.app` (D-065; changeable in `app.config.ts` or with
+  `APP_ANDROID_PACKAGE` / `APP_IOS_BUNDLE_ID`), so development and store builds can be made.
+
 ### Added — 2026-10-08 (Phase 12d part 2: banners)
 - CMS: Communication → Banners — picture, title, link (course, plan, article, page or web address), app / website /
   both, start and end, order; plan and web links (and banners marked so) are not shown on iPhone.

@@ -1,6 +1,6 @@
 import Constants from 'expo-constants';
 import { Platform } from 'react-native';
-import { devApiOrigin } from './dev-api';
+import { devApiOrigin, localAddressRewriter } from './dev-api';
 
 /**
  * Build-time public configuration. EXPO_PUBLIC_* values are embedded in the app binary: never put secrets here.
@@ -17,6 +17,8 @@ const apiOrigin =
 
 export const env = {
   apiBaseUrl: `${apiOrigin}/api/v1`,
+  /** Development only (no EXPO_PUBLIC_API_URL): makes the local API's picture addresses reachable from a phone. */
+  rewriteResponse: __DEV__ && !configured ? localAddressRewriter(apiOrigin) : null,
   google: {
     androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID || undefined,
     iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID || undefined,

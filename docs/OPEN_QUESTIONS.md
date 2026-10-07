@@ -144,6 +144,7 @@ supported merchant locations (Nepal: developer ✔, merchant ✘); YouTube priva
 - **§10 part 3b (asked 2026-10-06):** how certificates are issued, what feeds the mistake notebook, what counts as a
   mistake, when a question leaves it. **Answered 2026-10-06** (D-050).
 - **L5 (Phase 18):** App identifiers (`com.<org>.<app>`), store account ownership (Play Console organisation account, Apple Developer).
+  **Identifiers answered 2026-10-08:** `com.tayarikakshya.app`, kept changeable (D-065). Store accounts still open.
 - **Phase 11 part 2 (asked 2026-10-06):** free enrolment and shared subjects, plan contents changing, coupons on sale
   prices, renewing a plan. **Answered 2026-10-06** (D-053, D-054).
 - **Phase 12 (asked 2026-10-07):** notice audiences, which notices are pushed / emailed, course-update notifications, exam reminder times. **Answered 2026-10-07** (D-060).
