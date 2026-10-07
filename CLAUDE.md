@@ -76,7 +76,7 @@ Windows 11; PowerShell + Git Bash. Node 24, pnpm 12.8.1, Docker Desktop (WSL2). 
 - Admin CMS: `pnpm --filter @tk/admin dev` (:5173, proxies `/api` → :4000). Browser E2E: `pnpm build && pnpm --filter @tk/admin e2e`.
 - Website: `pnpm --filter @tk/web dev` (:3000, reads the root `.env`; talks to the API from its server only). Browser
   E2E: `pnpm build && pnpm --filter @tk/web e2e` (`next start` + API on `*_web_e2e`, Mailpit, gateway stand-in).
-- Student app: `pnpm --filter @tk/mobile dev` (Expo; `w` = web); Android emulator: `pnpm --filter @tk/mobile android`
+- Student app: `pnpm --filter @tk/mobile dev` (Expo Go; `w` = web; `dev:client` for an installed development build); Android emulator: `pnpm --filter @tk/mobile android`
   (needs `ANDROID_HOME`; see SESSION_HANDOFF). Browser E2E (web build, phone viewport, Mailpit for
   codes): `pnpm build && pnpm --filter @tk/mobile e2e`. Pin Expo packages to the versions in Expo's bundledNativeModules.
 - After UI changes, verify in a real browser (Playwright) — screenshots caught defects that tests missed.
