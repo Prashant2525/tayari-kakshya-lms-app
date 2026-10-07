@@ -308,6 +308,101 @@ function DiscountFields<D extends DiscountDraft>({
   );
 }
 
+const UNIT_MINUTES = { minutes: 1, hours: 60, days: 1440 } as const;
+type Unit = keyof typeof UNIT_MINUTES;
+const unitOf = (minutes: number): Unit =>
+  minutes % 1440 === 0 ? 'days' : minutes % 60 === 0 ? 'hours' : 'minutes';
+
+/** One reminder: an amount and its unit, kept as minutes (the unit stays as chosen while typing). */
+function ReminderTime({
+  index,
+  minutes,
+  onChange,
+  onRemove,
+  disabled,
+}: {
+  index: number;
+  minutes: number;
+  onChange: (minutes: number) => void;
+  onRemove: () => void;
+  disabled: boolean;
+}) {
+  const [unit, setUnit] = useState<Unit>(unitOf(minutes));
+  const amount = minutes / UNIT_MINUTES[unit];
+  return (
+    <div className="flex flex-wrap items-end gap-2">
+      <Field label={`Reminder ${index + 1}`} className="w-28">
+        {(a) => (
+          <Input
+            {...a}
+            type="number"
+            min={1}
+            value={Number.isFinite(amount) ? amount : ''}
+            disabled={disabled}
+            onChange={(e) => onChange(Math.round(Number(e.target.value) * UNIT_MINUTES[unit]))}
+          />
+        )}
+      </Field>
+      <Select
+        aria-label={`Reminder ${index + 1} unit`}
+        className="w-32"
+        value={unit}
+        disabled={disabled}
+        onChange={(e) => {
+          const next = e.target.value as Unit;
+          setUnit(next);
+          onChange(Math.round(amount * UNIT_MINUTES[next]));
+        }}
+      >
+        <option value="minutes">{amount === 1 ? 'minute' : 'minutes'}</option>
+        <option value="hours">{amount === 1 ? 'hour' : 'hours'}</option>
+        <option value="days">{amount === 1 ? 'day' : 'days'}</option>
+      </Select>
+      <span className="pb-2 text-sm text-text-muted">before it opens</span>
+      {!disabled ? (
+        <Button variant="ghost" size="sm" className="mb-0.5" onClick={onRemove}>
+          Remove
+        </Button>
+      ) : null}
+    </div>
+  );
+}
+
+function ReminderTimes({
+  minutes,
+  onChange,
+  disabled,
+}: {
+  minutes: number[];
+  onChange: (minutes: number[]) => void;
+  disabled: boolean;
+}) {
+  return (
+    <div className="flex flex-col gap-3">
+      {minutes.map((m, i) => (
+        <ReminderTime
+          key={`${i}-${minutes.length}`}
+          index={i}
+          minutes={m}
+          disabled={disabled}
+          onChange={(next) => onChange(minutes.map((old, j) => (j === i ? next : old)))}
+          onRemove={() => onChange(minutes.filter((_, j) => j !== i))}
+        />
+      ))}
+      {minutes.length === 0 ? (
+        <p className="text-sm text-text-muted">No reminder times: none are sent.</p>
+      ) : null}
+      {!disabled && minutes.length < 3 ? (
+        <div>
+          <Button variant="secondary" size="sm" onClick={() => onChange([...minutes, 60])}>
+            Add a reminder
+          </Button>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 export function SettingsPage() {
   const settings = useQuery({
     queryKey: ['settings'],
@@ -745,6 +840,30 @@ export function SettingsPage() {
                 />
               )}
             </Field>
+          )}
+        </SettingCard>
+
+        <SettingCard
+          row={row('notifications.examReminders')}
+          title="Exam reminders"
+          description="Before a scheduled test opens, students who can take it get a reminder in the app, and by push and email unless they turned exam reminders off."
+        >
+          {(d, set, disabled) => (
+            <>
+              <ToggleRow
+                label="Send exam reminders"
+                checked={d.enabled}
+                disabled={disabled}
+                onChange={(v) => set({ ...d, enabled: v })}
+              />
+              {d.enabled ? (
+                <ReminderTimes
+                  minutes={d.minutesBefore}
+                  disabled={disabled}
+                  onChange={(minutesBefore) => set({ ...d, minutesBefore })}
+                />
+              ) : null}
+            </>
           )}
         </SettingCard>
 

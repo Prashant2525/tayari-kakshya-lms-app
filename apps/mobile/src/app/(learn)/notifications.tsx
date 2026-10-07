@@ -1,8 +1,9 @@
 import { radius } from '@tk/design-tokens';
 import { router } from 'expo-router';
-import { Bell } from 'lucide-react-native';
+import { AlarmClock, Award, Bell, BookOpen, Megaphone, Receipt, type LucideIcon } from 'lucide-react-native';
 import { FlatList, Pressable, StyleSheet, View } from 'react-native';
 import { markNotificationsRead, useNotificationsInbox, type NotificationRow } from '@/api/notices';
+import type { NotificationCategory } from '@tk/contracts';
 import { localized } from '@/i18n/translate';
 import { useT } from '@/i18n/use-t';
 import { bsDate } from '@/lib/dates';
@@ -59,6 +60,7 @@ function Row({ n }: { n: NotificationRow }) {
   const { colors } = useTheme();
   const { t, locale } = useT();
   const title = localized(n.title, locale);
+  const Icon = ICONS[n.category] ?? Bell;
   return (
     <Pressable
       role="link"
@@ -73,7 +75,10 @@ function Row({ n }: { n: NotificationRow }) {
         { backgroundColor: n.read ? colors.surface : colors.primarySoft, borderColor: colors.border },
       ]}
     >
-      {!n.read ? <View style={[styles.dot, { backgroundColor: colors.primary }]} aria-hidden /> : null}
+      <View style={[styles.icon, { backgroundColor: colors.surfaceMuted }]} aria-hidden>
+        <Icon size={18} color={colors.textSecondary} />
+        {!n.read ? <View style={[styles.dot, { backgroundColor: colors.primary }]} /> : null}
+      </View>
       <View style={{ flex: 1, gap: 2 }}>
         <Text variant="body" weight={n.read ? 400 : 600}>
           {title}
@@ -89,6 +94,14 @@ function Row({ n }: { n: NotificationRow }) {
   );
 }
 
+const ICONS: Record<NotificationCategory, LucideIcon> = {
+  notice: Megaphone,
+  course_update: BookOpen,
+  exam_reminder: AlarmClock,
+  result: Award,
+  purchase: Receipt,
+};
+
 const styles = StyleSheet.create({
   content: { gap: 12, paddingTop: 8 },
   header: { flexDirection: 'row', alignItems: 'center', gap: 4 },
@@ -100,5 +113,6 @@ const styles = StyleSheet.create({
     padding: 12,
     alignItems: 'flex-start',
   },
-  dot: { width: 8, height: 8, borderRadius: 4, marginTop: 8 },
+  icon: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
+  dot: { position: 'absolute', top: 0, right: 0, width: 10, height: 10, borderRadius: 5 },
 });

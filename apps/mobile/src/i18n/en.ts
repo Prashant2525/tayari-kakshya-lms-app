@@ -259,6 +259,7 @@ export const en = {
   'notifSettings.exam_reminder': 'Exam reminders',
   'notifSettings.result': 'Results',
   'notifSettings.purchase': 'Payments and purchases',
+  'notifSettings.receiptEmail': 'Receipts always come by email.',
   'notices.empty': 'No notices yet',
   'notices.emptyBody': 'Exam notices and announcements will appear here.',
 

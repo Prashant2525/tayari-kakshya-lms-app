@@ -4,6 +4,16 @@ All notable changes to this project. Format based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Added — 2026-10-07 (Phase 12b: event notifications)
+- Students are told when a payment goes through (in the app and by push; the receipt stays the email), when a test
+  result is out (unless they already opened it), and before a scheduled test opens (by default 1 day and 1 hour
+  before, to the students who can take it). The Notifications list shows an icon per kind; Profile → Notifications
+  offers push only for purchases, with "Receipts always come by email."
+- CMS: course page → Notify students (title and message in English / Nepali, sent to everyone with access, list of
+  sent updates; permission "courses: notify"); System settings → Exam reminders (on/off, up to three times).
+- API: migration `event_notifications` (`attempts.result_notified_at`, `assessment_reminders`, `course_updates`);
+  the worker's `notifications` job also sends results and reminders; `GET|POST /admin/courses/:id/updates`.
+
 ### Added — 2026-10-07 (Phase 12a: notices and notifications)
 - Students: the Notice tab lists official notices, announcements and instructor messages (pinned first, a badge for
   new ones) and opens them in full; Home has a bell with unread notifications; Profile → Notifications chooses push /

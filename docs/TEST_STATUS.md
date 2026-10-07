@@ -1,6 +1,6 @@
 # Test Status
 
-Last updated: 2026-10-07 (Phase 12a: notices and notifications). `pnpm test` runs unit + integration suites (needs `pnpm infra:up`);
+Last updated: 2026-10-07 (Phase 12b: event notifications). `pnpm test` runs unit + integration suites (needs `pnpm infra:up`);
 `pnpm build && pnpm --filter @tk/admin e2e` and `pnpm build && pnpm --filter @tk/mobile e2e` run the browser suites
 (the student suite also needs Mailpit, part of `pnpm infra:up`).
 
@@ -11,14 +11,32 @@ Last updated: 2026-10-07 (Phase 12a: notices and notifications). `pnpm test` run
 | `@tk/design-tokens` | 39 | WCAG contrast for every text/background pair (light + dark), CSS generation |
 | `@tk/domain` | 58 | BS calendar, Kathmandu day boundary, fiscal year, money/VAT/discounts, access validity |
 | `@tk/contracts` | 21 | Schema behaviour (localized text, email normalisation, mass assignment, settings defaults, rich-text validation) |
-| `@tk/api` | 267 | Integration against real PostgreSQL + Redis + S3 (SeaweedFS) through the HTTP stack; TOTP RFC 6238 vectors; RBAC, video, watermark unit |
+| `@tk/api` | 273 | Integration against real PostgreSQL + Redis + S3 (SeaweedFS) through the HTTP stack; TOTP RFC 6238 vectors; RBAC, video, watermark unit |
 | `@tk/admin` (unit) | 35 | API client (headers, refresh single-flight, retry, session loss, error mapping), BS formatting, Button `asChild` regression |
-| `@tk/admin` (E2E, Playwright) | 29 | Real browser + real API + `*_e2e` database |
+| `@tk/admin` (E2E, Playwright) | 30 | Real browser + real API + `*_e2e` database |
 | `@tk/mobile` (unit) | 36 | API client (single-flight refresh, early refresh, session end, maintenance), translations complete in both languages, BS dates and Kathmandu weekday, force-update/maintenance gate, form checks, Nepali phone numbers |
 | `@tk/mobile` (E2E, Playwright, phone viewport) | 33 | Web build + real API + `*_mobile_e2e` database + Mailpit |
 | `@tk/web` (unit) | 6 | Session refresh used once (concurrent / late requests share it; refused → signed out; unreachable → retried), token expiry, both languages complete, failure messages |
 | `@tk/web` (E2E, Playwright) | 5 | `next start` production build + real API + `*_web_e2e` database + Mailpit + gateway stand-in; access tokens last 60 s so every page load refreshes |
-| **Total** | **529** | |
+| **Total** | **536** | |
+
+### Added with event notifications (Phase 12b, T-056, D-060)
+- **API (6 integration tests):** a Khalti payment tells the student once in the app and by push (repeated returns
+  add nothing) and queues no email; results released by staff reach each student once — not one who already
+  opened the result; an immediate result seen on submitting is not announced, a written answer is once graded, an
+  after-close result once the test closes; reminders 1 day and 1 hour before to students with Premium access only
+  (not one without access, not one who joined free), each once, none after opening, a moved test reminded again,
+  drafts never; at short notice only the nearest goes (the other recorded as not sent); switched off → none; the
+  same time twice refused; course updates: refused with no students, too-long title refused, sent to the course's
+  students only, the student's "no email" choice kept, history and audit, refused for staff without
+  `courses:notify` and for students. Mutation-checked (6 mutations: seen-on-screen, Premium rule, nearest-only,
+  purchase email, manual release, opening time in the key — each fails a test).
+- **CMS E2E (1 new, 1 extended):** Notify students — empty refused, send with confirmation, listed with its count;
+  System settings → Exam reminders: defaults shown, the same time twice refused, a third time saved.
+- **App E2E (extended):** a course update from staff appears in Notifications; purchases offer push only.
+- Screens checked (CMS course tab and reminders card, app list and settings); fixed: "1 days" in the reminder unit.
+- Local only (KI-036): in one full CMS run the test servers stopped during the grading spec (the specs after it could
+  not connect); those 12 tests pass when run again. App suite 33/33, website 5/5.
 
 ### Added with notices and notifications (Phase 12a, T-055, D-060)
 - **API (5 integration tests):** writers draft and submit, only publishers publish or change a live notice, audit,

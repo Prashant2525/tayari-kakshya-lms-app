@@ -401,6 +401,7 @@ Every module exposes `GET list` (search/filter/sort/paginate), `GET :id`, `POST`
 - `/admin/articles`, `/admin/notices`, `/admin/notification-campaigns`, `/admin/banners`, `/admin/home-sections`
 - `/admin/plans`, `/admin/coupons`, `/admin/orders`, `/admin/payments` (+ `reconcile`), `/admin/refunds` (+ approve/process), `/admin/invoices`
 - `/admin/reviews`, `/admin/discussions`, `/admin/faqs`, `/admin/pages`, `/admin/contact-options`, `/admin/certificates`
+- Course updates (built, T-056): `GET|POST /admin/courses/:id/updates` — `courses:notify` (history + students with access; send `{title, message}` to them)
 - Notices (built, T-055): `GET|POST /admin/notices`, `GET|PUT|DELETE /admin/notices/:id`, `PUT /admin/notices/:id/status` — `notices:edit`; publishing and live edits need `notices:publish`
 - `/admin/settings`, `/admin/audit-logs`, `/admin/dashboard` (KPIs), `/admin/reports/*` (exports CSV/XLSX)
 

@@ -36,6 +36,7 @@ const CONTENT_PERMISSIONS = [
   'refunds:approve',
   'notices:edit',
   'notices:publish',
+  'courses:notify',
 ];
 
 /**

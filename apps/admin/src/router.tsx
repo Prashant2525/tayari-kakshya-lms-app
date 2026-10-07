@@ -139,13 +139,14 @@ const routes = [
     path: '/courses/$courseId',
     validateSearch: (
       s: Record<string, unknown>,
-    ): { tab?: 'details' | 'pricing' | 'subjects' | 'links' | 'certificate' } => ({
+    ): { tab?: 'details' | 'pricing' | 'subjects' | 'links' | 'certificate' | 'updates' } => ({
       tab:
         s['tab'] === 'pricing' ||
         s['tab'] === 'subjects' ||
         s['tab'] === 'links' ||
         s['tab'] === 'details' ||
-        s['tab'] === 'certificate'
+        s['tab'] === 'certificate' ||
+        s['tab'] === 'updates'
           ? s['tab']
           : undefined,
     }),

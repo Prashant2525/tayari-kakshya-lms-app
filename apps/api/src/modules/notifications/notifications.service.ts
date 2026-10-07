@@ -66,12 +66,19 @@ export class NotificationsService {
     private readonly mail: MailService,
   ) {}
 
-  /** Queues a notification for these students (any number: done in batches). */
-  async notify(userIds: string[], n: OutgoingNotification): Promise<void> {
+  /**
+   * Queues a notification for these students (any number: done in batches). Pass the transaction of the change that
+   * caused it, so the two are saved together.
+   */
+  async notify(
+    userIds: string[],
+    n: OutgoingNotification,
+    db: Prisma.TransactionClient = this.prisma,
+  ): Promise<void> {
     const unique = [...new Set(userIds)];
     for (let i = 0; i < unique.length; i += BATCH) {
       const batch = unique.slice(i, i + BATCH);
-      const stored = await this.prisma.notificationPreference.findMany({ where: { userId: { in: batch } } });
+      const stored = await db.notificationPreference.findMany({ where: { userId: { in: batch } } });
       const prefs = new Map(stored.map((p) => [p.userId, p.prefs as Prefs]));
       const wants = (userId: string, channel: 'push' | 'email') =>
         (prefs.get(userId)?.[n.category] ?? DEFAULT_PREFERENCES[n.category])[channel];
@@ -83,7 +90,7 @@ export class NotificationsService {
         sourceKey: n.sourceKey,
       };
       if (n.inApp) {
-        await this.prisma.notification.createMany({
+        await db.notification.createMany({
           data: batch.map((userId) => ({ userId, ...base })),
           skipDuplicates: true,
         });
@@ -93,7 +100,7 @@ export class NotificationsService {
         ...(n.email && wants(userId, 'email') ? [{ userId, channel: 'email' as const, ...base }] : []),
       ]);
       if (deliveries.length) {
-        await this.prisma.notificationDelivery.createMany({ data: deliveries, skipDuplicates: true });
+        await db.notificationDelivery.createMany({ data: deliveries, skipDuplicates: true });
       }
     }
   }

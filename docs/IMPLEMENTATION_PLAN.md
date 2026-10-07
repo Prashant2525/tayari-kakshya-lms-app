@@ -170,8 +170,8 @@ Payment edge-case tests per Playbook §11.11.
 banners & home sections, FAQs, contact options, static pages with **draft legal texts (D-038) for owner review**.
 - ☑ Part 12a (T-055, D-060): notices (CMS, Notice tab with badge, pinned / expiring, optional push + email) and the
   notification pipeline — in-app list, outbox with retries, Expo push, email, preferences per category
-- ☐ Part 12b: event notifications — purchase, results released, exam reminders (1 day / 1 hour, CMS setting),
-  "Notify students" of a course update from the CMS
+- ☑ Part 12b (T-056): event notifications — purchase (in-app + push; the receipt is the email), results once out
+  (unless already opened), exam reminders (CMS times, default 1 day / 1 hour), "Notify students" on the course page
 - ☐ Part 12c: articles (current affairs, Gorkhapatra summaries, news, blog) with BS dates and quizzes, on the website too
 - ☐ Part 12d: static pages (DRAFT legal texts, D-038), FAQs, contact options, banners / home sections
 

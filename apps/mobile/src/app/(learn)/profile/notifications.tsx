@@ -11,6 +11,14 @@ import { ErrorState } from '@/ui/states';
 import { Text } from '@/ui/text';
 
 const CATEGORIES: NotificationCategory[] = ['notice', 'course_update', 'exam_reminder', 'result', 'purchase'];
+/** Purchases have no email choice: the receipt email always goes (D-057), and it is the purchase email. */
+const CHANNELS: Record<NotificationCategory, ReadonlyArray<'push' | 'email'>> = {
+  notice: ['push', 'email'],
+  course_update: ['push', 'email'],
+  exam_reminder: ['push', 'email'],
+  result: ['push', 'email'],
+  purchase: ['push'],
+};
 
 /** Profile → Notifications (D-033): what to hear about by push and by email. The in-app list always shows everything. */
 export default function NotificationSettingsScreen() {
@@ -58,7 +66,7 @@ export default function NotificationSettingsScreen() {
               <Text variant="body" weight={600}>
                 {t(`notifSettings.${c}`)}
               </Text>
-              {(['push', 'email'] as const).map((channel) => (
+              {CHANNELS[c].map((channel) => (
                 <View key={channel} style={styles.row}>
                   <Text variant="bodySm" style={{ flex: 1 }}>
                     {t(`notifSettings.${channel}`)}
@@ -74,6 +82,11 @@ export default function NotificationSettingsScreen() {
                   />
                 </View>
               ))}
+              {c === 'purchase' ? (
+                <Text variant="caption" color="textSecondary">
+                  {t('notifSettings.receiptEmail')}
+                </Text>
+              ) : null}
             </View>
           ))}
         </ScrollView>

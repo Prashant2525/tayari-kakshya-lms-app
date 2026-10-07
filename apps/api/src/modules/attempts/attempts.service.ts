@@ -311,6 +311,13 @@ export class AttemptsService {
     }
     const a = await this.prisma.assessment.findUniqueOrThrow({ where: { id: attempt.assessmentId } });
     const released = attempt.status !== 'in_progress' && resultsReleased(a, now);
+    if (released && attempt.status === 'completed' && !attempt.resultNotifiedAt) {
+      // Seen on screen (D-060): no "your result is out" message for this attempt.
+      await this.prisma.attempt.updateMany({
+        where: { id: attempt.id, resultNotifiedAt: null },
+        data: { resultNotifiedAt: now },
+      });
+    }
     const siblings = await this.prisma.attempt.findMany({
       where: { userId: viewer.userId, assessmentId: a.id, status: { not: 'voided' } },
     });
@@ -713,12 +720,22 @@ export class AttemptsService {
   // ───────────── Access ─────────────
 
   /** Courses whose Premium tests the student may take (D-053: not through a free enrolment). */
-  private async accessContext(viewer: Viewer) {
+  private async accessContext(viewer: Pick<Viewer, 'userId'>) {
     return { courses: await this.entitlements.premiumCourseIds(viewer.userId) };
   }
 
+  /** Whether this student may take the assessment (used for exam reminders, D-060). */
+  async canTakeAs(a: Assessment, userId: string): Promise<boolean> {
+    const viewer = { userId };
+    return this.canTake(a, viewer, await this.accessContext(viewer));
+  }
+
   /** D-048: free for everyone; Premium per the assessment's rule. */
-  private async canTake(a: Assessment, viewer: Viewer, ctx: { courses: Set<string> }): Promise<boolean> {
+  private async canTake(
+    a: Assessment,
+    viewer: Pick<Viewer, 'userId'>,
+    ctx: { courses: Set<string> },
+  ): Promise<boolean> {
     if (a.accessLevel === 'free') return true;
     if (a.premiumAccess === 'plans_only') return this.entitlements.hasActivePlan(viewer.userId);
     if (a.premiumAccess === 'any_course') return ctx.courses.size > 0;
@@ -768,7 +785,7 @@ export class AttemptsService {
     };
   }
 
-  private async withDescendants(ids: string[]): Promise<Set<string>> {
+  async withDescendants(ids: string[]): Promise<Set<string>> {
     const all = new Set(ids);
     let frontier = ids;
     for (let depth = 0; frontier.length && depth < 10; depth++) {

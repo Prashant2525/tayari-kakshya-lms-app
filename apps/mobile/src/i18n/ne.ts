@@ -256,6 +256,7 @@ export const ne: Record<MessageKey, string> = {
   'notifSettings.exam_reminder': 'परीक्षा सम्झना',
   'notifSettings.result': 'नतिजा',
   'notifSettings.purchase': 'भुक्तानी र खरिद',
+  'notifSettings.receiptEmail': 'रसिद सधैं इमेलमा आउँछ।',
   'notices.empty': 'अहिले कुनै सूचना छैन',
   'notices.emptyBody': 'परीक्षा सम्बन्धी सूचना र घोषणाहरू यहाँ देखिनेछन्।',
 

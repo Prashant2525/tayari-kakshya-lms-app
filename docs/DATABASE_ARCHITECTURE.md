@@ -127,6 +127,9 @@ partial indexes, generated `tsvector` columns, check constraints and triggers th
 | `notification_preferences` | `user_id` PK, `prefs` jsonb (`{category: {push, email}}`; missing = on) |
 | `push_tokens` | `user_id`, `token` unique (Expo push token), `platform`, `last_seen_at`, `invalidated_at` |
 | `users.notices_seen_at` | when the student last opened the Notice tab (badge) |
+| `attempts.result_notified_at` | the student was told (or saw on screen) that this attempt's result is out — partial index `attempts_result_unnotified_idx` (submitted_at) where completed, not told, not practice (T-056) |
+| `assessment_reminders` | `assessment_id`, `minutes_before`, `opens_at` (UNIQUE together: a moved test is reminded again), `sent` (false = skipped for a nearer one), `recipients` — CHECK minutes > 0, recipients ≥ 0, unsent ⇒ 0 |
+| `course_updates` | `course_id`, `title` / `message` localized plain text, `recipients`, `sent_by`, `created_at` — kept as a record (never deleted), index `(course_id, created_at desc)` |
 | `notification_templates` | `key` unique, localized subject/body per channel |
 | `notification_campaigns` | CMS broadcasts: audience, channels, schedule, status, stats |
 | `banners` | `placement`, `title`, `image_media_id`, `cta_label`, `deep_link`, `audience` jsonb, `starts_at`, `ends_at`, `sort_order`, `status` |

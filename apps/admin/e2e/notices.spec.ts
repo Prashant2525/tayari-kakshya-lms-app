@@ -1,7 +1,10 @@
 import { expect, test, type Page } from '@playwright/test';
-import { E2E_ADMIN_PASSWORD, E2E_EDITOR3_EMAIL } from './e2e-env.mjs';
+import { E2E_ADMIN_PASSWORD, E2E_EDITOR3_EMAIL, E2E_STUDENT_EMAIL } from './e2e-env.mjs';
 
-/** Phase 12a in the CMS: write a notice (bilingual title, rich text), pin it, ask for push / email, publish it. */
+/**
+ * Phase 12 in the CMS: write a notice (bilingual title, rich text), pin it, ask for push / email, publish it; tell a
+ * course's students about an update.
+ */
 let page: Page;
 const run = Date.now().toString(36);
 const title = `Section Officer form ${run}`;
@@ -47,4 +50,44 @@ test('staff write, pin and publish a notice that is also pushed', async () => {
   // Sent by the worker once live.
   await expect(row.getByText('When live')).toBeVisible();
   await expect(row.getByText('Published')).toBeVisible();
+});
+
+test("staff tell a course's students about an update", async () => {
+  const token = (
+    (await (
+      await page.request.post('/api/v1/admin/auth/refresh', { headers: { 'X-TK-Client': 'admin' } })
+    ).json()) as { accessToken: string }
+  ).accessToken;
+  const staff = async (method: 'GET' | 'POST', path: string, data?: unknown) => {
+    const res = await page.request.fetch(`/api/v1${path}`, {
+      method,
+      data,
+      headers: { Authorization: `Bearer ${token}`, 'X-TK-Client': 'admin' },
+    });
+    expect(res.ok(), `${method} ${path}: ${await res.text()}`).toBe(true);
+    return res.json() as Promise<{ id: string; data: Array<{ id: string }> }>;
+  };
+  // A course and the seeded student with access to it (a staff grant).
+  const course = await staff('POST', '/admin/courses', {
+    slug: `updates-${run}`,
+    title: { en: `Nayab Subba ${run}` },
+  });
+  const [student] = (await staff('GET', `/admin/users?q=${encodeURIComponent(E2E_STUDENT_EMAIL)}`)).data;
+  await staff('POST', `/admin/users/${student!.id}/entitlements`, { courseId: course.id, endsAt: null });
+
+  await page.goto(`/courses/${course.id}`);
+  await page.getByRole('tab', { name: 'Notify students' }).click();
+  await expect(page.getByText('1 student with access now')).toBeVisible();
+  await page.getByRole('button', { name: 'Send to students' }).click();
+  await expect(page.getByText('Write a title in English or Nepali')).toBeVisible();
+  await page.getByLabel('Title (English)').fill('New mock tests added');
+  await page.getByLabel('Message (English)').fill('Three full mock tests are now in the course.');
+  await page.getByRole('button', { name: 'Send to students' }).click();
+  await expect(page.getByRole('dialog', { name: 'Send this update?' })).toContainText('1 student');
+  await page.getByRole('button', { name: 'Send update' }).click();
+  await expect(page.getByText('Update sent to 1 student')).toBeVisible();
+  const sent = page.getByRole('listitem').filter({ hasText: 'New mock tests added' });
+  await expect(sent).toContainText('Three full mock tests are now in the course.');
+  await expect(sent).toContainText('1 student');
+  await expect(page.getByLabel('Title (English)')).toHaveValue('');
 });

@@ -147,3 +147,6 @@ supported merchant locations (Nepal: developer ✔, merchant ✘); YouTube priva
 - **Phase 11 part 2 (asked 2026-10-06):** free enrolment and shared subjects, plan contents changing, coupons on sale
   prices, renewing a plan. **Answered 2026-10-06** (D-053, D-054).
 - **Phase 12 (asked 2026-10-07):** notice audiences, which notices are pushed / emailed, course-update notifications, exam reminder times. **Answered 2026-10-07** (D-060).
+  Details chosen while building (T-056, tell us to change any): purchases are not emailed separately (the receipt is
+  the email); a result is not announced to a student who already opened it; reminders go to the students a test is
+  listed for who may take it; course updates go to everyone with access now.
