@@ -49,6 +49,8 @@ import { CouponsService } from './modules/payments/coupons.service.js';
 import { ReceiptsService } from './modules/payments/receipts.service.js';
 import { AdminRefundsController } from './modules/payments/refunds.controller.js';
 import { RefundsService } from './modules/payments/refunds.service.js';
+import { AdminReferralsController, ReferralsController } from './modules/payments/referrals.controller.js';
+import { ReferralsService } from './modules/payments/referrals.service.js';
 import { AdminOrdersService } from './modules/payments/admin-orders.service.js';
 import { GatewayHttp } from './modules/payments/gateway-http.js';
 import { PaymentsController } from './modules/payments/payments.controller.js';
@@ -144,6 +146,7 @@ export class InfraModule {}
     CouponsService,
     ReceiptsService,
     RefundsService,
+    ReferralsService,
     ScopeService,
     QuestionsService,
     QuestionReportsService,
@@ -189,6 +192,7 @@ export class InfraModule {}
     CouponsService,
     ReceiptsService,
     RefundsService,
+    ReferralsService,
     ScopeService,
     QuestionsService,
     QuestionReportsService,
@@ -253,6 +257,8 @@ export class DomainModule {}
     AdminPlansController,
     AdminCouponsController,
     AdminRefundsController,
+    ReferralsController,
+    AdminReferralsController,
     AdminQuestionsController,
     QuestionReportsController,
     AdminAssessmentsController,

@@ -12,6 +12,7 @@ import type { Prisma, Refund } from '../../generated/prisma/client.js';
 import { PrismaService, type Tx } from '../../infra/prisma/prisma.service.js';
 import { AuditService } from '../audit/audit.service.js';
 import type { ContentActor } from '../content/scope.service.js';
+import { ReferralsService } from './referrals.service.js';
 
 const refused = (reason: string, message: string) =>
   new AppError(409, ErrorCode.CONFLICT, message, { reason });
@@ -31,6 +32,7 @@ export class RefundsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly audit: AuditService,
+    private readonly referrals: ReferralsService,
   ) {}
 
   async request(orderId: string, input: RefundRequestInput, actor: ContentActor) {
@@ -86,6 +88,8 @@ export class RefundsService {
             data: { status: 'revoked', revokedAt: now, revokedReason: 'refund' },
           })
         ).count;
+        // D-058: the referrer's reward from this purchase is switched off if still unused.
+        await this.referrals.onFullRefund(tx, order.id, now);
       }
       await this.log(tx, actor, 'refund.approve', id, {
         orderId: order.id,

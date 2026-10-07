@@ -17,6 +17,13 @@ export const DeviceInfo = z.object({
 });
 export type DeviceInfo = z.infer<typeof DeviceInfo>;
 
+/** A student's referral code (D-058): letters and digits, matched without regard to case. */
+export const ReferralCode = z
+  .string()
+  .trim()
+  .regex(/^[A-Za-z0-9]{6,12}$/, 'Referral code: 6–12 letters or digits')
+  .transform((s) => s.toUpperCase());
+
 export const RegisterInput = z.object({
   fullName: z.string().trim().min(2).max(120),
   email: Email,
@@ -24,6 +31,8 @@ export const RegisterInput = z.object({
   locale: Locale.default('en'),
   acceptTerms: z.literal(true, { error: 'Terms must be accepted' }),
   device: DeviceInfo,
+  /** D-059: a referral code can be given only when the account is created. */
+  referralCode: ReferralCode.optional(),
 });
 export type RegisterInput = z.infer<typeof RegisterInput>;
 
@@ -42,6 +51,8 @@ export const GoogleLoginInput = z.object({
   idToken: z.string().min(10).max(4096),
   locale: Locale.default('en'),
   device: DeviceInfo,
+  /** Used only when this sign-in creates the account (D-059). */
+  referralCode: ReferralCode.optional(),
   ...ReplaceSession,
 });
 

@@ -100,6 +100,7 @@ export function Checkout({
           {quote.coupon && quote.discountPaisa > 0
             ? line(t('checkout.discount', { code: quote.coupon.code }), `− ${npr(quote.discountPaisa)}`)
             : null}
+          {quote.referral ? line(t('checkout.referral'), `− ${npr(quote.referral.discountPaisa)}`) : null}
           {quote.tax && !quote.tax.inclusive ? line(t('checkout.vat', { rate }), npr(quote.tax.paisa)) : null}
           <div className="mt-1 flex items-baseline justify-between border-t border-border pt-2 text-lg font-bold text-text">
             <span>{t('checkout.total')}</span>
@@ -111,6 +112,9 @@ export function Checkout({
         </div>
       </Card>
 
+      {quote.couponSkipped ? (
+        <Alert tone="info">{t('checkout.couponSkipped', { code: quote.couponSkipped })}</Alert>
+      ) : null}
       {quote.coupon ? (
         <div className="flex items-center justify-between gap-3 rounded-md bg-success-soft px-4 py-3 text-success">
           <span className="font-medium">{t('checkout.couponApplied', { code: quote.coupon.code })}</span>

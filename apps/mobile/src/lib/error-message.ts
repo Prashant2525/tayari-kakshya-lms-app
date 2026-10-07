@@ -28,6 +28,7 @@ const BY_CODE: Record<string, MessageKey> = {
   ORDER_CLOSED: 'error.orderClosed',
   PAYMENT_PROVIDER_UNAVAILABLE: 'error.providerUnavailable',
   PAYMENT_GATEWAY_ERROR: 'error.gateway',
+  REFERRAL_CODE_NOT_VALID: 'error.referralCode',
 };
 
 export function errorMessageKey(error: unknown): MessageKey {

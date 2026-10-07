@@ -194,6 +194,18 @@ Setting `commerce.tax { vatRegistered, rateBps, pricesIncludeVat, businessName, 
 
 Setting `commerce.receipts { prefix, resetEachFiscalYear }`. Migration `receipts_refunds`. Worker job `receipts-email`.
 
+## 1c-11e. Implemented endpoints (Phase 11 part 4b — referrals, T-054) ✅
+
+| Method | Path | Auth | Notes |
+|---|---|---|---|
+| POST | `/auth/register`, `/auth/google` | public | now `referralCode?` (only when the account is created); 422 `REFERRAL_CODE_NOT_VALID` for an unknown code (password sign-up) |
+| GET | `/app/config` | public | `referrals { enabled }` |
+| GET | `/me/referral` | student | `{ enabled, code, link, friendDiscount, reward, joined, rewarded, rewards[{ code, …discount, endsAt, state }] }` |
+| POST | `/orders/quote`, `/orders` | student | quote adds `referral { discountPaisa }` and `couponSkipped`; orders carry `referralDiscount` |
+| GET | `/admin/referrals?status=&cursor=&limit=` | `orders:read` | referrer, friend, first purchase, reward coupon |
+
+Setting `referrals.rules`. Migration `referrals`.
+
 Access change (D-053): premium items, practice answers, mistake-notebook answers and Premium tests are unlocked only by
 paid access (`order`), staff grants, coupons or referrals — not by `free_enrol`. `access.entitled` on a course still
 means "in My courses" (free enrolments included).

@@ -29,6 +29,7 @@ import { MfaService } from './mfa.service.js';
 import { OtpService } from './otp.service.js';
 import { PasswordService } from './password.service.js';
 import { SessionService } from './session.service.js';
+import { ReferralsService } from '../payments/referrals.service.js';
 
 const invalidCredentials = () =>
   new AppError(401, ErrorCode.INVALID_CREDENTIALS, 'Email or password is incorrect');
@@ -48,12 +49,15 @@ export class AuthService {
     private readonly rbac: RbacService,
     private readonly audit: AuditService,
     private readonly mfa: MfaService,
+    private readonly referrals: ReferralsService,
     @Inject(ENV) private readonly env: Env,
   ) {}
 
   // ───────────── Students ─────────────
 
   async register(input: RegisterInput, client: ClientInfo): Promise<AuthTokens> {
+    // D-059: checked before the account is made, so a mistyped code can be corrected.
+    const referrerId = await this.referrals.resolveForSignup(input.referralCode);
     const passwordHash = await this.passwords.hash(input.password);
     let user: User;
     try {
@@ -75,6 +79,8 @@ export class AuthService {
       }
       throw err;
     }
+    if (referrerId && input.referralCode)
+      await this.referrals.attach(referrerId, user.id, input.referralCode);
     const tokens = await this.sessions.open({ user, audience: 'student', device: input.device, client });
 
     const verification = await this.settings.get('auth.verification');
@@ -112,6 +118,7 @@ export class AuthService {
       throw new AppError(401, ErrorCode.GOOGLE_TOKEN_INVALID, 'Google account email is not verified');
     }
 
+    let created = false;
     const user = await this.prisma.$transaction(async (tx) => {
       const linked = await tx.authIdentity.findUnique({
         where: { provider_providerSubject: { provider: 'google', providerSubject: identity.subject } },
@@ -130,6 +137,7 @@ export class AuthService {
           ? existing
           : tx.user.update({ where: { id: existing.id }, data: { emailVerifiedAt: new Date() } });
       }
+      created = true;
       return tx.user.create({
         data: {
           kind: 'student',
@@ -143,6 +151,11 @@ export class AuthService {
     });
 
     this.assertCanSignIn(user);
+    // D-059: a referral code counts only when this sign-in made the account. An unknown code does not stop sign-in.
+    if (created && input.referralCode) {
+      const referrerId = await this.referrals.resolveForSignup(input.referralCode).catch(() => null);
+      if (referrerId) await this.referrals.attach(referrerId, user.id, input.referralCode);
+    }
     return this.sessions.open({
       user,
       audience: 'student',

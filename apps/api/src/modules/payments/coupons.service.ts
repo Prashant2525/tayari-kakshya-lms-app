@@ -79,7 +79,9 @@ export class CouponsService {
     options: { lock?: boolean; excludeOrderId?: string | null } = {},
   ): Promise<{ coupon: Coupon; discountPaisa: number }> {
     const found = await db.coupon.findUnique({ where: { code: code.toUpperCase() } });
-    if (!found) throw couponNotValid('not_found');
+    // A referral reward belongs to one student (D-058): for anyone else it does not exist.
+    if (!found || (found.ownerUserId !== null && found.ownerUserId !== userId))
+      throw couponNotValid('not_found');
     if (options.lock) {
       await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${`coupon:${found.id}`}))`;
     }

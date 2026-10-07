@@ -54,6 +54,8 @@ export interface OrderDetail {
   discountPaisa: number;
   couponCode: string | null;
   couponId: string | null;
+  /** D-058: the friend's referral discount was applied. */
+  referralDiscount: boolean;
   /** VAT that applied (D-055); null when not VAT-registered at the time. */
   tax: { rateBps: number; inclusive: boolean; paisa: number } | null;
   totalPaisa: number;

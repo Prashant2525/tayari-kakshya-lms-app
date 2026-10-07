@@ -17,4 +17,29 @@ const base = createE2eEnv({
  * refreshes the session, so the suite exercises the single-use refresh path (T-053) — parallel requests, prefetches
  * and the return from the payment gateway — on every step.
  */
-export const e2eEnv = { ...base, JWT_ACCESS_TTL_SECONDS: '60' };
+
+/** Test values: the referral programme on (D-058), so the suite can exercise it. */
+const REFERRALS = {
+  enabled: true,
+  friendDiscount: {
+    type: 'percent',
+    percentBps: 1000,
+    amountPaisa: null,
+    maxDiscountPaisa: null,
+    allowOnSale: false,
+  },
+  reward: {
+    type: 'fixed',
+    percentBps: null,
+    amountPaisa: 10000,
+    maxDiscountPaisa: null,
+    validDays: 30,
+    allowOnSale: false,
+  },
+};
+
+export const e2eEnv = {
+  ...base,
+  JWT_ACCESS_TTL_SECONDS: '60',
+  E2E_SETTINGS: JSON.stringify({ 'referrals.rules': REFERRALS }),
+};

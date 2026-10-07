@@ -7,6 +7,7 @@ import { DEFAULT_NODE_TYPES } from '../modules/content/default-node-types.js';
 import { RedisService } from '../infra/redis/redis.provider.js';
 import { PasswordService } from '../modules/auth/password.service.js';
 import { RbacService } from '../modules/rbac/rbac.service.js';
+import { isSettingKey, SETTINGS } from '@tk/contracts';
 
 /** Content team role for browser tests of the content CMS (no 2FA is required for non-Super Admins by default). */
 const CONTENT_PERMISSIONS = [
@@ -95,6 +96,17 @@ async function main(): Promise<void> {
           data: { kind: 'staff', ...editor, passwordHash, roles: { create: { roleId: editorRole.id } } },
         });
       }
+    }
+    // CMS settings a suite starts with (test values), e.g. the referral programme switched on.
+    const settings = JSON.parse(process.env['E2E_SETTINGS'] ?? '{}') as Record<string, unknown>;
+    for (const [key, value] of Object.entries(settings)) {
+      if (!isSettingKey(key)) throw new Error(`E2E_SETTINGS: unknown setting ${key}`);
+      const parsed = SETTINGS[key].schema.parse(value) as object;
+      await prisma.systemSetting.upsert({
+        where: { key },
+        create: { key, value: parsed },
+        update: { value: parsed },
+      });
     }
     console.log(
       `E2E database reset; Super Admin ${email} created${editorEmail ? `, editor ${editorEmail}` : ''}.`,

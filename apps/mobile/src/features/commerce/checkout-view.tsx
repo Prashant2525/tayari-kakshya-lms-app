@@ -172,6 +172,9 @@ export function CheckoutView({
               ) : null}
               <Lines q={q} />
             </Card>
+            {q.couponSkipped ? (
+              <Banner tone="info" message={t('checkout.couponSkipped', { code: q.couponSkipped })} />
+            ) : null}
             <CouponBox
               applied={q.coupon?.code ?? null}
               onApplied={setApplied}
@@ -288,6 +291,7 @@ function Lines({ q }: { q: Quote }) {
       {q.coupon && q.discountPaisa > 0
         ? row(t('checkout.discount', { code: q.coupon.code }), `− ${formatNpr(q.discountPaisa, locale)}`)
         : null}
+      {q.referral ? row(t('checkout.referral'), `− ${formatNpr(q.referral.discountPaisa, locale)}`) : null}
       {q.tax && !q.tax.inclusive ? row(t('checkout.vat', { rate }), formatNpr(q.tax.paisa, locale)) : null}
       <View style={[styles.line, styles.total, { borderTopColor: colors.border }]}>
         <Text variant="label" style={{ flex: 1 }}>

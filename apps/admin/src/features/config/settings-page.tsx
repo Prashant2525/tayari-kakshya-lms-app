@@ -208,6 +208,106 @@ function PercentField({
   );
 }
 
+/** Rupees typed as text (keeps "12." while typing), stored in paisa; empty = null, not a number = NaN. */
+function RupeeField({
+  label,
+  hint,
+  paisa,
+  disabled,
+  onChange,
+}: {
+  label: string;
+  hint?: string;
+  paisa: number | null;
+  disabled: boolean;
+  onChange: (paisa: number | null) => void;
+}) {
+  const toPaisa = (s: string) =>
+    !s.trim() ? null : /^\d+(\.\d{1,2})?$/.test(s.trim()) ? Math.round(Number(s) * 100) : Number.NaN;
+  const shown = (p: number | null) => (p === null || Number.isNaN(p) ? '' : String(p / 100));
+  const [text, setText] = useState(shown(paisa));
+  // A saved value or Discard replaces what is typed.
+  const typed = toPaisa(text);
+  if (
+    !(paisa !== null && Number.isNaN(paisa)) &&
+    typed !== paisa &&
+    !(Number.isNaN(typed) && paisa === null)
+  ) {
+    setText(shown(paisa));
+  }
+  return (
+    <Field label={label} hint={hint}>
+      {(a) => (
+        <Input
+          {...a}
+          inputMode="decimal"
+          className="w-full max-w-40"
+          value={text}
+          disabled={disabled}
+          onChange={(e) => {
+            setText(e.target.value);
+            onChange(toPaisa(e.target.value));
+          }}
+        />
+      )}
+    </Field>
+  );
+}
+
+type DiscountDraft = {
+  type: 'percent' | 'fixed';
+  percentBps: number | null;
+  amountPaisa: number | null;
+  maxDiscountPaisa: number | null;
+};
+
+/** Percent (with an optional cap) or a fixed amount — as coupons are set up. */
+function DiscountFields<D extends DiscountDraft>({
+  value,
+  onChange,
+  disabled,
+}: {
+  value: D;
+  onChange: (next: D) => void;
+  disabled: boolean;
+}) {
+  return (
+    <div className="grid gap-4 sm:grid-cols-3">
+      <OptionSelect
+        label="Type"
+        value={value.type}
+        options={{ percent: 'Percentage', fixed: 'Fixed amount' }}
+        disabled={disabled}
+        onChange={(type) => onChange({ ...value, type })}
+      />
+      {value.type === 'percent' ? (
+        <>
+          <PercentField
+            label="Percent off"
+            bps={value.percentBps ?? Number.NaN}
+            disabled={disabled}
+            onChange={(bps) => onChange({ ...value, percentBps: Number.isNaN(bps) ? null : bps })}
+          />
+          <RupeeField
+            label="Largest discount (Rs)"
+            hint="Optional."
+            paisa={value.maxDiscountPaisa}
+            disabled={disabled}
+            onChange={(p) => onChange({ ...value, maxDiscountPaisa: p })}
+          />
+        </>
+      ) : (
+        <RupeeField
+          label="Amount off (Rs)"
+          paisa={value.amountPaisa}
+          disabled={disabled}
+          onChange={(p) => onChange({ ...value, amountPaisa: p })}
+        />
+      )}
+    </div>
+  );
+}
+
 export function SettingsPage() {
   const settings = useQuery({
     queryKey: ['settings'],
@@ -796,6 +896,73 @@ export function SettingsPage() {
                 checked={d.resetEachFiscalYear}
                 disabled={disabled}
                 onChange={(v) => set({ ...d, resetEachFiscalYear: v })}
+              />
+            </>
+          )}
+        </SettingCard>
+
+        <SettingCard
+          row={row('referrals.rules')}
+          title="Referral programme"
+          description="Every student gets a personal code. A friend who signs up with it gets a discount on their first purchase (or their coupon, whichever is bigger — never both); when that purchase is paid, the student who invited them gets a one-time coupon only they can use. A full refund switches off a reward not used yet."
+        >
+          {(d, set, disabled) => (
+            <>
+              <ToggleRow
+                label="Programme on"
+                hint="When off, codes are not shown and sign-up ignores them."
+                checked={d.enabled}
+                disabled={disabled}
+                onChange={(v) => set({ ...d, enabled: v })}
+              />
+              <p className="text-sm font-semibold text-text">The friend's first purchase</p>
+              <DiscountFields
+                value={d.friendDiscount}
+                disabled={disabled}
+                onChange={(friendDiscount) => set({ ...d, friendDiscount })}
+              />
+              <ToggleRow
+                label="Friend discount works on sale prices"
+                hint="Off: no referral discount while a sale price applies (as for coupons)."
+                checked={d.friendDiscount.allowOnSale}
+                disabled={disabled}
+                onChange={(v) => set({ ...d, friendDiscount: { ...d.friendDiscount, allowOnSale: v } })}
+              />
+              <p className="text-sm font-semibold text-text">The reward for the student who invited them</p>
+              <DiscountFields
+                value={d.reward}
+                disabled={disabled}
+                onChange={(reward) => set({ ...d, reward })}
+              />
+              <div className="grid gap-4 sm:grid-cols-3">
+                <Field label="Reward valid for (days)">
+                  {(a) => (
+                    <Input
+                      {...a}
+                      type="number"
+                      min={1}
+                      max={3650}
+                      className="w-32"
+                      value={d.reward.validDays ?? ''}
+                      disabled={disabled}
+                      onChange={(e) =>
+                        set({
+                          ...d,
+                          reward: {
+                            ...d.reward,
+                            validDays: e.target.value === '' ? null : Number(e.target.value),
+                          },
+                        })
+                      }
+                    />
+                  )}
+                </Field>
+              </div>
+              <ToggleRow
+                label="Reward works on sale prices"
+                checked={d.reward.allowOnSale}
+                disabled={disabled}
+                onChange={(v) => set({ ...d, reward: { ...d.reward, allowOnSale: v } })}
               />
             </>
           )}

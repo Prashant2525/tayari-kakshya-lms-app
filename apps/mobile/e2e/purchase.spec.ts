@@ -276,3 +276,22 @@ test('a share link opened signed out: sign in, then checkout opens with the coup
   await expect(seen(fresh.getByText('You have access to this course.'))).toBeVisible();
   await fresh.close();
 });
+
+test('Invite friends shows the code and what each side gets; a sign-up link fills it in (D-058)', async ({
+  browser,
+}) => {
+  await page.goto('/profile');
+  await visible(page.getByRole('link', { name: 'Invite friends' })).click();
+  await expect(text('Your friend gets 10% off their first purchase.')).toBeVisible();
+  await expect(
+    text(/You get a Rs 100 coupon for your next purchase when they buy \(valid 30 days\)\./),
+  ).toBeVisible();
+  const code = (await visible(page.getByLabel(/^Your referral code /)).textContent())?.trim() ?? '';
+  expect(code).toMatch(/^[A-Z0-9]{8}$/);
+  await expect(text('No rewards yet.')).toBeVisible();
+
+  const fresh = await browser.newPage();
+  await fresh.goto(`/register?ref=${code}`);
+  await expect(fresh.getByLabel('Referral code (optional)').filter({ visible: true })).toHaveValue(code);
+  await fresh.close();
+});

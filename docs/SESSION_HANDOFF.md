@@ -202,6 +202,11 @@ Current task: Phase 11 part 3 (receipts + refunds) done on `feature/receipts-ref
 - Nothing partially implemented. Admin screens for Phase 6 not started.
 
 ## Exact next steps
+0e. 2026-10-07 (later): PR #27 and #28 merged. Part 4b on `feature/referrals` (T-054, D-058, D-059) completes
+   Phase 11. Next: Phase 12 (§12) — articles with BS dates and quizzes, notices with audiences, notification pipeline
+   (in-app, Expo push, email) with preferences, banners / home sections, FAQs, contact options, static pages
+   (legal texts: the owner supplies or approves them, D-038 — never write them as final). Ask before inventing any
+   rule (e.g. which notices are pushed, quiet hours).
 0d. 2026-10-07: PR #26 merged. Part 4a on `feature/website` (T-053): `apps/web` Next.js website (BFF, HttpOnly
    cookies, single-use refresh), web-e2e CI job. Owner answered the referral questions (D-058). Next: part 4b —
    referrals: per-student code (`referral_codes`), link `/r/<code>` or `?ref=` at sign-up, friend's first-purchase

@@ -76,6 +76,12 @@ export function OrderPage() {
                   <span className="font-medium text-text">− {npr(o.discountPaisa)}</span>
                 </div>
               ) : null}
+              {o.referralDiscount ? (
+                <div className="flex items-center justify-between gap-3 text-sm">
+                  <span className="text-text">Referral discount (first purchase)</span>
+                  <span className="font-medium text-text">− {npr(o.discountPaisa)}</span>
+                </div>
+              ) : null}
               {o.tax && !o.tax.inclusive ? (
                 <div className="flex items-center justify-between gap-3 text-sm">
                   <span className="text-text">VAT ({o.tax.rateBps / 100}%)</span>

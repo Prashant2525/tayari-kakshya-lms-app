@@ -18,6 +18,7 @@ export interface DeviceSession {
 export interface Typed {
   email?: string;
   fullName?: string;
+  referralCode?: string;
 }
 
 export type AuthFormState = (
@@ -100,6 +101,9 @@ export async function registerAction(_prev: AuthFormState, form: FormData): Prom
         email: String(form.get('email') ?? ''),
         password: String(form.get('password') ?? ''),
         acceptTerms: form.get('acceptTerms') === 'on',
+        ...(String(form.get('referralCode') ?? '').trim()
+          ? { referralCode: String(form.get('referralCode')).trim() }
+          : {}),
         locale: jar.get(COOKIE.locale)?.value === 'ne' ? 'ne' : 'en',
         device: await device(),
       },
@@ -108,7 +112,11 @@ export async function registerAction(_prev: AuthFormState, form: FormData): Prom
   } catch (err) {
     return {
       error: messageFor(err),
-      typed: { email: String(form.get('email') ?? ''), fullName: String(form.get('fullName') ?? '') },
+      typed: {
+        email: String(form.get('email') ?? ''),
+        fullName: String(form.get('fullName') ?? ''),
+        referralCode: String(form.get('referralCode') ?? ''),
+      },
     };
   }
   // A code was emailed when email verification is on (CMS setting): ask for it, as the app does.

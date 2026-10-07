@@ -192,6 +192,11 @@ const routes = [
   }),
   createRoute({
     getParentRoute: () => appRoute,
+    path: '/referrals',
+    component: lazyRouteComponent(() => import('./features/referrals/referrals-page'), 'ReferralsPage'),
+  }),
+  createRoute({
+    getParentRoute: () => appRoute,
     path: '/refunds',
     component: lazyRouteComponent(() => import('./features/refunds/refunds-page'), 'RefundsPage'),
   }),

@@ -140,6 +140,12 @@ test('signing in again requires the authenticator code, and the session survives
   await vat.getByLabel('Registered business name').fill('Test Academy Pvt. Ltd.');
   await vat.getByRole('button', { name: 'Save' }).click();
   await expect(page.getByText('VAT and business details saved')).toBeVisible();
+  // The referral programme cannot be switched on without its discounts (D-058).
+  const referrals = page.getByRole('region', { name: 'Referral programme' });
+  await referrals.getByRole('switch', { name: 'Programme on' }).click();
+  await referrals.getByRole('button', { name: 'Save' }).click();
+  await expect(referrals.getByText('Enter the percentage')).toBeVisible();
+  await referrals.getByRole('button', { name: 'Discard' }).click();
   // Back off, so later suites price orders without VAT.
   await vat.getByRole('switch', { name: 'VAT-registered' }).click();
   await vat.getByRole('button', { name: 'Save' }).click();

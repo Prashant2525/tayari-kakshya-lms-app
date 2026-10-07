@@ -1,6 +1,6 @@
 # Project State
 
-Current Phase: **Phase 11 commerce — part 4a (website) done** on `feature/website`; parts 1–3 merged (PR #22–#26)
+Current Phase: **Phase 11 commerce complete** — part 4b (referrals) on `feature/referrals`; parts 1–4a merged (PR #22–#28)
 Current Milestone: content API on `feature/content-cms` → Admin CMS content screens
 Overall Status: **IN PROGRESS**
 Last updated: 2026-10-06
@@ -45,7 +45,9 @@ Last updated: 2026-10-06
   Merged (PR #25).
 - Phase 11 part 3 on `feature/receipts-refunds` (T-052, D-057): receipts (PDF, email, numbering) and refunds.
   Merged (PR #26).
-- Phase 11 part 4a on `feature/website` (T-053): the public Next.js website. Next: part 4b — referrals (D-058).
+- Phase 11 part 4a (T-053): the public Next.js website. Merged (PR #27, dev fix PR #28).
+- Phase 11 part 4b on `feature/referrals` (T-054, D-058, D-059): referral programme. Next: Phase 12 — communication
+  & CMS content (articles, notices, notifications, static/legal pages).
 - Monitoring (T-042) merged (PR #14, #15): Sentry in the API, worker, admin and app; PostHog in the app. Google web client registered for `http://localhost:8081` (checked); a real
   sign-in by the owner and Android/iOS clients remain (KI-029).
 - Phase 9 part 2 merged (PR #13): practice questions with Check answer and locked Premium answers

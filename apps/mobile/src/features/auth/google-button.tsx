@@ -16,7 +16,14 @@ export function googleConfigured(): boolean {
 }
 
 /** Gets a Google ID token and exchanges it at `POST /auth/google`; the API verifies it with Google. */
-export function GoogleButton({ onError }: { onError: (error: unknown) => void }) {
+export function GoogleButton({
+  onError,
+  referralCode,
+}: {
+  onError: (error: unknown) => void;
+  /** Sign-up only: counts when this sign-in creates the account (D-059). */
+  referralCode?: string | undefined;
+}) {
   const { t, locale } = useT();
   const login = useGoogleLogin();
   const [request, response, prompt] = Google.useIdTokenAuthRequest({
@@ -28,7 +35,7 @@ export function GoogleButton({ onError }: { onError: (error: unknown) => void })
   useEffect(() => {
     if (response?.type === 'success') {
       const idToken = response.params['id_token'];
-      if (idToken) login.mutate({ idToken, locale }, { onError });
+      if (idToken) login.mutate({ idToken, locale, ...(referralCode ? { referralCode } : {}) }, { onError });
     } else if (response?.type === 'error') {
       onError(response.error);
     }

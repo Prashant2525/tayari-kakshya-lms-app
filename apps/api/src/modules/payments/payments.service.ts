@@ -8,7 +8,7 @@ import {
   type Platform,
   type SettingValue,
 } from '@tk/contracts';
-import { accessEndsAt, computeTax, type AccessValidity } from '@tk/domain';
+import { accessEndsAt, computeTax, discountAmount, type AccessValidity } from '@tk/domain';
 import { AppError, Errors } from '../../common/errors/app-error.js';
 import { ENV, type Env } from '../../config/env.js';
 import {
@@ -31,6 +31,7 @@ import { GatewayHttp } from './gateway-http.js';
 import { CouponsService, type PricedItem } from './coupons.service.js';
 import { planPrice, saleActive } from './plans.service.js';
 import { ReceiptsService } from './receipts.service.js';
+import { ReferralsService } from './referrals.service.js';
 import {
   GatewayError,
   gatewaysFromEnv,
@@ -132,6 +133,7 @@ export class PaymentsService {
     private readonly entitlements: EntitlementsService,
     private readonly coupons: CouponsService,
     private readonly receipts: ReceiptsService,
+    private readonly referrals: ReferralsService,
     @Inject(ENV) private readonly env: Env,
     http: GatewayHttp,
   ) {
@@ -159,12 +161,11 @@ export class PaymentsService {
       throw notAvailable('channel_closed', 'Purchases are not available here');
     }
     const priced = await this.priceItem(this.prisma, userId, input, now);
-    const coupon = input.couponCode
-      ? await this.coupons.evaluate(this.prisma, input.couponCode, userId, priced.item, now)
-      : null;
+    const choice = await this.discountFor(this.prisma, userId, priced.item, input.couponCode, now, null);
+    const coupon = choice.coupon;
     const totals = this.totals(
       priced.item.pricePaisa,
-      coupon?.discountPaisa ?? 0,
+      choice.discountPaisa,
       await this.settings.get('commerce.tax'),
     );
     return {
@@ -175,6 +176,10 @@ export class PaymentsService {
       subtotalPaisa: totals.subtotalPaisa,
       discountPaisa: totals.discountPaisa,
       coupon: coupon ? { code: coupon.coupon.code } : null,
+      /** D-058: the friend's referral discount on their first purchase. */
+      referral: choice.referral ? { discountPaisa: choice.referral.discountPaisa } : null,
+      /** A coupon that was valid but smaller than the referral discount, so not used (D-059). */
+      couponSkipped: choice.couponSkipped,
       tax:
         totals.taxRateBps === null
           ? null
@@ -203,17 +208,15 @@ export class PaymentsService {
         where: { userId, status: 'pending', expiresAt: { gt: now }, items: { some: itemWhere } },
         orderBy: { createdAt: 'desc' },
       });
-      const coupon = input.couponCode
-        ? await this.coupons.evaluate(tx, input.couponCode, userId, priced.item, now, {
-            lock: true,
-            excludeOrderId: open?.id ?? null,
-          })
-        : null;
-      const totals = this.totals(priced.item.pricePaisa, coupon?.discountPaisa ?? 0, tax);
+      const choice = await this.discountFor(tx, userId, priced.item, input.couponCode, now, open?.id ?? null);
+      const coupon = choice.coupon;
+      const referralId = choice.referral?.id ?? null;
+      const totals = this.totals(priced.item.pricePaisa, choice.discountPaisa, tax);
       if (
         open &&
         open.totalPaisa === totals.totalPaisa &&
         open.couponId === (coupon?.coupon.id ?? null) &&
+        open.referralId === referralId &&
         open.taxRateBps === totals.taxRateBps
       ) {
         return open;
@@ -228,6 +231,7 @@ export class PaymentsService {
           ...totals,
           couponId: coupon?.coupon.id ?? null,
           couponCode: coupon?.coupon.code ?? null,
+          referralId,
           status: free ? 'paid' : 'pending',
           paidAt: free ? now : null,
           expiresAt: new Date(now.getTime() + this.env.PAYMENT_ORDER_TTL_MINUTES * 60_000),
@@ -247,6 +251,7 @@ export class PaymentsService {
         // Nothing to pay (D-056): access now, recorded like any paid order, with its receipt.
         await this.grant(tx, created, now);
         await this.receipts.issue(tx, created.id, null, now);
+        await this.referrals.onPaid(tx, created, now);
         await this.audit.record(
           {
             actorUserId: userId,
@@ -262,6 +267,45 @@ export class PaymentsService {
     });
     if (order.status === 'paid') this.emailReceipts();
     return this.orderView(order.id, userId);
+  }
+
+  /**
+   * One discount per order (D-059): the friend's referral discount on their first purchase or the coupon, whichever is
+   * bigger — on a tie the referral, which leaves the coupon for later. An invalid coupon is still refused with its
+   * reason. Inside an order transaction (`excludeOrderId` given) the coupon's limits are checked under its lock.
+   */
+  private async discountFor(
+    db: Tx | PrismaService,
+    userId: string,
+    item: PricedItem,
+    couponCode: string | undefined,
+    now: Date,
+    excludeOrderId: string | null | undefined,
+  ) {
+    const offer = await this.referrals.friendOffer(db, userId, item.onSale);
+    const referralDiscount = offer ? discountAmount(item.pricePaisa, offer.discount) : 0;
+    const coupon = couponCode
+      ? await this.coupons.evaluate(
+          db,
+          couponCode,
+          userId,
+          item,
+          now,
+          excludeOrderId === undefined || db === this.prisma ? {} : { lock: true, excludeOrderId },
+        )
+      : null;
+    if (coupon && coupon.discountPaisa > referralDiscount) {
+      return { coupon, referral: null, discountPaisa: coupon.discountPaisa, couponSkipped: null };
+    }
+    if (offer && referralDiscount > 0) {
+      return {
+        coupon: null,
+        referral: { id: offer.referralId, discountPaisa: referralDiscount },
+        discountPaisa: referralDiscount,
+        couponSkipped: coupon ? coupon.coupon.code : null,
+      };
+    }
+    return { coupon, referral: null, discountPaisa: coupon?.discountPaisa ?? 0, couponSkipped: null };
   }
 
   /**
@@ -671,6 +715,7 @@ export class PaymentsService {
         await tx.order.update({ where: { id: order.id }, data: { status: 'paid', paidAt: now } });
         await this.grant(tx, order, now);
         await this.receipts.issue(tx, order.id, payment.provider, now);
+        await this.referrals.onPaid(tx, order, now);
         await record('completed');
         await this.audit.record(
           {
@@ -865,6 +910,7 @@ export class PaymentsService {
       subtotalPaisa: o.subtotalPaisa,
       discountPaisa: o.discountPaisa,
       couponCode: o.couponCode,
+      referralDiscount: o.referralId !== null,
       tax:
         o.taxRateBps === null
           ? null
