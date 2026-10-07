@@ -202,6 +202,9 @@ Current task: Phase 11 part 3 (receipts + refunds) done on `feature/receipts-ref
 - Nothing partially implemented. Admin screens for Phase 6 not started.
 
 ## Exact next steps
+0j. 2026-10-07: owner asked for the "how to get courses" box in emails and a "check your email" note (D-062).
+   `feature/email-buying-guide` (T-059, on top of `feature/ios-buy-guidance`): `BuyingGuideService`, HTML emails.
+   Keep security codes and receipts without the box.
 0i. 2026-10-07: owner chose option A for iPhones (D-061). `feature/ios-buy-guidance` (T-058, branched from
    `feature/eas-setup`): welcome email (`AccountEmailsService`), course interest (`CourseInterestsService`,
    Sales → Interested on iPhone), locked-course wording, erasure of notification data. Never add an in-app pointer to

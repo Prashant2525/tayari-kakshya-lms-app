@@ -70,6 +70,8 @@ test('sign up: validation, email code, onboarding, then Home with the BS date', 
   await button('Create account').click();
 
   await expect(heading('Verify your account')).toBeVisible();
+  // D-061: the emails matter (neutral wording: nothing about buying in the app).
+  await expect(text('Important: check your email')).toBeVisible();
   const sentAt = new Date();
   await button('Send code').click();
   await expect(text(/We sent a code to aa••••@example\.com/)).toBeVisible();

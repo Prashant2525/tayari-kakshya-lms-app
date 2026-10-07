@@ -1,6 +1,6 @@
 # Test Status
 
-Last updated: 2026-10-07 (iPhone buyers, D-061). `pnpm test` runs unit + integration suites (needs `pnpm infra:up`);
+Last updated: 2026-10-07 (email box, D-062). `pnpm test` runs unit + integration suites (needs `pnpm infra:up`);
 `pnpm build && pnpm --filter @tk/admin e2e` and `pnpm build && pnpm --filter @tk/mobile e2e` run the browser suites
 (the student suite also needs Mailpit, part of `pnpm infra:up`).
 
@@ -11,14 +11,23 @@ Last updated: 2026-10-07 (iPhone buyers, D-061). `pnpm test` runs unit + integra
 | `@tk/design-tokens` | 39 | WCAG contrast for every text/background pair (light + dark), CSS generation |
 | `@tk/domain` | 58 | BS calendar, Kathmandu day boundary, fiscal year, money/VAT/discounts, access validity |
 | `@tk/contracts` | 21 | Schema behaviour (localized text, email normalisation, mass assignment, settings defaults, rich-text validation) |
-| `@tk/api` | 277 | Integration against real PostgreSQL + Redis + S3 (SeaweedFS) through the HTTP stack; TOTP RFC 6238 vectors; RBAC, video, watermark unit |
+| `@tk/api` | 279 | Integration against real PostgreSQL + Redis + S3 (SeaweedFS) through the HTTP stack; TOTP RFC 6238 vectors; RBAC, video, watermark unit |
 | `@tk/admin` (unit) | 35 | API client (headers, refresh single-flight, retry, session loss, error mapping), BS formatting, Button `asChild` regression |
 | `@tk/admin` (E2E, Playwright) | 31 | Real browser + real API + `*_e2e` database |
 | `@tk/mobile` (unit) | 36 | API client (single-flight refresh, early refresh, session end, maintenance), translations complete in both languages, BS dates and Kathmandu weekday, force-update/maintenance gate, form checks, Nepali phone numbers |
 | `@tk/mobile` (E2E, Playwright, phone viewport) | 33 | Web build + real API + `*_mobile_e2e` database + Mailpit |
 | `@tk/web` (unit) | 6 | Session refresh used once (concurrent / late requests share it; refused → signed out; unreachable → retried), token expiry, both languages complete, failure messages |
 | `@tk/web` (E2E, Playwright) | 5 | `next start` production build + real API + `*_web_e2e` database + Mailpit + gateway stand-in; access tokens last 60 s so every page load refreshes |
-| **Total** | **541** | |
+| **Total** | **543** | |
+
+### Added with the email box (T-059, D-062)
+- **API (2 integration tests):** the box (plain text and HTML: bold iPhone line, linked website) is under the
+  sign-up verification, welcome and course-update emails, not under the password reset code (no HTML at all); in
+  the student's language; none when switched off in the CMS. Mutation-checked (5: box on security codes, none on
+  verification, none on notifications, switch ignored, always English — each fails a test).
+- **App E2E (extended):** sign-up shows "Important: check your email". **CMS E2E (extended):** the box card.
+- Screens checked: the real verification email in Mailpit (HTML), the verify screen, the CMS card (text boxes made
+  taller after the check).
 
 ### Added with iPhone buyers (T-058, D-061)
 - **API (4 integration tests):** the welcome email goes once to each new student in their language with the

@@ -355,23 +355,52 @@ export const SETTINGS = {
         en: [
           'Namaste {name},',
           '',
-          'Welcome to Tayari Kakshya. Your account is ready.',
-          '',
-          'Free lessons and practice are open in the app. Courses and plans can be bought on our website, {website}: ' +
-            'sign in there with this same account and everything you buy opens in the app straight away, on any phone.',
+          'Welcome to Tayari Kakshya. Your account is ready: free lessons and practice are open in the app.',
           '',
           'The Tayari Kakshya team',
         ].join('\n'),
         ne: [
           'नमस्ते {name},',
           '',
-          'तयारी कक्षामा स्वागत छ। तपाईंको खाता तयार भयो।',
-          '',
-          'निःशुल्क पाठ र अभ्यास एपमै खुला छन्। कोर्स र प्लानहरू हाम्रो वेबसाइट {website} बाट किन्न सकिन्छ: त्यहाँ यही ' +
-            'खाताबाट साइन इन गर्नुहोस्, किनेका सबै कुरा कुनै पनि फोनको एपमा तुरुन्तै खुल्छन्।',
+          'तयारी कक्षामा स्वागत छ। तपाईंको खाता तयार भयो: निःशुल्क पाठ र अभ्यास एपमै खुला छन्।',
           '',
           'तयारी कक्षा टिम',
         ].join('\n'),
+      },
+    },
+    public: false,
+  },
+  /**
+   * D-061: the "how to get courses" box under most student emails (welcome, sign-up verification, notices, course
+   * updates, reminders, results, buying links — not security codes or receipts). Emails are outside the app, so they
+   * may say where to buy (App Review 3.1.3). `{website}` is filled in. DRAFT text for the owner.
+   */
+  'emails.buyingGuide': {
+    schema: z.object({
+      enabled: z.boolean(),
+      title: EmailText(80),
+      iphone: EmailText(400),
+      android: EmailText(400),
+      alreadyBought: EmailText(200),
+    }),
+    default: {
+      enabled: true,
+      title: { en: 'How to get courses', ne: 'कोर्स कसरी लिने' },
+      iphone: {
+        en:
+          'On iPhone or iPad, courses and plans cannot be bought in the app. Sign in at {website} with the same ' +
+          'account you use in the app and buy there: it opens in the app straight away.',
+        ne:
+          'आइफोन वा आइप्याडको एपबाट कोर्स र प्लान किन्न मिल्दैन। {website} मा एपकै खाताबाट साइन इन गरेर त्यहीँ ' +
+          'किन्नुहोस्: एपमा तुरुन्तै खुल्छ।',
+      },
+      android: {
+        en: 'On Android, buy in the app, or on {website}.',
+        ne: 'एन्ड्रोइडमा एपबाटै वा {website} बाट किन्न सकिन्छ।',
+      },
+      alreadyBought: {
+        en: 'Already bought a course? You can ignore this.',
+        ne: 'कोर्स किनिसक्नुभएको छ भने यो भाग बेवास्ता गर्न सक्नुहुन्छ।',
       },
     },
     public: false,

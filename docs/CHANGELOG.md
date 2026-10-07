@@ -4,6 +4,13 @@ All notable changes to this project. Format based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Added — 2026-10-07 (How-to-get-courses box, D-062)
+- Student emails (welcome, sign-up verification code, notices, course updates, exam reminders, results, buying
+  links) now end with a highlighted box: on iPhone/iPad buy on the website with the same account; on Android in the
+  app or on the website; "Already bought? You can ignore this." Emails now have an HTML version (plain text kept).
+  Password and sign-in codes and receipts are unchanged. Text in System settings.
+- App: the verify screen says "Important: check your email (look in Spam or Promotions too)".
+
 ### Added — 2026-10-07 (iPhone buyers, D-061)
 - Every new student gets a welcome email (text in System settings) saying where courses are bought.
 - CMS Sales → Interested on iPhone: students who opened a paid course they cannot buy in the iPhone app (noted

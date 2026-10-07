@@ -15,6 +15,7 @@ import { EntitlementsService } from '../content/entitlements.service.js';
 import { isLive } from '../content/publishing.js';
 import { SettingsService } from '../settings/settings.service.js';
 import { fillTemplate } from './account-emails.service.js';
+import { BuyingGuideService } from './buying-guide.service.js';
 
 /** A course page opened again within this time is the same visit. */
 const VISIT_MS = 30 * 60_000;
@@ -36,6 +37,7 @@ export class CourseInterestsService {
     private readonly mail: MailService,
     private readonly audit: AuditService,
     private readonly entitlements: EntitlementsService,
+    private readonly guide: BuyingGuideService,
     @Inject(ENV) private readonly env: Pick<Env, 'PUBLIC_WEB_URL'>,
   ) {}
 
@@ -122,7 +124,7 @@ export class CourseInterestsService {
       await this.mail.send({
         to: interest.user.email as string,
         subject: fillTemplate(input.subject, values),
-        text: fillTemplate(input.body, values),
+        ...(await this.guide.compose(fillTemplate(input.body, values), interest.user.locale)),
       });
     } catch (err) {
       this.logger.warn({ err: String(err), interestId: id }, 'Purchase link email failed');

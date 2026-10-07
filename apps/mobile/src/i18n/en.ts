@@ -74,6 +74,9 @@ export const en = {
   'verify.submit': 'Verify',
   'verify.later': 'Do this later',
   'verify.done': 'Your account is verified.',
+  'verify.checkEmailTitle': 'Important: check your email',
+  'verify.checkEmailBody':
+    "We email your code and important information about your account. Can't find it? Look in Spam or Promotions too.",
 
   'onboarding.step': 'Step {current} of {total}',
   'onboarding.title': 'What are you preparing for?',

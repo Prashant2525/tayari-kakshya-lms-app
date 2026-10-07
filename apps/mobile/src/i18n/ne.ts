@@ -71,6 +71,9 @@ export const ne: Record<MessageKey, string> = {
   'verify.resendIn': '{time} पछि फेरि कोड पठाउन सकिन्छ',
   'verify.resend': 'फेरि कोड पठाउनुहोस्',
   'verify.submit': 'प्रमाणित गर्नुहोस्',
+  'verify.checkEmailTitle': 'महत्त्वपूर्ण: आफ्नो इमेल हेर्नुहोस्',
+  'verify.checkEmailBody':
+    'हामी तपाईंको कोड र खाताबारे महत्त्वपूर्ण जानकारी इमेलमा पठाउँछौं। भेटिएन भने Spam वा Promotions मा पनि हेर्नुहोस्।',
   'verify.later': 'पछि गर्छु',
   'verify.done': 'तपाईंको खाता प्रमाणित भयो।',
 

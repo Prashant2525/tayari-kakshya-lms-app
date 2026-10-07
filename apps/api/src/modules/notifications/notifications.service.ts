@@ -9,6 +9,7 @@ import type {
 import { Prisma, type NotificationDelivery } from '../../generated/prisma/client.js';
 import { MailService } from '../../infra/messaging/mail.service.js';
 import { PushClient, type PushMessage } from '../../infra/messaging/push.client.js';
+import { BuyingGuideService } from './buying-guide.service.js';
 import { PrismaService } from '../../infra/prisma/prisma.service.js';
 
 /** Where tapping a notification leads (the app maps it to a screen). */
@@ -64,6 +65,7 @@ export class NotificationsService {
     private readonly prisma: PrismaService,
     private readonly push: PushClient,
     private readonly mail: MailService,
+    private readonly guide: BuyingGuideService,
   ) {}
 
   /**
@@ -135,10 +137,14 @@ export class NotificationsService {
       }
       try {
         const locale = row.user.locale;
+        const body = await this.guide.compose(
+          `${pick(row.body as LocalizedText, locale)}\n\n${EMAIL_FOOTER[locale]}`,
+          locale,
+        );
         await this.mail.send({
           to: row.user.email,
           subject: pick(row.title as LocalizedText, locale),
-          text: `${pick(row.body as LocalizedText, locale)}\n\n${EMAIL_FOOTER[locale]}`,
+          ...body,
         });
         await this.finish(row.id, 'sent', null, now);
         sent += 1;
