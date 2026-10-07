@@ -105,3 +105,41 @@ test('notifications: a course update arrives; push / email choices are kept', as
   await expect(page.getByRole('switch', { name: 'Payments and purchases · Email' })).toHaveCount(0);
   await expect(text('Receipts always come by email.')).toBeVisible();
 });
+
+test('articles: Home → Current affairs → a weekly digest, with its source', async ({ request }) => {
+  const token = await editorToken(request);
+  const doc = (text: string) => ({
+    en: { type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text }] }] },
+  });
+  const created = await apiCall(request, token, 'POST', '/admin/articles', {
+    kind: 'current_affairs',
+    slug: `weekly-${run}`,
+    title: { en: `This week ${run}: budget and monsoon` },
+    summary: { en: 'Budget, monsoon floods and SAARC.' },
+    body: doc('The budget raised spending on education.'),
+    coverMediaId: null,
+    categoryId: null,
+    period: 'weekly',
+    periodDate: '2026-10-04',
+    sourceName: 'Kathmandu Post',
+    sourceUrl: 'https://kathmandupost.com',
+    quizAssessmentId: null,
+    isFeatured: false,
+    notify: false,
+  });
+  await apiCall(request, token, 'PUT', `/admin/articles/${created.id}/status`, { status: 'published' });
+
+  await page.goto('/');
+  await visible(page.getByRole('link', { name: 'Current affairs' })).click();
+  await expect(visible(page.getByRole('heading', { name: 'Current affairs' }))).toBeVisible();
+  await visible(page.getByRole('radio', { name: 'Weekly' })).click();
+  const card = visible(page.getByRole('link', { name: `This week ${run}: budget and monsoon` }));
+  await expect(card).toContainText('Budget, monsoon floods and SAARC.');
+  await expect(card).toContainText('Weekly');
+  await card.click();
+  await expect(
+    visible(page.getByRole('heading', { name: `This week ${run}: budget and monsoon` })),
+  ).toBeVisible();
+  await expect(text('The budget raised spending on education.')).toBeVisible();
+  await expect(text('Source: Kathmandu Post')).toBeVisible();
+});

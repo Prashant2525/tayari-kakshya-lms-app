@@ -54,6 +54,8 @@ import { AdminReferralsController, ReferralsController } from './modules/payment
 import { ReferralsService } from './modules/payments/referrals.service.js';
 import { AdminNoticesController, NoticesController } from './modules/notices/notices.controller.js';
 import { NoticesService } from './modules/notices/notices.service.js';
+import { AdminArticlesController, ArticlesController } from './modules/articles/articles.controller.js';
+import { ArticlesService } from './modules/articles/articles.service.js';
 import { AccountEmailsService } from './modules/notifications/account-emails.service.js';
 import { BuyingGuideService } from './modules/notifications/buying-guide.service.js';
 import { CourseInterestsController } from './modules/notifications/course-interests.controller.js';
@@ -167,6 +169,7 @@ export class InfraModule {}
     CourseInterestsService,
     AccountEmailsService,
     BuyingGuideService,
+    ArticlesService,
     ScopeService,
     QuestionsService,
     QuestionReportsService,
@@ -221,6 +224,7 @@ export class InfraModule {}
     CourseInterestsService,
     AccountEmailsService,
     BuyingGuideService,
+    ArticlesService,
     ScopeService,
     QuestionsService,
     QuestionReportsService,
@@ -292,6 +296,8 @@ export class DomainModule {}
     NotificationsController,
     CourseUpdatesController,
     CourseInterestsController,
+    ArticlesController,
+    AdminArticlesController,
     AdminQuestionsController,
     QuestionReportsController,
     AdminAssessmentsController,

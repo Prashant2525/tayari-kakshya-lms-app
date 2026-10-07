@@ -8,6 +8,7 @@ import {
   Gift,
   Smartphone,
   Megaphone,
+  Newspaper,
   TicketPercent,
   Undo2,
   FileQuestion,
@@ -87,7 +88,10 @@ const NAV: Array<{ group: string; items: NavItem[] }> = [
   },
   {
     group: 'Communication',
-    items: [{ to: '/notices', label: 'Notices', icon: Megaphone, permission: 'notices:edit' }],
+    items: [
+      { to: '/notices', label: 'Notices', icon: Megaphone, permission: 'notices:edit' },
+      { to: '/articles', label: 'Articles', icon: Newspaper, permission: 'articles:edit' },
+    ],
   },
   {
     group: 'People',

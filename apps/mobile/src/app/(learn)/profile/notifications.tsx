@@ -10,7 +10,14 @@ import { BackButton, Banner, Screen, Skeleton } from '@/ui/layout';
 import { ErrorState } from '@/ui/states';
 import { Text } from '@/ui/text';
 
-const CATEGORIES: NotificationCategory[] = ['notice', 'course_update', 'exam_reminder', 'result', 'purchase'];
+const CATEGORIES: NotificationCategory[] = [
+  'notice',
+  'article',
+  'course_update',
+  'exam_reminder',
+  'result',
+  'purchase',
+];
 /** Purchases have no email choice: the receipt email always goes (D-057), and it is the purchase email. */
 const CHANNELS: Record<NotificationCategory, ReadonlyArray<'push' | 'email'>> = {
   notice: ['push', 'email'],
@@ -18,6 +25,7 @@ const CHANNELS: Record<NotificationCategory, ReadonlyArray<'push' | 'email'>> = 
   exam_reminder: ['push', 'email'],
   result: ['push', 'email'],
   purchase: ['push'],
+  article: ['push', 'email'],
 };
 
 /** Profile → Notifications (D-033): what to hear about by push and by email. The in-app list always shows everything. */

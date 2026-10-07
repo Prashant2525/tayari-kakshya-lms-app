@@ -157,3 +157,39 @@ test('an iPhone student who opened a paid course is listed, and staff email them
     'Emailed',
   );
 });
+
+test('staff write a weekly current-affairs digest in a category and publish it', async () => {
+  await nav('Articles').click();
+  await expect(page.getByRole('heading', { name: 'Articles', level: 1 })).toBeVisible();
+  // Categories per kind.
+  await page.getByRole('button', { name: 'Categories' }).click();
+  const dialog = page.getByRole('dialog', { name: 'Article categories' });
+  await dialog.getByLabel('Name (English)').fill(`Economy ${run}`);
+  await dialog.getByRole('button', { name: 'Add category' }).click();
+  await expect(dialog.getByText(`Economy ${run}`)).toBeVisible();
+  await dialog.getByRole('button', { name: 'Close' }).click();
+
+  await page.getByRole('link', { name: 'New article' }).click();
+  await page.getByLabel('Title (English)').fill(`Budget week ${run}: what changed`);
+  // The web address follows the English title.
+  await expect(page.getByLabel('Web address')).toHaveValue(`budget-week-${run}-what-changed`);
+  await page.getByLabel('Category').selectOption({ label: `Economy ${run}` });
+  await page.getByLabel('Period').selectOption('weekly');
+  await page.getByRole('textbox', { name: 'Article (English)' }).click();
+  await page.keyboard.type('The budget raised spending on education and roads.');
+  // The date it covers is needed for current affairs.
+  await page.getByRole('button', { name: 'Create article' }).click();
+  await expect(page.getByText('Choose the date it covers').first()).toBeVisible();
+  await page.getByLabel(/Date it covers/).fill('2026-10-04');
+  await page.getByRole('button', { name: 'Create article' }).click();
+  await expect(page.getByText('Article created')).toBeVisible();
+  await page.getByLabel('Article status').selectOption('published');
+  await page.getByRole('button', { name: 'Update status' }).click();
+  await expect(page.getByText('Status: Published')).toBeVisible();
+
+  await page.getByRole('main').getByRole('link', { name: 'Articles' }).click();
+  const row = page.getByRole('row', { name: new RegExp(`Budget week ${run}`) });
+  await expect(row).toContainText('Current affairs · Weekly');
+  await expect(row).toContainText(`Economy ${run}`);
+  await expect(row).toContainText('Published');
+});

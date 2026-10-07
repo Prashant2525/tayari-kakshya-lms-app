@@ -160,6 +160,18 @@ export const api = {
   upload: <T>(path: string, form: FormData) => request<T>('POST', path, { body: form }),
 };
 
+/** The server's message per field of a refused form, e.g. `{ slug: 'Another article already uses …' }`. */
+export function fieldErrors(error: unknown): Record<string, string> {
+  if (!(error instanceof ApiError) || error.code !== 'VALIDATION_FAILED' || !Array.isArray(error.details)) {
+    return {};
+  }
+  const out: Record<string, string> = {};
+  for (const d of error.details as Array<{ path?: string; message?: string }>) {
+    if (d.path && d.message && !out[d.path]) out[d.path] = d.message;
+  }
+  return out;
+}
+
 /** Human-friendly message for an error from the API or the network. */
 export function errorMessage(error: unknown, fallback = 'Something went wrong. Please try again.'): string {
   if (error instanceof ApiError) {

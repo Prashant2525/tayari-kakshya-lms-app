@@ -369,6 +369,7 @@ model MediaAsset {
   courseThumbnails Course[]
   pdfItems         LearningItem[]
   instructorPhotos InstructorProfile[]
+  articleCovers    Article[]
 
   @@index([kind, createdAt(sort: Desc)])
   @@index([sha256])
@@ -1156,6 +1157,7 @@ model Assessment {
   questions AssessmentQuestion[]
   attempts  Attempt[]
   reminders AssessmentReminder[]
+  articles  Article[]
 
   @@index([type, status])
   @@index([courseId])
@@ -1839,6 +1841,7 @@ enum NotificationCategory {
   exam_reminder
   result
   purchase
+  article
 }
 
 /// A student's in-app notification (D-033). `sourceKey` makes each event land once per student.
@@ -2007,4 +2010,73 @@ model AccountEmail {
   @@unique([userId, kind])
   @@index([status, attemptAt])
   @@map("account_emails")
+}
+
+enum ArticleKind {
+  current_affairs
+  gorkhapatra
+  news
+  blog
+}
+
+enum ArticlePeriod {
+  daily
+  weekly
+  monthly
+  yearly
+}
+
+/// Categories for each kind of article (e.g. current affairs: national, international, economy), set in the CMS.
+model ArticleCategory {
+  id        String      @id @default(uuid(7)) @db.Uuid
+  kind      ArticleKind
+  name      Json
+  sortOrder Int         @default(0) @map("sort_order")
+  active    Boolean     @default(true)
+  createdAt DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime    @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  articles Article[]
+
+  @@index([kind, sortOrder])
+  @@map("article_categories")
+}
+
+/// Articles (§12, D-018, D-063): free for everyone, in the app and on the public website.
+model Article {
+  id               String         @id @default(uuid(7)) @db.Uuid
+  kind             ArticleKind
+  /// The website address /articles/<slug>.
+  slug             String         @unique
+  title            Json
+  summary          Json?
+  body             Json
+  coverMediaId     String?        @map("cover_media_id") @db.Uuid
+  categoryId       String?        @map("category_id") @db.Uuid
+  /// Current affairs only.
+  period           ArticlePeriod?
+  /// The day (or start of the week / month / year) covered, or the Gorkhapatra issue date.
+  periodDate       DateTime?      @map("period_date") @db.Date
+  sourceName       String?        @map("source_name")
+  sourceUrl        String?        @map("source_url")
+  quizAssessmentId String?        @map("quiz_assessment_id") @db.Uuid
+  isFeatured       Boolean        @default(false) @map("is_featured")
+  notify           Boolean        @default(false)
+  /// Set when push / email deliveries were queued (once).
+  notifiedAt       DateTime?      @map("notified_at") @db.Timestamptz(6)
+  status           PublishStatus  @default(draft)
+  publishAt        DateTime?      @map("publish_at") @db.Timestamptz(6)
+  createdById      String?        @map("created_by") @db.Uuid
+  updatedById      String?        @map("updated_by") @db.Uuid
+  createdAt        DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime       @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt        DateTime?      @map("deleted_at") @db.Timestamptz(6)
+
+  cover    MediaAsset?      @relation(fields: [coverMediaId], references: [id], onDelete: SetNull)
+  category ArticleCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  quiz     Assessment?      @relation(fields: [quizAssessmentId], references: [id], onDelete: SetNull)
+
+  @@index([kind, status, publishAt])
+  @@index([categoryId])
+  @@map("articles")
 }

@@ -38,6 +38,8 @@ export const PERMISSIONS = {
   'refunds:approve': 'Approve or reject refund requests and record refunds as sent',
   'notices:edit': 'Write and change notices (drafts)',
   'notices:publish': 'Publish, schedule and archive notices (sends them to students)',
+  'articles:edit': 'Write and change articles — current affairs, Gorkhapatra, news, blog (drafts)',
+  'articles:publish': 'Publish, schedule and archive articles (they go to the app and the website)',
   'orders:read': 'View orders, payments and what the payment gateways reported',
   'orders:manage': 'Check a payment again with its gateway',
 } as const;

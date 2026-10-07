@@ -4,6 +4,17 @@ All notable changes to this project. Format based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Added — 2026-10-07 (Phase 12c part 1: articles)
+- CMS: Communication → Articles — current affairs (daily / weekly / monthly / yearly), Gorkhapatra summaries (issue
+  date and source link), news and blog; categories; cover image; practice quiz; featured; push / email per article;
+  review / publish / schedule.
+- App: Home → Read (Current affairs, Gorkhapatra, News), Profile → Blog; lists with period and topic filters; the
+  article page with its source and a "Take the quiz" button. Notification settings gain "Articles and current affairs".
+- API: migration `articles`; public `/articles`, `/articles/:slug`, `/article-categories`.
+
+### Fixed — 2026-10-07
+- Pictures used in notices could be deleted from the media library while the notice still showed them.
+
 ### Added — 2026-10-07 (How-to-get-courses box, D-062)
 - Student emails (welcome, sign-up verification code, notices, course updates, exam reminders, results, buying
   links) now end with a highlighted box: on iPhone/iPad buy on the website with the same account; on Android in the
