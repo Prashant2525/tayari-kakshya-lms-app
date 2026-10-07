@@ -32,6 +32,8 @@ import { CouponsService, type PricedItem } from './coupons.service.js';
 import { planPrice, saleActive } from './plans.service.js';
 import { ReceiptsService } from './receipts.service.js';
 import { ReferralsService } from './referrals.service.js';
+import { purchaseMessage } from '../notifications/messages.js';
+import { NotificationsService } from '../notifications/notifications.service.js';
 import {
   GatewayError,
   gatewaysFromEnv,
@@ -134,6 +136,7 @@ export class PaymentsService {
     private readonly coupons: CouponsService,
     private readonly receipts: ReceiptsService,
     private readonly referrals: ReferralsService,
+    private readonly notifications: NotificationsService,
     @Inject(ENV) private readonly env: Env,
     http: GatewayHttp,
   ) {
@@ -252,6 +255,7 @@ export class PaymentsService {
         await this.grant(tx, created, now);
         await this.receipts.issue(tx, created.id, null, now);
         await this.referrals.onPaid(tx, created, now);
+        await this.notifyPaid(tx, created);
         await this.audit.record(
           {
             actorUserId: userId,
@@ -716,6 +720,7 @@ export class PaymentsService {
         await this.grant(tx, order, now);
         await this.receipts.issue(tx, order.id, payment.provider, now);
         await this.referrals.onPaid(tx, order, now);
+        await this.notifyPaid(tx, order);
         await record('completed');
         await this.audit.record(
           {
@@ -760,6 +765,15 @@ export class PaymentsService {
     });
     if (settled.status === 'completed' && !settled.duplicate) this.emailReceipts();
     return settled;
+  }
+
+  /** Tells the student the order is paid (in-app and push; the receipt is the email, D-057). */
+  private notifyPaid(
+    tx: Prisma.TransactionClient,
+    order: { id: string; orderNo: number; userId: string; items: Array<{ titleSnapshot: unknown }> },
+  ) {
+    const item = (order.items[0]?.titleSnapshot ?? { en: `#${order.orderNo}` }) as LocalizedText;
+    return this.notifications.notify([order.userId], purchaseMessage(order, item), tx);
   }
 
   /** Sends receipts waiting for their email (the worker retries any that fail). */

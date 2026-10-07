@@ -59,10 +59,34 @@ test('the Notice tab shows new notices, pinned first, and opens one', async () =
   await expect(text('Official notice')).toBeVisible();
 });
 
-test('notifications: an empty list to start, and push / email choices that are kept', async () => {
+test('notifications: a course update arrives; push / email choices are kept', async ({ request }) => {
   await page.goto('/');
   await visible(page.getByRole('link', { name: 'Notifications' })).click();
   await expect(text('No notifications yet')).toBeVisible();
+
+  // Staff send a course update to the course's students (D-060).
+  const token = await editorToken(request);
+  const course = await apiCall(request, token, 'POST', '/admin/courses', {
+    slug: `notified-${run}`,
+    title: { en: `Section Officer ${run}` },
+  });
+  const users = await apiCall<{ data: Array<{ id: string }> }>(
+    request,
+    token,
+    'GET',
+    `/admin/users?q=${encodeURIComponent(E2E_STUDENT_EMAIL)}`,
+  );
+  await apiCall(request, token, 'POST', `/admin/users/${users.data[0]!.id}/entitlements`, {
+    courseId: course.id,
+    endsAt: null,
+  });
+  await apiCall(request, token, 'POST', `/admin/courses/${course.id}/updates`, {
+    title: { en: `New mock tests ${run}` },
+    message: { en: 'Three full mock tests are now in the course.' },
+  });
+  await page.reload();
+  await expect(visible(page.getByRole('link', { name: `Unread: New mock tests ${run}` }))).toBeVisible();
+  await expect(text('Three full mock tests are now in the course.')).toBeVisible();
 
   await page.goto('/profile/notifications');
   const examEmail = visible(page.getByRole('switch', { name: 'Exam reminders · Email' }));
@@ -74,4 +98,10 @@ test('notifications: an empty list to start, and push / email choices that are k
   await expect(
     text('Push notifications are not available on this device yet; you can still choose emails.'),
   ).toBeVisible();
+  // The receipt is the purchase email (D-057), so purchases only offer push.
+  await expect(
+    visible(page.getByRole('switch', { name: 'Payments and purchases · Push notification' })),
+  ).toBeVisible();
+  await expect(page.getByRole('switch', { name: 'Payments and purchases · Email' })).toHaveCount(0);
+  await expect(text('Receipts always come by email.')).toBeVisible();
 });

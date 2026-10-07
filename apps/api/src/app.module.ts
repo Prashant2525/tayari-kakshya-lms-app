@@ -36,6 +36,7 @@ import { AdminAttemptsController } from './modules/attempts/admin-attempts.contr
 import { AdminAttemptsService } from './modules/attempts/admin-attempts.service.js';
 import { AttemptsController } from './modules/attempts/attempts.controller.js';
 import { AttemptsService } from './modules/attempts/attempts.service.js';
+import { ExamNotificationsService } from './modules/attempts/exam-notifications.service.js';
 import { EngagementService } from './modules/attempts/engagement.service.js';
 import { AdminCertificatesController } from './modules/certificates/admin-certificates.controller.js';
 import { AdminCertificatesService } from './modules/certificates/admin-certificates.service.js';
@@ -53,6 +54,8 @@ import { AdminReferralsController, ReferralsController } from './modules/payment
 import { ReferralsService } from './modules/payments/referrals.service.js';
 import { AdminNoticesController, NoticesController } from './modules/notices/notices.controller.js';
 import { NoticesService } from './modules/notices/notices.service.js';
+import { CourseUpdatesController } from './modules/notifications/course-updates.controller.js';
+import { CourseUpdatesService } from './modules/notifications/course-updates.service.js';
 import { NotificationsController } from './modules/notifications/notifications.controller.js';
 import { NotificationsService } from './modules/notifications/notifications.service.js';
 import { PushClient } from './infra/messaging/push.client.js';
@@ -155,6 +158,8 @@ export class InfraModule {}
     PushClient,
     NotificationsService,
     NoticesService,
+    ExamNotificationsService,
+    CourseUpdatesService,
     ScopeService,
     QuestionsService,
     QuestionReportsService,
@@ -204,6 +209,8 @@ export class InfraModule {}
     PushClient,
     NotificationsService,
     NoticesService,
+    ExamNotificationsService,
+    CourseUpdatesService,
     ScopeService,
     QuestionsService,
     QuestionReportsService,
@@ -273,6 +280,7 @@ export class DomainModule {}
     NoticesController,
     AdminNoticesController,
     NotificationsController,
+    CourseUpdatesController,
     AdminQuestionsController,
     QuestionReportsController,
     AdminAssessmentsController,

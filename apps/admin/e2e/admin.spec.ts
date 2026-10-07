@@ -146,6 +146,20 @@ test('signing in again requires the authenticator code, and the session survives
   await referrals.getByRole('button', { name: 'Save' }).click();
   await expect(referrals.getByText('Enter the percentage')).toBeVisible();
   await referrals.getByRole('button', { name: 'Discard' }).click();
+  // Exam reminder times are CMS data (D-060): 1 day and 1 hour to start; the same time twice is refused.
+  const reminders = page.getByRole('region', { name: 'Exam reminders' });
+  await expect(reminders.getByLabel('Reminder 1', { exact: true })).toHaveValue('1');
+  await expect(reminders.getByLabel('Reminder 1 unit')).toHaveValue('days');
+  await expect(reminders.getByLabel('Reminder 2 unit')).toHaveValue('hours');
+  await reminders.getByRole('button', { name: 'Add a reminder' }).click();
+  await reminders.getByRole('button', { name: 'Save' }).click();
+  await expect(reminders.getByText('Each reminder time once')).toBeVisible();
+  await reminders.getByLabel('Reminder 3', { exact: true }).fill('15');
+  await reminders.getByLabel('Reminder 3 unit').selectOption('minutes');
+  await reminders.getByRole('button', { name: 'Save' }).click();
+  await expect(page.getByText('Exam reminders saved')).toBeVisible();
+  await expect(reminders.getByLabel('Reminder 3', { exact: true })).toHaveValue('15');
+  await expect(reminders.getByRole('button', { name: 'Add a reminder' })).toHaveCount(0);
   // Back off, so later suites price orders without VAT.
   await vat.getByRole('switch', { name: 'VAT-registered' }).click();
   await vat.getByRole('button', { name: 'Save' }).click();

@@ -314,6 +314,27 @@ export const SETTINGS = {
     },
     public: false,
   },
+  /**
+   * D-060: reminders before a scheduled test opens, in minutes (default 1 day and 1 hour), to the students who can
+   * take it. Off = none are sent.
+   */
+  'notifications.examReminders': {
+    schema: z.object({
+      enabled: z.boolean(),
+      minutesBefore: z
+        .array(
+          z
+            .number()
+            .int('Whole minutes only')
+            .min(5, 'At least 5 minutes before')
+            .max(7 * 1440, 'At most 7 days before'),
+        )
+        .max(3, 'At most 3 reminders')
+        .refine((v) => new Set(v).size === v.length, { message: 'Each reminder time once' }),
+    }),
+    default: { enabled: true, minutesBefore: [1440, 60] },
+    public: false,
+  },
   /** D-050: a question leaves the mistake notebook after this many correct revision answers in a row (default 2). */
   'mistakes.revision': {
     schema: z.object({ correctInARow: z.number().int().min(1).max(10) }),

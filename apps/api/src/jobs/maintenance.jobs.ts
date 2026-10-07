@@ -10,6 +10,7 @@ import { PaymentsService } from '../modules/payments/payments.service.js';
 import { ReceiptsService } from '../modules/payments/receipts.service.js';
 import { NoticesService } from '../modules/notices/notices.service.js';
 import { NotificationsService } from '../modules/notifications/notifications.service.js';
+import { ExamNotificationsService } from '../modules/attempts/exam-notifications.service.js';
 
 export const MAINTENANCE_QUEUE = 'maintenance';
 
@@ -31,7 +32,8 @@ export async function startMaintenanceJobs(
   await queue.upsertJobScheduler('payments-reconcile', { every: 60_000 }, { name: 'payments-reconcile' });
   // Receipt emails that could not be sent straight away are retried (D-057).
   await queue.upsertJobScheduler('receipts-email', { every: 60_000 }, { name: 'receipts-email' });
-  // Notices that went live are sent; push and email deliveries go out and are retried (D-033, D-060).
+  // Notices that went live, results that are out and exam reminders are queued; push and email deliveries go out and
+  // are retried (D-033, D-060).
   await queue.upsertJobScheduler('notifications', { every: 30_000 }, { name: 'notifications' });
 
   const deletions = app.get(AccountDeletionService);
@@ -41,6 +43,7 @@ export async function startMaintenanceJobs(
   const receipts = app.get(ReceiptsService);
   const notices = app.get(NoticesService);
   const notifications = app.get(NotificationsService);
+  const exams = app.get(ExamNotificationsService);
   const worker = new Worker(
     MAINTENANCE_QUEUE,
     async (job) => {
@@ -56,7 +59,12 @@ export async function startMaintenanceJobs(
         case 'receipts-email':
           return { sent: await receipts.sendPending() };
         case 'notifications':
-          return { notices: await notices.dispatchDue(), sent: await notifications.processDeliveries() };
+          return {
+            notices: await notices.dispatchDue(),
+            results: await exams.notifyResults(),
+            reminders: await exams.sendReminders(),
+            sent: await notifications.processDeliveries(),
+          };
         default:
           throw new Error(`Unknown maintenance job ${job.name}`);
       }

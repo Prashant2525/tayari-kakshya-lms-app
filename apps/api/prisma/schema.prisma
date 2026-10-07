@@ -84,6 +84,7 @@ model User {
   deliveries          NotificationDelivery[]
   pushTokens          PushToken[]
   notificationPrefs   NotificationPreference?
+  courseUpdatesSent   CourseUpdate[]
   referralCode        ReferralCode?
   referralsMade       Referral[]               @relation("Referrer")
   referredBy          Referral?                @relation("Referee")
@@ -669,6 +670,7 @@ model Course {
 
   assessments Assessment[]
   progress    LearningProgress[]
+  updates     CourseUpdate[]
 
   @@index([status, isFeatured, popularityRank])
   @@index([certificateTemplateId])
@@ -1149,6 +1151,7 @@ model Assessment {
   sections  AssessmentSection[]
   questions AssessmentQuestion[]
   attempts  Attempt[]
+  reminders AssessmentReminder[]
 
   @@index([type, status])
   @@index([courseId])
@@ -1208,6 +1211,8 @@ model Attempt {
   /// When this attempt's wrong / partly correct answers were added to the mistake notebook (D-050): only once it is
   /// completed and its results are released, so the notebook never reveals unreleased results.
   mistakesSyncedAt DateTime?     @map("mistakes_synced_at") @db.Timestamptz(6)
+  /// When the student was told (or saw on submitting) that this attempt's result is out (D-060): once per attempt.
+  resultNotifiedAt DateTime?     @map("result_notified_at") @db.Timestamptz(6)
   startedAt        DateTime      @default(now()) @map("started_at") @db.Timestamptz(6)
   deadlineAt       DateTime?     @map("deadline_at") @db.Timestamptz(6)
   submittedAt      DateTime?     @map("submitted_at") @db.Timestamptz(6)
@@ -1914,4 +1919,39 @@ model NotificationPreference {
   user User @relation(fields: [userId], references: [id], onDelete: Restrict)
 
   @@map("notification_preferences")
+}
+
+/// A reminder sent before a test opens (D-060): one per test, reminder time and opening time — a test moved to a new
+/// time is reminded again.
+model AssessmentReminder {
+  id            String   @id @default(uuid(7)) @db.Uuid
+  assessmentId  String   @map("assessment_id") @db.Uuid
+  minutesBefore Int      @map("minutes_before")
+  opensAt       DateTime @map("opens_at") @db.Timestamptz(6)
+  /// False when it was due together with a later one (only the nearest is sent).
+  sent          Boolean
+  recipients    Int      @default(0)
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  assessment Assessment @relation(fields: [assessmentId], references: [id], onDelete: Restrict)
+
+  @@unique([assessmentId, minutesBefore, opensAt])
+  @@map("assessment_reminders")
+}
+
+/// A course update staff sent to the course's students (D-060). Kept as a record; never deleted.
+model CourseUpdate {
+  id         String   @id @default(uuid(7)) @db.Uuid
+  courseId   String   @map("course_id") @db.Uuid
+  title      Json
+  message    Json
+  recipients Int
+  sentById   String   @map("sent_by") @db.Uuid
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  course Course @relation(fields: [courseId], references: [id], onDelete: Restrict)
+  sentBy User   @relation(fields: [sentById], references: [id], onDelete: Restrict)
+
+  @@index([courseId, createdAt(sort: Desc)])
+  @@map("course_updates")
 }

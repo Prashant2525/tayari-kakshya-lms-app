@@ -29,6 +29,20 @@ export const AdminNoticeQuery = CursorQuery.extend({
 });
 export type AdminNoticeQuery = z.infer<typeof AdminNoticeQuery>;
 
+/** Plain text in either language, at most `max` characters (at least one language). */
+const PlainText = (max: number) =>
+  z
+    .object({
+      en: z.string().trim().min(1).max(max).optional(),
+      ne: z.string().trim().min(1).max(max).optional(),
+    })
+    .strict()
+    .refine((v) => Boolean(v.en ?? v.ne), { message: 'At least one of en/ne is required' });
+
+/** D-060: staff tell a course's students about an update (sent at once; each student's preferences apply). */
+export const CourseUpdateInput = z.object({ title: PlainText(120), message: PlainText(1000) });
+export type CourseUpdateInput = z.infer<typeof CourseUpdateInput>;
+
 /** What students can choose to hear about (D-033); the in-app list always shows everything. */
 export const NotificationCategory = z.enum([
   'notice',

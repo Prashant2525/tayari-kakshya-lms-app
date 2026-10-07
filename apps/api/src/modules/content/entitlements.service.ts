@@ -212,6 +212,40 @@ export class EntitlementsService {
     return ids;
   }
 
+  /**
+   * Active students with access to any of these courses now — bought, granted, joined free, or through a plan that
+   * covers it (course updates and exam reminders, D-060).
+   */
+  async studentIdsWithCourses(courseIds: string[], now = new Date()): Promise<string[]> {
+    if (!courseIds.length) return [];
+    const student = { kind: 'student' as const, status: 'active' as const };
+    const [direct, plans] = await Promise.all([
+      this.prisma.entitlement.findMany({
+        where: {
+          scopeType: 'course',
+          courseId: { in: courseIds },
+          ...activeEntitlementWhere(now),
+          user: student,
+        },
+        select: { userId: true },
+        distinct: ['userId'],
+      }),
+      this.prisma.entitlement.findMany({
+        where: {
+          scopeType: 'plan',
+          ...activeEntitlementWhere(now),
+          user: student,
+          plan: {
+            OR: [{ coverage: 'all_courses' }, { courses: { some: { courseId: { in: courseIds } } } }],
+          },
+        },
+        select: { userId: true },
+        distinct: ['userId'],
+      }),
+    ]);
+    return [...new Set([...direct, ...plans].map((e) => e.userId))];
+  }
+
   /** Whether the user has an active plan (any). */
   async hasActivePlan(userId: string, now = new Date()): Promise<boolean> {
     const count = await this.prisma.entitlement.count({

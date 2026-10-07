@@ -31,15 +31,17 @@ import {
 import { formatDateTimeBs, localized } from '@/lib/format';
 import { isEmptyDoc, type JsonNode } from '@/lib/rich-doc';
 import { cn } from '@/lib/utils';
+import { CourseUpdatesSection } from './course-updates';
 import { useNodeTypes } from '@/lib/node-types';
 
-type Tab = 'details' | 'pricing' | 'subjects' | 'links' | 'certificate';
+type Tab = 'details' | 'pricing' | 'subjects' | 'links' | 'certificate' | 'updates';
 const TABS: Array<[Tab, string]> = [
   ['details', 'Details'],
   ['pricing', 'Pricing & validity'],
   ['subjects', 'Subjects'],
   ['links', 'Exams & instructors'],
   ['certificate', 'Certificate'],
+  ['updates', 'Notify students'],
 ];
 
 /** Saves one section and refreshes the course; shows the server's message on failure. */
@@ -832,7 +834,7 @@ export function CoursePage() {
         role="tablist"
         aria-label="Course sections"
       >
-        {TABS.map(([id, label]) => (
+        {TABS.filter(([id]) => id !== 'updates' || can('courses:notify')).map(([id, label]) => (
           <button
             key={id}
             type="button"
@@ -868,6 +870,7 @@ export function CoursePage() {
           {active === 'certificate' ? (
             <CertificateSection key={key} course={c} readOnly={editReadOnly} />
           ) : null}
+          {active === 'updates' && can('courses:notify') ? <CourseUpdatesSection courseId={c.id} /> : null}
         </div>
         <div>
           <PublishingCard key={key} course={c} />

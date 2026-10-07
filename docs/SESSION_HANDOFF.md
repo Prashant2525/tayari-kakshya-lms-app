@@ -202,6 +202,11 @@ Current task: Phase 11 part 3 (receipts + refunds) done on `feature/receipts-ref
 - Nothing partially implemented. Admin screens for Phase 6 not started.
 
 ## Exact next steps
+0g. 2026-10-07 (Phase 12b): PR #30 merged. `feature/event-notifications` (T-056): purchase / result / reminder
+   notifications (`ExamNotificationsService` in the worker's `notifications` job), course updates
+   (`CourseUpdatesService`, permission `courses:notify`), setting `notifications.examReminders`. Next: **12c** —
+   articles (current affairs, Gorkhapatra summaries, news, blog) with BS dates and quizzes, in the app and on the
+   website; ask the owner first what the Gorkhapatra section is (Q14) and who writes / sources articles. Then 12d.
 0f. 2026-10-07 (Phase 12a): PR #29 merged. Owner answered the Phase 12 questions (D-060). `feature/notices` (T-055):
    notices + notification pipeline (`NotificationsService.notify()` → in-app row + outbox; worker job
    `notifications`; Expo push via `PushClient`, fake in tests). Next: **12b** — use `notify()` for (1) purchase paid
