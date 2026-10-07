@@ -103,7 +103,7 @@ courses/subjects. Every write is audited.
 | GET | `/practice-questions/:id` | student | one question with the same lock rule (404 if unpublished) |
 | GET | `/me/bookmarks` | student | saved lessons and questions, newest first: `{ targetType, targetId, createdAt, item? \| question? }`; unpublished targets are left out |
 | PUT / DELETE | `/me/bookmarks/:type/:id` | student | `type` = `learning_item` \| `question`; save (idempotent) / remove; only published targets can be saved |
-| GET | `/search?q=` | student | `q` 2–120 chars: `{ courses, items, questions }` — published courses (platform-aware prices), lessons by title (en/ne), questions by text; no premium bodies or answers |
+| GET | `/search?q=` | student | `q` 2–120 chars: `{ courses, items, questions, articles }` — published courses (platform-aware prices), live lessons by title (en/ne), questions by text, live articles by title or address (T-061); no premium bodies or answers |
 
 ## 1b-3. Implemented endpoints (§10 part 1 — taking assessments) ✅
 
@@ -373,7 +373,7 @@ Changes: attempt start on a daily challenge — before its day 409 `not_open`; a
 | GET / PUT | `/me/notification-preferences` | `{notice: {push, email}, course_update, exam_reminder, result, purchase}` |
 | POST | `/me/push-tokens` `{token, platform}`, `/me/push-tokens/remove` `{token}` | Expo push token of this device |
 | GET | `/pages/:slug`, `/faqs`, `/contact-options` | |
-| GET | `/search?q=&types=` | unified search |
+| GET | `/search?q=` | unified search: courses, lessons, questions and articles (live only) |
 
 ## 8. Commerce & payments
 | Method | Path | Notes |

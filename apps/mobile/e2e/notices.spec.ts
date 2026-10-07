@@ -142,4 +142,13 @@ test('articles: Home → Current affairs → a weekly digest, with its source', 
   ).toBeVisible();
   await expect(text('The budget raised spending on education.')).toBeVisible();
   await expect(text('Source: Kathmandu Post')).toBeVisible();
+
+  // Search finds it too.
+  await page.goto('/search');
+  await visible(page.getByLabel('Search', { exact: true })).fill(`week ${run}`);
+  await expect(visible(page.getByRole('heading', { name: 'Articles' }))).toBeVisible();
+  await visible(page.getByRole('link', { name: `This week ${run}: budget and monsoon` })).click();
+  await expect(
+    visible(page.getByRole('heading', { name: `This week ${run}: budget and monsoon` })),
+  ).toBeVisible();
 });

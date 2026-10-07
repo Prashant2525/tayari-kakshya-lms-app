@@ -1,5 +1,6 @@
 import { radius } from '@tk/design-tokens';
 import { router } from 'expo-router';
+import { Newspaper } from 'lucide-react-native';
 import { Image, Pressable, StyleSheet, View } from 'react-native';
 import { articleDate, coverUri, type ArticleCard as Card } from '@/api/articles';
 import { localized } from '@/i18n/translate';
@@ -59,7 +60,47 @@ export function ArticleCard({ article: a }: { article: Card }) {
   );
 }
 
+/** An article in search results: icon, title, kind and date. */
+export function ArticleSearchRow({
+  article: a,
+}: {
+  article: Pick<Card, 'kind' | 'slug' | 'title' | 'period' | 'periodDate' | 'publishedAt'>;
+}) {
+  const { colors } = useTheme();
+  const { t, locale } = useT();
+  const title = localized(a.title, locale);
+  return (
+    <Pressable
+      role="link"
+      aria-label={title}
+      onPress={() => router.push({ pathname: '/article/[slug]', params: { slug: a.slug } })}
+      style={({ pressed }) => [
+        styles.row,
+        { backgroundColor: pressed ? colors.surfaceMuted : colors.surface, borderColor: colors.border },
+      ]}
+    >
+      <Newspaper size={20} color={colors.onPrimarySoft} strokeWidth={1.75} />
+      <View style={{ flex: 1 }}>
+        <Text variant="body" numberOfLines={2}>
+          {title}
+        </Text>
+        <Text variant="caption" color="textMuted">
+          {[t(ARTICLE_KIND_KEY[a.kind]), bsDate(articleDate(a), locale)].join(' · ')}
+        </Text>
+      </View>
+    </Pressable>
+  );
+}
+
 const styles = StyleSheet.create({
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    padding: 12,
+    borderWidth: 1,
+    borderRadius: radius.md,
+  },
   card: { flexDirection: 'row', gap: 12, borderWidth: 1, borderRadius: radius.md, padding: 14 },
   thumb: { width: 84, height: 84, borderRadius: radius.sm },
 });

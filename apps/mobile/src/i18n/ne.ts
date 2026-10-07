@@ -208,6 +208,7 @@ export const ne: Record<MessageKey, string> = {
   'search.courses': 'कोर्स',
   'search.lessons': 'पाठ',
   'search.questions': 'प्रश्न',
+  'search.articles': 'लेख',
   'search.none': '“{q}” का लागि केही भेटिएन',
   'profile.edit': 'प्रोफाइल सम्पादन',
   'profile.saved': 'प्रोफाइल सुरक्षित भयो।',

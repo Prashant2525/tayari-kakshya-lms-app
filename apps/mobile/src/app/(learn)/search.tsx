@@ -5,6 +5,7 @@ import { ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { useSearch } from '@/api/learning';
 import { CourseRow } from '@/features/courses/course-card';
 import { ResultRow } from '@/features/practice/result-rows';
+import { ArticleSearchRow } from '@/features/articles/article-card';
 import { localized } from '@/i18n/translate';
 import { useT } from '@/i18n/use-t';
 import { track } from '@/lib/analytics';
@@ -27,7 +28,8 @@ export default function SearchScreen() {
   }, [query]);
   const results = useSearch(q);
   const data = results.data;
-  const empty = data && !data.courses.length && !data.items.length && !data.questions.length;
+  const empty =
+    data && !data.courses.length && !data.items.length && !data.questions.length && !data.articles.length;
 
   // Counted once per search; the search text itself is never sent (it can contain anything).
   const tracked = useRef<string | null>(null);
@@ -113,6 +115,13 @@ export default function SearchScreen() {
                   subtitle={localized(x.subject.name, locale)}
                   premiumLabel={x.accessLevel === 'premium' ? t('item.premium') : undefined}
                 />
+              ))}
+            </Section>
+          ) : null}
+          {data!.articles.length ? (
+            <Section title={t('search.articles')}>
+              {data!.articles.map((a) => (
+                <ArticleSearchRow key={a.id} article={a} />
               ))}
             </Section>
           ) : null}

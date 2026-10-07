@@ -295,6 +295,15 @@ export interface SearchResults {
     accessLevel: 'free' | 'premium';
     subject: { id: string; name: LocalizedText };
   }>;
+  articles: Array<{
+    id: string;
+    kind: 'current_affairs' | 'gorkhapatra' | 'news' | 'blog';
+    slug: string;
+    title: LocalizedText;
+    period: 'daily' | 'weekly' | 'monthly' | 'yearly' | null;
+    periodDate: string | null;
+    publishedAt: string;
+  }>;
 }
 
 export const practiceKeys = {

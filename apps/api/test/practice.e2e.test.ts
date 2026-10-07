@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { AccountDeletionService } from '../src/modules/auth/account-deletion.service.js';
-import { publisher, seedPublishedCourse } from './content-helpers.js';
+import { note, publisher, seedPublishedCourse } from './content-helpers.js';
 import { call, createTestApp, registerStudent, setSetting, type TestContext } from './helpers.js';
 
 let ctx: TestContext;
@@ -198,6 +198,17 @@ describe('search', () => {
     const s = await setup();
     const res = await call(ctx, 'GET', '/search?q=sainey', { token: s.student });
     expect(res.body.courses.map((c: { slug: string }) => c.slug)).toEqual(['sainey-likhit']);
+    // A lesson still in draft is never found (it was, through a filter that dropped the "live" rule).
+    const draftLesson = await call(ctx, 'POST', `/admin/topics/${s.seeded.topic.id}/items`, {
+      token: s.admin,
+      body: {
+        type: 'note',
+        title: { en: 'Deep dive draft' },
+        accessLevel: 'free',
+        noteContent: note('Draft'),
+      },
+    });
+    expect(draftLesson.status).toBe(201);
     const lessons = await call(ctx, 'GET', '/search?q=deep%20dive', { token: s.student });
     expect(lessons.body.items).toEqual([
       expect.objectContaining({ id: s.seeded.premiumNote.id, type: 'note', accessLevel: 'premium' }),
