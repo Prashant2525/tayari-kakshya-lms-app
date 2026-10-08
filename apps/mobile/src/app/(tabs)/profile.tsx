@@ -13,6 +13,7 @@ import {
   NotebookPen,
   Receipt,
   Bookmark,
+  ChartNoAxesColumn,
   ChevronRight,
   ClipboardList,
   Gift,
@@ -158,6 +159,7 @@ export default function ProfileScreen() {
           />
           <LinkRow icon={Smartphone} label={t('profile.devices')} href="/profile/devices" />
           <LinkRow icon={BellRing} label={t('notifSettings.title')} href="/profile/notifications" />
+          <LinkRow icon={ChartNoAxesColumn} label={t('progress.title')} href="/progress" />
           <LinkRow icon={Bookmark} label={t('profile.saved.list')} href="/bookmarks" />
           <LinkRow icon={ClipboardList} label={t('history.title')} href="/attempts" />
           <LinkRow icon={NotebookPen} label={t('mistakes.title')} href="/mistakes" />

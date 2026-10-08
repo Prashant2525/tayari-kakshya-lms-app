@@ -70,11 +70,11 @@ export class MistakesService {
     const q = await this.visible(questionId);
     if (!(await this.canSee(q, viewer.userId, false))) throw locked();
     const outcome = this.score(q, input.response);
-    if (isMistake(outcome)) {
-      await this.prisma.$transaction((tx) =>
-        this.record(tx, viewer.userId, q.id, new Date(), 'practice', false),
-      );
-    }
+    const now = new Date();
+    await this.prisma.$transaction(async (tx) => {
+      await this.recordAnswer(tx, viewer.userId, q.id, outcome, 'practice', now);
+      if (isMistake(outcome)) await this.record(tx, viewer.userId, q.id, now, 'practice', false);
+    });
     return { outcome, addedToNotebook: isMistake(outcome) };
   }
 
@@ -216,10 +216,17 @@ export class MistakesService {
     }
 
     const { correctInARow } = await this.settings.get('mistakes.revision');
-    const next = reviewMistake(stateOf(mistake), outcome === 'correct', new Date(), correctInARow);
-    await this.prisma.mistake.update({
-      where: { userId_questionId: { userId: viewer.userId, questionId } },
-      data: { ...next },
+    const now = new Date();
+    const next = reviewMistake(stateOf(mistake), outcome === 'correct', now, correctInARow);
+    await this.prisma.$transaction(async (tx) => {
+      await tx.mistake.update({
+        where: { userId_questionId: { userId: viewer.userId, questionId } },
+        data: { ...next },
+      });
+      // Self-reviewed written answers are the student's own verdict: not counted for accuracy.
+      if (content.type !== 'subjective') {
+        await this.recordAnswer(tx, viewer.userId, questionId, outcome, 'revision', now);
+      }
     });
     return {
       outcome,
@@ -239,6 +246,19 @@ export class MistakesService {
   }
 
   // ───────────── helpers ─────────────
+
+  /** A server-scored practice or revision answer, kept for progress analytics (T-064). */
+  private async recordAnswer(
+    tx: Tx,
+    userId: string,
+    questionId: string,
+    outcome: Outcome,
+    source: 'practice' | 'revision',
+    at: Date,
+  ) {
+    if (outcome !== 'correct' && outcome !== 'partial' && outcome !== 'wrong') return;
+    await tx.practiceAnswer.create({ data: { userId, questionId, outcome, source, answeredAt: at } });
+  }
 
   private async record(
     tx: Tx,

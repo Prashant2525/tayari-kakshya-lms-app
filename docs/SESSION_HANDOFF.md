@@ -202,6 +202,9 @@ Current task: Phase 11 part 3 (receipts + refunds) done on `feature/receipts-ref
 - Nothing partially implemented. Admin screens for Phase 6 not started.
 
 ## Exact next steps
+0p. 2026-10-08: PR #39, #40 merged; `main` CI green. Owner answered Phase 13 (D-066). `feature/progress-analytics`
+   (T-064, part 13a). Next: **13b study planner** (course + exam date + minutes per day → today's plan; re-plan when
+   behind; uses lesson `estimatedMinutes` / video length where known), then 13c reviews, 13d discussions, 13e dashboards.
 0o. 2026-10-08: PR #38 merged. `fix/phone-images` (PR #39): pictures on real phones in development, Expo Go on
    Android again (KI-051: `--go`, lazy expo-notifications), app identifiers `com.tayarikakshya.app` (D-065). Next: the
    owner makes a development build (`eas build --profile development`), then Phase 13 after the owner's answers.

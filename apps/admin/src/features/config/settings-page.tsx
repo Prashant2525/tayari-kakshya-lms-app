@@ -1309,6 +1309,42 @@ export function SettingsPage() {
         </SettingCard>
 
         <SettingCard
+          row={row('progress.topics')}
+          title="Progress analytics"
+          description="Students see their accuracy over recent days and which topics need more practice (weak) or are going well (strong). A topic is listed once it has enough answers."
+        >
+          {(d, set, disabled) => (
+            <div className="flex flex-wrap gap-4">
+              {(
+                [
+                  ['windowDays', 'Accuracy over the last (days)', 'From 7 to 365.', 7, 365],
+                  ['minAnswers', 'Answers before a topic is listed', 'From 1 to 100.', 1, 100],
+                  ['weakBelow', 'Weak below (%)', 'From 1 to 100.', 1, 100],
+                  ['strongFrom', 'Strong from (%)', 'At least the weak line.', 1, 100],
+                ] as const
+              ).map(([key, label, hint, min, max]) => (
+                <Field key={key} label={label} hint={hint}>
+                  {(a) => (
+                    <Input
+                      {...a}
+                      type="number"
+                      min={min}
+                      max={max}
+                      className="w-32"
+                      value={Number.isNaN(d[key]) ? '' : d[key]}
+                      disabled={disabled}
+                      onChange={(e) =>
+                        set({ ...d, [key]: e.target.value === '' ? Number.NaN : Number(e.target.value) })
+                      }
+                    />
+                  )}
+                </Field>
+              ))}
+            </div>
+          )}
+        </SettingCard>
+
+        <SettingCard
           row={row('certificates.verification')}
           title="Certificate verification"
           description="Printed on every certificate with a QR code, followed by the certificate number. Leave blank to print the number only."

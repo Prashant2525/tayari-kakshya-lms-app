@@ -109,9 +109,9 @@ async function main(): Promise<void> {
         });
       }
     }
-    const studentEmail = process.env['E2E_STUDENT_EMAIL'];
-    if (studentEmail) {
-      // Made here rather than through sign-up, which allows 10 accounts per IP per hour.
+    // Made here rather than through sign-up, which allows 10 accounts per IP per hour.
+    for (const studentEmail of [process.env['E2E_STUDENT_EMAIL'], process.env['E2E_STUDENT2_EMAIL']]) {
+      if (!studentEmail) continue;
       await prisma.user.create({
         data: { kind: 'student', email: studentEmail, fullName: 'E2E Student', passwordHash },
       });

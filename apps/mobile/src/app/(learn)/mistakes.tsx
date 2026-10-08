@@ -7,6 +7,7 @@ import { RevisionCard } from '@/features/practice/revision-card';
 import { localized } from '@/i18n/translate';
 import { useT } from '@/i18n/use-t';
 import { num } from '@/lib/format';
+import { useStudyTime } from '@/lib/study-time';
 import { useTheme } from '@/theme/theme';
 import { Button } from '@/ui/button';
 import { BackButton, Screen, Skeleton } from '@/ui/layout';
@@ -22,6 +23,7 @@ export default function MistakesScreen() {
   const { colors } = useTheme();
   const [subjectId, setSubjectId] = useState<string | null>(null);
   const summary = useMistakesSummary();
+  useStudyTime('practice');
   const list = useMistakes(subjectId);
   const entries = list.data?.pages.flatMap((p) => p.data) ?? [];
   const media = Object.assign({}, ...(list.data?.pages.map((p) => p.media) ?? []));

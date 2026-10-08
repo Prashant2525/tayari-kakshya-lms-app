@@ -3,6 +3,7 @@ import { ScrollView, StyleSheet, View } from 'react-native';
 import { usePracticeQuestion } from '@/api/learning';
 import { QuestionCard } from '@/features/practice/question-card';
 import { useT } from '@/i18n/use-t';
+import { useStudyTime } from '@/lib/study-time';
 import { BackButton, Screen, Skeleton } from '@/ui/layout';
 import { ErrorState } from '@/ui/states';
 import { Text } from '@/ui/text';
@@ -12,6 +13,7 @@ export default function QuestionScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { t } = useT();
   const question = usePracticeQuestion(id);
+  useStudyTime('practice');
   return (
     <Screen edges={['top']} contentStyle={styles.content}>
       <View style={styles.header}>

@@ -21,12 +21,14 @@ import { useAnalyticsIdentity, useScreenTracking } from '@/lib/analytics';
 import { initMonitoring } from '@/lib/monitoring';
 import { checkoutHref, usePendingLink } from '@/lib/pending-link';
 import { listenForTaps, registerForPush } from '@/lib/push';
+import { startStudyClock, studySignal } from '@/lib/study-time';
 import { usePrefs } from '@/state/prefs';
 import { useSession } from '@/state/session';
 import { ThemeProvider, useTheme } from '@/theme/theme';
 import { ErrorState, LoadingState } from '@/ui/states';
 
 initMonitoring();
+startStudyClock();
 void SplashScreen.preventAutoHideAsync().catch(() => undefined);
 
 // React Query pauses requests while offline and resumes when the connection returns.
@@ -115,7 +117,7 @@ function RootNavigator() {
     router.push(pending as Href);
   }, [inside, pending]);
   return (
-    <View style={{ flex: 1 }}>
+    <View style={{ flex: 1 }} onTouchStart={() => studySignal('touch')}>
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Protected guard={!signedIn}>
           <Stack.Screen name="(auth)" />

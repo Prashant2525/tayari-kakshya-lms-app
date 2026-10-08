@@ -106,6 +106,9 @@ model User {
   gradedAnswers       AttemptAnswer[]          @relation("AttemptAnswerGrader")
   certificates        Certificate[]
   mistakes            Mistake[]
+  practiceAnswers     PracticeAnswer[]
+  studyTime           StudyTime[]
+  studyClock          StudyClock?
   revokedCertificates Certificate[]            @relation("CertificateRevoker")
 
   @@index([kind, status])
@@ -919,6 +922,7 @@ model Question {
   assessmentLinks AssessmentQuestion[]
   attemptAnswers  AttemptAnswer[]
   mistakes        Mistake[]
+  practiceAnswers PracticeAnswer[]
 
   @@index([subjectId, topicId, type, difficulty, status])
   @@index([groupId])
@@ -1387,6 +1391,63 @@ model Mistake {
   @@index([userId, status, lastWrongAt(sort: Desc)])
   @@index([questionId])
   @@map("mistakes")
+}
+
+// ───────────── Progress analytics (Phase 13a, S8, D-066) ─────────────
+
+enum PracticeAnswerSource {
+  practice
+  revision
+}
+
+/// An auto-marked practice or revision answer, scored on the server (T-047), kept for accuracy and weak / strong
+/// topics (T-064). Written answers are self-reviewed and never recorded. Erased with the account.
+model PracticeAnswer {
+  id         String               @id @default(uuid(7)) @db.Uuid
+  userId     String               @map("user_id") @db.Uuid
+  questionId String               @map("question_id") @db.Uuid
+  source     PracticeAnswerSource
+  /// correct / partial / wrong only (CHECK).
+  outcome    AnswerOutcome
+  answeredAt DateTime             @default(now()) @map("answered_at") @db.Timestamptz(6)
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@index([userId, answeredAt])
+  @@index([questionId])
+  @@map("practice_answers")
+}
+
+enum StudyActivity {
+  video
+  reading
+  practice
+  test
+}
+
+/// Seconds of active study per student, Nepal calendar day and activity (D-066, T-064).
+model StudyTime {
+  userId    String        @map("user_id") @db.Uuid
+  day       DateTime      @db.Date
+  activity  StudyActivity
+  seconds   Int           @default(0)
+  updatedAt DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, day, activity])
+  @@map("study_time")
+}
+
+/// When the student's app last reported study time: a report is never credited more than the time since then.
+model StudyClock {
+  userId       String   @id @map("user_id") @db.Uuid
+  lastReportAt DateTime @map("last_report_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("study_clocks")
 }
 
 // ───────────── Commerce (Phase 11, D-003, D-023, D-027, D-051, D-052) ─────────────
