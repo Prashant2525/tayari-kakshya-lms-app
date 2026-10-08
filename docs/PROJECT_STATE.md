@@ -1,9 +1,9 @@
 # Project State
 
-Current Phase: **Phase 12 communication** — part 12b (event notifications) on `feature/event-notifications`; 12a merged (PR #30)
+Current Phase: **Phase 13 progress & community** — part 13a (progress analytics) on `feature/progress-analytics`
 Current Milestone: content API on `feature/content-cms` → Admin CMS content screens
 Overall Status: **IN PROGRESS**
-Last updated: 2026-10-07
+Last updated: 2026-10-08
 
 ## Completed
 - Phases 0–3: discovery, PDF extraction, decisions, approved architecture.
@@ -61,7 +61,10 @@ Last updated: 2026-10-07
 - Phase 12d part 1 on `feature/help-pages` (T-062, D-064): pages with DRAFT legal texts and versions, FAQs, contact
   options — CMS, app and website. Merged (PR #37).
 - Phase 12d part 2 on `feature/banners` (T-063): banners in the CMS, app Home and website home. **Phase 12 complete.**
-  Next: Phase 13 — progress & community (progress analytics, study planner, course reviews, discussions, dashboards).
+  Merged (PR #38). Fixes merged: pictures on phones and Expo Go on Android, app identifiers (PR #39, D-065), CI
+  browser install (PR #40, KI-052).
+- Phase 13 decided (D-066). Part 13a on `feature/progress-analytics` (T-064): study time, accuracy, weak / strong
+  topics, My progress in the app, CMS thresholds. Next: 13b study planner.
 - Monitoring (T-042) merged (PR #14, #15): Sentry in the API, worker, admin and app; PostHog in the app. Google web client registered for `http://localhost:8081` (checked); a real
   sign-in by the owner and Android/iOS clients remain (KI-029).
 - Phase 9 part 2 merged (PR #13): practice questions with Check answer and locked Premium answers

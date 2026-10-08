@@ -9,6 +9,7 @@ import { RichText } from '@/features/learn/rich-text';
 import { localized } from '@/i18n/translate';
 import { useT } from '@/i18n/use-t';
 import { bsDate } from '@/lib/dates';
+import { useStudyTime } from '@/lib/study-time';
 import { useTheme } from '@/theme/theme';
 import { Button } from '@/ui/button';
 import { StatusChip } from '@/ui/chip';
@@ -22,6 +23,7 @@ export default function ArticleScreen() {
   const { t, locale } = useT();
   const { colors } = useTheme();
   const article = useArticle(slug);
+  useStudyTime('reading');
   const a = article.data;
   const doc = a ? (a.body[locale] ?? a.body.en ?? a.body.ne) : undefined;
   const cover = a ? coverUri(a.cover, 1280) : null;

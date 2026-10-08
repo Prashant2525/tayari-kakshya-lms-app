@@ -7,6 +7,7 @@ import { useOutline, type OutlineItem, type SubjectOutline } from '@/api/learnin
 import { localized } from '@/i18n/translate';
 import { useT } from '@/i18n/use-t';
 import { formatDuration } from '@/lib/format';
+import { useStudyTime } from '@/lib/study-time';
 import { useTheme } from '@/theme/theme';
 import { StatusChip } from '@/ui/chip';
 import { PracticeList } from '@/features/practice/practice-list';
@@ -30,6 +31,7 @@ export default function SubjectScreen() {
   const { t, locale } = useT();
   const outline = useOutline(courseId, subjectId);
   const [tab, setTab] = useState<Tab>('notes');
+  useStudyTime(tab === 'questions' ? 'practice' : null);
   const [open, setOpen] = useState<Record<string, boolean>>({});
 
   const items = outline.data?.chapters.flatMap((c) => c.topics.flatMap((tp) => tp.items)) ?? [];

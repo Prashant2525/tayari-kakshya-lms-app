@@ -1,6 +1,6 @@
 # Test Status
 
-Last updated: 2026-10-08 (Phase 12d part 2: banners). `pnpm test` runs unit + integration suites (needs `pnpm infra:up`);
+Last updated: 2026-10-08 (Phase 13a: progress analytics). `pnpm test` runs unit + integration suites (needs `pnpm infra:up`);
 `pnpm build && pnpm --filter @tk/admin e2e` and `pnpm build && pnpm --filter @tk/mobile e2e` run the browser suites
 (the student suite also needs Mailpit, part of `pnpm infra:up`).
 
@@ -11,14 +11,29 @@ Last updated: 2026-10-08 (Phase 12d part 2: banners). `pnpm test` runs unit + in
 | `@tk/design-tokens` | 39 | WCAG contrast for every text/background pair (light + dark), CSS generation |
 | `@tk/domain` | 58 | BS calendar, Kathmandu day boundary, fiscal year, money/VAT/discounts, access validity |
 | `@tk/contracts` | 21 | Schema behaviour (localized text, email normalisation, mass assignment, settings defaults, rich-text validation) |
-| `@tk/api` | 287 | Integration against real PostgreSQL + Redis + S3 (SeaweedFS) through the HTTP stack; TOTP RFC 6238 vectors; RBAC, video, watermark unit |
+| `@tk/api` | 290 | Integration against real PostgreSQL + Redis + S3 (SeaweedFS) through the HTTP stack; TOTP RFC 6238 vectors; RBAC, video, watermark unit |
 | `@tk/admin` (unit) | 35 | API client (headers, refresh single-flight, retry, session loss, error mapping), BS formatting, Button `asChild` regression |
 | `@tk/admin` (E2E, Playwright) | 34 | Real browser + real API + `*_e2e` database |
-| `@tk/mobile` (unit) | 37 | Development picture addresses on a phone, API client (single-flight refresh, early refresh, session end, maintenance), translations complete in both languages, BS dates and Kathmandu weekday, force-update/maintenance gate, form checks, Nepali phone numbers |
-| `@tk/mobile` (E2E, Playwright, phone viewport) | 36 | Web build + real API + `*_mobile_e2e` database + Mailpit |
+| `@tk/mobile` (unit) | 41 | Study-time meter (idle limits, videos, innermost screen, background), development picture addresses on a phone, API client (single-flight refresh, early refresh, session end, maintenance), translations complete in both languages, BS dates and Kathmandu weekday, force-update/maintenance gate, form checks, Nepali phone numbers |
+| `@tk/mobile` (E2E, Playwright, phone viewport) | 38 | Web build + real API + `*_mobile_e2e` database + Mailpit |
 | `@tk/web` (unit) | 8 | Session refresh used once (concurrent / late requests share it; refused → signed out; unreachable → retried), token expiry, both languages complete, failure messages |
 | `@tk/web` (E2E, Playwright) | 9 | `next start` production build + real API + `*_web_e2e` database + Mailpit + gateway stand-in; access tokens last 60 s so every page load refreshes |
-| **Total** | **564** | |
+| **Total** | **573** | |
+
+### Added with progress analytics (Phase 13a, T-064, D-066)
+- **API (3 integration tests):** study time per Nepal day and activity, never more than the time since the previous
+  report, out-of-range values refused, 7 / 30-day totals, only the student's own, students only; accuracy from
+  server-scored practice and revision answers and **released** test answers only (a manual-release test counts only
+  once released), partly correct as half, by subject, weak / strong topics with the minimum number of answers, the
+  window, other students' data never mixed in, erasure; thresholds with the weak line above the strong one refused.
+  Mutation-checked (6: clock not checked, unreleased tests counted, revision not recorded, minimum answers ignored,
+  unreleased results listed, erasure keeping answers — each fails a test).
+- **App unit (4):** the study-time meter. **App E2E (2):** time on a practice question is measured and sent when the
+  screen closes (the request and the credited seconds checked); My progress shows accuracy, subject, strong topic
+  and empty states; the Home card opens it. **CMS E2E** (System settings): the Progress analytics card refuses a
+  weak line above the strong line and saves.
+- Screens checked: My progress, Home card, CMS card; fixed: an empty week showed no chart (bars now have a track).
+- E2E: a second seeded student (`E2E_STUDENT2_EMAIL`) — sign-up allows 10 accounts per IP per hour.
 
 ### Added with banners (Phase 12d part 2, T-063)
 - **API (2 integration tests):** banners by placement, order, switch and dates; on iPhone no plan or web links and

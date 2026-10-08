@@ -13,6 +13,7 @@ import { VideoPlayer } from '@/features/learn/video-player';
 import { localized, type Locale } from '@/i18n/translate';
 import { useT } from '@/i18n/use-t';
 import { track } from '@/lib/analytics';
+import { studySignal, useStudyTime } from '@/lib/study-time';
 import { ApiError } from '@/lib/api-client';
 import { READER_SCALES, usePrefs } from '@/state/prefs';
 import { useTheme } from '@/theme/theme';
@@ -39,6 +40,7 @@ export default function LearnScreen() {
   const item = useItem(itemId);
   const outline = useOutline(courseId ?? '', params.subjectId ?? '');
   const save = useSaveProgress(itemId);
+  useStudyTime(item.data ? (item.data.type === 'video' ? 'video' : 'reading') : null);
 
   // Lesson order within the subject (outline order), for previous / next and the saved state.
   const ordered = useMemo<OutlineItem[]>(
@@ -212,7 +214,11 @@ function Body({
       <PdfReader
         itemId={item.id}
         startPage={Math.max(1, startAt)}
-        onPage={(page, count) => onPosition(page, count)}
+        onPage={(page, count) => {
+          // Touches inside the PDF view may not reach the app: turning a page counts as reading.
+          studySignal('touch');
+          onPosition(page, count);
+        }}
       />
     );
   }
@@ -224,6 +230,8 @@ function Body({
           title={title}
           resumeAt={finished ? 0 : startAt}
           onTime={(position, duration, ended) => {
+            // The player reports while the video plays: study time counts (D-066).
+            if (!ended) studySignal('media');
             // Save every 15 s, and once the student reaches 90 % (counted as watched).
             const nearlyDone = ended || position >= duration * 0.9;
             if (nearlyDone || Math.abs(position - lastVideoSave.current) >= 15) {

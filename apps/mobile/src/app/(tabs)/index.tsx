@@ -8,6 +8,7 @@ import { CurrentCourse } from '@/features/courses/current-course';
 import { CatalogList } from '@/features/courses/my-courses';
 import { ReadTiles } from '@/features/articles/read-tiles';
 import { BannerCarousel } from '@/features/home/banner-carousel';
+import { ProgressLink } from '@/features/progress/progress-link';
 import { DailyChallengeCard } from '@/features/tests/daily-challenge-card';
 import { TestsLink } from '@/features/tests/tests-link';
 import { localized } from '@/i18n/translate';
@@ -118,6 +119,7 @@ export default function HomeScreen() {
         <CurrentCourse />
         <ReadTiles />
         <DailyChallengeCard />
+        <ProgressLink />
         <TestsLink title={t('home.tests')} body={t('home.testsBody')} />
         <View style={styles.sectionHead}>
           <Text variant="h3" role="heading" style={{ flex: 1 }}>

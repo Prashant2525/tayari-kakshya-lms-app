@@ -165,6 +165,16 @@ test('signing in again requires the authenticator code, and the session survives
   await expect(page.getByText('Exam reminders saved')).toBeVisible();
   await expect(reminders.getByLabel('Reminder 3', { exact: true })).toHaveValue('15');
   await expect(reminders.getByRole('button', { name: 'Add a reminder' })).toHaveCount(0);
+  // Progress analytics thresholds are CMS data (D-066); the weak line cannot be above the strong line.
+  const analytics = page.getByRole('region', { name: 'Progress analytics' });
+  await expect(analytics.getByLabel('Accuracy over the last (days)')).toHaveValue('90');
+  await expect(analytics.getByLabel('Strong from (%)')).toHaveValue('80');
+  await analytics.getByLabel('Weak below (%)').fill('90');
+  await analytics.getByRole('button', { name: 'Save' }).click();
+  await expect(analytics.getByText('The weak line must not be above the strong line')).toBeVisible();
+  await analytics.getByLabel('Weak below (%)').fill('60');
+  await analytics.getByRole('button', { name: 'Save' }).click();
+  await expect(page.getByText('Progress analytics saved')).toBeVisible();
   // Back off, so later suites price orders without VAT.
   await vat.getByRole('switch', { name: 'VAT-registered' }).click();
   await vat.getByRole('button', { name: 'Save' }).click();

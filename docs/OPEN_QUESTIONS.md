@@ -143,6 +143,8 @@ supported merchant locations (Nepal: developer ✔, merchant ✘); YouTube priva
 - **§10 part 3 (asked 2026-10-06):** streak rule, leaderboard names, past daily challenges, what earns a certificate. **Answered 2026-10-06** (D-049).
 - **§10 part 3b (asked 2026-10-06):** how certificates are issued, what feeds the mistake notebook, what counts as a
   mistake, when a question leaves it. **Answered 2026-10-06** (D-050).
+- **Phase 13 (asked 2026-10-08):** reviews (who, when shown, where), discussions (where, who answers, checked first?),
+  study planner, what study time counts, dashboards, export format. **Answered 2026-10-08** (D-066).
 - **L5 (Phase 18):** App identifiers (`com.<org>.<app>`), store account ownership (Play Console organisation account, Apple Developer).
   **Identifiers answered 2026-10-08:** `com.tayarikakshya.app`, kept changeable (D-065). Store accounts still open.
 - **Phase 11 part 2 (asked 2026-10-06):** free enrolment and shared subjects, plan contents changing, coupons on sale

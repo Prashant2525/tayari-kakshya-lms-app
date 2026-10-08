@@ -4,6 +4,13 @@ All notable changes to this project. Format based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Added — 2026-10-08 (Phase 13a: progress analytics)
+- App: **My progress** (Profile, and a card on Home) — study time for today, the last 7 and 30 days with a
+  7-day chart and a split by videos / reading / practice / tests; lessons finished; accuracy overall and by subject;
+  topics that need more practice and strong topics; recent released test results.
+- Study time is measured while the app is in use (idle time is not counted) and checked by the server.
+- CMS: System settings → Progress analytics (accuracy period, answers before a topic is listed, weak / strong lines).
+
 ### Fixed — 2026-10-08 (CI)
 - Browser-test jobs no longer hang until cancelled when the runner's package mirror stops answering: the browser
   install has time limits and up to three attempts (KI-052).

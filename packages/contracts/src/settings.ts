@@ -447,6 +447,25 @@ export const SETTINGS = {
     default: { correctInARow: 2 },
     public: false,
   },
+  /**
+   * D-066 / T-064: progress analytics. Accuracy counts the last `windowDays` days; a topic is weak below `weakBelow` %
+   * and strong from `strongFrom` %, once it has at least `minAnswers` answers.
+   */
+  'progress.topics': {
+    schema: z
+      .object({
+        windowDays: z.number().int().min(7).max(365),
+        minAnswers: z.number().int().min(1).max(100),
+        weakBelow: z.number().int().min(1).max(100),
+        strongFrom: z.number().int().min(1).max(100),
+      })
+      .refine((v) => v.weakBelow <= v.strongFrom, {
+        message: 'The weak line must not be above the strong line',
+        path: ['strongFrom'],
+      }),
+    default: { windowDays: 90, minAnswers: 5, weakBelow: 50, strongFrom: 80 },
+    public: false,
+  },
 } as const satisfies Record<string, { schema: z.ZodType; default: unknown; public: boolean }>;
 
 export type SettingKey = keyof typeof SETTINGS;

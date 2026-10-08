@@ -182,8 +182,15 @@ banners & home sections, FAQs, contact options, static pages with **draft legal 
 - Not built (not requested): general notification campaigns (notices with push / email and course updates cover
   broadcasts) and configurable home sections (Home order is fixed). Ask the owner if wanted.
 
-**§13 Progress & community** — progress analytics (accuracy, weak/strong topics, study time), study planner,
+**§13 Progress & community** (D-066) — progress analytics (accuracy, weak/strong topics, study time), study planner,
 course reviews + moderation, discussions/doubts + moderation, admin dashboards & exports.
+- ☑ Part 13a (T-064): progress analytics — study time measured in the app (checked by the server), practice and
+  revision answers kept, accuracy by subject, weak / strong topics (CMS thresholds), recent results; My progress
+  (Profile, Home card); CMS setting Progress analytics
+- ☐ Part 13b: study planner (course, exam date, minutes per day → today's plan, re-plan when behind)
+- ☐ Part 13c: course reviews (stars + text, after some progress, staff approve; app + website)
+- ☐ Part 13d: discussions / doubts under questions and lessons (staff badge, best answer, reports, moderation)
+- ☐ Part 13e: admin dashboards (sales, students, learning, tests & questions) and CSV exports
 
 **§14 Advanced** — offline downloads (PDF + Bunny video, license refresh), screen-capture protection, ConnectIPS provider,
 AI study assistant (after L2), live classes (after L3), Apple IAP (only if decided later).

@@ -18,6 +18,7 @@ import { localized } from '@/i18n/translate';
 import { useT } from '@/i18n/use-t';
 import { formatDuration, marks, num } from '@/lib/format';
 import { markBlanks } from '@/lib/practice';
+import { useStudyTime } from '@/lib/study-time';
 import { useTheme } from '@/theme/theme';
 import { Button } from '@/ui/button';
 import { Dialog } from '@/ui/dialog';
@@ -34,6 +35,7 @@ export default function ExamScreen() {
   const { attemptId } = useLocalSearchParams<{ attemptId: string }>();
   const attempt = useAttempt(attemptId);
   const { colors } = useTheme();
+  useStudyTime('test');
 
   if (attempt.isPending) {
     return (

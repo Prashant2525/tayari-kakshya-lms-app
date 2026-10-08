@@ -15,3 +15,5 @@ export const E2E_EDITOR3_EMAIL = 'e2e-editor-3@example.test';
  * accounts per IP per hour, and a whole suite runs from one IP.
  */
 export const E2E_STUDENT_EMAIL = 'e2e-student@example.test';
+/** A second seeded student, for specs that count a student's own activity exactly (progress analytics). */
+export const E2E_STUDENT2_EMAIL = 'e2e-student-2@example.test';
