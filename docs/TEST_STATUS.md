@@ -1,6 +1,6 @@
 # Test Status
 
-Last updated: 2026-10-11 (Phase 13b: study planner). `pnpm test` runs unit + integration suites (needs `pnpm infra:up`);
+Last updated: 2026-10-11 (Phase 13c: course reviews). `pnpm test` runs unit + integration suites (needs `pnpm infra:up`);
 `pnpm build && pnpm --filter @tk/admin e2e` and `pnpm build && pnpm --filter @tk/mobile e2e` run the browser suites
 (the student suite also needs Mailpit, part of `pnpm infra:up`).
 
@@ -11,14 +11,30 @@ Last updated: 2026-10-11 (Phase 13b: study planner). `pnpm test` runs unit + int
 | `@tk/design-tokens` | 39 | WCAG contrast for every text/background pair (light + dark), CSS generation |
 | `@tk/domain` | 64 | BS calendar, Kathmandu day boundary, fiscal year, money/VAT/discounts, access validity |
 | `@tk/contracts` | 21 | Schema behaviour (localized text, email normalisation, mass assignment, settings defaults, rich-text validation) |
-| `@tk/api` | 292 | Integration against real PostgreSQL + Redis + S3 (SeaweedFS) through the HTTP stack; TOTP RFC 6238 vectors; RBAC, video, watermark unit |
+| `@tk/api` | 294 | Integration against real PostgreSQL + Redis + S3 (SeaweedFS) through the HTTP stack; TOTP RFC 6238 vectors; RBAC, video, watermark unit |
 | `@tk/admin` (unit) | 35 | API client (headers, refresh single-flight, retry, session loss, error mapping), BS formatting, Button `asChild` regression |
-| `@tk/admin` (E2E, Playwright) | 34 | Real browser + real API + `*_e2e` database |
+| `@tk/admin` (E2E, Playwright) | 35 | Real browser + real API + `*_e2e` database |
 | `@tk/mobile` (unit) | 41 | Study-time meter (idle limits, videos, innermost screen, background), development picture addresses on a phone, API client (single-flight refresh, early refresh, session end, maintenance), translations complete in both languages, BS dates and Kathmandu weekday, force-update/maintenance gate, form checks, Nepali phone numbers |
-| `@tk/mobile` (E2E, Playwright, phone viewport) | 40 | Web build + real API + `*_mobile_e2e` database + Mailpit |
+| `@tk/mobile` (E2E, Playwright, phone viewport) | 41 | Web build + real API + `*_mobile_e2e` database + Mailpit |
 | `@tk/web` (unit) | 8 | Session refresh used once (concurrent / late requests share it; refused → signed out; unreachable → retried), token expiry, both languages complete, failure messages |
-| `@tk/web` (E2E, Playwright) | 9 | `next start` production build + real API + `*_web_e2e` database + Mailpit + gateway stand-in; access tokens last 60 s so every page load refreshes |
-| **Total** | **583** | |
+| `@tk/web` (E2E, Playwright) | 10 | `next start` production build + real API + `*_web_e2e` database + Mailpit + gateway stand-in; access tokens last 60 s so every page load refreshes |
+| **Total** | **588** | |
+
+### Added with course reviews (Phase 13c, T-066, D-066)
+- **API (2 integration tests):** only for a course the student has and after the CMS share of lessons (with the
+  shares in the error); stars and text validated; waiting reviews are not public and do not count; moderators only;
+  approve → public with a short name and the rating on the course page, the list and My courses; reject needs a
+  reason the student sees; approving later counts it; a changed review waits again; names per the CMS; audited;
+  delete; erasure; not for courses that are not live. Mutation-checked (8: waiting reviews public, waiting counted,
+  progress not required, course not required, edit keeping approval, names ignored, no audit, erasure keeping
+  reviews — each fails a test).
+- **CMS E2E (1):** a review waits, is rejected with a reason, then published from Rejected; the course shows the
+  rating. **App E2E (1):** not enough progress → finish the lesson → write a review (stars required) → waiting →
+  approved → published with the rating. **Website E2E (1):** an approved review and the rating on the course page,
+  and `aggregateRating` in the JSON-LD.
+- Screens checked: app course page, website course page, CMS reviews; fixed: "1 reviews" (singular wording), a
+  JSON-LD escape that did not escape.
+- Website E2E: the reviews spec signs in as the second seeded editor (staff sign-in allows 5 per account per 15 min).
 
 ### Added with the study planner (Phase 13b, T-065, D-066)
 - **Domain (6):** spreading work in order within the minutes a day; today's finished work kept and counted; a test

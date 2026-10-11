@@ -45,6 +45,12 @@ import { CertificatesService } from './modules/certificates/certificates.service
 import { MistakesController } from './modules/mistakes/mistakes.controller.js';
 import { MistakesService } from './modules/mistakes/mistakes.service.js';
 import { PlannerController } from './modules/progress/planner.controller.js';
+import {
+  AdminReviewsController,
+  MyReviewController,
+  PublicReviewsController,
+} from './modules/reviews/reviews.controller.js';
+import { ReviewsService } from './modules/reviews/reviews.service.js';
 import { PlannerService } from './modules/progress/planner.service.js';
 import { ProgressController } from './modules/progress/progress.controller.js';
 import { ProgressService } from './modules/progress/progress.service.js';
@@ -163,6 +169,7 @@ export class InfraModule {}
     MistakesService,
     ProgressService,
     PlannerService,
+    ReviewsService,
     GatewayHttp,
     PaymentsService,
     AdminOrdersService,
@@ -222,6 +229,7 @@ export class InfraModule {}
     MistakesService,
     ProgressService,
     PlannerService,
+    ReviewsService,
     GatewayHttp,
     PaymentsService,
     AdminOrdersService,
@@ -301,6 +309,9 @@ export class DomainModule {}
     MistakesController,
     ProgressController,
     PlannerController,
+    PublicReviewsController,
+    MyReviewController,
+    AdminReviewsController,
     PaymentsController,
     AdminOrdersController,
     PlansController,

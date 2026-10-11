@@ -105,6 +105,8 @@ courses/subjects. Every write is audited.
 | GET | `/me/progress` | student | study time (7 Nepal days by activity; today / 7 / 30 days), finished lessons, accuracy overall and by subject, weak / strong topics (`progress.topics`), latest released test results (T-064) |
 | GET | `/me/study-plans` | student | each plan with today's work (T-065) |
 | GET / PUT / DELETE | `/me/study-plans/:courseId` | student | the plan day by day; PUT `{ examDate, minutesPerDay: 10–600 }` (course the student has; exam after today, within 3 years) |
+| GET / PUT / DELETE | `/me/courses/:courseId/review` | student | own review with status and whether one may be written (`progressPercent`, `requiredPercent`); PUT `{ rating 1–5, body? }` → pending (`REVIEW_NOT_ALLOWED` before enough progress) (T-066) |
+| GET | `/courses/:slug/reviews` | public | approved reviews, newest first, cursor; `summary { average, count, stars }` (T-066) |
 | GET | `/me/bookmarks` | student | saved lessons and questions, newest first: `{ targetType, targetId, createdAt, item? \| question? }`; unpublished targets are left out |
 | PUT / DELETE | `/me/bookmarks/:type/:id` | student | `type` = `learning_item` \| `question`; save (idempotent) / remove; only published targets can be saved |
 | GET | `/search?q=` | student | `q` 2–120 chars: `{ courses, items, questions, articles }` — published courses (platform-aware prices), live lessons by title (en/ne), questions by text, live articles by title or address (T-061); no premium bodies or answers |
@@ -406,6 +408,7 @@ Every module exposes `GET list` (search/filter/sort/paginate), `GET :id`, `POST`
 - `/admin/articles`, `/admin/notices`, `/admin/notification-campaigns`, `/admin/banners`, `/admin/home-sections`
 - `/admin/plans`, `/admin/coupons`, `/admin/orders`, `/admin/payments` (+ `reconcile`), `/admin/refunds` (+ approve/process), `/admin/invoices`
 - `/admin/reviews`, `/admin/discussions`, `/admin/faqs`, `/admin/pages`, `/admin/contact-options`, `/admin/certificates`
+- Course reviews (built, T-066): `GET /admin/reviews?status=&courseId=`, `POST /admin/reviews/:id/approve`, `POST /admin/reviews/:id/reject { reason }` — `reviews:moderate`, audited
 - Banners (built, T-063): `GET|POST /admin/banners`, `PUT|DELETE /admin/banners/:id` — `banners:manage`; public `GET /banners?placement=app|website` (in date, by order; on iPhone no plan / web links or iPhone-hidden ones)
 - Pages and Help (built, T-062): `GET /admin/pages`, `GET|PUT /admin/pages/:slug`, `POST /admin/pages/:slug/publish` — `pages:manage`; `GET|POST /admin/faqs`, `PUT|DELETE /admin/faqs/:id`, `GET|POST /admin/contact-options`, `PUT|DELETE /admin/contact-options/:id` — `support:manage`
 - Articles (built, T-060): `GET|POST /admin/articles`, `GET|PUT|DELETE /admin/articles/:id`, `PUT /admin/articles/:id/status`, `GET /admin/article-quizzes` — `articles:edit` (publishing and live edits `articles:publish`); `GET /admin/article-categories`, `POST /admin/article-categories`, `PUT /admin/article-categories/:id` — `articles:publish`

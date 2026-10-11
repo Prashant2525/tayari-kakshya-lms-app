@@ -5,6 +5,7 @@ import {
   type LocalizedRichDoc,
   type LocalizedText,
   type Platform,
+  type RatingSummary,
 } from '@tk/contracts';
 import { AppError, Errors } from '../../common/errors/app-error.js';
 import { Prisma, type Course, type MediaAsset } from '../../generated/prisma/client.js';
@@ -19,6 +20,7 @@ import { isLive, liveWhere, publishedWhere } from './publishing.js';
 import { watermarkPdf } from './pdf-watermark.js';
 import { VideoService } from './video.service.js';
 import { CourseInterestsService } from '../notifications/course-interests.service.js';
+import { ReviewsService } from '../reviews/reviews.service.js';
 
 const num = (d: Prisma.Decimal | null) => (d === null ? null : Number(d));
 const locked = () => new AppError(403, ErrorCode.CONTENT_LOCKED, 'This content is part of a premium course');
@@ -48,6 +50,7 @@ export class CatalogService {
     private readonly video: VideoService,
     private readonly certificates: CertificatesService,
     private readonly interests: CourseInterestsService,
+    private readonly reviews: ReviewsService,
   ) {}
 
   // ───────────── Courses ─────────────
@@ -86,9 +89,12 @@ export class CatalogService {
       take: params.limit + 1,
     });
     const page = rows.slice(0, params.limit);
-    const purchasable = await this.purchasable(params.platform);
+    const [purchasable, ratings] = await Promise.all([
+      this.purchasable(params.platform),
+      this.reviews.ratings(page.map((c) => c.id)),
+    ]);
     return {
-      data: page.map((c) => this.courseCard(c, purchasable)),
+      data: page.map((c) => this.courseCard(c, purchasable, ratings.get(c.id))),
       nextCursor: rows.length > params.limit ? (page.at(-1)?.id ?? null) : null,
     };
   }
@@ -130,7 +136,7 @@ export class CatalogService {
       await this.interests.record(viewer.userId, viewer.sessionId, course.id);
     }
     return {
-      ...this.courseCard(course, purchasable),
+      ...this.courseCard(course, purchasable, (await this.reviews.ratings([course.id])).get(course.id)),
       description: (course.description as LocalizedRichDoc | null) ?? null,
       descriptionMedia: await this.media.publicImageUrls(this.richMediaIds(course.description)),
       language: course.language,
@@ -190,8 +196,9 @@ export class CatalogService {
       viewer.userId,
       courses.map((c) => c.id),
     );
+    const ratings = await this.reviews.ratings(courses.map((c) => c.id));
     return courses.map((c) => ({
-      ...this.courseCard(c, false),
+      ...this.courseCard(c, false, ratings.get(c.id)),
       progress: progress.get(c.id) ?? { completed: 0, total: 0 },
     }));
   }
@@ -455,7 +462,7 @@ export class CatalogService {
     return channels.web === 'enabled';
   }
 
-  private courseCard(c: CourseWithThumb, purchasable: boolean) {
+  private courseCard(c: CourseWithThumb, purchasable: boolean, rating?: RatingSummary) {
     const now = new Date();
     const saleActive =
       c.salePricePaisa !== null &&
@@ -469,6 +476,8 @@ export class CatalogService {
       thumbnailUrl: c.thumbnail ? this.storage.publicUrl(c.thumbnail.objectKey) : null,
       isFeatured: c.isFeatured,
       isFree: c.pricePaisa === 0,
+      /** Approved reviews only (D-066); null until a review is approved. */
+      rating: rating ?? null,
       pricing: purchasable
         ? {
             pricePaisa: c.pricePaisa,

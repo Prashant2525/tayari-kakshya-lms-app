@@ -62,6 +62,8 @@ export const ErrorCode = {
   PAYMENT_PROVIDER_UNAVAILABLE: 'PAYMENT_PROVIDER_UNAVAILABLE',
   /** The gateway could not be reached or refused to start the payment; trying again may work. */
   PAYMENT_GATEWAY_ERROR: 'PAYMENT_GATEWAY_ERROR',
+  /** A course is reviewed after finishing part of it (details.requiredPercent, details.progressPercent; D-066). */
+  REVIEW_NOT_ALLOWED: 'REVIEW_NOT_ALLOWED',
 } as const;
 export type ErrorCode = (typeof ErrorCode)[keyof typeof ErrorCode];
 

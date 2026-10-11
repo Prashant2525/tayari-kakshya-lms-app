@@ -3,11 +3,12 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { cache } from 'react';
 import { PriceTag } from '@/components/course-card';
+import { CourseReviews, RatingLine } from '@/components/reviews';
 import { RichText } from '@/components/rich-text';
 import { Alert, button, Card } from '@/components/ui';
 import { api, ApiError } from '@/lib/api';
 import { getI18n } from '@/lib/i18n';
-import type { CourseDetail } from '@/lib/types';
+import type { CourseDetail, CourseReviewsPage } from '@/lib/types';
 import { validityText } from '@/lib/validity';
 
 const load = cache(async (slug: string) => {
@@ -43,6 +44,31 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
   const course = await load(slug);
   if (!course) notFound();
   const { locale, t, localized, bsDate } = await getI18n();
+  // Approved reviews only; a change shows within a minute.
+  const reviews = await api<CourseReviewsPage>(
+    `/courses/${encodeURIComponent(course.slug)}/reviews?limit=10`,
+    {
+      revalidate: 60,
+      auth: false,
+    },
+  ).catch(() => null);
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Course',
+    name: localized(course.title),
+    description: localized(course.shortDescription) || undefined,
+    ...(course.rating && course.rating.count > 0
+      ? {
+          aggregateRating: {
+            '@type': 'AggregateRating',
+            ratingValue: course.rating.average,
+            ratingCount: course.rating.count,
+            bestRating: 5,
+            worstRating: 1,
+          },
+        }
+      : {}),
+  };
   const doc = course.description
     ? (course.description[locale] ?? course.description.en ?? course.description.ne)
     : undefined;
@@ -50,6 +76,10 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
   return (
     <div className="grid gap-8 lg:grid-cols-[1fr_340px]">
       <article className="min-w-0">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
+        />
         {course.thumbnailUrl ? (
           <img
             src={course.thumbnailUrl}
@@ -63,6 +93,9 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
         {course.shortDescription ? (
           <p className="mt-3 text-lg text-text-secondary">{localized(course.shortDescription)}</p>
         ) : null}
+        <div className="mt-2">
+          <RatingLine rating={course.rating} t={t} />
+        </div>
         <p className="mt-3 text-sm text-text-muted">
           {t('course.counts', { notes: counts.note ?? 0, pdfs: counts.pdf ?? 0, videos: counts.video ?? 0 })}
         </p>
@@ -117,6 +150,8 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
             </ul>
           </section>
         ) : null}
+
+        {reviews ? <CourseReviews page={reviews} t={t} bsDate={bsDate} /> : null}
       </article>
 
       <aside>

@@ -4,11 +4,14 @@ import { E2E_API_ORIGIN, MAILPIT_URL } from './constants.mjs';
 
 const api = (path: string) => `${E2E_API_ORIGIN}/api/v1${path}`;
 
-/** Signs in the seeded content editor through the admin API (no browser) and returns an access token. */
-export async function editorToken(request: APIRequestContext): Promise<string> {
+/**
+ * Signs in a seeded content editor through the admin API (no browser) and returns an access token. Staff sign-in allows
+ * 5 attempts per account per 15 minutes, so specs beyond that budget pass the second editor.
+ */
+export async function editorToken(request: APIRequestContext, email = E2E_EDITOR_EMAIL): Promise<string> {
   const res = await request.post(api('/admin/auth/login'), {
     headers: { 'X-TK-Client': 'admin' },
-    data: { email: E2E_EDITOR_EMAIL, password: E2E_ADMIN_PASSWORD },
+    data: { email, password: E2E_ADMIN_PASSWORD },
   });
   expect(res.ok(), await res.text()).toBe(true);
   return ((await res.json()) as { accessToken: string }).accessToken;
