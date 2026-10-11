@@ -2,14 +2,13 @@ import { Controller, Get, Inject, Param, Res } from '@nestjs/common';
 import { ApiExcludeController } from '@nestjs/swagger';
 import type { FastifyReply } from 'fastify';
 import { readFile } from 'node:fs/promises';
-import { createRequire } from 'node:module';
 import path from 'node:path';
 import { Public } from '../../../common/auth/auth-context.js';
 import { Errors } from '../../../common/errors/app-error.js';
 import { ENV, type Env } from '../../../config/env.js';
+import { offlineReader, pdfjsDir } from './offline-reader.js';
 import { VIEWER_CSS, VIEWER_HTML, VIEWER_JS } from './viewer-files.js';
 
-const pdfjsDir = path.dirname(createRequire(import.meta.url).resolve('pdfjs-dist/package.json'));
 /** Only these pdf.js files are served (legacy build for older Android WebViews). */
 const PDFJS_FILES: Record<string, string> = {
   'pdf.min.mjs': 'legacy/build/pdf.min.mjs',
@@ -64,6 +63,17 @@ export class PdfViewerController {
       .header('Cache-Control', 'no-cache')
       .type('text/html; charset=utf-8')
       .send(VIEWER_HTML);
+  }
+
+  /** The self-contained reader the app saves with a downloaded PDF (D-067); it carries no data. */
+  @Get('pdf-offline')
+  async offline(@Res() reply: FastifyReply) {
+    const reader = await offlineReader();
+    void reply
+      .header('Cache-Control', 'no-cache')
+      .header('X-Reader-Version', reader.version)
+      .type('text/html; charset=utf-8')
+      .send(reader.html);
   }
 
   @Get('assets/:file')

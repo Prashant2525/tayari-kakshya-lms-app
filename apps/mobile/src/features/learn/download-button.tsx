@@ -6,7 +6,7 @@ import { useT } from '@/i18n/use-t';
 import { offlineSupported, useOffline } from '@/lib/offline';
 import { useTheme } from '@/theme/theme';
 
-/** Saves a note for offline reading, or removes the saved copy (D-067). Hidden where offline is not available. */
+/** Saves a note or PDF for offline reading, or removes the saved copy (D-067). Hidden where offline is not available. */
 export function DownloadButton({
   item,
   where,
@@ -19,7 +19,7 @@ export function DownloadButton({
   const config = useAppConfig();
   const saved = useOffline((s) => Boolean(s.items[item.id]));
   const busy = useOffline((s) => Boolean(s.busy[item.id]));
-  if (!offlineSupported || item.type !== 'note' || config.data?.offline?.enabled === false) return null;
+  if (!offlineSupported || item.type === 'video' || config.data?.offline?.enabled === false) return null;
   const label = saved ? t('offline.remove') : t('offline.download');
   return (
     <Pressable

@@ -5,12 +5,14 @@ import { create } from 'zustand';
 import { api } from '@/api/client';
 import type { ItemContent } from '@/api/learning';
 import { useSession } from '@/state/session';
+import { env } from './env';
 import { usable, withLocalMedia, type OfflineEntry } from './offline-rules';
 
 /**
- * Offline lessons (S11, D-067, T-069): notes saved in the app's private storage with their pictures, opened without
- * internet until their licence expires. Online, the licences are renewed (or revoked: the copy is deleted). Everything
- * is deleted when the student signs out. Not on the web.
+ * Offline lessons (S11, D-067, T-069): notes (with their pictures) and PDFs saved in the app's private storage,
+ * opened without internet until their licence expires. A PDF is the student's own watermarked copy, read in a saved
+ * offline reader page. Online, the licences are renewed (or revoked: the copy is deleted). Everything is deleted when
+ * the student signs out. Not on the web.
  */
 export const offlineSupported = Platform.OS !== 'web';
 
@@ -18,13 +20,51 @@ interface Index {
   items: Record<string, OfflineEntry>;
   /** The last time the server reported (guards against a clock set back). */
   serverTime: string | null;
+  /** The saved offline PDF reader's version (one reader serves every saved PDF). */
+  reader?: string;
 }
-type Downloaded = ItemContent & { expiresAt: string; serverTime: string; version: string };
+type Downloaded = ItemContent & {
+  expiresAt: string;
+  serverTime: string;
+  version: string;
+  readerVersion?: string;
+};
 
 const root = () => new Directory(Paths.document, 'offline');
 const indexFile = () => new File(root(), 'index.json');
 const contentFile = (id: string) => new File(root(), `${id}.json`);
 const mediaDir = () => new Directory(root(), 'media');
+const pdfFile = (id: string) => new File(root(), `${id}.pdf`);
+const readerFile = (version: string) => new File(root(), `reader-${version}.html`);
+
+const authorization = () => ({ Authorization: `Bearer ${useSession.getState().tokens?.accessToken ?? ''}` });
+
+/** Downloads to a temporary file first, so a failed download keeps the copy already saved. */
+async function fetchTo(url: string, target: File, headers: Record<string, string>) {
+  const part = new File(root(), `${target.name}.part`);
+  if (part.exists) part.delete();
+  try {
+    await File.downloadFileAsync(url, part, { headers, idempotent: true });
+  } catch (err) {
+    // Android may leave a partly written file behind.
+    if (part.exists) part.delete();
+    throw err;
+  }
+  if (target.exists) target.delete();
+  await part.move(target);
+}
+
+/** The student's watermarked PDF, and the offline reader when this version is not saved yet (older ones go). */
+async function savePdf(id: string, readerVersion: string) {
+  await fetchTo(`${env.apiBaseUrl}/learning-items/${id}/pdf`, pdfFile(id), authorization());
+  const reader = readerFile(readerVersion);
+  if (!reader.exists) {
+    await fetchTo(`${env.apiBaseUrl}/viewer/pdf-offline`, reader, {});
+    for (const entry of root().list()) {
+      if (entry.name.startsWith('reader-') && entry.name !== reader.name) entry.delete();
+    }
+  }
+}
 
 function ensureDirs() {
   if (!root().exists) root().create({ intermediates: true });
@@ -50,6 +90,8 @@ function writeIndex(index: Index) {
 function deleteFiles(id: string) {
   const content = contentFile(id);
   if (content.exists) content.delete();
+  const pdf = pdfFile(id);
+  if (pdf.exists) pdf.delete();
   if (mediaDir().exists) {
     for (const entry of mediaDir().list()) if (entry.name.startsWith(`${id}-`)) entry.delete();
   }
@@ -82,6 +124,7 @@ export const useOffline = create<OfflineState>((set, get) => ({
     try {
       const saved = await api.post<Downloaded>(`/learning-items/${item.id}/offline`);
       ensureDirs();
+      if (saved.type === 'pdf') await savePdf(item.id, saved.readerVersion ?? 'current');
       // Pictures go with the note, so it reads the same without internet.
       const files: Record<string, string> = {};
       for (const [mediaId, m] of Object.entries(saved.media ?? {})) {
@@ -100,7 +143,7 @@ export const useOffline = create<OfflineState>((set, get) => ({
       content.write(JSON.stringify({ ...saved, media: withLocalMedia(saved.media ?? {}, files) }));
       const entry: OfflineEntry = {
         id: item.id,
-        type: 'note',
+        type: saved.type === 'pdf' ? 'pdf' : 'note',
         title: saved.title,
         version: saved.version,
         expiresAt: saved.expiresAt,
@@ -108,7 +151,11 @@ export const useOffline = create<OfflineState>((set, get) => ({
         premium: saved.accessLevel === 'premium',
         ...where,
       };
-      const index = { items: { ...get().items, [item.id]: entry }, serverTime: saved.serverTime };
+      const index: Index = {
+        items: { ...get().items, [item.id]: entry },
+        serverTime: saved.serverTime,
+        reader: saved.readerVersion ?? get().reader,
+      };
       writeIndex(index);
       set(index);
     } finally {
@@ -121,7 +168,7 @@ export const useOffline = create<OfflineState>((set, get) => ({
     deleteFiles(id);
     const items = { ...get().items };
     delete items[id];
-    const index = { items, serverTime: get().serverTime };
+    const index = { items, serverTime: get().serverTime, reader: get().reader };
     writeIndex(index);
     set(index);
   },
@@ -129,7 +176,7 @@ export const useOffline = create<OfflineState>((set, get) => ({
   clear() {
     if (!offlineSupported) return;
     if (root().exists) root().delete();
-    set({ items: {}, serverTime: null });
+    set({ items: {}, serverTime: null, reader: undefined });
   },
 
   async refresh() {
@@ -151,7 +198,7 @@ export const useOffline = create<OfflineState>((set, get) => ({
         if (l.version && l.version !== entry.version) outdated.push(entry);
       }
     }
-    const index = { items, serverTime: res.serverTime };
+    const index = { items, serverTime: res.serverTime, reader: get().reader };
     writeIndex(index);
     set(index);
     // Changed lessons are saved again (best effort: the old copy stays until the new one is in).
@@ -174,6 +221,17 @@ export function savedLesson(id: string): (ItemContent & { expiresAt: string }) |
   if (!offlineSupported || !entry || !usable(entry, Date.now(), serverTime)) return null;
   try {
     return JSON.parse(contentFile(id).textSync()) as ItemContent & { expiresAt: string };
+  } catch {
+    return null;
+  }
+}
+
+/** The offline reader page, and the saved PDF in base64, when a saved PDF lesson may be opened now. */
+export async function savedPdf(id: string): Promise<{ readerHtml: string; base64: string } | null> {
+  const { reader } = useOffline.getState();
+  if (!savedLesson(id) || !reader) return null;
+  try {
+    return { readerHtml: readerFile(reader).textSync(), base64: await pdfFile(id).base64() };
   } catch {
     return null;
   }

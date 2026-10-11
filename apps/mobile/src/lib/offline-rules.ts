@@ -1,7 +1,7 @@
-/** A lesson saved for offline reading (S11, D-067). */
+/** A lesson saved for offline reading (S11, D-067): a note, or a PDF (read in the saved offline reader). */
 export interface OfflineEntry {
   id: string;
-  type: 'note';
+  type: 'note' | 'pdf';
   title: { en?: string; ne?: string };
   /** The lesson's last change when it was saved. */
   version: string;
@@ -45,4 +45,15 @@ export function withLocalMedia<M extends { url: string; variants: Record<string,
       ];
     }),
   );
+}
+
+/**
+ * A saved PDF, in base64, cut into pieces small enough to post into the reader page one by one. Each piece is a whole
+ * number of base64 quads, so the page can decode them separately.
+ */
+export function base64Chunks(base64: string, size = 512 * 1024): string[] {
+  const step = Math.max(4, size - (size % 4));
+  const chunks: string[] = [];
+  for (let at = 0; at < base64.length; at += step) chunks.push(base64.slice(at, at + step));
+  return chunks;
 }

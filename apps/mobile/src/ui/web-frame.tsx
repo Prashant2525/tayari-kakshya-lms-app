@@ -9,7 +9,10 @@ export interface WebFrameHandle {
 }
 
 export interface WebFrameProps {
-  uri: string;
+  /** The page to open, or */
+  uri?: string;
+  /** a page saved on the device (the offline PDF reader): it may not load or open anything else. */
+  html?: string;
   title: string;
   onMessage?: (data: unknown) => void;
   /** Runs in the page after it loads (phones only; the web build cannot inject into other origins). */
@@ -27,14 +30,15 @@ const appReferrer = Application.applicationId ? `https://${Application.applicati
 
 /**
  * Embedded page (video player, PDF reader). Phones: a WebView that stays on the page's own host — other links open
- * in the browser. No Referer is sent for the first load, which Bunny's signed embeds require (T-031).
+ * in the browser. No Referer is sent for the first load, which Bunny's signed embeds require (T-031). A saved page
+ * (`html`) stays on itself.
  */
 export const WebFrame = forwardRef<WebFrameHandle, WebFrameProps>(function WebFrame(
-  { uri, title, onMessage, injectedJavaScript, sendReferrer = false, style },
+  { uri, html, title, onMessage, injectedJavaScript, sendReferrer = false, style },
   ref,
 ) {
   const view = useRef<WebView>(null);
-  const host = new URL(uri).host;
+  const host = uri ? new URL(uri).host : null;
   useImperativeHandle(
     ref,
     () => ({ post: (message) => view.current?.postMessage(JSON.stringify(message)) }),
@@ -43,7 +47,13 @@ export const WebFrame = forwardRef<WebFrameHandle, WebFrameProps>(function WebFr
   return (
     <WebView
       ref={view}
-      source={sendReferrer && appReferrer ? { uri, headers: { Referer: appReferrer } } : { uri }}
+      source={
+        html !== undefined
+          ? { html }
+          : sendReferrer && appReferrer
+            ? { uri: uri ?? 'about:blank', headers: { Referer: appReferrer } }
+            : { uri: uri ?? 'about:blank' }
+      }
       accessibilityLabel={title}
       style={[styles.frame, style]}
       javaScriptEnabled
@@ -61,8 +71,10 @@ export const WebFrame = forwardRef<WebFrameHandle, WebFrameProps>(function WebFr
         }
       }}
       onShouldStartLoadWithRequest={(request) => {
+        if (request.url === 'about:blank' || request.url.startsWith('data:')) return true;
+        if (host === null) return false;
         const target = new URL(request.url);
-        if (target.host === host || request.url === 'about:blank') return true;
+        if (target.host === host) return true;
         if (request.isTopFrame) void Linking.openURL(request.url);
         return !request.isTopFrame;
       }}

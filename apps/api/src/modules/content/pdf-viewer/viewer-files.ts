@@ -28,57 +28,28 @@ export const VIEWER_CSS = `html,body{margin:0;background:#EEF1F6;-webkit-user-se
 #status:empty{display:none}
 `;
 
-export const VIEWER_JS = `import * as pdfjs from './pdf.min.mjs';
-
-const asset = (path) => new URL(path, import.meta.url).href;
-pdfjs.GlobalWorkerOptions.workerSrc = asset('./pdf.worker.min.mjs');
-
-const pagesEl = document.getElementById('pages');
+/**
+ * Shared by both reader pages: `send` reports to the app; `show` renders a PDF's bytes as page images (no
+ * selectable text), drawing pages as they come near the screen and reporting the page most in view.
+ */
+const RENDER_JS = `const pagesEl = document.getElementById('pages');
 const statusEl = document.getElementById('status');
-let opened = false;
 
 function send(message) {
   if (window.ReactNativeWebView) window.ReactNativeWebView.postMessage(JSON.stringify(message));
   else if (window.parent !== window) window.parent.postMessage(message, '*');
 }
 
-function onMessage(event) {
+function parse(event) {
   let data = event.data;
   if (typeof data === 'string') {
-    try { data = JSON.parse(data); } catch { return; }
+    try { data = JSON.parse(data); } catch { return null; }
   }
-  if (!data || data.type !== 'open' || opened) return;
-  // In a browser only the embedding app may open a document; WebView messages come from the app itself.
-  if (!window.ReactNativeWebView && event.source !== window.parent) return;
-  opened = true;
-  open(data).catch(() => send({ type: 'error', status: 0, code: 'RENDER_FAILED' }));
+  return data && typeof data === 'object' ? data : null;
 }
-window.addEventListener('message', onMessage);
-document.addEventListener('message', onMessage);
 
-async function open({ token, itemId, page }) {
-  if (!/^[0-9a-f-]{36}$/i.test(String(itemId))) return;
-  statusEl.textContent = '…';
-  const res = await fetch(new URL('../learning-items/' + itemId + '/pdf', location.href), {
-    headers: { Authorization: 'Bearer ' + token },
-    cache: 'no-store',
-  });
-  if (!res.ok) {
-    let code = 'ERROR';
-    try { code = (await res.json()).error.code; } catch {}
-    statusEl.textContent = '';
-    send({ type: 'error', status: res.status, code });
-    return;
-  }
-  const data = new Uint8Array(await res.arrayBuffer());
-  const doc = await pdfjs.getDocument({
-    data,
-    isEvalSupported: false,
-    standardFontDataUrl: asset('./standard_fonts/'),
-    cMapUrl: asset('./cmaps/'),
-    cMapPacked: true,
-    wasmUrl: asset('./wasm/'),
-  }).promise;
+async function show(pdfjs, data, page, options) {
+  const doc = await pdfjs.getDocument({ data, isEvalSupported: false, ...options }).promise;
   statusEl.textContent = '';
   const first = await doc.getPage(1);
   const ratio = first.getViewport({ scale: 1 }).height / first.getViewport({ scale: 1 }).width;
@@ -140,6 +111,87 @@ async function open({ token, itemId, page }) {
   const start = Math.min(Math.max(Number(page) || 1, 1), doc.numPages);
   if (start > 1) holders[start - 1].scrollIntoView();
 }
+`;
+
+export const VIEWER_JS = `import * as pdfjs from './pdf.min.mjs';
+
+const asset = (path) => new URL(path, import.meta.url).href;
+pdfjs.GlobalWorkerOptions.workerSrc = asset('./pdf.worker.min.mjs');
+
+${RENDER_JS}
+let opened = false;
+
+function onMessage(event) {
+  const data = parse(event);
+  if (!data || data.type !== 'open' || opened) return;
+  // In a browser only the embedding app may open a document; WebView messages come from the app itself.
+  if (!window.ReactNativeWebView && event.source !== window.parent) return;
+  opened = true;
+  open(data).catch(() => send({ type: 'error', status: 0, code: 'RENDER_FAILED' }));
+}
+window.addEventListener('message', onMessage);
+document.addEventListener('message', onMessage);
+
+async function open({ token, itemId, page }) {
+  if (!/^[0-9a-f-]{36}$/i.test(String(itemId))) return;
+  statusEl.textContent = '…';
+  const res = await fetch(new URL('../learning-items/' + itemId + '/pdf', location.href), {
+    headers: { Authorization: 'Bearer ' + token },
+    cache: 'no-store',
+  });
+  if (!res.ok) {
+    let code = 'ERROR';
+    try { code = (await res.json()).error.code; } catch {}
+    statusEl.textContent = '';
+    send({ type: 'error', status: res.status, code });
+    return;
+  }
+  await show(pdfjs, new Uint8Array(await res.arrayBuffer()), page, {
+    standardFontDataUrl: asset('./standard_fonts/'),
+    cMapUrl: asset('./cmaps/'),
+    cMapPacked: true,
+    wasmUrl: asset('./wasm/'),
+  });
+}
+
+send({ type: 'ready' });
+`;
+
+/**
+ * The offline reader script (D-067, 14a-2): runs in a page with pdf.js and its worker inlined (the worker on the main
+ * thread), so it needs no network. The app posts `{ type: 'open', page }`, then the saved PDF as base64
+ * `{ type: 'chunk', data }` messages and `{ type: 'end' }`.
+ */
+export const OFFLINE_VIEWER_JS = `const pdfjs = globalThis.pdfjsLib;
+${RENDER_JS}
+let opened = null;
+const chunks = [];
+
+function decode(base64) {
+  const text = atob(base64);
+  const bytes = new Uint8Array(text.length);
+  for (let i = 0; i < text.length; i++) bytes[i] = text.charCodeAt(i);
+  return bytes;
+}
+
+function onMessage(event) {
+  const data = parse(event);
+  if (!data || !window.ReactNativeWebView) return;
+  if (data.type === 'open' && !opened) {
+    opened = data;
+    statusEl.textContent = '…';
+  } else if (data.type === 'chunk' && opened && typeof data.data === 'string') {
+    chunks.push(decode(data.data));
+  } else if (data.type === 'end' && opened && !opened.done) {
+    opened.done = true;
+    const all = new Uint8Array(chunks.reduce((n, c) => n + c.length, 0));
+    let at = 0;
+    for (const c of chunks.splice(0)) { all.set(c, at); at += c.length; }
+    show(pdfjs, all, opened.page, {}).catch(() => send({ type: 'error', status: 0, code: 'RENDER_FAILED' }));
+  }
+}
+window.addEventListener('message', onMessage);
+document.addEventListener('message', onMessage);
 
 send({ type: 'ready' });
 `;

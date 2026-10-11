@@ -1,6 +1,6 @@
 # Test Status
 
-Last updated: 2026-10-12 (screen protection on every screen). `pnpm test` runs unit + integration suites (needs `pnpm infra:up`);
+Last updated: 2026-10-12 (Phase 14a part 2: offline PDFs). `pnpm test` runs unit + integration suites (needs `pnpm infra:up`);
 `pnpm build && pnpm --filter @tk/admin e2e` and `pnpm build && pnpm --filter @tk/mobile e2e` run the browser suites
 (the student suite also needs Mailpit, part of `pnpm infra:up`).
 
@@ -11,14 +11,29 @@ Last updated: 2026-10-12 (screen protection on every screen). `pnpm test` runs u
 | `@tk/design-tokens` | 39 | WCAG contrast for every text/background pair (light + dark), CSS generation |
 | `@tk/domain` | 64 | BS calendar, Kathmandu day boundary, fiscal year, money/VAT/discounts, access validity |
 | `@tk/contracts` | 21 | Schema behaviour (localized text, email normalisation, mass assignment, settings defaults, rich-text validation) |
-| `@tk/api` | 302 | Integration against real PostgreSQL + Redis + S3 (SeaweedFS) through the HTTP stack; TOTP RFC 6238 vectors; RBAC, video, watermark unit |
+| `@tk/api` | 304 | Integration against real PostgreSQL + Redis + S3 (SeaweedFS) through the HTTP stack; TOTP RFC 6238 vectors; RBAC, video, watermark unit |
 | `@tk/admin` (unit) | 35 | API client (headers, refresh single-flight, retry, session loss, error mapping), BS formatting, Button `asChild` regression |
 | `@tk/admin` (E2E, Playwright) | 36 | Real browser + real API + `*_e2e` database |
-| `@tk/mobile` (unit) | 44 | Offline licence rules (expiry, clock set back, saved pictures), Study-time meter (idle limits, videos, innermost screen, background), development picture addresses on a phone, API client (single-flight refresh, early refresh, session end, maintenance), translations complete in both languages, BS dates and Kathmandu weekday, force-update/maintenance gate, form checks, Nepali phone numbers |
+| `@tk/mobile` (unit) | 45 | Saved PDF cut into pieces, Offline licence rules (expiry, clock set back, saved pictures), Study-time meter (idle limits, videos, innermost screen, background), development picture addresses on a phone, API client (single-flight refresh, early refresh, session end, maintenance), translations complete in both languages, BS dates and Kathmandu weekday, force-update/maintenance gate, form checks, Nepali phone numbers |
 | `@tk/mobile` (E2E, Playwright, phone viewport) | 43 | Web build + real API + `*_mobile_e2e` database + Mailpit |
 | `@tk/web` (unit) | 8 | Session refresh used once (concurrent / late requests share it; refused → signed out; unreachable → retried), token expiry, both languages complete, failure messages |
 | `@tk/web` (E2E, Playwright) | 10 | `next start` production build + real API + `*_web_e2e` database + Mailpit + gateway stand-in; access tokens last 60 s so every page load refreshes |
-| **Total** | **602** | |
+| **Total** | **605** | |
+
+### Added with offline PDFs (Phase 14a part 2, T-070, D-067)
+- **API:** the offline test now covers PDFs (locked without access, a licence and `readerVersion` with it, renewed,
+  revoked when access ends; videos still refused) and the reader page (same version as named, self-contained:
+  `default-src 'none'`, pdf.js and worker inlined, no `src=` / `<link>` / `connect-src`). **Unit (2):** a pdf.js
+  build turned into an inline script (export removed, `</script` escaped, fails loudly when pdf.js changes shape);
+  the real page has a stable version. Mutation-checked (5: videos allowed, PDFs not renewed, no reader version,
+  export kept, CSP dropped — each fails a test).
+- **App unit (1):** a saved PDF cut into base64 pieces that decode on their own.
+- **Browser check (Chromium, every request blocked):** the reader page renders a 3-page PDF posted in pieces, opens
+  at the asked page, reports `loaded` / `page`, makes no requests and logs no errors.
+- **Device check (Android emulator, Expo Go):** a premium PDF saved from the lesson; with the API stopped and a cold
+  start the lesson opens from the saved copy (offline banner) and the watermarked pages render ("Page 1 of 3"),
+  scrolling reports "Page 3 of 3"; Downloads lists it with the PDF icon. (Screen protection was switched off locally
+  for the screenshots only.) The browser suites run the web build, where offline is not available.
 
 ### Changed: screen protection on every screen (D-068)
 - **Device check (Android emulator, Expo Go, the app suite's API):** screenshots are black on the sign-in screen,

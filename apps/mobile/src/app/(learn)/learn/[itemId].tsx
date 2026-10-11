@@ -162,6 +162,7 @@ export default function LearnScreen() {
             startAt={0}
             finished={false}
             onPosition={() => undefined}
+            offline
           />
         </View>
       ) : item.isError ? (
@@ -229,6 +230,7 @@ function Body({
   startAt,
   finished,
   onPosition,
+  offline = false,
 }: {
   item: ItemContent;
   title: string;
@@ -236,12 +238,15 @@ function Body({
   startAt: number;
   finished: boolean;
   onPosition: (position: number, total?: number) => void;
+  /** The saved copy (D-067): a PDF opens in the saved reader. */
+  offline?: boolean;
 }) {
   const lastVideoSave = useRef(-1);
   if (item.type === 'pdf') {
     return (
       <PdfReader
         itemId={item.id}
+        offline={offline}
         startPage={Math.max(1, startAt)}
         onPage={(page, count) => {
           // Touches inside the PDF view may not reach the app: turning a page counts as reading.

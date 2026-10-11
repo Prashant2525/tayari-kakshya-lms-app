@@ -90,6 +90,7 @@ courses/subjects. Every write is audited.
 | GET | `/me/continue` | student | `{ next }`: the last unfinished item the student can still open, with its subject and the course it was opened from (or `null`) |
 | PUT | `/learning-items/:id/progress` | student | `{ courseId?, position?, completed?: true }` — same access rules as opening the item; completion is permanent; the subject outline now includes `progress` per item |
 | GET | `/viewer/pdf` · `/viewer/assets/*` | public (no data) | self-hosted PDF reader page and allow-listed pdf.js files (T-038); the PDF itself still needs the student's token |
+| GET | `/viewer/pdf-offline` | public (no data) | the self-contained offline reader page (pdf.js inlined, nothing loaded or sent); `X-Reader-Version` header (T-070) |
 | GET | `/courses/:courseId/subjects/:subjectId/outline` | student | chapters/topics/items with `locked` flags; no premium bodies |
 | GET | `/learning-items/:id` | student | `CONTENT_LOCKED` (403) without access; `VERIFICATION_REQUIRED` when the setting demands it |
 | GET | `/learning-items/:id/pdf` | student | streamed PDF, watermarked per student (T-029) |
@@ -109,7 +110,7 @@ courses/subjects. Every write is audited.
 | GET | `/courses/:slug/reviews` | public | approved reviews, newest first, cursor; `summary { average, count, stars }` (T-066) |
 | GET / POST | `/discussions/:target/:targetId` · `/discussions/:target/:targetId/posts` | student | target `question` / `lesson`; thread (doubts newest first with replies, `count`, `canPost`, `bannedUntil`) and posting `{ body, parentId? }` — access per T-067 |
 | DELETE / POST | `/discussions/posts/:id` · `/discussions/posts/:id/report` | student | delete one's own post; report another's `{ reason, message? }` |
-| POST | `/learning-items/:id/offline` | student | a note to keep on the device with `expiresAt` (CMS days), `serverTime`, `version`; notes only for now (T-069) |
+| POST | `/learning-items/:id/offline` | student | a note or PDF to keep on the device with `expiresAt` (CMS days), `serverTime`, `version`; PDFs also `readerVersion` (the app then fetches the watermarked PDF); videos refused (T-069, T-070) |
 | POST | `/me/offline/refresh` | student | `{ itemIds ≤ 200 }` → `{ licences: [{ id, expiresAt \| null (revoked), version }], serverTime }` |
 | GET | `/me/bookmarks` | student | saved lessons and questions, newest first: `{ targetType, targetId, createdAt, item? \| question? }`; unpublished targets are left out |
 | PUT / DELETE | `/me/bookmarks/:type/:id` | student | `type` = `learning_item` \| `question`; save (idempotent) / remove; only published targets can be saved |

@@ -6,11 +6,12 @@ export type { WebFrameHandle, WebFrameProps } from './web-frame';
 
 /** Web build (development and browser tests): an iframe; messages go through `postMessage`. */
 export const WebFrame = forwardRef<WebFrameHandle, WebFrameProps>(function WebFrame(
-  { uri, title, onMessage, sendReferrer = false, style },
+  { uri, html, title, onMessage, sendReferrer = false, style },
   ref,
 ) {
   const frame = useRef<HTMLIFrameElement | null>(null);
-  const origin = new URL(uri, window.location.href).origin;
+  // A saved page (`srcDoc`) has no origin of its own.
+  const origin = uri ? new URL(uri, window.location.href).origin : '*';
 
   useImperativeHandle(
     ref,
@@ -31,6 +32,7 @@ export const WebFrame = forwardRef<WebFrameHandle, WebFrameProps>(function WebFr
       <iframe
         ref={frame}
         src={uri}
+        srcDoc={html}
         title={title}
         allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
         allowFullScreen
