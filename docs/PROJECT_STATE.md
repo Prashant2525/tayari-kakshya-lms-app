@@ -1,6 +1,6 @@
 # Project State
 
-Current Phase: **Phase 13 progress & community** — part 13d (discussions) on `feature/discussions`
+Current Phase: **Phase 13 progress & community** — part 13e (reports) on `feature/dashboards`; **Phase 13 complete**
 Current Milestone: content API on `feature/content-cms` → Admin CMS content screens
 Overall Status: **IN PROGRESS**
 Last updated: 2026-10-11
@@ -70,7 +70,8 @@ Last updated: 2026-10-11
 - Phase 13c on `feature/course-reviews` (T-066): reviews with staff approval; ratings in the app and on the
   website. Merged (PR #43).
 - Phase 13d on `feature/discussions` (T-067): doubts under questions and lessons with teacher answers and
-  moderation. Next: 13e admin dashboards and CSV exports.
+  moderation. Merged (PR #44).
+- Phase 13e on `feature/dashboards` (T-068): CMS Reports and CSV exports. **Phase 13 complete.** Next: Phase 14 (advanced).
 - Monitoring (T-042) merged (PR #14, #15): Sentry in the API, worker, admin and app; PostHog in the app. Google web client registered for `http://localhost:8081` (checked); a real
   sign-in by the owner and Android/iOS clients remain (KI-029).
 - Phase 9 part 2 merged (PR #13): practice questions with Check answer and locked Premium answers

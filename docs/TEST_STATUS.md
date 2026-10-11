@@ -1,6 +1,6 @@
 # Test Status
 
-Last updated: 2026-10-11 (Phase 13d: discussions). `pnpm test` runs unit + integration suites (needs `pnpm infra:up`);
+Last updated: 2026-10-11 (Phase 13e: reports). `pnpm test` runs unit + integration suites (needs `pnpm infra:up`);
 `pnpm build && pnpm --filter @tk/admin e2e` and `pnpm build && pnpm --filter @tk/mobile e2e` run the browser suites
 (the student suite also needs Mailpit, part of `pnpm infra:up`).
 
@@ -11,14 +11,27 @@ Last updated: 2026-10-11 (Phase 13d: discussions). `pnpm test` runs unit + integ
 | `@tk/design-tokens` | 39 | WCAG contrast for every text/background pair (light + dark), CSS generation |
 | `@tk/domain` | 64 | BS calendar, Kathmandu day boundary, fiscal year, money/VAT/discounts, access validity |
 | `@tk/contracts` | 21 | Schema behaviour (localized text, email normalisation, mass assignment, settings defaults, rich-text validation) |
-| `@tk/api` | 296 | Integration against real PostgreSQL + Redis + S3 (SeaweedFS) through the HTTP stack; TOTP RFC 6238 vectors; RBAC, video, watermark unit |
+| `@tk/api` | 301 | Integration against real PostgreSQL + Redis + S3 (SeaweedFS) through the HTTP stack; TOTP RFC 6238 vectors; RBAC, video, watermark unit |
 | `@tk/admin` (unit) | 35 | API client (headers, refresh single-flight, retry, session loss, error mapping), BS formatting, Button `asChild` regression |
 | `@tk/admin` (E2E, Playwright) | 36 | Real browser + real API + `*_e2e` database |
 | `@tk/mobile` (unit) | 41 | Study-time meter (idle limits, videos, innermost screen, background), development picture addresses on a phone, API client (single-flight refresh, early refresh, session end, maintenance), translations complete in both languages, BS dates and Kathmandu weekday, force-update/maintenance gate, form checks, Nepali phone numbers |
 | `@tk/mobile` (E2E, Playwright, phone viewport) | 43 | Web build + real API + `*_mobile_e2e` database + Mailpit |
 | `@tk/web` (unit) | 8 | Session refresh used once (concurrent / late requests share it; refused → signed out; unreachable → retried), token expiry, both languages complete, failure messages |
 | `@tk/web` (E2E, Playwright) | 10 | `next start` production build + real API + `*_web_e2e` database + Mailpit + gateway stand-in; access tokens last 60 s so every page load refreshes |
-| **Total** | **593** | |
+| **Total** | **598** | |
+
+### Added with reports (Phase 13e, T-068, D-066)
+- **API (3 integration + 2 unit tests):** sales per Nepal day (paid orders only, refunds sent, net, channels,
+  providers, top items), the default and wider periods, a period ending yesterday leaving today out, refused periods
+  and permissions; students, learning (enrolments, lessons, study time, sources, top courses / lessons) and tests
+  (hardest questions only from 10 answers, partly correct as half; reported questions); CSV exports (BOM, headers,
+  BS / AD dates, rupees, a formula-like name neutralised, row count, audit, permission); the CSV writer (quoting,
+  formula guard, BOM, CRLF). Mutation-checked (6: refunds not subtracted, period end, minimum answers, exports not
+  audited, formulas not neutralised — each fails a test; counting pending orders cannot change a result: they have
+  no paid time).
+- **CMS E2E** (admin spec): Reports tabs, 30 → 7 daily bars when the period changes, the Students CSV downloads with
+  its header, and the download is in the audit log.
+- Screens checked: Sales and Learning tabs.
 
 ### Added with discussions (Phase 13d, T-067, D-066)
 - **API (2 integration tests):** lesson threads (premium needs access), posting checks, replies one level and in

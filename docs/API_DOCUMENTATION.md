@@ -410,6 +410,7 @@ Every module exposes `GET list` (search/filter/sort/paginate), `GET :id`, `POST`
 - `/admin/articles`, `/admin/notices`, `/admin/notification-campaigns`, `/admin/banners`, `/admin/home-sections`
 - `/admin/plans`, `/admin/coupons`, `/admin/orders`, `/admin/payments` (+ `reconcile`), `/admin/refunds` (+ approve/process), `/admin/invoices`
 - `/admin/reviews`, `/admin/discussions`, `/admin/faqs`, `/admin/pages`, `/admin/contact-options`, `/admin/certificates`
+- Reports (built, T-068): `GET /admin/analytics/sales|students|learning|tests?from=&to=` (orders:read / users:read / courses:edit / assessments:edit); `GET /admin/exports/orders|students|enrolments|test-results.csv?from=&to=` (same permissions; audited)
 - Discussions (built, T-067): `GET /admin/discussions?view=reported|recent|hidden`, `GET|POST /admin/discussions/:target/:targetId(/posts)`, `POST /admin/discussions/posts/:id/hide|unhide|dismiss-reports`, `PUT|DELETE /admin/discussions/posts/:id/best`, `PUT|DELETE /admin/discussions/bans/:userId` — `discussions:moderate`, audited
 - Course reviews (built, T-066): `GET /admin/reviews?status=&courseId=`, `POST /admin/reviews/:id/approve`, `POST /admin/reviews/:id/reject { reason }` — `reviews:moderate`, audited
 - Banners (built, T-063): `GET|POST /admin/banners`, `PUT|DELETE /admin/banners/:id` — `banners:manage`; public `GET /banners?placement=app|website` (in date, by order; on iPhone no plan / web links or iPhone-hidden ones)

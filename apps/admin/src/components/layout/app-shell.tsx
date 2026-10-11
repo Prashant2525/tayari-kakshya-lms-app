@@ -11,6 +11,7 @@ import {
   Newspaper,
   LifeBuoy,
   GalleryHorizontal,
+  ChartColumn,
   MessageSquareQuote,
   MessagesSquare,
   FileType,
@@ -54,10 +55,23 @@ interface NavItem {
   label: string;
   icon: LucideIcon;
   permission?: Permission;
+  /** Shown when the user has any of these (e.g. Reports: each tab has its own permission). */
+  anyPermission?: Permission[];
 }
 
 const NAV: Array<{ group: string; items: NavItem[] }> = [
-  { group: 'Overview', items: [{ to: '/', label: 'Dashboard', icon: LayoutDashboard }] },
+  {
+    group: 'Overview',
+    items: [
+      { to: '/', label: 'Dashboard', icon: LayoutDashboard },
+      {
+        to: '/reports',
+        label: 'Reports',
+        icon: ChartColumn,
+        anyPermission: ['orders:read', 'users:read', 'courses:edit', 'assessments:edit'],
+      },
+    ],
+  },
   {
     group: 'Content',
     items: [
@@ -150,7 +164,10 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
     <nav aria-label="Main" className="flex h-full flex-col gap-6 overflow-y-auto px-3 py-5">
       <Brand />
       {NAV.map(({ group, items }) => {
-        const visible = items.filter((i) => !i.permission || can(i.permission));
+        const visible = items.filter(
+          (i) =>
+            (!i.permission || can(i.permission)) && (!i.anyPermission || i.anyPermission.some((p) => can(p))),
+        );
         if (visible.length === 0) return null;
         return (
           <div key={group}>

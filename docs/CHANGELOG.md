@@ -4,6 +4,13 @@ All notable changes to this project. Format based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Added — 2026-10-11 (Phase 13e: reports)
+- CMS: **Reports** — sales and revenue (refunds, net, channels, payment providers, top courses and plans), students
+  (sign-ups, active, platforms), learning (new access, lessons finished, study time, top courses and lessons) and
+  tests (most taken, hardest and most reported questions) for the last 7 / 30 / 90 / 365 days, with daily charts.
+- CSV downloads of orders, students, enrolments and test results (Excel-ready, BS and AD dates); each is recorded in
+  the audit log. Each report needs the permission that already shows its data.
+
 ### Added — 2026-10-11 (Phase 13d: discussions / doubts)
 - App: a Discussion under each practice question (after checking the answer) and each lesson — ask a doubt, reply,
   report a post, delete your own; teachers' answers carry a badge and the best answer is marked; you are notified
