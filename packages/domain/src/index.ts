@@ -7,3 +7,4 @@ export * from './engagement/leaderboard.js';
 export * from './engagement/mistakes.js';
 export * from './engagement/streak.js';
 export * from './money/money.js';
+export * from './planner/study-plan.js';

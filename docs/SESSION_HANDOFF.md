@@ -202,6 +202,11 @@ Current task: Phase 11 part 3 (receipts + refunds) done on `feature/receipts-ref
 - Nothing partially implemented. Admin screens for Phase 6 not started.
 
 ## Exact next steps
+0q. 2026-10-11: PR #41 merged; `main` CI green. `feature/study-planner` (T-065, part 13b). Next: **13c course
+   reviews** (D-066: stars + text; only students with the course and some progress — the minimum share a CMS
+   setting; staff approve each review; shown in the app and on the website with the average), then 13d discussions,
+   13e dashboards. Local note: a stray `expo start` writes a polluted `.expo/types/router.d.ts` (whole-repo routes);
+   stop it and regenerate with a short `expo start` — CI has no such file.
 0p. 2026-10-08: PR #39, #40 merged; `main` CI green. Owner answered Phase 13 (D-066). `feature/progress-analytics`
    (T-064, part 13a). Next: **13b study planner** (course + exam date + minutes per day → today's plan; re-plan when
    behind; uses lesson `estimatedMinutes` / video length where known), then 13c reviews, 13d discussions, 13e dashboards.

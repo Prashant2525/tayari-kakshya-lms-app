@@ -44,6 +44,8 @@ import { CertificatesController } from './modules/certificates/certificates.cont
 import { CertificatesService } from './modules/certificates/certificates.service.js';
 import { MistakesController } from './modules/mistakes/mistakes.controller.js';
 import { MistakesService } from './modules/mistakes/mistakes.service.js';
+import { PlannerController } from './modules/progress/planner.controller.js';
+import { PlannerService } from './modules/progress/planner.service.js';
 import { ProgressController } from './modules/progress/progress.controller.js';
 import { ProgressService } from './modules/progress/progress.service.js';
 import { AdminOrdersController } from './modules/payments/admin-orders.controller.js';
@@ -160,6 +162,7 @@ export class InfraModule {}
     AdminCertificatesService,
     MistakesService,
     ProgressService,
+    PlannerService,
     GatewayHttp,
     PaymentsService,
     AdminOrdersService,
@@ -218,6 +221,7 @@ export class InfraModule {}
     AdminCertificatesService,
     MistakesService,
     ProgressService,
+    PlannerService,
     GatewayHttp,
     PaymentsService,
     AdminOrdersService,
@@ -296,6 +300,7 @@ export class DomainModule {}
     AdminCertificatesController,
     MistakesController,
     ProgressController,
+    PlannerController,
     PaymentsController,
     AdminOrdersController,
     PlansController,

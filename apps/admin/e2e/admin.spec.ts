@@ -175,6 +175,12 @@ test('signing in again requires the authenticator code, and the session survives
   await analytics.getByLabel('Weak below (%)').fill('60');
   await analytics.getByRole('button', { name: 'Save' }).click();
   await expect(page.getByText('Progress analytics saved')).toBeVisible();
+  // Study planner estimates are CMS data (D-066).
+  const planner = page.getByRole('region', { name: 'Study planner estimates' });
+  await expect(planner.getByLabel('A note (minutes)')).toHaveValue('10');
+  await planner.getByLabel('A PDF page (minutes)').fill('3');
+  await planner.getByRole('button', { name: 'Save' }).click();
+  await expect(page.getByText('Study planner estimates saved')).toBeVisible();
   // Back off, so later suites price orders without VAT.
   await vat.getByRole('switch', { name: 'VAT-registered' }).click();
   await vat.getByRole('button', { name: 'Save' }).click();

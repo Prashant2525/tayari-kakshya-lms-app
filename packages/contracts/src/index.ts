@@ -11,6 +11,7 @@ export * from './errors.js';
 export * from './mistakes.js';
 export * from './notices.js';
 export * from './permissions.js';
+export * from './planner.js';
 export * from './progress.js';
 export * from './questions.js';
 export * from './rich-text.js';

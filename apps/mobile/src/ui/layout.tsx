@@ -105,7 +105,7 @@ export function Banner({
   tone = 'danger',
   message,
 }: {
-  tone?: 'danger' | 'success' | 'info';
+  tone?: 'danger' | 'success' | 'info' | 'warning';
   message: string;
 }) {
   const { colors } = useTheme();
@@ -113,6 +113,7 @@ export function Banner({
     danger: { bg: colors.dangerSoft, fg: 'danger' as const },
     success: { bg: colors.successSoft, fg: 'success' as const },
     info: { bg: colors.primarySoft, fg: 'onPrimarySoft' as const },
+    warning: { bg: colors.warningSoft, fg: 'warning' as const },
   }[tone];
   return (
     <View role={tone === 'danger' ? 'alert' : 'status'} style={[styles.banner, { backgroundColor: map.bg }]}>

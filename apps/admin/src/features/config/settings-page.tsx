@@ -1345,6 +1345,42 @@ export function SettingsPage() {
         </SettingCard>
 
         <SettingCard
+          row={row('planner.estimates')}
+          title="Study planner estimates"
+          description="Students' study plans use each video's length and each test's time limit. Where those are unknown, and for notes and PDFs, these estimates are used."
+        >
+          {(d, set, disabled) => (
+            <div className="flex flex-wrap gap-4">
+              {(
+                [
+                  ['noteMinutes', 'A note (minutes)', 'From 1 to 240.', 1, 240],
+                  ['pdfMinutesPerPage', 'A PDF page (minutes)', 'From 1 to 30.', 1, 30],
+                  ['videoMinutes', 'A video without a length (minutes)', 'From 1 to 240.', 1, 240],
+                  ['testMinutes', 'A test without a time limit (minutes)', 'From 1 to 600.', 1, 600],
+                ] as const
+              ).map(([key, label, hint, min, max]) => (
+                <Field key={key} label={label} hint={hint}>
+                  {(a) => (
+                    <Input
+                      {...a}
+                      type="number"
+                      min={min}
+                      max={max}
+                      className="w-32"
+                      value={Number.isNaN(d[key]) ? '' : d[key]}
+                      disabled={disabled}
+                      onChange={(e) =>
+                        set({ ...d, [key]: e.target.value === '' ? Number.NaN : Number(e.target.value) })
+                      }
+                    />
+                  )}
+                </Field>
+              ))}
+            </div>
+          )}
+        </SettingCard>
+
+        <SettingCard
           row={row('certificates.verification')}
           title="Certificate verification"
           description="Printed on every certificate with a QR code, followed by the certificate number. Leave blank to print the number only."
