@@ -4,6 +4,10 @@ All notable changes to this project. Format based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Changed — 2026-10-12 (screen protection on every screen, D-068)
+- App: screenshots and screen recording are now blocked on every screen (free lessons and all other sections too),
+  not only on premium lessons. On iPhone the app is also hidden in the app switcher.
+
 ### Added — 2026-10-11 (Phase 14a part 1: offline notes and screen protection)
 - App: save a note (cloud button) to read it without internet; Profile → Downloads; saved lessons open offline for
   the days set in the CMS (default 7) and are renewed when online; they are removed when access ends and when you

@@ -8,7 +8,6 @@ import { useItem, useOutline, useSaveProgress, type ItemContent, type OutlineIte
 import type { NewCertificate } from '@/api/certificates';
 import { DownloadButton } from '@/features/learn/download-button';
 import { PdfReader } from '@/features/learn/pdf-reader';
-import { ScreenGuard } from '@/features/learn/screen-guard';
 import { BookmarkButton } from '@/features/practice/bookmark-button';
 import { DiscussLink } from '@/features/practice/discuss-link';
 import { RichText } from '@/features/learn/rich-text';
@@ -180,7 +179,6 @@ export default function LearnScreen() {
         />
       )}
 
-      {lesson?.accessLevel === 'premium' ? <ScreenGuard /> : null}
       {item.data ? (
         <View style={[styles.footer, { borderTopColor: colors.border, backgroundColor: colors.surface }]}>
           <NavButton direction="previous" disabled={index <= 0} onPress={() => open(ordered[index - 1])} />

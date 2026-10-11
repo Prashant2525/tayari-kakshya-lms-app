@@ -42,7 +42,7 @@ implies a hard-coded value.
 ### 2.4 Learning (p10–p15, p31–p47)
 - Subject screen with segmented tabs **Notes · Videos · Questions · Quizzes**; chapter accordions; numbered topics with descriptions/durations.
 - Notes: **rich-text reader** and **PDF viewer** with page jump + resume (p12); **watermarked PDF download** (D-014) and offline library (S11).
-- Videos: per topic lists with counts/durations; player with ±10s, prev/next, speed, quality, fullscreen, resume, completion tracking (p15). Providers: Bunny Stream (offline download, screen-capture protection on premium — S20) or YouTube unlisted embed (D-015).
+- Videos: per topic lists with counts/durations; player with ±10s, prev/next, speed, quality, fullscreen, resume, completion tracking (p15). Providers: Bunny Stream (offline download, screen-capture protection on premium — S20; since D-068 the whole app blocks screenshots and recording) or YouTube unlisted embed (D-015).
 - Item states: completed / in progress / locked (premium) / downloaded — replaces the ambiguous red badge (p14).
 - Locked items show an explicit lock and, on Android/web, an "Unlock" CTA; on iOS a neutral "Premium content" message (D-027). **Locked content is never sent by the API.**
 

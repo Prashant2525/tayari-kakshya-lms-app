@@ -24,7 +24,7 @@ Only approved rows enter `IMPLEMENTATION_PLAN.md`. Rows marked *Playbook* are al
 | S17 | Bilingual UI (English/Nepali) | Wider reach | M | ✅ Approved |
 | S18 | Dark mode | Night study comfort | S | ✅ Approved |
 | S19 | Referral program / promo codes | Growth | M | ✅ Approved |
-| S20 | Device limit & screen-capture protection for premium video | Reduce account sharing/piracy | M | ✅ Approved |
+| S20 | Device limit & screen-capture protection for premium video (screen capture: whole app since D-068) | Reduce account sharing/piracy | M | ✅ Approved |
 | S21 | Public website with course pages + web checkout | SEO, and a store-policy-safe purchase path (see Q26) | L | ✅ Approved |
 | S22 | Live classes (Zoom/YouTube Live/managed) | Common in Nepali prep market | L | ✅ Approved |
 | S23 | Admin "preview as student" and content QA checklist | Fewer publishing mistakes | S | ✅ Approved |
