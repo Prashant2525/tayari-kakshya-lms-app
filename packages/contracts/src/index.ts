@@ -14,6 +14,7 @@ export * from './permissions.js';
 export * from './planner.js';
 export * from './progress.js';
 export * from './questions.js';
+export * from './reviews.js';
 export * from './rich-text.js';
 export * from './settings.js';
 export * from './support.js';

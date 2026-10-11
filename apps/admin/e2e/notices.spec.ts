@@ -251,3 +251,96 @@ test('staff add a scheduled banner with a picture; a web link is checked and not
   await expect(row).toContainText('Showing');
   await expect(row).toContainText('Not on iPhone');
 });
+
+test('staff reject a course review with a reason, then publish it', async () => {
+  const token = (
+    (await (
+      await page.request.post('/api/v1/admin/auth/refresh', { headers: { 'X-TK-Client': 'admin' } })
+    ).json()) as { accessToken: string }
+  ).accessToken;
+  const staff = async (method: 'GET' | 'POST' | 'PUT', path: string, data?: unknown) => {
+    const res = await page.request.fetch(`/api/v1${path}`, {
+      method,
+      data,
+      headers: { Authorization: `Bearer ${token}`, 'X-TK-Client': 'admin' },
+    });
+    expect(res.ok(), `${method} ${path}: ${await res.text()}`).toBe(true);
+    return (res.status() === 204 ? null : await res.json()) as { id: string; data: Array<{ id: string }> };
+  };
+  // A course with one lesson; the seeded student has it and finishes the lesson, then reviews it.
+  const subject = await staff('POST', '/admin/subjects', { name: { en: `Reviewed ${run}` } });
+  const chapter = await staff('POST', `/admin/subjects/${subject.id}/chapters`, { title: { en: 'One' } });
+  const topic = await staff('POST', `/admin/chapters/${chapter.id}/topics`, { title: { en: 'One' } });
+  for (const [level, id] of [
+    ['subjects', subject.id],
+    ['chapters', chapter.id],
+    ['topics', topic.id],
+  ] as const) {
+    await staff('PUT', `/admin/${level}/${id}/status`, { status: 'published' });
+  }
+  const item = await staff('POST', `/admin/topics/${topic.id}/items`, {
+    type: 'note',
+    title: { en: 'Only lesson' },
+    accessLevel: 'free',
+    noteContent: {
+      en: { type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Hi' }] }] },
+    },
+  });
+  await staff('PUT', `/admin/learning-items/${item.id}/publishing`, { status: 'published' });
+  const course = await staff('POST', '/admin/courses', {
+    slug: `reviewed-${run}`,
+    title: { en: `Reviewed course ${run}` },
+  });
+  await staff('PUT', `/admin/courses/${course.id}/subjects`, { subjects: [{ subjectId: subject.id }] });
+  await staff('PUT', `/admin/courses/${course.id}/publishing`, { status: 'published' });
+  const [student] = (await staff('GET', `/admin/users?q=${encodeURIComponent(E2E_STUDENT_EMAIL)}`)).data;
+  await staff('POST', `/admin/users/${student!.id}/entitlements`, { courseId: course.id, endsAt: null });
+  const login = await page.request.post('/api/v1/auth/login', {
+    data: {
+      email: E2E_STUDENT_EMAIL,
+      password: E2E_ADMIN_PASSWORD,
+      device: { deviceId: `e2e-review-${run}`, deviceName: 'E2E', platform: 'android' },
+    },
+  });
+  const studentToken = ((await login.json()) as { accessToken: string }).accessToken;
+  const asStudent = { Authorization: `Bearer ${studentToken}` };
+  expect(
+    (
+      await page.request.put(`/api/v1/learning-items/${item.id}/progress`, {
+        headers: asStudent,
+        data: { completed: true },
+      })
+    ).ok(),
+  ).toBe(true);
+  const sent = await page.request.put(`/api/v1/me/courses/${course.id}/review`, {
+    headers: asStudent,
+    data: { rating: 4, body: `Helpful notes ${run}` },
+  });
+  expect(sent.ok(), await sent.text()).toBe(true);
+
+  await nav('Course reviews').click();
+  await expect(page.getByRole('heading', { name: 'Course reviews', level: 1 })).toBeVisible();
+  const row = page.getByRole('listitem').filter({ hasText: `Helpful notes ${run}` });
+  await expect(row.getByRole('img', { name: '4 out of 5 stars' })).toBeVisible();
+  await expect(row).toContainText(`Reviewed course ${run}`);
+  await row.getByRole('button', { name: 'Reject' }).click();
+  const dialog = page.getByRole('dialog', { name: 'Reject review' });
+  await dialog.getByLabel('Reason').fill('Please say more about the course');
+  await dialog.getByRole('button', { name: 'Reject' }).click();
+  await expect(page.getByText('Review rejected')).toBeVisible();
+  await expect(page.getByText(`Helpful notes ${run}`)).toHaveCount(0);
+
+  await page.getByRole('tab', { name: 'Rejected' }).click();
+  const rejected = page.getByRole('listitem').filter({ hasText: `Helpful notes ${run}` });
+  await expect(rejected).toContainText('Please say more about the course');
+  await rejected.getByRole('button', { name: 'Publish' }).click();
+  await expect(page.getByText('Review published')).toBeVisible();
+  await page.getByRole('tab', { name: 'Published' }).click();
+  await expect(page.getByRole('listitem').filter({ hasText: `Helpful notes ${run}` })).toContainText(
+    'Published',
+  );
+
+  // The course now shows its rating to everyone.
+  const detail = await page.request.get(`/api/v1/courses/reviewed-${run}`);
+  expect(((await detail.json()) as { rating: unknown }).rating).toEqual({ average: 4, count: 1 });
+});

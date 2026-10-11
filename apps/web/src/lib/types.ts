@@ -25,6 +25,19 @@ export interface CourseCard {
   isFeatured: boolean;
   /** Null where this channel does not sell or for free courses. */
   pricing: Pricing | null;
+  /** Approved reviews (D-066); null until one is approved. */
+  rating: RatingSummary | null;
+}
+
+export interface RatingSummary {
+  average: number;
+  count: number;
+}
+
+export interface CourseReviewsPage {
+  summary: RatingSummary & { stars: Record<'1' | '2' | '3' | '4' | '5', number> };
+  data: Array<{ id: string; rating: number; body: string | null; author: string | null; createdAt: string }>;
+  nextCursor: string | null;
 }
 
 export interface RichNode {

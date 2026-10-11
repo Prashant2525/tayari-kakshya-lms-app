@@ -110,6 +110,8 @@ model User {
   studyTime           StudyTime[]
   studyClock          StudyClock?
   studyPlans          StudyPlan[]
+  reviews             CourseReview[]
+  moderatedReviews    CourseReview[]           @relation("ReviewModerator")
   revokedCertificates Certificate[]            @relation("CertificateRevoker")
 
   @@index([kind, status])
@@ -682,6 +684,7 @@ model Course {
   updates     CourseUpdate[]
   interests   CourseInterest[]
   studyPlans  StudyPlan[]
+  reviews     CourseReview[]
 
   @@index([status, isFeatured, popularityRank])
   @@index([certificateTemplateId])
@@ -1469,6 +1472,38 @@ model StudyPlan {
 
   @@unique([userId, courseId])
   @@map("study_plans")
+}
+
+enum ReviewStatus {
+  pending
+  approved
+  rejected
+}
+
+/// A student's review of a course (S4, D-066, T-066): one per student and course; shown only once staff approve it.
+/// Changing it sends it back for approval. Erased with the account.
+model CourseReview {
+  id              String       @id @default(uuid(7)) @db.Uuid
+  courseId        String       @map("course_id") @db.Uuid
+  userId          String       @map("user_id") @db.Uuid
+  /// 1–5 stars (CHECK).
+  rating          Int          @db.SmallInt
+  body            String?
+  status          ReviewStatus @default(pending)
+  rejectionReason String?      @map("rejection_reason")
+  moderatedById   String?      @map("moderated_by") @db.Uuid
+  moderatedAt     DateTime?    @map("moderated_at") @db.Timestamptz(6)
+  createdAt       DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime     @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  course      Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  user        User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  moderatedBy User?  @relation("ReviewModerator", fields: [moderatedById], references: [id], onDelete: SetNull)
+
+  @@unique([courseId, userId])
+  @@index([courseId, status, createdAt(sort: Desc)])
+  @@index([status, createdAt])
+  @@map("course_reviews")
 }
 
 // ───────────── Commerce (Phase 11, D-003, D-023, D-027, D-051, D-052) ─────────────

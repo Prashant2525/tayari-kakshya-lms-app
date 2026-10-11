@@ -189,7 +189,8 @@ course reviews + moderation, discussions/doubts + moderation, admin dashboards &
   (Profile, Home card); CMS setting Progress analytics
 - ☑ Part 13b (T-065): study planner — course, BS exam date, minutes a day → today's plan and the coming days,
   re-planned from today on every visit; Home card; CMS estimates
-- ☐ Part 13c: course reviews (stars + text, after some progress, staff approve; app + website)
+- ☑ Part 13c (T-066): course reviews — stars + text after a CMS share of the lessons, staff publish or reject,
+  rating on cards and course pages in the app and on the website (with JSON-LD)
 - ☐ Part 13d: discussions / doubts under questions and lessons (staff badge, best answer, reports, moderation)
 - ☐ Part 13e: admin dashboards (sales, students, learning, tests & questions) and CSV exports
 

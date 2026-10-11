@@ -480,6 +480,18 @@ export const SETTINGS = {
     default: { noteMinutes: 10, pdfMinutesPerPage: 2, videoMinutes: 15, testMinutes: 30 },
     public: false,
   },
+  /**
+   * D-066 / T-066: course reviews. A student may review a course they have once they have finished at least
+   * `minProgressPercent` % of its lessons; reviewers' names are shown as `names` (like leaderboards).
+   */
+  'reviews.rules': {
+    schema: z.object({
+      minProgressPercent: z.number().int().min(0).max(100),
+      names: z.enum(['first_initial', 'full', 'none']),
+    }),
+    default: { minProgressPercent: 20, names: 'first_initial' as const },
+    public: false,
+  },
 } as const satisfies Record<string, { schema: z.ZodType; default: unknown; public: boolean }>;
 
 export type SettingKey = keyof typeof SETTINGS;

@@ -9,6 +9,7 @@ import { initialsOf } from '@/lib/names';
 import { useTheme } from '@/theme/theme';
 import { ProgressBar } from '@/ui/chip';
 import { Text } from '@/ui/text';
+import { RatingLine } from '@/features/reviews/stars';
 
 /** CMS artwork, or a branded fallback (subject-coloured pattern + initials) instead of a black block (DESIGN_SYSTEM §2). */
 export function CourseArt({
@@ -95,6 +96,7 @@ export function CourseRow({ course }: { course: CatalogCourse | MyCourse }) {
             {localized(course.shortDescription, locale)}
           </Text>
         ) : null}
+        <RatingLine rating={course.rating} />
         {progress ? (
           <View style={{ gap: 4 }}>
             <ProgressBar value={pct} label={t('home.percent', { percent: pct })} />

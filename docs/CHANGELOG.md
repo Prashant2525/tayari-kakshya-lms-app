@@ -4,6 +4,14 @@ All notable changes to this project. Format based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Added — 2026-10-11 (Phase 13c: course reviews)
+- App: students who have finished part of a course give it 1–5 stars and a few words; they see whether it is
+  waiting, published or not published (with the reason), and can change or delete it. Course cards and course
+  pages show the rating; a Reviews section shows the latest reviews.
+- CMS: Content → Course reviews (publish, or reject with a reason); System settings → Course reviews (share of
+  lessons before reviewing, how names are shown). New permission `reviews:moderate`.
+- Website: the rating on course cards and pages, the latest reviews, and the rating for search engines.
+
 ### Added — 2026-10-11 (Phase 13b: study planner)
 - App: **Study planner** (Profile, and "Today's plan" on Home) — pick a course you have, your exam date (BS) and
   your study time a day; its lessons and tests are spread over the days left, finished ones are ticked, and the plan

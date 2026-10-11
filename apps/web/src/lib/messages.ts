@@ -195,6 +195,17 @@ export const en = {
   'error.notFound': 'Page not found',
   'error.notFoundBody': 'The page you are looking for does not exist.',
   'error.home': 'Go to the home page',
+  'reviews.title': 'Reviews',
+  'reviews.rated': 'Rated {average} out of 5 from {count} reviews',
+  'reviews.count': '{count} reviews',
+  'reviews.countOne': '1 review',
+  'reviews.ratedOne': 'Rated {average} out of 5 from 1 review',
+  'reviews.stars': '{n} ★',
+  'reviews.starsOf': '{n} out of 5 stars',
+  'reviews.none': 'No reviews yet.',
+  'reviews.anonymous': 'A student',
+  'reviews.howTo':
+    'Students who have this course can review it in the app. Reviews are checked before they appear.',
 } as const;
 
 export type MessageKey = keyof typeof en;
@@ -395,6 +406,16 @@ export const ne: Record<MessageKey, string> = {
   'error.notFound': 'पेज भेटिएन',
   'error.notFoundBody': 'तपाईंले खोज्नुभएको पेज छैन।',
   'error.home': 'गृहपृष्ठमा जानुहोस्',
+  'reviews.title': 'समीक्षा',
+  'reviews.rated': '{count} समीक्षाबाट ५ मध्ये {average}',
+  'reviews.count': '{count} समीक्षा',
+  'reviews.countOne': '१ समीक्षा',
+  'reviews.ratedOne': '१ समीक्षाबाट ५ मध्ये {average}',
+  'reviews.stars': '{n} ★',
+  'reviews.starsOf': '५ मध्ये {n} तारा',
+  'reviews.none': 'अहिलेसम्म समीक्षा छैन।',
+  'reviews.anonymous': 'एक विद्यार्थी',
+  'reviews.howTo': 'यो कोर्स भएका विद्यार्थीले एपमा समीक्षा गर्न सक्छन्। देखिनुअघि समीक्षा जाँचिन्छ।',
 };
 
 export type Locale = 'en' | 'ne';

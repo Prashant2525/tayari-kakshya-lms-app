@@ -1084,6 +1084,50 @@ export function SettingsPage() {
         </SettingCard>
 
         <SettingCard
+          row={row('reviews.rules')}
+          title="Course reviews"
+          description="Who may review a course, and how reviewers appear. Every review is checked in Course reviews before anyone sees it."
+        >
+          {(d, set, disabled) => (
+            <>
+              <Field
+                label="Lessons finished before reviewing (%)"
+                hint="From 0 to 100 of the course's lessons."
+              >
+                {(a) => (
+                  <Input
+                    {...a}
+                    type="number"
+                    min={0}
+                    max={100}
+                    className="w-32"
+                    value={Number.isNaN(d.minProgressPercent) ? '' : d.minProgressPercent}
+                    disabled={disabled}
+                    onChange={(e) =>
+                      set({
+                        ...d,
+                        minProgressPercent: e.target.value === '' ? Number.NaN : Number(e.target.value),
+                      })
+                    }
+                  />
+                )}
+              </Field>
+              <OptionSelect
+                label="Reviewer names shown"
+                value={d.names}
+                options={{
+                  first_initial: 'First name + initial (e.g. Aarati S.)',
+                  full: 'Full name',
+                  none: 'No names',
+                }}
+                disabled={disabled}
+                onChange={(v) => set({ ...d, names: v })}
+              />
+            </>
+          )}
+        </SettingCard>
+
+        <SettingCard
           row={row('dailyChallenge.rules')}
           title="Daily challenge"
           description="A day's challenge counts for the streak and that day's ranking only when taken on its day (Nepal time)."

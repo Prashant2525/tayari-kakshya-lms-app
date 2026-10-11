@@ -49,6 +49,8 @@ export interface CourseCardView {
   shortDescription: LocalizedText | null;
   thumbnailUrl: string | null;
   isFree: boolean;
+  /** Approved reviews (D-066); null until one is approved. */
+  rating: { average: number; count: number } | null;
 }
 
 export const keys = {

@@ -202,6 +202,10 @@ Current task: Phase 11 part 3 (receipts + refunds) done on `feature/receipts-ref
 - Nothing partially implemented. Admin screens for Phase 6 not started.
 
 ## Exact next steps
+0r. 2026-10-11: PR #42 merged. `feature/course-reviews` (T-066, part 13c). Next: **13d discussions / doubts** (D-066:
+   under practice / test questions after the answer is shown, and under lessons; students and staff reply; staff
+   replies badged, best answer; shown at once; reports; staff hide / delete and can stop a student posting), then
+   13e dashboards and CSV exports. Grant `reviews:moderate` to the staff who check reviews.
 0q. 2026-10-11: PR #41 merged; `main` CI green. `feature/study-planner` (T-065, part 13b). Next: **13c course
    reviews** (D-066: stars + text; only students with the course and some progress — the minimum share a CMS
    setting; staff approve each review; shown in the app and on the website with the average), then 13d discussions,

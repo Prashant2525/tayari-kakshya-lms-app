@@ -2,6 +2,7 @@ import { formatNpr } from '@tk/domain';
 import Link from 'next/link';
 import type { Locale, Translate } from '@/lib/messages';
 import type { CourseCard as Course, Pricing } from '@/lib/types';
+import { RatingLine } from './reviews';
 
 /** A price as the server sends it, the regular one struck through during a sale; nothing when none is sent (D-027). */
 export function PriceTag({
@@ -61,6 +62,7 @@ export function CourseCard({
         {course.shortDescription ? (
           <p className="line-clamp-2 text-sm text-text-secondary">{localized(course.shortDescription)}</p>
         ) : null}
+        <RatingLine rating={course.rating} t={t} />
         <div className="mt-auto pt-1">
           {course.isFree ? (
             <span className="font-semibold text-success">{t('course.free')}</span>

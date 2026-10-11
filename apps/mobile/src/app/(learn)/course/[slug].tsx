@@ -7,6 +7,8 @@ import { useCourse, useEnrol, type CourseDetail } from '@/api/learning';
 import { CertificateCard } from '@/features/courses/certificate-card';
 import { CourseArt, PriceText } from '@/features/courses/course-card';
 import { RichText } from '@/features/learn/rich-text';
+import { CourseReviews } from '@/features/reviews/course-reviews';
+import { RatingLine } from '@/features/reviews/stars';
 import { TestsLink } from '@/features/tests/tests-link';
 import { localized } from '@/i18n/translate';
 import { useT } from '@/i18n/use-t';
@@ -98,6 +100,7 @@ export default function CourseScreen() {
                 {validity}
               </Text>
             ) : null}
+            <RatingLine rating={c.rating} />
           </View>
 
           {counts.length ? (
@@ -153,6 +156,8 @@ export default function CourseScreen() {
               ))}
             </View>
           ) : null}
+
+          <CourseReviews courseId={c.id} slug={c.slug} entitled={Boolean(c.access?.entitled)} />
         </View>
       </ScrollView>
       <AccessBar

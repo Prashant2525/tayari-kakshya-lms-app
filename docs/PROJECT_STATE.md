@@ -1,6 +1,6 @@
 # Project State
 
-Current Phase: **Phase 13 progress & community** — part 13b (study planner) on `feature/study-planner`
+Current Phase: **Phase 13 progress & community** — part 13c (course reviews) on `feature/course-reviews`
 Current Milestone: content API on `feature/content-cms` → Admin CMS content screens
 Overall Status: **IN PROGRESS**
 Last updated: 2026-10-11
@@ -66,7 +66,9 @@ Last updated: 2026-10-11
 - Phase 13 decided (D-066). Part 13a on `feature/progress-analytics` (T-064): study time, accuracy, weak / strong
   topics, My progress in the app, CMS thresholds. Merged (PR #41).
 - Phase 13b on `feature/study-planner` (T-065): study plans per course, re-planned from today; Home card; CMS
-  estimates. Next: 13c course reviews.
+  estimates. Merged (PR #42).
+- Phase 13c on `feature/course-reviews` (T-066): reviews with staff approval; ratings in the app and on the
+  website. Next: 13d discussions / doubts.
 - Monitoring (T-042) merged (PR #14, #15): Sentry in the API, worker, admin and app; PostHog in the app. Google web client registered for `http://localhost:8081` (checked); a real
   sign-in by the owner and Android/iOS clients remain (KI-029).
 - Phase 9 part 2 merged (PR #13): practice questions with Check answer and locked Premium answers

@@ -11,6 +11,7 @@ import {
   Newspaper,
   LifeBuoy,
   GalleryHorizontal,
+  MessageSquareQuote,
   FileType,
   TicketPercent,
   Undo2,
@@ -65,6 +66,7 @@ const NAV: Array<{ group: string; items: NavItem[] }> = [
       { to: '/assessments', label: 'Assessments', icon: ClipboardCheck, permission: 'assessments:edit' },
       { to: '/grading', label: 'Grading', icon: PenLine, permission: 'grading:manage' },
       { to: '/certificates', label: 'Certificates', icon: Award, permission: 'certificates:manage' },
+      { to: '/reviews', label: 'Course reviews', icon: MessageSquareQuote, permission: 'reviews:moderate' },
       {
         to: '/question-reports',
         label: 'Question reports',
