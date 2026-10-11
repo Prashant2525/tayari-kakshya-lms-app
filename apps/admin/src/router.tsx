@@ -203,6 +203,11 @@ const routes = [
   }),
   createRoute({
     getParentRoute: () => appRoute,
+    path: '/discussions',
+    component: lazyRouteComponent(() => import('./features/discussions/discussions-page'), 'DiscussionsPage'),
+  }),
+  createRoute({
+    getParentRoute: () => appRoute,
     path: '/reviews',
     component: lazyRouteComponent(() => import('./features/courses/reviews-page'), 'ReviewsPage'),
   }),

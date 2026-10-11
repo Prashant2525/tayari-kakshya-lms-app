@@ -43,6 +43,8 @@ export const PERMISSIONS = {
   'pages:manage': 'Edit and publish the About, Terms, Privacy and Refund pages',
   'support:manage': 'Edit the FAQs and the contact options in Help & support',
   'banners:manage': 'Add, schedule and remove the promotional banners in the app and on the website',
+  'discussions:moderate':
+    'Answer doubts as a teacher, mark best answers, hide reported posts and stop a student posting',
   'reviews:moderate': 'Approve or reject course reviews before students and website visitors see them',
   'orders:read': 'View orders, payments and what the payment gateways reported',
   'orders:manage': 'Check a payment again with its gateway',

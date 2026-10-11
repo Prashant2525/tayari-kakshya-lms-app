@@ -191,7 +191,8 @@ course reviews + moderation, discussions/doubts + moderation, admin dashboards &
   re-planned from today on every visit; Home card; CMS estimates
 - ☑ Part 13c (T-066): course reviews — stars + text after a CMS share of the lessons, staff publish or reject,
   rating on cards and course pages in the app and on the website (with JSON-LD)
-- ☐ Part 13d: discussions / doubts under questions and lessons (staff badge, best answer, reports, moderation)
+- ☑ Part 13d (T-067): discussions / doubts under questions (after answering) and lessons — teacher answers with a
+  badge, best answer, reports, hide, posting bans, reply notifications
 - ☐ Part 13e: admin dashboards (sales, students, learning, tests & questions) and CSV exports
 
 **§14 Advanced** — offline downloads (PDF + Bunny video, license refresh), screen-capture protection, ConnectIPS provider,

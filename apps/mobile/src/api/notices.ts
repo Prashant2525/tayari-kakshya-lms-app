@@ -28,7 +28,8 @@ export type NotificationLink =
   | { type: 'order'; id: string }
   | { type: 'assessment'; id: string }
   | { type: 'attempt'; id: string }
-  | { type: 'article'; slug: string };
+  | { type: 'article'; slug: string }
+  | { type: 'discussion'; target: 'question' | 'lesson'; id: string };
 
 export interface NotificationRow {
   id: string;

@@ -1,5 +1,11 @@
 import { expect, test, type Page } from '@playwright/test';
-import { E2E_ADMIN_PASSWORD, E2E_EDITOR3_EMAIL, E2E_STUDENT_EMAIL } from './e2e-env.mjs';
+import {
+  E2E_ADMIN_PASSWORD,
+  E2E_EDITOR3_EMAIL,
+  E2E_STUDENT2_EMAIL,
+  E2E_STUDENT3_EMAIL,
+  E2E_STUDENT_EMAIL,
+} from './e2e-env.mjs';
 import { pngFixture } from './fixtures';
 
 /**
@@ -343,4 +349,107 @@ test('staff reject a course review with a reason, then publish it', async () => 
   // The course now shows its rating to everyone.
   const detail = await page.request.get(`/api/v1/courses/reviewed-${run}`);
   expect(((await detail.json()) as { rating: unknown }).rating).toEqual({ average: 4, count: 1 });
+});
+
+test('a reported doubt is answered, its answer marked best, then hidden; the student stops posting', async () => {
+  const token = (
+    (await (
+      await page.request.post('/api/v1/admin/auth/refresh', { headers: { 'X-TK-Client': 'admin' } })
+    ).json()) as { accessToken: string }
+  ).accessToken;
+  const staff = async (method: 'GET' | 'POST' | 'PUT', path: string, data?: unknown) => {
+    const res = await page.request.fetch(`/api/v1${path}`, {
+      method,
+      data,
+      headers: { Authorization: `Bearer ${token}`, 'X-TK-Client': 'admin' },
+    });
+    expect(res.ok(), `${method} ${path}: ${await res.text()}`).toBe(true);
+    return (res.status() === 204 ? null : await res.json()) as { id: string };
+  };
+  // A free lesson; one seeded student asks under it, another reports the post.
+  const subject = await staff('POST', '/admin/subjects', { name: { en: `Doubts ${run}` } });
+  const chapter = await staff('POST', `/admin/subjects/${subject.id}/chapters`, { title: { en: 'One' } });
+  const topic = await staff('POST', `/admin/chapters/${chapter.id}/topics`, { title: { en: 'One' } });
+  for (const [level, id] of [
+    ['subjects', subject.id],
+    ['chapters', chapter.id],
+    ['topics', topic.id],
+  ] as const) {
+    await staff('PUT', `/admin/${level}/${id}/status`, { status: 'published' });
+  }
+  const item = await staff('POST', `/admin/topics/${topic.id}/items`, {
+    type: 'note',
+    title: { en: `Doubtful lesson ${run}` },
+    accessLevel: 'free',
+    noteContent: {
+      en: { type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Hi' }] }] },
+    },
+  });
+  await staff('PUT', `/admin/learning-items/${item.id}/publishing`, { status: 'published' });
+  const studentToken = async (email: string) => {
+    const login = await page.request.post('/api/v1/auth/login', {
+      data: {
+        email,
+        password: E2E_ADMIN_PASSWORD,
+        device: { deviceId: `e2e-doubt-${email}-${run}`, deviceName: 'E2E', platform: 'android' },
+      },
+    });
+    expect(login.ok(), await login.text()).toBe(true);
+    return { Authorization: `Bearer ${((await login.json()) as { accessToken: string }).accessToken}` };
+  };
+  const asker = await studentToken(E2E_STUDENT2_EMAIL);
+  const reporter = await studentToken(E2E_STUDENT3_EMAIL);
+  const asked = await page.request.post(`/api/v1/discussions/lesson/${item.id}/posts`, {
+    headers: asker,
+    data: { body: `Is this on the exam? Buy notes at spam.example ${run}` },
+  });
+  expect(asked.ok(), await asked.text()).toBe(true);
+  const postId = ((await asked.json()) as { id: string }).id;
+  const reported = await page.request.post(`/api/v1/discussions/posts/${postId}/report`, {
+    headers: reporter,
+    data: { reason: 'spam', message: 'Advertising' },
+  });
+  expect(reported.ok()).toBe(true);
+
+  await nav('Discussions').click();
+  await expect(page.getByRole('heading', { name: 'Discussions', level: 1 })).toBeVisible();
+  const row = page.getByRole('listitem').filter({ hasText: `Buy notes at spam.example ${run}` });
+  await expect(row).toContainText(`Doubtful lesson ${run}`);
+  await expect(row).toContainText('Spam: Advertising');
+
+  // Answer it as a teacher and mark that answer best.
+  await row.getByRole('button', { name: 'Open discussion' }).click();
+  const thread = page.getByRole('dialog', { name: 'Discussion' });
+  await thread.getByRole('button', { name: 'Answer' }).click();
+  await thread
+    .getByLabel('Your answer (as a teacher)')
+    .fill(`Only the syllabus topics are on the exam ${run}`);
+  await thread.getByRole('button', { name: 'Post' }).click();
+  await expect(page.getByText('Answer posted')).toBeVisible();
+  await expect(thread.getByText(`Only the syllabus topics are on the exam ${run}`)).toBeVisible();
+  await thread.getByRole('button', { name: 'Mark best answer' }).click();
+  await expect(thread.getByText('Best answer', { exact: true })).toBeVisible();
+  await thread.getByRole('button', { name: 'Close' }).last().click();
+
+  // Hide the advertising and stop the student posting for a week.
+  await row.getByRole('button', { name: 'Hide' }).click();
+  const hide = page.getByRole('dialog', { name: 'Hide post' });
+  await hide.getByLabel('Reason').fill('Advertising');
+  await hide.getByRole('button', { name: 'Hide' }).click();
+  await expect(page.getByText('Post hidden')).toBeVisible();
+  await page.getByRole('tab', { name: 'Hidden' }).click();
+  const hidden = page.getByRole('listitem').filter({ hasText: `Buy notes at spam.example ${run}` });
+  await expect(hidden).toContainText('Advertising');
+  await hidden.getByRole('button', { name: 'Stop posting' }).click();
+  const ban = page.getByRole('dialog', { name: 'Stop posting' });
+  await ban.getByLabel('For how long').selectOption('7');
+  await ban.getByLabel('Reason').fill('Advertising in discussions');
+  await ban.getByRole('button', { name: 'Stop posting' }).click();
+  await expect(page.getByText('Posting stopped')).toBeVisible();
+  await expect(hidden).toContainText('Cannot post until');
+  const again = await page.request.post(`/api/v1/discussions/lesson/${item.id}/posts`, {
+    headers: asker,
+    data: { body: 'One more try' },
+  });
+  expect(again.status()).toBe(403);
 });

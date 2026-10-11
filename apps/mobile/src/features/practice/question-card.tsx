@@ -19,6 +19,7 @@ import { Text } from '@/ui/text';
 import { AnswerInput, docFor, EMPTY_DRAFT, toResponse, type Draft } from '@/features/questions/answer-input';
 import { BookmarkButton } from './bookmark-button';
 import { ReportSheet } from './report-sheet';
+import { DiscussLink } from './discuss-link';
 
 /**
  * One practice question (DESIGN_SYSTEM §8 "Questions"): every question type, a check against the answer key the
@@ -151,7 +152,10 @@ export function QuestionCard({
             media={media}
           />
           {body.type === 'subjective' ? (
-            <SubjectiveAnswer q={q} media={media} />
+            <>
+              <SubjectiveAnswer q={q} media={media} />
+              <DiscussLink target="question" id={q.id} />
+            </>
           ) : (
             <>
               {outcome === 'skipped' ? <Banner tone="info" message={t('practice.skipped')} /> : null}
@@ -162,6 +166,7 @@ export function QuestionCard({
                 </Text>
               ) : null}
               {checked ? <Solution q={q} media={media} /> : null}
+              {checked ? <DiscussLink target="question" id={q.id} /> : null}
               <Button
                 label={checked ? t('practice.tryAgain') : t('practice.check')}
                 variant={checked ? 'secondary' : 'primary'}

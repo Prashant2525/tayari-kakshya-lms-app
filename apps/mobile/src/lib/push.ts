@@ -60,6 +60,8 @@ export function hrefFor(link: NotificationLink | null | undefined): Href | null 
       return { pathname: '/result/[attemptId]', params: { attemptId: link.id } };
     case 'article':
       return { pathname: '/article/[slug]', params: { slug: link.slug } };
+    case 'discussion':
+      return { pathname: '/discuss/[target]/[id]', params: { target: link.target, id: link.id } };
   }
 }
 

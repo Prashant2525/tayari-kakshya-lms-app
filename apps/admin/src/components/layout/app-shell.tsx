@@ -12,6 +12,7 @@ import {
   LifeBuoy,
   GalleryHorizontal,
   MessageSquareQuote,
+  MessagesSquare,
   FileType,
   TicketPercent,
   Undo2,
@@ -67,6 +68,7 @@ const NAV: Array<{ group: string; items: NavItem[] }> = [
       { to: '/grading', label: 'Grading', icon: PenLine, permission: 'grading:manage' },
       { to: '/certificates', label: 'Certificates', icon: Award, permission: 'certificates:manage' },
       { to: '/reviews', label: 'Course reviews', icon: MessageSquareQuote, permission: 'reviews:moderate' },
+      { to: '/discussions', label: 'Discussions', icon: MessagesSquare, permission: 'discussions:moderate' },
       {
         to: '/question-reports',
         label: 'Question reports',

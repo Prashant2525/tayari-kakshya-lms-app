@@ -8,6 +8,7 @@ import { useItem, useOutline, useSaveProgress, type ItemContent, type OutlineIte
 import type { NewCertificate } from '@/api/certificates';
 import { PdfReader } from '@/features/learn/pdf-reader';
 import { BookmarkButton } from '@/features/practice/bookmark-button';
+import { DiscussLink } from '@/features/practice/discuss-link';
 import { RichText } from '@/features/learn/rich-text';
 import { VideoPlayer } from '@/features/learn/video-player';
 import { localized, type Locale } from '@/i18n/translate';
@@ -105,6 +106,7 @@ export default function LearnScreen() {
           {title}
         </Text>
         {item.data?.type === 'note' ? <TextSizeButtons /> : null}
+        {item.data ? <DiscussLink target="lesson" id={item.data.id} title={title} compact /> : null}
         {item.data ? <BookmarkButton type="learning_item" id={item.data.id} /> : null}
       </View>
 

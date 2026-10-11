@@ -95,6 +95,9 @@ partial indexes, generated `tsvector` columns, check constraints and triggers th
 | `study_time` | ✅ (T-064) PK (`user_id`, `day` — Nepal date, `activity` video / reading / practice / test), `seconds` (0–86400 — CHECK) |
 | `study_plans` | ✅ (T-065) `user_id`, `course_id` (unique together), `exam_date` (date), `minutes_per_day` (10–600 — CHECK); the days are computed, not stored |
 | `course_reviews` | ✅ (T-066) `course_id`, `user_id` (unique together), `rating` (1–5 — CHECK), `body` (≤ 2000 — CHECK), `status` (pending / approved / rejected), `rejection_reason` (exactly when rejected — CHECK), `moderated_by`, `moderated_at` (exactly when not pending — CHECK) |
+| `discussion_posts` | ✅ (T-067) `target_type` (question / lesson) + `target_id`, `parent_id` (self, one level), `user_id`, `body` (≤ 2000 — CHECK), `status` (visible / hidden / deleted), `is_best` (replies only — CHECK; one per doubt — partial unique index), `hidden_reason` / `hidden_by` / `hidden_at` (exactly when hidden — CHECK) |
+| `discussion_reports` | ✅ (T-067) `post_id`, `user_id` (unique together), `reason`, `message` (≤ 500), `open` |
+| `discussion_bans` | ✅ (T-067) `user_id` PK, `until` (null = until allowed again), `reason`, `created_by` |
 | `study_clocks` | ✅ (T-064) `user_id` PK, `last_report_at`: a report is never credited more than the time since the previous one |
 | `mistakes` | ✅ (T-047) PK (`user_id`, `question_id`), `status` (active / mastered / removed), `times_wrong` (≥ 1), `correct_streak`, `last_source` (test / practice), `last_wrong_at`, `last_reviewed_at`, `mastered_at` (set exactly when mastered — CHECK), `answer_visible`; `attempts.mistakes_synced_at` marks attempts already added |
 | `study_plans` / `study_plan_items` | `target_exam_node_id`, `exam_date`, generated weekly items with status |

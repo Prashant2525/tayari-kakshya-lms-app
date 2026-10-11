@@ -97,6 +97,20 @@ export class AccountDeletionService {
         await tx.studyClock.deleteMany({ where: { userId: request.userId } });
         await tx.studyPlan.deleteMany({ where: { userId: request.userId } });
         await tx.courseReview.deleteMany({ where: { userId: request.userId } });
+        // Discussions: their posts are emptied (kept as "deleted" so others' replies keep their place).
+        await tx.discussionPost.updateMany({
+          where: { userId: request.userId },
+          data: {
+            status: 'deleted',
+            body: '',
+            isBest: false,
+            hiddenReason: null,
+            hiddenById: null,
+            hiddenAt: null,
+          },
+        });
+        await tx.discussionReport.deleteMany({ where: { userId: request.userId } });
+        await tx.discussionBan.deleteMany({ where: { userId: request.userId } });
         // Notifications (D-033) and Apple-device course interest / account emails (D-061).
         await tx.pushToken.deleteMany({ where: { userId: request.userId } });
         await tx.notificationDelivery.deleteMany({ where: { userId: request.userId } });

@@ -6,6 +6,7 @@ import {
   Bell,
   BookOpen,
   Megaphone,
+  MessagesSquare,
   Newspaper,
   Receipt,
   type LucideIcon,
@@ -110,6 +111,7 @@ const ICONS: Record<NotificationCategory, LucideIcon> = {
   result: Award,
   purchase: Receipt,
   article: Newspaper,
+  discussion: MessagesSquare,
 };
 
 const styles = StyleSheet.create({

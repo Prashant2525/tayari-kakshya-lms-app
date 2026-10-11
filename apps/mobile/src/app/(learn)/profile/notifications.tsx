@@ -17,6 +17,7 @@ const CATEGORIES: NotificationCategory[] = [
   'exam_reminder',
   'result',
   'purchase',
+  'discussion',
 ];
 /** Purchases have no email choice: the receipt email always goes (D-057), and it is the purchase email. */
 const CHANNELS: Record<NotificationCategory, ReadonlyArray<'push' | 'email'>> = {
@@ -26,6 +27,8 @@ const CHANNELS: Record<NotificationCategory, ReadonlyArray<'push' | 'email'>> = 
   result: ['push', 'email'],
   purchase: ['push'],
   article: ['push', 'email'],
+  /** Replies to the student's questions are never emailed. */
+  discussion: ['push'],
 };
 
 /** Profile → Notifications (D-033): what to hear about by push and by email. The in-app list always shows everything. */

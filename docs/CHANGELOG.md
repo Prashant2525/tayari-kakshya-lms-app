@@ -4,6 +4,13 @@ All notable changes to this project. Format based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Added — 2026-10-11 (Phase 13d: discussions / doubts)
+- App: a Discussion under each practice question (after checking the answer) and each lesson — ask a doubt, reply,
+  report a post, delete your own; teachers' answers carry a badge and the best answer is marked; you are notified
+  of replies (Profile → Notifications → Replies to my questions).
+- CMS: Content → Discussions (Reported / Recent / Hidden): answer as a teacher, mark the best answer, hide or keep
+  reported posts, stop a student posting. New permission `discussions:moderate`.
+
 ### Added — 2026-10-11 (Phase 13c: course reviews)
 - App: students who have finished part of a course give it 1–5 stars and a few words; they see whether it is
   waiting, published or not published (with the reason), and can change or delete it. Course cards and course
