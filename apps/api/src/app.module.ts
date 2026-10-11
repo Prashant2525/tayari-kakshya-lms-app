@@ -58,6 +58,8 @@ import {
 import { DiscussionsService } from './modules/discussions/discussions.service.js';
 import { AnalyticsController, ExportsController } from './modules/analytics/analytics.controller.js';
 import { AnalyticsService } from './modules/analytics/analytics.service.js';
+import { OfflineController } from './modules/content/offline.controller.js';
+import { OfflineService } from './modules/content/offline.service.js';
 import { ExportsService } from './modules/analytics/exports.service.js';
 import { PlannerService } from './modules/progress/planner.service.js';
 import { ProgressController } from './modules/progress/progress.controller.js';
@@ -180,6 +182,7 @@ export class InfraModule {}
     ReviewsService,
     DiscussionsService,
     AnalyticsService,
+    OfflineService,
     ExportsService,
     GatewayHttp,
     PaymentsService,
@@ -243,6 +246,7 @@ export class InfraModule {}
     ReviewsService,
     DiscussionsService,
     AnalyticsService,
+    OfflineService,
     ExportsService,
     GatewayHttp,
     PaymentsService,
@@ -330,6 +334,7 @@ export class DomainModule {}
     AdminDiscussionsController,
     AnalyticsController,
     ExportsController,
+    OfflineController,
     PaymentsController,
     AdminOrdersController,
     PlansController,

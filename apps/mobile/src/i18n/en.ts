@@ -747,6 +747,18 @@ export const en = {
   'discuss.you': 'You',
   'discuss.tooShort': 'Write at least 2 characters.',
   'notifSettings.discussion': 'Replies to my questions',
+  'offline.download': 'Save for offline',
+  'offline.remove': 'Remove offline copy',
+  'offline.savedCopy': 'No connection: showing your saved copy (opens offline until {date}).',
+  'offline.title': 'Downloads',
+  'offline.empty': 'No saved lessons',
+  'offline.emptyBody': 'Open a note and tap the cloud button to read it without internet.',
+  'offline.until': 'Opens offline until {date}',
+  'offline.expired': 'Go online to keep reading it offline',
+  'offline.removeAll': 'Remove all downloads',
+  'offline.info':
+    'Saved lessons open without internet for {days} days at a time; the app renews them whenever you are online. They are deleted when you sign out.',
+  'offline.notHere': 'Downloads are available in the Android and iPhone app.',
 } as const;
 
 export type MessageKey = keyof typeof en;

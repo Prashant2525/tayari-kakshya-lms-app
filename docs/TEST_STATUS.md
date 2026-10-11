@@ -1,6 +1,6 @@
 # Test Status
 
-Last updated: 2026-10-11 (Phase 13e: reports). `pnpm test` runs unit + integration suites (needs `pnpm infra:up`);
+Last updated: 2026-10-11 (Phase 14a part 1: offline notes). `pnpm test` runs unit + integration suites (needs `pnpm infra:up`);
 `pnpm build && pnpm --filter @tk/admin e2e` and `pnpm build && pnpm --filter @tk/mobile e2e` run the browser suites
 (the student suite also needs Mailpit, part of `pnpm infra:up`).
 
@@ -11,14 +11,29 @@ Last updated: 2026-10-11 (Phase 13e: reports). `pnpm test` runs unit + integrati
 | `@tk/design-tokens` | 39 | WCAG contrast for every text/background pair (light + dark), CSS generation |
 | `@tk/domain` | 64 | BS calendar, Kathmandu day boundary, fiscal year, money/VAT/discounts, access validity |
 | `@tk/contracts` | 21 | Schema behaviour (localized text, email normalisation, mass assignment, settings defaults, rich-text validation) |
-| `@tk/api` | 301 | Integration against real PostgreSQL + Redis + S3 (SeaweedFS) through the HTTP stack; TOTP RFC 6238 vectors; RBAC, video, watermark unit |
+| `@tk/api` | 302 | Integration against real PostgreSQL + Redis + S3 (SeaweedFS) through the HTTP stack; TOTP RFC 6238 vectors; RBAC, video, watermark unit |
 | `@tk/admin` (unit) | 35 | API client (headers, refresh single-flight, retry, session loss, error mapping), BS formatting, Button `asChild` regression |
 | `@tk/admin` (E2E, Playwright) | 36 | Real browser + real API + `*_e2e` database |
-| `@tk/mobile` (unit) | 41 | Study-time meter (idle limits, videos, innermost screen, background), development picture addresses on a phone, API client (single-flight refresh, early refresh, session end, maintenance), translations complete in both languages, BS dates and Kathmandu weekday, force-update/maintenance gate, form checks, Nepali phone numbers |
+| `@tk/mobile` (unit) | 44 | Offline licence rules (expiry, clock set back, saved pictures), Study-time meter (idle limits, videos, innermost screen, background), development picture addresses on a phone, API client (single-flight refresh, early refresh, session end, maintenance), translations complete in both languages, BS dates and Kathmandu weekday, force-update/maintenance gate, form checks, Nepali phone numbers |
 | `@tk/mobile` (E2E, Playwright, phone viewport) | 43 | Web build + real API + `*_mobile_e2e` database + Mailpit |
 | `@tk/web` (unit) | 8 | Session refresh used once (concurrent / late requests share it; refused → signed out; unreachable → retried), token expiry, both languages complete, failure messages |
 | `@tk/web` (E2E, Playwright) | 10 | `next start` production build + real API + `*_web_e2e` database + Mailpit + gateway stand-in; access tokens last 60 s so every page load refreshes |
-| **Total** | **598** | |
+| **Total** | **602** | |
+
+### Added with offline notes and screen protection (Phase 14a part 1, T-069, D-067)
+- **API (1 integration test):** the app config, a note with its licence (CMS days), premium only with access, no
+  videos / PDFs yet, renewals with the CMS days, a new version after an edit, revocation when access ends or the
+  lesson is unknown, offline switched off (no downloads, everything revoked), limits and audiences.
+  Mutation-checked (5: switch ignored for downloads / renewals, access loss not revoked, days ignored, videos
+  downloadable — each fails a test).
+- **App unit (3):** licence expiry, a clock set back, saved pictures. **CMS E2E** (System settings): Offline lessons
+  days saved.
+- **Device check (Android emulator, Expo Go, the app suite's API and data):** save a premium note with a picture;
+  with the API stopped it opens from the saved copy with the offline banner (7 days → "until 1 Kartik 2083");
+  after a cold start without the server the app opens (fixed: it used to stop at "Could not reach the server") and
+  Downloads → the note opens offline; screenshots of the premium lesson are black, Downloads on top is not (fixed:
+  the block stayed on for screens opened on top). Offline storage is not on the web, so the browser suites do not
+  cover it.
 
 ### Added with reports (Phase 13e, T-068, D-066)
 - **API (3 integration + 2 unit tests):** sales per Nepal day (paid orders only, refunds sent, net, channels,

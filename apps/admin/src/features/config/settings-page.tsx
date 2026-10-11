@@ -1389,6 +1389,40 @@ export function SettingsPage() {
         </SettingCard>
 
         <SettingCard
+          row={row('offline.rules')}
+          title="Offline lessons"
+          description="Students can save notes in the app and read them without internet. A saved lesson opens offline for this many days; the app renews it whenever the student is online, and removes it once their access ends."
+        >
+          {(d, set, disabled) => (
+            <>
+              <ToggleRow
+                label="Students can save lessons for offline reading"
+                hint="Switching this off removes saved lessons the next time each app is online."
+                checked={d.enabled}
+                disabled={disabled}
+                onChange={(v) => set({ ...d, enabled: v })}
+              />
+              <Field label="Days a saved lesson opens offline" hint="From 1 to 90.">
+                {(a) => (
+                  <Input
+                    {...a}
+                    type="number"
+                    min={1}
+                    max={90}
+                    className="w-32"
+                    value={Number.isNaN(d.days) ? '' : d.days}
+                    disabled={disabled}
+                    onChange={(e) =>
+                      set({ ...d, days: e.target.value === '' ? Number.NaN : Number(e.target.value) })
+                    }
+                  />
+                )}
+              </Field>
+            </>
+          )}
+        </SettingCard>
+
+        <SettingCard
           row={row('planner.estimates')}
           title="Study planner estimates"
           description="Students' study plans use each video's length and each test's time limit. Where those are unknown, and for notes and PDFs, these estimates are used."

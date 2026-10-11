@@ -202,6 +202,12 @@ Current task: Phase 11 part 3 (receipts + refunds) done on `feature/receipts-ref
 - Nothing partially implemented. Admin screens for Phase 6 not started.
 
 ## Exact next steps
+0u. 2026-10-11: PR #45 merged. Owner chose Phase 14 order (D-067). `feature/offline-notes` (T-069). Next: **14a-2
+   offline PDFs** — keep the pdf.js reader on the device (one HTML with pdf.js inlined, the worker from a Blob URL, the
+   PDF bytes posted in chunks) so a saved, watermarked PDF opens without the API; same licence / refresh. Device
+   check method: the app suite's API (`node apps/mobile/e2e/start-api.mjs`, port 4020) + `adb reverse tcp:4020` +
+   `EXPO_PUBLIC_API_URL=http://localhost:4020`; premium screens screenshot black, so read them with `uiautomator
+   dump` (MSYS_NO_PATHCONV=1 in Git Bash).
 0t. 2026-10-11: PR #44 merged; the main CI run did not start (GitHub billing, KI-053 — owner). `feature/dashboards`
    (T-068) completes Phase 13. Next: **Phase 14 (advanced, §14)** — offline downloads (PDF + Bunny video, licence
    refresh), screen-capture protection, ConnectIPS, AI study assistant (after L2), live classes (after L3). Ask the

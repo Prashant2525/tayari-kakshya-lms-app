@@ -280,6 +280,8 @@ export class CatalogService {
       accessLevel: item.accessLevel,
       language: item.language,
       durationSeconds: item.durationSeconds,
+      /** The lesson's last change (offline copies compare it, T-069). */
+      version: item.updatedAt.toISOString(),
     };
     if (item.type === 'note') {
       const content = item.noteContent as LocalizedRichDoc | null;

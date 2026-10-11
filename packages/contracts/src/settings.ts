@@ -498,6 +498,15 @@ export const SETTINGS = {
     default: { names: 'first_initial' as const },
     public: false,
   },
+  /**
+   * D-067 / T-069: offline lessons — on / off, and how many days a downloaded lesson opens without internet before the
+   * app must go online to check access again (default 7).
+   */
+  'offline.rules': {
+    schema: z.object({ enabled: z.boolean(), days: z.number().int().min(1).max(90) }),
+    default: { enabled: true, days: 7 },
+    public: true,
+  },
 } as const satisfies Record<string, { schema: z.ZodType; default: unknown; public: boolean }>;
 
 export type SettingKey = keyof typeof SETTINGS;

@@ -12,6 +12,7 @@ export * from './discussions.js';
 export * from './errors.js';
 export * from './mistakes.js';
 export * from './notices.js';
+export * from './offline.js';
 export * from './permissions.js';
 export * from './planner.js';
 export * from './progress.js';

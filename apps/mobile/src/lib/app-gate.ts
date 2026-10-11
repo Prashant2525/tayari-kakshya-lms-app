@@ -13,6 +13,8 @@ export interface AppConfig {
   verification: { channels: { email: boolean; phone: boolean }; requiredForLearning: boolean };
   /** D-059: whether sign-up shows the referral code field (older servers do not send it). */
   referrals?: { enabled: boolean };
+  /** D-067: offline lessons (older servers do not send it). */
+  offline?: { enabled: boolean; days: number };
   questionTypeLabels: Record<string, LocalizedText>;
   enabledQuestionTypes: string[];
 }

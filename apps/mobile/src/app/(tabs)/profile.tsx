@@ -17,6 +17,7 @@ import {
   ChartNoAxesColumn,
   ChevronRight,
   ClipboardList,
+  CloudDownload,
   Gift,
   Crown,
   KeyRound,
@@ -43,6 +44,7 @@ import { Text } from '@/ui/text';
 import { initialsOf } from '@/lib/names';
 import { bsDate } from '@/lib/dates';
 import { errorMessageKey } from '@/lib/error-message';
+import { offlineSupported } from '@/lib/offline';
 
 /** Foundation version: account summary, language, theme, verification and log out. Editing etc. come in §9. */
 export default function ProfileScreen() {
@@ -163,6 +165,9 @@ export default function ProfileScreen() {
           <LinkRow icon={ChartNoAxesColumn} label={t('progress.title')} href="/progress" />
           <LinkRow icon={CalendarCheck} label={t('planner.title')} href="/planner" />
           <LinkRow icon={Bookmark} label={t('profile.saved.list')} href="/bookmarks" />
+          {offlineSupported ? (
+            <LinkRow icon={CloudDownload} label={t('offline.title')} href="/downloads" />
+          ) : null}
           <LinkRow icon={ClipboardList} label={t('history.title')} href="/attempts" />
           <LinkRow icon={NotebookPen} label={t('mistakes.title')} href="/mistakes" />
           <LinkRow icon={Crown} label={t('plans.menu')} href="/plans" />
