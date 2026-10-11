@@ -743,4 +743,16 @@ export const ne: Record<MessageKey, string> = {
   'discuss.you': 'तपाईं',
   'discuss.tooShort': 'कम्तीमा २ अक्षर लेख्नुहोस्।',
   'notifSettings.discussion': 'मेरा प्रश्नका जवाफ',
+  'offline.download': 'अफलाइनका लागि राख्नुहोस्',
+  'offline.remove': 'अफलाइन प्रति हटाउनुहोस्',
+  'offline.savedCopy': 'इन्टरनेट छैन: तपाईंको सुरक्षित प्रति देखाइँदै (अफलाइन {date} सम्म खुल्छ)।',
+  'offline.title': 'डाउनलोड',
+  'offline.empty': 'कुनै पाठ राखिएको छैन',
+  'offline.emptyBody': 'इन्टरनेट बिना पढ्न नोट खोलेर बादलको बटन थिच्नुहोस्।',
+  'offline.until': 'अफलाइन {date} सम्म खुल्छ',
+  'offline.expired': 'अफलाइन पढिरहन इन्टरनेटमा जोडिनुहोस्',
+  'offline.removeAll': 'सबै डाउनलोड हटाउनुहोस्',
+  'offline.info':
+    'राखिएका पाठ एक पटकमा {days} दिनसम्म इन्टरनेट बिना खुल्छन्; इन्टरनेट हुँदा एपले नवीकरण गर्छ। साइन आउट गर्दा मेटिन्छन्।',
+  'offline.notHere': 'डाउनलोड Android र iPhone एपमा उपलब्ध छ।',
 };

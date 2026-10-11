@@ -6,7 +6,9 @@ import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useItem, useOutline, useSaveProgress, type ItemContent, type OutlineItem } from '@/api/learning';
 import type { NewCertificate } from '@/api/certificates';
+import { DownloadButton } from '@/features/learn/download-button';
 import { PdfReader } from '@/features/learn/pdf-reader';
+import { ScreenGuard } from '@/features/learn/screen-guard';
 import { BookmarkButton } from '@/features/practice/bookmark-button';
 import { DiscussLink } from '@/features/practice/discuss-link';
 import { RichText } from '@/features/learn/rich-text';
@@ -14,6 +16,8 @@ import { VideoPlayer } from '@/features/learn/video-player';
 import { localized, type Locale } from '@/i18n/translate';
 import { useT } from '@/i18n/use-t';
 import { track } from '@/lib/analytics';
+import { bsDate } from '@/lib/dates';
+import { savedLesson } from '@/lib/offline';
 import { studySignal, useStudyTime } from '@/lib/study-time';
 import { ApiError } from '@/lib/api-client';
 import { READER_SCALES, usePrefs } from '@/state/prefs';
@@ -21,7 +25,7 @@ import { useTheme } from '@/theme/theme';
 import { Button } from '@/ui/button';
 import { StatusChip } from '@/ui/chip';
 import { Dialog } from '@/ui/dialog';
-import { BackButton, Skeleton } from '@/ui/layout';
+import { BackButton, Banner, Skeleton } from '@/ui/layout';
 import { Segmented } from '@/ui/segmented';
 import { EmptyState, ErrorState, OfflineBanner } from '@/ui/states';
 import { Text } from '@/ui/text';
@@ -94,8 +98,11 @@ export default function LearnScreen() {
       },
     });
 
-  const title = item.data ? localized(item.data.title, locale) : '';
   const error = item.error instanceof ApiError ? item.error : null;
+  // No connection: the saved copy, while its licence lasts (D-067).
+  const offlineCopy = useMemo(() => (error?.status === 0 ? savedLesson(itemId) : null), [error, itemId]);
+  const lesson = item.data ?? offlineCopy;
+  const title = lesson ? localized(lesson.title, locale) : '';
 
   return (
     <SafeAreaView edges={['top', 'bottom']} style={[styles.fill, { backgroundColor: colors.bg }]}>
@@ -105,7 +112,13 @@ export default function LearnScreen() {
         <Text variant="h4" role="heading" numberOfLines={2} style={{ flex: 1 }}>
           {title}
         </Text>
-        {item.data?.type === 'note' ? <TextSizeButtons /> : null}
+        {lesson?.type === 'note' ? <TextSizeButtons /> : null}
+        {item.data ? (
+          <DownloadButton
+            item={item.data}
+            where={{ courseId, subjectId: params.subjectId || undefined, slug: params.slug || undefined }}
+          />
+        ) : null}
         {item.data ? <DiscussLink target="lesson" id={item.data.id} title={title} compact /> : null}
         {item.data ? <BookmarkButton type="learning_item" id={item.data.id} /> : null}
       </View>
@@ -137,6 +150,21 @@ export default function LearnScreen() {
           title={t('learn.verifyTitle')}
           action={<Button label={t('learn.verifyAction')} onPress={() => router.push('/verify')} />}
         />
+      ) : offlineCopy ? (
+        <View style={{ flex: 1 }}>
+          <Banner
+            tone="info"
+            message={t('offline.savedCopy', { date: bsDate(offlineCopy.expiresAt, locale) })}
+          />
+          <Body
+            item={offlineCopy}
+            title={title}
+            locale={locale}
+            startAt={0}
+            finished={false}
+            onPosition={() => undefined}
+          />
+        </View>
       ) : item.isError ? (
         <ErrorState error={item.error} onRetry={() => void item.refetch()} />
       ) : (
@@ -152,6 +180,7 @@ export default function LearnScreen() {
         />
       )}
 
+      {lesson?.accessLevel === 'premium' ? <ScreenGuard /> : null}
       {item.data ? (
         <View style={[styles.footer, { borderTopColor: colors.border, backgroundColor: colors.surface }]}>
           <NavButton direction="previous" disabled={index <= 0} onPress={() => open(ordered[index - 1])} />

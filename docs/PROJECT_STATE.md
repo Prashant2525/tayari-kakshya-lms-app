@@ -1,6 +1,6 @@
 # Project State
 
-Current Phase: **Phase 13 progress & community** — part 13e (reports) on `feature/dashboards`; **Phase 13 complete**
+Current Phase: **Phase 14 advanced** — part 14a-1 (offline notes, screen protection) on `feature/offline-notes`
 Current Milestone: content API on `feature/content-cms` → Admin CMS content screens
 Overall Status: **IN PROGRESS**
 Last updated: 2026-10-11
@@ -71,7 +71,9 @@ Last updated: 2026-10-11
   website. Merged (PR #43).
 - Phase 13d on `feature/discussions` (T-067): doubts under questions and lessons with teacher answers and
   moderation. Merged (PR #44).
-- Phase 13e on `feature/dashboards` (T-068): CMS Reports and CSV exports. **Phase 13 complete.** Next: Phase 14 (advanced).
+- Phase 13e on `feature/dashboards` (T-068): CMS Reports and CSV exports. **Phase 13 complete.** Merged (PR #45).
+- Phase 14 decided (D-067). Part 14a-1 on `feature/offline-notes` (T-069): offline notes, screen protection. Next:
+  14a-2 offline PDFs.
 - Monitoring (T-042) merged (PR #14, #15): Sentry in the API, worker, admin and app; PostHog in the app. Google web client registered for `http://localhost:8081` (checked); a real
   sign-in by the owner and Android/iOS clients remain (KI-029).
 - Phase 9 part 2 merged (PR #13): practice questions with Check answer and locked Premium answers

@@ -109,6 +109,8 @@ courses/subjects. Every write is audited.
 | GET | `/courses/:slug/reviews` | public | approved reviews, newest first, cursor; `summary { average, count, stars }` (T-066) |
 | GET / POST | `/discussions/:target/:targetId` · `/discussions/:target/:targetId/posts` | student | target `question` / `lesson`; thread (doubts newest first with replies, `count`, `canPost`, `bannedUntil`) and posting `{ body, parentId? }` — access per T-067 |
 | DELETE / POST | `/discussions/posts/:id` · `/discussions/posts/:id/report` | student | delete one's own post; report another's `{ reason, message? }` |
+| POST | `/learning-items/:id/offline` | student | a note to keep on the device with `expiresAt` (CMS days), `serverTime`, `version`; notes only for now (T-069) |
+| POST | `/me/offline/refresh` | student | `{ itemIds ≤ 200 }` → `{ licences: [{ id, expiresAt \| null (revoked), version }], serverTime }` |
 | GET | `/me/bookmarks` | student | saved lessons and questions, newest first: `{ targetType, targetId, createdAt, item? \| question? }`; unpublished targets are left out |
 | PUT / DELETE | `/me/bookmarks/:type/:id` | student | `type` = `learning_item` \| `question`; save (idempotent) / remove; only published targets can be saved |
 | GET | `/search?q=` | student | `q` 2–120 chars: `{ courses, items, questions, articles }` — published courses (platform-aware prices), live lessons by title (en/ne), questions by text, live articles by title or address (T-061); no premium bodies or answers |

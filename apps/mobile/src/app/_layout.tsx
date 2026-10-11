@@ -15,12 +15,14 @@ import { useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { api, queryClient } from '@/api/client';
+import { ApiError } from '@/lib/api-client';
 import { AppGate } from '@/features/app-gate';
 import { useGuards } from '@/features/guards';
 import { useAnalyticsIdentity, useScreenTracking } from '@/lib/analytics';
 import { initMonitoring } from '@/lib/monitoring';
 import { checkoutHref, usePendingLink } from '@/lib/pending-link';
 import { listenForTaps, registerForPush } from '@/lib/push';
+import { useOffline } from '@/lib/offline';
 import { startStudyClock, studySignal } from '@/lib/study-time';
 import { usePrefs } from '@/state/prefs';
 import { useSession } from '@/state/session';
@@ -93,7 +95,13 @@ function RootNavigator() {
   }, [signedIn, locale, me.data]);
 
   // The navigator stays mounted (navigation state survives); account data loads under an overlay.
-  const blocking = signedIn && (me.isPending || targets.isPending || me.isError || targets.isError);
+  // Without a connection (paused queries, or the server out of reach) the app still opens, so saved lessons can be
+  // read (D-067); the account loads when the connection returns.
+  const unreachable = (q: { error: unknown; fetchStatus: string }) =>
+    q.fetchStatus === 'paused' || (q.error instanceof ApiError && q.error.status === 0);
+  const offline = unreachable(me) || unreachable(targets);
+  const blocking =
+    signedIn && !offline && (me.isPending || targets.isPending || me.isError || targets.isError);
 
   // A checkout share link opened while signed out is opened once the student is in (D-056).
   const url = Linking.useURL();
@@ -103,6 +111,27 @@ function RootNavigator() {
     if (href && !signedIn) usePendingLink.getState().set(href);
   }, [url, signedIn]);
   const inside = signedIn && !mustVerify && !needsOnboarding && !blocking;
+  // Offline lessons (D-067): loaded on start, renewed when online; they belong to the account, so signing out (or a
+  // session ending) deletes them.
+  useEffect(() => {
+    if (!signedIn) {
+      useOffline.getState().clear();
+      return;
+    }
+    useOffline.getState().load();
+  }, [signedIn]);
+  useEffect(() => {
+    if (!inside) return;
+    const renew = () =>
+      void useOffline
+        .getState()
+        .refresh()
+        .catch(() => undefined);
+    renew();
+    return NetInfo.addEventListener((state) => {
+      if (state.isConnected) renew();
+    });
+  }, [inside]);
   // Push (D-033): asked for once the student is in; tapped notifications open their screen.
   useEffect(() => {
     if (inside) void registerForPush();

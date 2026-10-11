@@ -4,6 +4,13 @@ All notable changes to this project. Format based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Added — 2026-10-11 (Phase 14a part 1: offline notes and screen protection)
+- App: save a note (cloud button) to read it without internet; Profile → Downloads; saved lessons open offline for
+  the days set in the CMS (default 7) and are renewed when online; they are removed when access ends and when you
+  sign out. The app now opens without a connection.
+- App: screenshots and screen recording are blocked on premium lessons.
+- CMS: System settings → Offline lessons (on / off, days).
+
 ### Added — 2026-10-11 (Phase 13e: reports)
 - CMS: **Reports** — sales and revenue (refunds, net, channels, payment providers, top courses and plans), students
   (sign-ups, active, platforms), learning (new access, lessons finished, study time, top courses and lessons) and

@@ -196,7 +196,11 @@ course reviews + moderation, discussions/doubts + moderation, admin dashboards &
 - ☑ Part 13e (T-068): CMS Reports — sales, students, learning, tests & questions per period; CSV exports (audited)
 
 **§14 Advanced** — offline downloads (PDF + Bunny video, license refresh), screen-capture protection, ConnectIPS provider,
-AI study assistant (after L2), live classes (after L3), Apple IAP (only if decided later).
+AI study assistant (after L2), live classes (after L3), Apple IAP (only if decided later). Order and scope: D-067.
+- ☑ Part 14a-1 (T-069): offline notes (licence days from the CMS, renewal / revocation, Downloads, deleted on
+  sign-out), app opens without a connection, screen-capture protection on premium lessons
+- ☐ Part 14a-2: offline PDFs (the PDF reader kept on the device)
+- Later (D-067): offline video; ConnectIPS once NCHL test credentials arrive; AI assistant (L2); live classes (L3)
 
 ## Next concrete steps
 1. Owner reviews and merges the `feature/admin-foundation` PR; confirm both CI jobs (`verify`, `admin-e2e`) are green.

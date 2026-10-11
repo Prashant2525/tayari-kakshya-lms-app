@@ -12,16 +12,25 @@ export class AppConfigController {
   @Public()
   @Get('config')
   async config() {
-    const [maintenance, minVersions, storeLinks, purchaseChannels, verification, questionTypes, referrals] =
-      await Promise.all([
-        this.settings.get('app.maintenance'),
-        this.settings.get('app.minVersions'),
-        this.settings.get('app.storeLinks'),
-        this.settings.get('purchase.channels'),
-        this.settings.get('auth.verification'),
-        this.settings.get('questions.types'),
-        this.settings.get('referrals.rules'),
-      ]);
+    const [
+      maintenance,
+      minVersions,
+      storeLinks,
+      purchaseChannels,
+      verification,
+      questionTypes,
+      referrals,
+      offline,
+    ] = await Promise.all([
+      this.settings.get('app.maintenance'),
+      this.settings.get('app.minVersions'),
+      this.settings.get('app.storeLinks'),
+      this.settings.get('purchase.channels'),
+      this.settings.get('auth.verification'),
+      this.settings.get('questions.types'),
+      this.settings.get('referrals.rules'),
+      this.settings.get('offline.rules'),
+    ]);
     return {
       maintenance,
       minVersions,
@@ -29,6 +38,8 @@ export class AppConfigController {
       purchaseChannels,
       /** D-059: whether sign-up forms show the referral code field. */
       referrals: { enabled: referrals.enabled },
+      /** D-067: whether lessons can be downloaded, and for how many days they open without internet. */
+      offline,
       verification: {
         channels: verification.channels,
         requiredForLearning: verification.requiredForLearning,
