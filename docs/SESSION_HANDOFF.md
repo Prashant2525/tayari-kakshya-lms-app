@@ -202,6 +202,9 @@ Current task: Phase 11 part 3 (receipts + refunds) done on `feature/receipts-ref
 - Nothing partially implemented. Admin screens for Phase 6 not started.
 
 ## Exact next steps
+0y. 2026-10-12: Owner asked (on PR #49) for scroll animation, more UI polish and the invisible status bar
+   (D-070): same branch, T-072 — `ui/scroll-header.tsx` (useScrollMotion, LargeTitle, CompactBar,
+   useStatusBarStyle). A screen with a navy hero must call `useStatusBarStyle('light')`.
 0x. 2026-10-12: PR #48 merged. Owner asked for a launch animation and a more modern app (D-069):
    `feature/launch-motion` (T-071). Motion lives in `ui/motion.tsx` (Animated + native driver; keep animated values
    in `useState`, the React lint rules reject refs read during render). The intro is phones only (`PLAY_INTRO` in

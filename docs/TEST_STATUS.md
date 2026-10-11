@@ -1,6 +1,6 @@
 # Test Status
 
-Last updated: 2026-10-12 (launch intro and motion). `pnpm test` runs unit + integration suites (needs `pnpm infra:up`);
+Last updated: 2026-10-12 (scroll motion and Profile). `pnpm test` runs unit + integration suites (needs `pnpm infra:up`);
 `pnpm build && pnpm --filter @tk/admin e2e` and `pnpm build && pnpm --filter @tk/mobile e2e` run the browser suites
 (the student suite also needs Mailpit, part of `pnpm infra:up`).
 
@@ -19,6 +19,13 @@ Last updated: 2026-10-12 (launch intro and motion). `pnpm test` runs unit + inte
 | `@tk/web` (unit) | 8 | Session refresh used once (concurrent / late requests share it; refused → signed out; unreachable → retried), token expiry, both languages complete, failure messages |
 | `@tk/web` (E2E, Playwright) | 10 | `next start` production build + real API + `*_web_e2e` database + Mailpit + gateway stand-in; access tokens last 60 s so every page load refreshes |
 | **Total** | **605** | |
+
+### Changed: scroll motion, status bar, Profile (D-070, T-072)
+- Student browser suite 43/43 (Profile heading and tabs unchanged for the tests).
+- **Browser screenshots** (light, dark; full and short screens): Home and Profile at the top and scrolled (navy
+  compact bars), Courses and Notices scrolled (compact bar with shadow), notices rising in.
+- **Device check (Android emulator, Expo Go):** status bar icons light on Home and Profile, dark on Courses
+  (KI-056 fixed).
 
 ### Changed: launch intro, motion and refreshed look (D-069, T-071)
 - No new automated tests (visual change); the student browser suite (43) passes with the custom tab bar (same

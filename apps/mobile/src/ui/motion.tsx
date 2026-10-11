@@ -89,7 +89,10 @@ export function PressableScale({
   );
 }
 
-/** Fades and rises into place when it first appears; `index` staggers a list of them. */
+/**
+ * Fades and rises into place when it first appears; `index` staggers the first few of a list (rows that mount later,
+ * as the list scrolls, rise in at once).
+ */
 export function FadeInUp({
   index = 0,
   children,
@@ -105,7 +108,7 @@ export function FadeInUp({
     Animated.timing(progress, {
       toValue: 1,
       duration: durations.slow,
-      delay: Math.min(index, 8) * 55,
+      delay: index < 6 ? index * 55 : 0,
       easing: easeStandard,
       useNativeDriver: nativeDriver,
     }).start();

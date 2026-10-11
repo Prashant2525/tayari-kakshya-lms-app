@@ -4,6 +4,15 @@ All notable changes to this project. Format based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Changed — 2026-10-12 (scroll animation, Profile, status bar, D-070)
+- App: scrolling feels alive — Courses and Notices titles hand over to a compact bar; Home and Profile headers
+  drift and fade under a compact navy bar; courses and notices rise in as they appear.
+- App: new Profile header (navy, avatar, name, email) and settings rows with coloured icon tiles; notice cards
+  respond to touch.
+
+### Fixed — 2026-10-12
+- App: the phone's status bar (clock, Wi-Fi, battery) could not be seen on Home in the light theme (KI-056).
+
 ### Changed — 2026-10-12 (launch animation and a more modern look, D-069)
 - App: animated launch — T and K fly in and meet in the logo, then "Tayari Kakshya" and the slogan; tap to skip.
 - App: new tab bar with a sliding highlight; tab screens fade and slide when switching; pushed screens slide in

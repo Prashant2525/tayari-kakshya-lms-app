@@ -76,7 +76,8 @@ Last updated: 2026-10-12
   (PR #46).
 - `feature/screen-protection-all` (D-068): screenshots / recording blocked on every screen. Merged (PR #47).
 - Part 14a-2 on `feature/offline-pdfs` (T-070): offline PDFs. **Phase 14a complete.** Merged (PR #48).
-- `feature/launch-motion` (D-069, T-071): launch intro, tab / screen motion, refreshed look. Next: the rest of Phase 14
+- `feature/launch-motion` (D-069, T-071; D-070, T-072): launch intro, tab / screen / scroll motion, refreshed look,
+  Profile header, status bar fix (KI-056). Next: the rest of Phase 14
   (offline video, ConnectIPS, AI assistant, live classes — each waits on an owner decision or credentials).
 - Monitoring (T-042) merged (PR #14, #15): Sentry in the API, worker, admin and app; PostHog in the app. Google web client registered for `http://localhost:8081` (checked); a real
   sign-in by the owner and Android/iOS clients remain (KI-029).

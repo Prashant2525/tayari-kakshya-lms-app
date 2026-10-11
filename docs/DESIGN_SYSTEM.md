@@ -120,6 +120,9 @@ All sizes scale with OS font settings (capped at 1.3× in dense lists; uncapped 
 | press | spring to 0.97 | buttons and tappable cards (`PressableScale`) |
 | entrance | 320 ms, 55 ms stagger | Home sections rise 14 px into place (`FadeInUp`) |
 | stack push | platform | slide from the right on iOS and Android (`ios_from_right`) |
+| scroll: large title | 0–44 px | the title fades; a compact bar (surface, hairline, shadow) fades in from 36 px |
+| scroll: navy hero | 0–160 px | hero content drifts down and fades; a navy compact bar takes over; pull stretches |
+| list rows | 300 ms | rows rise 16 px as they appear; the first six are staggered 55 ms |
 
 Rules: animate opacity/transform only; progress bars fill smoothly; correct/incorrect feedback uses a short colour+icon
 transition (no shake); **no motion in the exam timer or palette**; honour reduced-motion (crossfade only).
