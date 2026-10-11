@@ -44,6 +44,7 @@ const CONTENT_PERMISSIONS = [
   'support:manage',
   'banners:manage',
   'reviews:moderate',
+  'discussions:moderate',
 ];
 
 /**

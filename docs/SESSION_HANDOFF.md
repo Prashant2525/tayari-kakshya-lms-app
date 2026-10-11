@@ -202,6 +202,9 @@ Current task: Phase 11 part 3 (receipts + refunds) done on `feature/receipts-ref
 - Nothing partially implemented. Admin screens for Phase 6 not started.
 
 ## Exact next steps
+0s. 2026-10-11: PR #43 merged. `feature/discussions` (T-067, part 13d). Next: **13e admin dashboards and CSV
+   exports** (D-066: sales & revenue, students, learning, tests & questions; CSV). Grant `discussions:moderate` to
+   teachers.
 0r. 2026-10-11: PR #42 merged. `feature/course-reviews` (T-066, part 13c). Next: **13d discussions / doubts** (D-066:
    under practice / test questions after the answer is shown, and under lessons; students and staff reply; staff
    replies badged, best answer; shown at once; reports; staff hide / delete and can stop a student posting), then

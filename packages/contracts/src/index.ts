@@ -7,6 +7,7 @@ export * from './certificates.js';
 export * from './commerce.js';
 export * from './common.js';
 export * from './content.js';
+export * from './discussions.js';
 export * from './errors.js';
 export * from './mistakes.js';
 export * from './notices.js';

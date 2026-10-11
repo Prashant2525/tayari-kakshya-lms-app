@@ -1,6 +1,6 @@
 # Test Status
 
-Last updated: 2026-10-11 (Phase 13c: course reviews). `pnpm test` runs unit + integration suites (needs `pnpm infra:up`);
+Last updated: 2026-10-11 (Phase 13d: discussions). `pnpm test` runs unit + integration suites (needs `pnpm infra:up`);
 `pnpm build && pnpm --filter @tk/admin e2e` and `pnpm build && pnpm --filter @tk/mobile e2e` run the browser suites
 (the student suite also needs Mailpit, part of `pnpm infra:up`).
 
@@ -11,14 +11,28 @@ Last updated: 2026-10-11 (Phase 13c: course reviews). `pnpm test` runs unit + in
 | `@tk/design-tokens` | 39 | WCAG contrast for every text/background pair (light + dark), CSS generation |
 | `@tk/domain` | 64 | BS calendar, Kathmandu day boundary, fiscal year, money/VAT/discounts, access validity |
 | `@tk/contracts` | 21 | Schema behaviour (localized text, email normalisation, mass assignment, settings defaults, rich-text validation) |
-| `@tk/api` | 294 | Integration against real PostgreSQL + Redis + S3 (SeaweedFS) through the HTTP stack; TOTP RFC 6238 vectors; RBAC, video, watermark unit |
+| `@tk/api` | 296 | Integration against real PostgreSQL + Redis + S3 (SeaweedFS) through the HTTP stack; TOTP RFC 6238 vectors; RBAC, video, watermark unit |
 | `@tk/admin` (unit) | 35 | API client (headers, refresh single-flight, retry, session loss, error mapping), BS formatting, Button `asChild` regression |
-| `@tk/admin` (E2E, Playwright) | 35 | Real browser + real API + `*_e2e` database |
+| `@tk/admin` (E2E, Playwright) | 36 | Real browser + real API + `*_e2e` database |
 | `@tk/mobile` (unit) | 41 | Study-time meter (idle limits, videos, innermost screen, background), development picture addresses on a phone, API client (single-flight refresh, early refresh, session end, maintenance), translations complete in both languages, BS dates and Kathmandu weekday, force-update/maintenance gate, form checks, Nepali phone numbers |
-| `@tk/mobile` (E2E, Playwright, phone viewport) | 41 | Web build + real API + `*_mobile_e2e` database + Mailpit |
+| `@tk/mobile` (E2E, Playwright, phone viewport) | 43 | Web build + real API + `*_mobile_e2e` database + Mailpit |
 | `@tk/web` (unit) | 8 | Session refresh used once (concurrent / late requests share it; refused → signed out; unreachable → retried), token expiry, both languages complete, failure messages |
 | `@tk/web` (E2E, Playwright) | 10 | `next start` production build + real API + `*_web_e2e` database + Mailpit + gateway stand-in; access tokens last 60 s so every page load refreshes |
-| **Total** | **588** | |
+| **Total** | **593** | |
+
+### Added with discussions (Phase 13d, T-067, D-066)
+- **API (2 integration tests):** lesson threads (premium needs access), posting checks, replies one level and in
+  their own thread, the asker notified (no email), teacher answers badged, one best answer per doubt, reports (not
+  one's own), hide → gone for students (staff still see it), show again, dismiss reports, posting bans (past time
+  refused, staff cannot be banned), deleting (placeholder when replied to), audit, erasure; question threads only
+  after answering (practice, written questions, premium with access, a test only once released). Mutation-checked
+  (10: question before answering, unreleased test, premium lesson, ban ignored, hidden shown, nested replies, no
+  notification, own post reportable, hide keeping reports open, erasure keeping posts — each fails a test).
+- **App E2E (2):** no Discussion link before checking → ask (too short refused) → a teacher answers (badge, best
+  answer) → report a post → the reply notification; a lesson's discussion from its header. **CMS E2E (1):** a
+  reported doubt: answer as a teacher, mark best, hide with a reason, stop the student posting (their next post is
+  refused).
+- Screens checked: app thread, CMS list and thread dialog.
 
 ### Added with course reviews (Phase 13c, T-066, D-066)
 - **API (2 integration tests):** only for a course the student has and after the CMS share of lessons (with the

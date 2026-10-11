@@ -112,6 +112,11 @@ model User {
   studyPlans          StudyPlan[]
   reviews             CourseReview[]
   moderatedReviews    CourseReview[]           @relation("ReviewModerator")
+  discussionPosts     DiscussionPost[]
+  hiddenPosts         DiscussionPost[]         @relation("PostHider")
+  discussionReports   DiscussionReport[]
+  discussionBan       DiscussionBan?           @relation("BannedUser")
+  discussionBansGiven DiscussionBan[]          @relation("BanGiver")
   revokedCertificates Certificate[]            @relation("CertificateRevoker")
 
   @@index([kind, status])
@@ -1506,6 +1511,89 @@ model CourseReview {
   @@map("course_reviews")
 }
 
+// ───────────── Discussions / doubts (Phase 13d, S12, D-066) ─────────────
+
+enum DiscussionTarget {
+  question
+  lesson
+}
+
+enum DiscussionPostStatus {
+  visible
+  hidden
+  deleted
+}
+
+/// A post under a question or a lesson (T-067): a top-level doubt, or a reply to one (one level). The target is
+/// checked when read (it may be unpublished since), like bookmarks, so there is no foreign key to two tables.
+model DiscussionPost {
+  id           String               @id @default(uuid(7)) @db.Uuid
+  targetType   DiscussionTarget     @map("target_type")
+  targetId     String               @map("target_id") @db.Uuid
+  parentId     String?              @map("parent_id") @db.Uuid
+  userId       String               @map("user_id") @db.Uuid
+  body         String
+  status       DiscussionPostStatus @default(visible)
+  /// The best answer to its doubt, marked by staff (replies only; at most one per doubt).
+  isBest       Boolean              @default(false) @map("is_best")
+  hiddenReason String?              @map("hidden_reason")
+  hiddenById   String?              @map("hidden_by") @db.Uuid
+  hiddenAt     DateTime?            @map("hidden_at") @db.Timestamptz(6)
+  createdAt    DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime             @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  parent   DiscussionPost?    @relation("Replies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies  DiscussionPost[]   @relation("Replies")
+  user     User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  hiddenBy User?              @relation("PostHider", fields: [hiddenById], references: [id], onDelete: SetNull)
+  reports  DiscussionReport[]
+
+  @@index([targetType, targetId, createdAt])
+  @@index([parentId, createdAt])
+  @@index([status, createdAt])
+  @@index([userId])
+  @@map("discussion_posts")
+}
+
+enum DiscussionReportReason {
+  spam
+  rude
+  wrong
+  other
+}
+
+/// A student's report of a post; one per student and post. Open until staff act on the post or dismiss it.
+model DiscussionReport {
+  id        String                 @id @default(uuid(7)) @db.Uuid
+  postId    String                 @map("post_id") @db.Uuid
+  userId    String                 @map("user_id") @db.Uuid
+  reason    DiscussionReportReason
+  message   String?
+  open      Boolean                @default(true)
+  createdAt DateTime               @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  post DiscussionPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId])
+  @@index([open, createdAt])
+  @@map("discussion_reports")
+}
+
+/// A student stopped from posting by staff, until a time or with no end (`until` null).
+model DiscussionBan {
+  userId      String    @id @map("user_id") @db.Uuid
+  until       DateTime? @db.Timestamptz(6)
+  reason      String
+  createdById String?   @map("created_by") @db.Uuid
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user      User  @relation("BannedUser", fields: [userId], references: [id], onDelete: Cascade)
+  createdBy User? @relation("BanGiver", fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@map("discussion_bans")
+}
+
 // ───────────── Commerce (Phase 11, D-003, D-023, D-027, D-051, D-052) ─────────────
 
 enum OrderStatus {
@@ -1960,6 +2048,7 @@ enum NotificationCategory {
   result
   purchase
   article
+  discussion
 }
 
 /// A student's in-app notification (D-033). `sourceKey` makes each event land once per student.

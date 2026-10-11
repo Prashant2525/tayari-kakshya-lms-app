@@ -492,6 +492,12 @@ export const SETTINGS = {
     default: { minProgressPercent: 20, names: 'first_initial' as const },
     public: false,
   },
+  /** D-066 / T-067: how students appear in discussions (staff show their teacher name). */
+  'discussions.rules': {
+    schema: z.object({ names: z.enum(['first_initial', 'full']) }),
+    default: { names: 'first_initial' as const },
+    public: false,
+  },
 } as const satisfies Record<string, { schema: z.ZodType; default: unknown; public: boolean }>;
 
 export type SettingKey = keyof typeof SETTINGS;

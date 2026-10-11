@@ -51,6 +51,11 @@ import {
   PublicReviewsController,
 } from './modules/reviews/reviews.controller.js';
 import { ReviewsService } from './modules/reviews/reviews.service.js';
+import {
+  AdminDiscussionsController,
+  DiscussionsController,
+} from './modules/discussions/discussions.controller.js';
+import { DiscussionsService } from './modules/discussions/discussions.service.js';
 import { PlannerService } from './modules/progress/planner.service.js';
 import { ProgressController } from './modules/progress/progress.controller.js';
 import { ProgressService } from './modules/progress/progress.service.js';
@@ -170,6 +175,7 @@ export class InfraModule {}
     ProgressService,
     PlannerService,
     ReviewsService,
+    DiscussionsService,
     GatewayHttp,
     PaymentsService,
     AdminOrdersService,
@@ -230,6 +236,7 @@ export class InfraModule {}
     ProgressService,
     PlannerService,
     ReviewsService,
+    DiscussionsService,
     GatewayHttp,
     PaymentsService,
     AdminOrdersService,
@@ -312,6 +319,8 @@ export class DomainModule {}
     PublicReviewsController,
     MyReviewController,
     AdminReviewsController,
+    DiscussionsController,
+    AdminDiscussionsController,
     PaymentsController,
     AdminOrdersController,
     PlansController,

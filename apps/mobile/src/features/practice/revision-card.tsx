@@ -18,6 +18,7 @@ import { StatusChip } from '@/ui/chip';
 import { Banner, Card } from '@/ui/layout';
 import { Text } from '@/ui/text';
 import { OutcomeBanner, Solution } from './question-card';
+import { DiscussLink } from './discuss-link';
 
 /**
  * One question in revision mode (D-050): the answer is checked by the API, which counts correct answers in a row;
@@ -139,6 +140,7 @@ export function RevisionCard({
                 {skipped ? <Banner tone="info" message={t('practice.skipped')} /> : null}
                 {result ? <OutcomeBanner outcome={result.outcome as Outcome} /> : null}
                 {result ? <Solution q={q} media={media} /> : null}
+                {result ? <DiscussLink target="question" id={q.id} /> : null}
                 <Button
                   label={result ? t('practice.tryAgain') : t('practice.check')}
                   variant={result ? 'secondary' : 'primary'}
