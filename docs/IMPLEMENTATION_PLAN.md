@@ -18,7 +18,7 @@ Scope = approved decisions only (`DECISIONS.md`). Each phase ends with tests, do
 | 10 | Exam engine + engagement | see §10 | ☑ |
 | 11 | Commerce + website checkout | see §11 | ☑ (part 4b in PR) |
 | 12 | Communication & CMS content | see §12 | ☑ |
-| 13 | Progress & community | see §13 | ☐ |
+| 13 | Progress & community | see §13 | ☑ |
 | 14 | Advanced approved features | see §14 | ☐ |
 | 15 | Security hardening | authn/authz/IDOR/uploads/payments/rate limits/secrets review | ☐ |
 | 16 | Full testing + bug fixing | systematic pass; load test weekly-exam burst | ☐ |
@@ -193,7 +193,7 @@ course reviews + moderation, discussions/doubts + moderation, admin dashboards &
   rating on cards and course pages in the app and on the website (with JSON-LD)
 - ☑ Part 13d (T-067): discussions / doubts under questions (after answering) and lessons — teacher answers with a
   badge, best answer, reports, hide, posting bans, reply notifications
-- ☐ Part 13e: admin dashboards (sales, students, learning, tests & questions) and CSV exports
+- ☑ Part 13e (T-068): CMS Reports — sales, students, learning, tests & questions per period; CSV exports (audited)
 
 **§14 Advanced** — offline downloads (PDF + Bunny video, license refresh), screen-capture protection, ConnectIPS provider,
 AI study assistant (after L2), live classes (after L3), Apple IAP (only if decided later).

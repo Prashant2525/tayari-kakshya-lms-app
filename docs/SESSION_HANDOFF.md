@@ -202,6 +202,11 @@ Current task: Phase 11 part 3 (receipts + refunds) done on `feature/receipts-ref
 - Nothing partially implemented. Admin screens for Phase 6 not started.
 
 ## Exact next steps
+0t. 2026-10-11: PR #44 merged; the main CI run did not start (GitHub billing, KI-053 — owner). `feature/dashboards`
+   (T-068) completes Phase 13. Next: **Phase 14 (advanced, §14)** — offline downloads (PDF + Bunny video, licence
+   refresh), screen-capture protection, ConnectIPS, AI study assistant (after L2), live classes (after L3). Ask the
+   owner which first and the open questions (offline: how long downloads stay usable offline, on how many devices;
+   ConnectIPS merchant credentials).
 0s. 2026-10-11: PR #43 merged. `feature/discussions` (T-067, part 13d). Next: **13e admin dashboards and CSV
    exports** (D-066: sales & revenue, students, learning, tests & questions; CSV). Grant `discussions:moderate` to
    teachers.

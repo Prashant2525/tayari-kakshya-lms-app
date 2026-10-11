@@ -186,8 +186,29 @@ test('signing in again requires the authenticator code, and the session survives
   await vat.getByRole('button', { name: 'Save' }).click();
   await expect(vat.getByRole('switch', { name: 'VAT-registered' })).not.toBeChecked();
 
+  // Reports (D-066): dashboards per period and CSV downloads, audited.
+  await page.getByRole('link', { name: 'Reports', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Reports', level: 1 })).toBeVisible();
+  for (const tab of ['Sales', 'Students', 'Learning', 'Tests & questions']) {
+    await expect(page.getByRole('tab', { name: tab })).toBeVisible();
+  }
+  await expect(page.getByText('Revenue', { exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Revenue per day' })).toBeVisible();
+  await expect(page.getByRole('list', { name: 'Revenue per day' }).getByRole('listitem')).toHaveCount(30);
+  await page.getByLabel('Period').selectOption('7');
+  await expect(page.getByRole('list', { name: 'Revenue per day' }).getByRole('listitem')).toHaveCount(7);
+  await page.getByRole('tab', { name: 'Students' }).click();
+  await expect(page.getByRole('heading', { name: 'Sign-ups per day' })).toBeVisible();
+  const download = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Students (CSV)' }).click();
+  const file = await download;
+  expect(file.suggestedFilename()).toMatch(/^students-\d{4}-\d{2}-\d{2}-to-\d{4}-\d{2}-\d{2}\.csv$/);
+  const text = await (await file.createReadStream()).toArray();
+  expect(Buffer.concat(text).toString('utf8')).toContain('Name,Email,Email verified');
+
   await page.getByRole('link', { name: 'Audit log' }).click();
   await expect(page.getByText('settings.update').first()).toBeVisible();
+  await expect(page.getByText('export.download')).toBeVisible();
   await expect(page.getByText('staff.create')).toBeVisible();
   await expect(page.getByText('auth.mfa_enabled')).toBeVisible();
 
