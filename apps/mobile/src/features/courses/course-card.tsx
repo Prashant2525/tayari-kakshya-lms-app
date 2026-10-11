@@ -1,15 +1,29 @@
 import { palette, radius } from '@tk/design-tokens';
 import { router } from 'expo-router';
-import { Image, Pressable, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
+import { Image, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import type { CatalogCourse, MyCourse, Pricing } from '@/api/learning';
 import { localized } from '@/i18n/translate';
 import { useT } from '@/i18n/use-t';
 import { percent, price } from '@/lib/format';
 import { initialsOf } from '@/lib/names';
-import { useTheme } from '@/theme/theme';
+import { useSurfaceStyle } from '@/ui/layout';
+import { PressableScale } from '@/ui/motion';
 import { ProgressBar } from '@/ui/chip';
 import { Text } from '@/ui/text';
 import { RatingLine } from '@/features/reviews/stars';
+
+/**
+ * Fallback artwork colours: brand blues that carry the white initials (amber stays for premium and streaks, green for
+ * success — DESIGN_SYSTEM §2-3).
+ */
+const ART_TONES = [palette.blue600, palette.navy800, palette.blue700, palette.blue500];
+
+/** The same course always gets the same tone. */
+export function artTone(title: string): string {
+  let hash = 0;
+  for (const ch of title) hash = (hash * 31 + ch.codePointAt(0)!) >>> 0;
+  return ART_TONES[hash % ART_TONES.length]!;
+}
 
 /** CMS artwork, or a branded fallback (subject-coloured pattern + initials) instead of a black block (DESIGN_SYSTEM §2). */
 export function CourseArt({
@@ -31,7 +45,9 @@ export function CourseArt({
     );
   }
   return (
-    <View style={[styles.art, { backgroundColor: palette.blue500 }, style]} aria-hidden>
+    <View style={[styles.art, { backgroundColor: artTone(title) }, style]} aria-hidden>
+      <View style={[styles.ring, styles.ringBig]} />
+      <View style={[styles.ring, styles.ringSmall]} />
       <Text variant={size === 'lg' ? 'display' : 'h3'} weight={700} style={{ color: palette.white }}>
         {initialsOf(title)}
       </Text>
@@ -71,20 +87,17 @@ export function PricingText({ pricing }: { pricing: Pricing | null }) {
 
 /** Course in a list: artwork, title, short description, price or progress. */
 export function CourseRow({ course }: { course: CatalogCourse | MyCourse }) {
-  const { colors } = useTheme();
+  const surface = useSurfaceStyle();
   const { t, locale } = useT();
   const title = localized(course.title, locale);
   const progress = 'progress' in course ? course.progress : null;
   const pct = progress ? percent(progress.completed, progress.total) : 0;
   return (
-    <Pressable
+    <PressableScale
       role="link"
       aria-label={title}
       onPress={() => router.push({ pathname: '/course/[slug]', params: { slug: course.slug } })}
-      style={({ pressed }) => [
-        styles.row,
-        { backgroundColor: pressed ? colors.surfaceMuted : colors.surface, borderColor: colors.border },
-      ]}
+      style={[styles.row, surface]}
     >
       <CourseArt title={title} uri={course.thumbnailUrl} style={styles.thumb} />
       <View style={styles.body}>
@@ -108,12 +121,15 @@ export function CourseRow({ course }: { course: CatalogCourse | MyCourse }) {
           <PriceText course={course} />
         )}
       </View>
-    </Pressable>
+    </PressableScale>
   );
 }
 
 const styles = StyleSheet.create({
   art: { alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+  ring: { position: 'absolute', borderRadius: 9999, backgroundColor: 'rgba(255,255,255,0.12)' },
+  ringBig: { width: '90%', aspectRatio: 1, top: '-38%', right: '-34%' },
+  ringSmall: { width: '46%', aspectRatio: 1, bottom: '-16%', left: '-14%' },
   fill: { width: '100%', height: '100%' },
   row: {
     flexDirection: 'row',

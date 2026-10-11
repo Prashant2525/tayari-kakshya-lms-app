@@ -8,7 +8,8 @@ import { localized } from '@/i18n/translate';
 import { useT } from '@/i18n/use-t';
 import { num } from '@/lib/format';
 import { useTheme } from '@/theme/theme';
-import { Card } from '@/ui/layout';
+import { PressableScale } from '@/ui/motion';
+import { Card, useSurfaceStyle } from '@/ui/layout';
 import { Text } from '@/ui/text';
 import { PlanTaskRow } from './task-row';
 
@@ -18,6 +19,7 @@ const SHOWN = 3;
 export function TodayPlanCard() {
   const { t, locale } = useT();
   const { colors } = useTheme();
+  const surface = useSurfaceStyle();
   const plans = useStudyPlans();
   // Home stays mounted as a tab: refresh when it is shown again (after a lesson or a test).
   const refetch = plans.refetch;
@@ -31,14 +33,11 @@ export function TodayPlanCard() {
   if (!plans.isSuccess) return null;
   if (!plan) {
     return (
-      <Pressable
+      <PressableScale
         role="link"
         aria-label={t('planner.title')}
         onPress={() => router.push('/planner')}
-        style={({ pressed }) => [
-          styles.link,
-          { backgroundColor: pressed ? colors.surfaceMuted : colors.surface, borderColor: colors.border },
-        ]}
+        style={[styles.link, surface]}
       >
         <View style={[styles.icon, { backgroundColor: colors.primarySoft }]}>
           <CalendarCheck size={22} color={colors.onPrimarySoft} strokeWidth={1.75} />
@@ -50,7 +49,7 @@ export function TodayPlanCard() {
           </Text>
         </View>
         <ChevronRight size={18} color={colors.textMuted} strokeWidth={1.75} />
-      </Pressable>
+      </PressableScale>
     );
   }
   const tasks = plan.today?.tasks ?? [];
@@ -98,7 +97,7 @@ const styles = StyleSheet.create({
     gap: 12,
     padding: 14,
     borderWidth: 1,
-    borderRadius: radius.md,
+    borderRadius: radius.lg,
   },
   icon: {
     width: 44,

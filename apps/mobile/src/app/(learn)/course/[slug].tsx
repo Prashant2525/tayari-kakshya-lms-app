@@ -1,7 +1,7 @@
 import { palette, radius } from '@tk/design-tokens';
 import { router, useLocalSearchParams } from 'expo-router';
 import { BookOpen, ChevronRight, FileText, Lock, PlayCircle } from 'lucide-react-native';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useCourse, useEnrol, type CourseDetail } from '@/api/learning';
 import { CertificateCard } from '@/features/courses/certificate-card';
@@ -15,9 +15,10 @@ import { useT } from '@/i18n/use-t';
 import { bsDate } from '@/lib/dates';
 import { errorMessageKey } from '@/lib/error-message';
 import { useTheme } from '@/theme/theme';
+import { PressableScale } from '@/ui/motion';
 import { Button } from '@/ui/button';
 import { StatusChip } from '@/ui/chip';
-import { BackButton, Banner, Card, Skeleton } from '@/ui/layout';
+import { BackButton, Banner, Card, Skeleton, useSurfaceStyle } from '@/ui/layout';
 import { ErrorState, OfflineBanner } from '@/ui/states';
 import { Text } from '@/ui/text';
 
@@ -180,6 +181,7 @@ function SubjectRow({
   index: number;
 }) {
   const { colors } = useTheme();
+  const surface = useSurfaceStyle();
   const { t, locale } = useT();
   const name = localized(subject.name, locale);
   const meta = [
@@ -191,7 +193,7 @@ function SubjectRow({
     .filter(Boolean)
     .join(' · ');
   return (
-    <Pressable
+    <PressableScale
       role="link"
       aria-label={name}
       onPress={() =>
@@ -200,10 +202,7 @@ function SubjectRow({
           params: { courseId: course.id, subjectId: subject.id, slug: course.slug },
         })
       }
-      style={({ pressed }) => [
-        styles.subject,
-        { backgroundColor: pressed ? colors.surfaceMuted : colors.surface, borderColor: colors.border },
-      ]}
+      style={[styles.subject, surface]}
     >
       <View style={[styles.index, { backgroundColor: colors.primarySoft }]}>
         <Text variant="label" color="onPrimarySoft">
@@ -219,7 +218,7 @@ function SubjectRow({
         ) : null}
       </View>
       <ChevronRight size={18} color={colors.textMuted} strokeWidth={1.75} />
-    </Pressable>
+    </PressableScale>
   );
 }
 

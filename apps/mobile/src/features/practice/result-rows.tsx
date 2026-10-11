@@ -1,9 +1,11 @@
 import { radius } from '@tk/design-tokens';
 import { router } from 'expo-router';
 import { BookOpen, FileText, HelpCircle, PlayCircle } from 'lucide-react-native';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import type { ItemType } from '@/api/learning';
 import { useTheme } from '@/theme/theme';
+import { useSurfaceStyle } from '@/ui/layout';
+import { PressableScale } from '@/ui/motion';
 import { StatusChip } from '@/ui/chip';
 import { Text } from '@/ui/text';
 
@@ -22,10 +24,11 @@ export function ResultRow({
   premiumLabel?: string;
 }) {
   const { colors } = useTheme();
+  const surface = useSurfaceStyle();
   const Icon =
     kind === 'question' ? HelpCircle : kind === 'video' ? PlayCircle : kind === 'pdf' ? FileText : BookOpen;
   return (
-    <Pressable
+    <PressableScale
       role="link"
       aria-label={title}
       onPress={() =>
@@ -33,10 +36,7 @@ export function ResultRow({
           ? router.push({ pathname: '/question/[id]', params: { id } })
           : router.push({ pathname: '/learn/[itemId]', params: { itemId: id } })
       }
-      style={({ pressed }) => [
-        styles.row,
-        { backgroundColor: pressed ? colors.surfaceMuted : colors.surface, borderColor: colors.border },
-      ]}
+      style={[styles.row, surface]}
     >
       <Icon size={20} color={colors.onPrimarySoft} strokeWidth={1.75} />
       <View style={{ flex: 1 }}>
@@ -48,7 +48,7 @@ export function ResultRow({
         </Text>
       </View>
       {premiumLabel ? <StatusChip tone="premium" label={premiumLabel} /> : null}
-    </Pressable>
+    </PressableScale>
   );
 }
 

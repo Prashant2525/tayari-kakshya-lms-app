@@ -1,6 +1,6 @@
 # Test Status
 
-Last updated: 2026-10-12 (Phase 14a part 2: offline PDFs). `pnpm test` runs unit + integration suites (needs `pnpm infra:up`);
+Last updated: 2026-10-12 (scroll motion and Profile). `pnpm test` runs unit + integration suites (needs `pnpm infra:up`);
 `pnpm build && pnpm --filter @tk/admin e2e` and `pnpm build && pnpm --filter @tk/mobile e2e` run the browser suites
 (the student suite also needs Mailpit, part of `pnpm infra:up`).
 
@@ -19,6 +19,24 @@ Last updated: 2026-10-12 (Phase 14a part 2: offline PDFs). `pnpm test` runs unit
 | `@tk/web` (unit) | 8 | Session refresh used once (concurrent / late requests share it; refused → signed out; unreachable → retried), token expiry, both languages complete, failure messages |
 | `@tk/web` (E2E, Playwright) | 10 | `next start` production build + real API + `*_web_e2e` database + Mailpit + gateway stand-in; access tokens last 60 s so every page load refreshes |
 | **Total** | **605** | |
+
+### Changed: scroll motion, status bar, Profile (D-070, T-072)
+- Student browser suite 43/43 (Profile heading and tabs unchanged for the tests).
+- **Browser screenshots** (light, dark; full and short screens): Home and Profile at the top and scrolled (navy
+  compact bars), Courses and Notices scrolled (compact bar with shadow), notices rising in.
+- **Device check (Android emulator, Expo Go):** status bar icons light on Home and Profile, dark on Courses
+  (KI-056 fixed).
+
+### Changed: launch intro, motion and refreshed look (D-069, T-071)
+- No new automated tests (visual change); the student browser suite (43) passes with the custom tab bar (same
+  roles and labels, including "Notices, 2 new").
+- **Browser screenshots** (phone viewport, light, dark, Nepali): Home hero with floating search, sliding tab pill,
+  course list with raised cards and the new artwork; the intro frame by frame (switched on locally for the web
+  build) in English and Nepali.
+- **Device check (Android emulator, Expo Go, protection switched off locally for screenshots):** the intro plays
+  on the native driver (T and K meet, tile, name, slogan, opening into the sign-in screen); a tab switch caught
+  mid-way shows the screen fading and shifting in. Fixed: Android clipped the slogan's second word (Devanagari
+  measured narrower than drawn) — the intro's text lines now span the full width.
 
 ### Added with offline PDFs (Phase 14a part 2, T-070, D-067)
 - **API:** the offline test now covers PDFs (locked without access, a licence and `readerVersion` with it, renewed,

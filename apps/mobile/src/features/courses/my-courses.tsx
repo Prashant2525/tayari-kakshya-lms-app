@@ -5,6 +5,7 @@ import { useT } from '@/i18n/use-t';
 import { Button } from '@/ui/button';
 import { Skeleton } from '@/ui/layout';
 import { EmptyState, ErrorState } from '@/ui/states';
+import { FadeInUp } from '@/ui/motion';
 import { CourseRow } from './course-card';
 
 function Loading() {
@@ -29,8 +30,10 @@ export function MyCourses({ hideWhenEmpty = false }: { hideWhenEmpty?: boolean }
   }
   return (
     <View style={styles.list}>
-      {courses.data.map((c) => (
-        <CourseRow key={c.id} course={c} />
+      {courses.data.map((c, i) => (
+        <FadeInUp key={c.id} index={i}>
+          <CourseRow course={c} />
+        </FadeInUp>
       ))}
     </View>
   );
@@ -58,8 +61,10 @@ export function CatalogList({
   }
   return (
     <View style={styles.list}>
-      {shown.map((c) => (
-        <CourseRow key={c.id} course={c} />
+      {shown.map((c, i) => (
+        <FadeInUp key={c.id} index={i}>
+          <CourseRow course={c} />
+        </FadeInUp>
       ))}
       {!limit && catalog.hasNextPage ? (
         <Button

@@ -11,13 +11,14 @@ import * as Linking from 'expo-linking';
 import { router, Stack, type Href } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { useCallback, useEffect, useState } from 'react';
+import { Platform, StyleSheet, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { api, queryClient } from '@/api/client';
 import { ApiError } from '@/lib/api-client';
 import { AppGate } from '@/features/app-gate';
 import { useGuards } from '@/features/guards';
+import { LaunchIntro } from '@/features/launch/launch-intro';
 import { useAnalyticsIdentity, useScreenTracking } from '@/lib/analytics';
 import { initMonitoring } from '@/lib/monitoring';
 import { checkoutHref, usePendingLink } from '@/lib/pending-link';
@@ -28,11 +29,14 @@ import { startStudyClock, studySignal } from '@/lib/study-time';
 import { usePrefs } from '@/state/prefs';
 import { useSession } from '@/state/session';
 import { ThemeProvider, useTheme } from '@/theme/theme';
+import { stackMotion } from '@/ui/motion';
 import { ErrorState, LoadingState } from '@/ui/states';
 
 initMonitoring();
 startStudyClock();
 void SplashScreen.preventAutoHideAsync().catch(() => undefined);
+/** The animated launch intro plays on phones; the web build (development and browser tests) opens straight away. */
+const PLAY_INTRO = Platform.OS !== 'web';
 
 // React Query pauses requests while offline and resumes when the connection returns.
 onlineManager.setEventListener((setOnline) =>
@@ -56,20 +60,28 @@ export default function RootLayout() {
   }, []);
 
   // A font that fails to load falls back to the system font rather than blocking the app.
-  const ready = (fontsLoaded || Boolean(fontError)) && prefsLoaded && sessionStatus !== 'loading';
+  const basics = (fontsLoaded || Boolean(fontError)) && prefsLoaded;
+  const ready = basics && sessionStatus !== 'loading';
+  const [intro, setIntro] = useState(PLAY_INTRO);
+  const introDone = useCallback(() => setIntro(false), []);
+  // The native splash stays until the intro can draw (fonts and language known), or until the app is ready.
+  const splashGone = intro ? basics : ready;
   useEffect(() => {
-    if (ready) void SplashScreen.hideAsync().catch(() => undefined);
-  }, [ready]);
-  if (!ready) return null;
+    if (splashGone) void SplashScreen.hideAsync().catch(() => undefined);
+  }, [splashGone]);
+  if (!splashGone) return null;
 
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <SafeAreaProvider>
           <ThemedStatusBar />
-          <AppGate>
-            <RootNavigator />
-          </AppGate>
+          {ready ? (
+            <AppGate>
+              <RootNavigator />
+            </AppGate>
+          ) : null}
+          {intro ? <LaunchIntro ready={ready} onDone={introDone} /> : null}
         </SafeAreaProvider>
       </ThemeProvider>
     </QueryClientProvider>
@@ -149,7 +161,7 @@ function RootNavigator() {
   }, [inside, pending]);
   return (
     <View style={{ flex: 1 }} onTouchStart={() => studySignal('touch')}>
-      <Stack screenOptions={{ headerShown: false }}>
+      <Stack screenOptions={{ headerShown: false, ...stackMotion }}>
         <Stack.Protected guard={!signedIn}>
           <Stack.Screen name="(auth)" />
         </Stack.Protected>

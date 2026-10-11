@@ -1,6 +1,6 @@
 # Project State
 
-Current Phase: **Phase 14 advanced** — part 14a-2 (offline PDFs) on `feature/offline-pdfs`
+Current Phase: **Phase 14 advanced** — launch intro and motion (D-069) on `feature/launch-motion`
 Current Milestone: content API on `feature/content-cms` → Admin CMS content screens
 Overall Status: **IN PROGRESS**
 Last updated: 2026-10-12
@@ -75,7 +75,9 @@ Last updated: 2026-10-12
 - Phase 14 decided (D-067). Part 14a-1 on `feature/offline-notes` (T-069): offline notes, screen protection. Merged
   (PR #46).
 - `feature/screen-protection-all` (D-068): screenshots / recording blocked on every screen. Merged (PR #47).
-- Part 14a-2 on `feature/offline-pdfs` (T-070): offline PDFs. **Phase 14a complete.** Next: the rest of Phase 14
+- Part 14a-2 on `feature/offline-pdfs` (T-070): offline PDFs. **Phase 14a complete.** Merged (PR #48).
+- `feature/launch-motion` (D-069, T-071; D-070, T-072): launch intro, tab / screen / scroll motion, refreshed look,
+  Profile header, status bar fix (KI-056). Next: the rest of Phase 14
   (offline video, ConnectIPS, AI assistant, live classes — each waits on an owner decision or credentials).
 - Monitoring (T-042) merged (PR #14, #15): Sentry in the API, worker, admin and app; PostHog in the app. Google web client registered for `http://localhost:8081` (checked); a real
   sign-in by the owner and Android/iOS clients remain (KI-029).

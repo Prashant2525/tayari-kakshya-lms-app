@@ -1,15 +1,16 @@
 import { radius } from '@tk/design-tokens';
 import { router } from 'expo-router';
 import { ChevronRight, ClipboardList } from 'lucide-react-native';
-import { FlatList, Pressable, StyleSheet, View } from 'react-native';
+import { FlatList, StyleSheet, View } from 'react-native';
 import { useAttemptHistory, type HistoryItem } from '@/api/assessments';
 import { localized } from '@/i18n/translate';
 import { useT } from '@/i18n/use-t';
 import { bsDate } from '@/lib/dates';
 import { marks, num } from '@/lib/format';
 import { useTheme } from '@/theme/theme';
+import { PressableScale } from '@/ui/motion';
 import { Button } from '@/ui/button';
-import { BackButton, Screen, Skeleton } from '@/ui/layout';
+import { BackButton, Screen, Skeleton, useSurfaceStyle } from '@/ui/layout';
 import { EmptyState, ErrorState } from '@/ui/states';
 import { Text } from '@/ui/text';
 
@@ -60,6 +61,7 @@ export default function AttemptsScreen() {
 
 function Row({ a }: { a: HistoryItem }) {
   const { colors } = useTheme();
+  const surface = useSurfaceStyle();
   const { t, locale } = useT();
   const title = localized(a.assessment.title, locale);
   const status =
@@ -69,7 +71,7 @@ function Row({ a }: { a: HistoryItem }) {
         ? t('test.score', { score: marks(a.score, locale), max: marks(a.maxScore, locale) })
         : t('test.resultLater');
   return (
-    <Pressable
+    <PressableScale
       role="link"
       aria-label={`${title}: ${status}`}
       onPress={() =>
@@ -77,10 +79,7 @@ function Row({ a }: { a: HistoryItem }) {
           ? router.push({ pathname: '/exam/[attemptId]', params: { attemptId: a.id } })
           : router.push({ pathname: '/result/[attemptId]', params: { attemptId: a.id } })
       }
-      style={({ pressed }) => [
-        styles.row,
-        { backgroundColor: pressed ? colors.surfaceMuted : colors.surface, borderColor: colors.border },
-      ]}
+      style={[styles.row, surface]}
     >
       <View style={{ flex: 1, gap: 2 }}>
         <Text variant="body" numberOfLines={2}>
@@ -92,7 +91,7 @@ function Row({ a }: { a: HistoryItem }) {
         </Text>
       </View>
       <ChevronRight size={18} color={colors.textMuted} strokeWidth={1.75} />
-    </Pressable>
+    </PressableScale>
   );
 }
 
