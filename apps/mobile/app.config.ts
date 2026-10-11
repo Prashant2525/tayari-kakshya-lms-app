@@ -33,6 +33,8 @@ const config: ExpoConfig = {
   web: { output: 'single', bundler: 'metro' },
   plugins: [
     'expo-router',
+    // The native splash shows the brand navy, so the animated launch intro takes over without a flash.
+    ['expo-splash-screen', { backgroundColor: '#15234D' }],
     'expo-secure-store',
     'expo-font',
     'expo-localization',

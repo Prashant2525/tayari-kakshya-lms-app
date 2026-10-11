@@ -2,7 +2,7 @@ import { radius } from '@tk/design-tokens';
 import { router, useLocalSearchParams } from 'expo-router';
 import { ChevronRight, Lock } from 'lucide-react-native';
 import type { ReactNode } from 'react';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import {
   useAssessment,
   useStartAttempt,
@@ -17,9 +17,10 @@ import { errorMessageKey } from '@/lib/error-message';
 import { bsDate, bsDateTime, nepalToday } from '@/lib/dates';
 import { marks, num } from '@/lib/format';
 import { useTheme } from '@/theme/theme';
+import { PressableScale } from '@/ui/motion';
 import { Button } from '@/ui/button';
 import { StatusChip } from '@/ui/chip';
-import { BackButton, Banner, Card, Screen, Skeleton } from '@/ui/layout';
+import { BackButton, Banner, Card, Screen, Skeleton, useSurfaceStyle } from '@/ui/layout';
 import { ErrorState } from '@/ui/states';
 import { Text } from '@/ui/text';
 
@@ -180,6 +181,7 @@ function Attempts({ a }: { a: AssessmentDetail }) {
 
 function AttemptRow({ attempt, releaseAt }: { attempt: AttemptSummary; releaseAt: string | null }) {
   const { colors } = useTheme();
+  const surface = useSurfaceStyle();
   const { t, locale } = useT();
   const label = t('test.attemptN', { n: num(attempt.attemptNo, locale) });
   const status =
@@ -195,14 +197,11 @@ function AttemptRow({ attempt, releaseAt }: { attempt: AttemptSummary; releaseAt
       ? router.push({ pathname: '/exam/[attemptId]', params: { attemptId: attempt.id } })
       : router.push({ pathname: '/result/[attemptId]', params: { attemptId: attempt.id } });
   return (
-    <Pressable
+    <PressableScale
       role="link"
       aria-label={`${label}: ${status}`}
       onPress={open}
-      style={({ pressed }) => [
-        styles.attempt,
-        { backgroundColor: pressed ? colors.surfaceMuted : colors.surface, borderColor: colors.border },
-      ]}
+      style={[styles.attempt, surface]}
     >
       <View style={{ flex: 1, gap: 2 }}>
         <Text variant="label">{label}</Text>
@@ -213,7 +212,7 @@ function AttemptRow({ attempt, releaseAt }: { attempt: AttemptSummary; releaseAt
       </View>
       {attempt.counted && attempt.released ? <StatusChip tone="done" label={t('test.official')} /> : null}
       <ChevronRight size={18} color={colors.textMuted} strokeWidth={1.75} />
-    </Pressable>
+    </PressableScale>
   );
 }
 

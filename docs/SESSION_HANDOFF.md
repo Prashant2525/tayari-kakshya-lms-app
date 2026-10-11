@@ -202,6 +202,12 @@ Current task: Phase 11 part 3 (receipts + refunds) done on `feature/receipts-ref
 - Nothing partially implemented. Admin screens for Phase 6 not started.
 
 ## Exact next steps
+0x. 2026-10-12: PR #48 merged. Owner asked for a launch animation and a more modern app (D-069):
+   `feature/launch-motion` (T-071). Motion lives in `ui/motion.tsx` (Animated + native driver; keep animated values
+   in `useState`, the React lint rules reject refs read during render). The intro is phones only (`PLAY_INTRO` in
+   `app/_layout.tsx`); to film it in the browser switch it on locally. Emulator tip: after the emulator screen sleeps
+   its app surfaces can stay black (not the app, not FLAG_SECURE) — restart the emulator; `adb shell svc power stayon
+   true` keeps it awake. Next: the rest of Phase 14 needs the owner.
 0w. 2026-10-12: PR #47 merged. `feature/offline-pdfs` (T-070) completes 14a. Next: the rest of
    Phase 14 needs the owner — offline video (D-067 said later), ConnectIPS (NCHL test credentials), AI study
    assistant (L2), live classes (L3); ask which comes next. Seed scripts for emulator checks build lessons through

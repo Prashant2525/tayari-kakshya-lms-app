@@ -1,15 +1,16 @@
 import { radius } from '@tk/design-tokens';
 import { router } from 'expo-router';
 import { ChevronRight, ClipboardCheck } from 'lucide-react-native';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { useAssessments, type AssessmentScope, type AssessmentSummary } from '@/api/assessments';
 import { localized } from '@/i18n/translate';
 import { useT } from '@/i18n/use-t';
 import { bsDate, bsDateTime } from '@/lib/dates';
 import { marks, num } from '@/lib/format';
 import { useTheme } from '@/theme/theme';
+import { PressableScale } from '@/ui/motion';
 import { StatusChip } from '@/ui/chip';
-import { Skeleton } from '@/ui/layout';
+import { Skeleton, useSurfaceStyle } from '@/ui/layout';
 import { EmptyState, ErrorState } from '@/ui/states';
 import { Text } from '@/ui/text';
 
@@ -41,6 +42,7 @@ export function TestList({ scope }: { scope: AssessmentScope }) {
 /** One test: type, title, size and time, and its state (locked, upcoming, in progress, score). */
 export function TestRow({ a }: { a: AssessmentSummary }) {
   const { colors } = useTheme();
+  const surface = useSurfaceStyle();
   const { t, locale } = useT();
   const meta = [
     t(`assessmentType.${a.type}`),
@@ -58,14 +60,11 @@ export function TestRow({ a }: { a: AssessmentSummary }) {
         : null;
   const title = localized(a.title, locale);
   return (
-    <Pressable
+    <PressableScale
       role="link"
       aria-label={title}
       onPress={() => router.push({ pathname: '/test/[id]', params: { id: a.id } })}
-      style={({ pressed }) => [
-        styles.row,
-        { backgroundColor: pressed ? colors.surfaceMuted : colors.surface, borderColor: colors.border },
-      ]}
+      style={[styles.row, surface]}
     >
       <View style={[styles.icon, { backgroundColor: colors.primarySoft }]}>
         <ClipboardCheck size={20} color={colors.onPrimarySoft} strokeWidth={1.75} />
@@ -101,7 +100,7 @@ export function TestRow({ a }: { a: AssessmentSummary }) {
         </View>
       </View>
       <ChevronRight size={18} color={colors.textMuted} strokeWidth={1.75} />
-    </Pressable>
+    </PressableScale>
   );
 }
 

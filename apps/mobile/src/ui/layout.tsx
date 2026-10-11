@@ -91,10 +91,30 @@ export function BackButton({
   );
 }
 
+const CARD_SHADOW = '0 1px 2px rgba(15,27,61,0.04), 0 6px 18px rgba(15,27,61,0.05)';
+
+/** A card's surface (background, border, and the soft lift in the light theme) — for cards that are links too. */
+export function useSurfaceStyle(): ViewStyle {
+  const { colors, scheme } = useTheme();
+  return {
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
+    ...(scheme === 'light' ? { boxShadow: CARD_SHADOW } : {}),
+  };
+}
+
+/** A surface: soft lift in the light theme (shadows do not read on dark surfaces, where the border carries it). */
 export function Card({ children, style }: { children: ReactNode; style?: StyleProp<ViewStyle> }) {
-  const { colors } = useTheme();
+  const { colors, scheme } = useTheme();
   return (
-    <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }, style]}>
+    <View
+      style={[
+        styles.card,
+        { backgroundColor: colors.surface, borderColor: colors.border },
+        scheme === 'light' && styles.raised,
+        style,
+      ]}
+    >
       {children}
     </View>
   );
@@ -165,6 +185,7 @@ const styles = StyleSheet.create({
   footer: { borderTopWidth: StyleSheet.hairlineWidth, paddingHorizontal: 20, paddingVertical: 12 },
   back: { width: 44, height: 44, marginLeft: -10, alignItems: 'center', justifyContent: 'center' },
   card: { borderWidth: 1, borderRadius: radius.lg, padding: 16 },
+  raised: { boxShadow: CARD_SHADOW },
   banner: { borderRadius: radius.md, paddingHorizontal: 14, paddingVertical: 10 },
   dividerRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   line: { flex: 1, height: 1 },

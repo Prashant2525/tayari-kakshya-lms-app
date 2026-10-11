@@ -8,6 +8,8 @@ import { useT } from '@/i18n/use-t';
 import type { MessageKey } from '@/i18n/en';
 import { bsDate } from '@/lib/dates';
 import { useTheme } from '@/theme/theme';
+import { useSurfaceStyle } from '@/ui/layout';
+import { PressableScale } from '@/ui/motion';
 import { Text } from '@/ui/text';
 
 export const ARTICLE_KIND_KEY: Record<Card['kind'], MessageKey> = {
@@ -67,17 +69,15 @@ export function ArticleSearchRow({
   article: Pick<Card, 'kind' | 'slug' | 'title' | 'period' | 'periodDate' | 'publishedAt'>;
 }) {
   const { colors } = useTheme();
+  const surface = useSurfaceStyle();
   const { t, locale } = useT();
   const title = localized(a.title, locale);
   return (
-    <Pressable
+    <PressableScale
       role="link"
       aria-label={title}
       onPress={() => router.push({ pathname: '/article/[slug]', params: { slug: a.slug } })}
-      style={({ pressed }) => [
-        styles.row,
-        { backgroundColor: pressed ? colors.surfaceMuted : colors.surface, borderColor: colors.border },
-      ]}
+      style={[styles.row, surface]}
     >
       <Newspaper size={20} color={colors.onPrimarySoft} strokeWidth={1.75} />
       <View style={{ flex: 1 }}>
@@ -88,7 +88,7 @@ export function ArticleSearchRow({
           {[t(ARTICLE_KIND_KEY[a.kind]), bsDate(articleDate(a), locale)].join(' · ')}
         </Text>
       </View>
-    </Pressable>
+    </PressableScale>
   );
 }
 

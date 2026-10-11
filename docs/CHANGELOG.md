@@ -4,6 +4,14 @@ All notable changes to this project. Format based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Changed — 2026-10-12 (launch animation and a more modern look, D-069)
+- App: animated launch — T and K fly in and meet in the logo, then "Tayari Kakshya" and the slogan; tap to skip.
+- App: new tab bar with a sliding highlight; tab screens fade and slide when switching; pushed screens slide in
+  from the right on Android too.
+- App: buttons and cards respond to touch with a gentle press; softer raised cards; Home has a new header with the
+  search bar floating over it and sections that rise in; course artwork placeholders in varied brand blues.
+- All motion respects the phone's reduce-motion setting.
+
 ### Added — 2026-10-12 (Phase 14a part 2: offline PDFs)
 - App: PDF lessons can be saved for offline reading too (cloud button), with the same 7-day licence (CMS) as notes;
   the saved copy carries your watermark. Downloads shows notes and PDFs with their own icons.

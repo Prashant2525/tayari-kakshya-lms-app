@@ -9,7 +9,7 @@ A real logo will replace the placeholder wordmark when supplied.
 1. **Calm focus** — learning and exams are high-concentration tasks: generous whitespace, one primary action per screen, no decorative noise.
 2. **Clear state** — every item shows whether it is new, in progress, completed, locked or downloaded, using icon + text, never colour alone.
 3. **Bilingual by default** — every component is tested with Nepali (Devanagari) and English strings of different lengths.
-4. **Fast on modest phones** — flat surfaces, light shadows, no heavy blur/gradients; animations on the UI thread (Reanimated).
+4. **Fast on modest phones** — flat surfaces, light shadows, no heavy blur/gradients; animations on the UI thread (React Native Animated with the native driver — T-071).
 5. **Accessible** — WCAG 2.2 AA contrast (checked by an automated test in `design-tokens`), 44×44 pt touch targets, screen-reader labels, dynamic type, reduced motion.
 
 ## 2. What changes from the reference PDF
@@ -115,6 +115,11 @@ All sizes scale with OS font settings (capped at 1.3× in dense lists; uncapped 
 | `duration.slow` | 320 ms | sheets, page transitions |
 | `easing.standard` | `cubic-bezier(0.2, 0, 0, 1)` | most transitions |
 | `spring.sheet` | damping 20, stiffness 220 | bottom sheets |
+| launch intro | ~1.8 s + 0.55 s exit | T and K meet → logo tile → name → slogan (phones; D-069) |
+| tab switch | 280 ms, standard easing | screens cross-fade and shift 36 px; the tab pill springs across |
+| press | spring to 0.97 | buttons and tappable cards (`PressableScale`) |
+| entrance | 320 ms, 55 ms stagger | Home sections rise 14 px into place (`FadeInUp`) |
+| stack push | platform | slide from the right on iOS and Android (`ios_from_right`) |
 
 Rules: animate opacity/transform only; progress bars fill smoothly; correct/incorrect feedback uses a short colour+icon
 transition (no shake); **no motion in the exam timer or palette**; honour reduced-motion (crossfade only).
