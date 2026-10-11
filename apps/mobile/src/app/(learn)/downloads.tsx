@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { CloudDownload, FileText, Trash2 } from 'lucide-react-native';
+import { BookOpen, CloudDownload, FileText, Trash2 } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useAppConfig } from '@/api/queries';
@@ -43,6 +43,7 @@ export default function DownloadsScreen() {
         <ScrollView contentContainerStyle={styles.list}>
           {entries.map((e) => {
             const ok = usable(e, now, serverTime);
+            const Icon = e.type === 'pdf' ? FileText : BookOpen;
             return (
               <Card key={e.id} style={styles.row}>
                 <Pressable
@@ -61,7 +62,7 @@ export default function DownloadsScreen() {
                     })
                   }
                 >
-                  <FileText size={20} color={colors.onPrimarySoft} strokeWidth={1.75} />
+                  <Icon size={20} color={colors.onPrimarySoft} strokeWidth={1.75} />
                   <View style={{ flex: 1 }}>
                     <Text variant="label">{localized(e.title, locale)}</Text>
                     <Text variant="caption" color={ok ? 'textMuted' : 'warning'}>

@@ -1,7 +1,9 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useT } from '@/i18n/use-t';
 import { env } from '@/lib/env';
+import { savedPdf } from '@/lib/offline';
+import { base64Chunks } from '@/lib/offline-rules';
 import { useSession } from '@/state/session';
 import { Banner } from '@/ui/layout';
 import { Text } from '@/ui/text';
@@ -13,28 +15,52 @@ type ReaderMessage =
   | { type: 'page'; page: number; pageCount: number }
   | { type: 'error'; status: number; code: string };
 
+type Saved = { readerHtml: string; base64: string };
+
 /**
  * PDF lesson in the self-hosted reader page (T-038). The page receives the student's current access token over
- * postMessage, fetches the watermarked PDF itself and reports the page in view.
+ * postMessage, fetches the watermarked PDF itself and reports the page in view. Offline (D-067), the saved reader page
+ * opens instead and the saved PDF is posted into it in pieces.
  */
 export function PdfReader({
   itemId,
   startPage,
   onPage,
+  offline = false,
 }: {
   itemId: string;
   startPage: number;
   onPage: (page: number, pageCount: number) => void;
+  offline?: boolean;
 }) {
   const { t } = useT();
   const frame = useRef<WebFrameHandle>(null);
   const [error, setError] = useState(false);
   const [page, setPage] = useState<{ page: number; count: number } | null>(null);
+  const [saved, setSaved] = useState<Saved | null>(null);
+
+  useEffect(() => {
+    if (!offline) return;
+    let live = true;
+    void savedPdf(itemId).then((copy) => {
+      if (!live) return;
+      if (copy) setSaved(copy);
+      else setError(true);
+    });
+    return () => {
+      live = false;
+    };
+  }, [offline, itemId]);
 
   const onMessage = useCallback(
     (raw: unknown) => {
       const message = raw as ReaderMessage;
-      if (message?.type === 'ready') {
+      if (message?.type === 'ready' && offline) {
+        if (!saved) return;
+        frame.current?.post({ type: 'open', page: startPage });
+        for (const data of base64Chunks(saved.base64)) frame.current?.post({ type: 'chunk', data });
+        frame.current?.post({ type: 'end' });
+      } else if (message?.type === 'ready') {
         frame.current?.post({
           type: 'open',
           token: useSession.getState().tokens?.accessToken ?? '',
@@ -53,18 +79,26 @@ export function PdfReader({
         setError(true);
       }
     },
-    [itemId, startPage, onPage],
+    [itemId, startPage, onPage, offline, saved],
   );
 
   return (
     <View style={styles.fill}>
       {error ? <Banner message={t('learn.pdfError')} /> : null}
-      <WebFrame
-        ref={frame}
-        uri={`${env.apiBaseUrl}/viewer/pdf`}
-        title={t('item.pdf')}
-        onMessage={onMessage}
-      />
+      {offline ? (
+        saved ? (
+          <WebFrame ref={frame} html={saved.readerHtml} title={t('item.pdf')} onMessage={onMessage} />
+        ) : (
+          <View style={styles.fill} />
+        )
+      ) : (
+        <WebFrame
+          ref={frame}
+          uri={`${env.apiBaseUrl}/viewer/pdf`}
+          title={t('item.pdf')}
+          onMessage={onMessage}
+        />
+      )}
       <View style={styles.footer}>
         {page ? (
           <Text variant="caption" color="textSecondary" role="status">

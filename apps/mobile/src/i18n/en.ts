@@ -752,7 +752,7 @@ export const en = {
   'offline.savedCopy': 'No connection: showing your saved copy (opens offline until {date}).',
   'offline.title': 'Downloads',
   'offline.empty': 'No saved lessons',
-  'offline.emptyBody': 'Open a note and tap the cloud button to read it without internet.',
+  'offline.emptyBody': 'Open a note or PDF and tap the cloud button to read it without internet.',
   'offline.until': 'Opens offline until {date}',
   'offline.expired': 'Go online to keep reading it offline',
   'offline.removeAll': 'Remove all downloads',

@@ -748,7 +748,7 @@ export const ne: Record<MessageKey, string> = {
   'offline.savedCopy': 'इन्टरनेट छैन: तपाईंको सुरक्षित प्रति देखाइँदै (अफलाइन {date} सम्म खुल्छ)।',
   'offline.title': 'डाउनलोड',
   'offline.empty': 'कुनै पाठ राखिएको छैन',
-  'offline.emptyBody': 'इन्टरनेट बिना पढ्न नोट खोलेर बादलको बटन थिच्नुहोस्।',
+  'offline.emptyBody': 'इन्टरनेट बिना पढ्न नोट वा PDF खोलेर बादलको बटन थिच्नुहोस्।',
   'offline.until': 'अफलाइन {date} सम्म खुल्छ',
   'offline.expired': 'अफलाइन पढिरहन इन्टरनेटमा जोडिनुहोस्',
   'offline.removeAll': 'सबै डाउनलोड हटाउनुहोस्',

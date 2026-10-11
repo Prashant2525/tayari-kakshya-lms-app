@@ -3,15 +3,19 @@ import { ErrorCode, type OfflineLicence } from '@tk/contracts';
 import { AppError } from '../../common/errors/app-error.js';
 import { SettingsService } from '../settings/settings.service.js';
 import { CatalogService, type Viewer } from './catalog.service.js';
+import { offlineReader } from './pdf-viewer/offline-reader.js';
 
 const DAY_MS = 86_400_000;
 const notAvailable = (message: string) => new AppError(403, ErrorCode.FORBIDDEN, message);
+/** Lesson types that may be kept offline: notes and PDFs; videos later (D-067). */
+const OFFLINE_TYPES = new Set(['note', 'pdf']);
 
 /**
  * Offline lessons (S11, D-067, T-069). A download is the lesson as it is opened online (the same access rules) plus a
  * licence: the app may open its copy without internet until `expiresAt` (CMS `offline.rules.days`, default 7). Online,
  * the app renews its licences; a lesson the student can no longer open — or every lesson, once staff switch offline
- * off — is revoked and the app deletes its copy. Notes for now; PDFs follow, videos later (D-067).
+ * off — is revoked and the app deletes its copy. Notes and PDFs; videos later (D-067). A PDF download also names the
+ * offline reader's version: the app fetches the student's watermarked PDF and, when it has not got it, that reader.
  */
 @Injectable()
 export class OfflineService {
@@ -24,8 +28,10 @@ export class OfflineService {
     const rules = await this.settings.get('offline.rules');
     if (!rules.enabled) throw notAvailable('Downloads are switched off');
     const item = await this.catalog.itemContent(itemId, viewer);
-    if (item.type !== 'note') throw notAvailable('Only notes can be downloaded for now');
-    return { ...item, expiresAt: this.expiry(now, rules.days), serverTime: now.toISOString() };
+    if (!OFFLINE_TYPES.has(item.type)) throw notAvailable('Videos cannot be downloaded yet');
+    const licence = { expiresAt: this.expiry(now, rules.days), serverTime: now.toISOString() };
+    if (item.type === 'pdf') return { ...item, ...licence, readerVersion: (await offlineReader()).version };
+    return { ...item, ...licence };
   }
 
   async refresh(itemIds: string[], viewer: Viewer, now = new Date()) {
@@ -39,7 +45,7 @@ export class OfflineService {
       try {
         const item = await this.catalog.itemContent(id, viewer);
         licences.push(
-          item.type === 'note'
+          OFFLINE_TYPES.has(item.type)
             ? { id, expiresAt: this.expiry(now, rules.days), version: item.version }
             : { id, expiresAt: null, version: null },
         );

@@ -200,7 +200,7 @@ AI study assistant (after L2), live classes (after L3), Apple IAP (only if decid
 - ☑ Part 14a-1 (T-069): offline notes (licence days from the CMS, renewal / revocation, Downloads, deleted on
   sign-out), app opens without a connection, screen-capture protection on premium lessons
 - ☑ Screen protection on every screen of the app (D-068)
-- ☐ Part 14a-2: offline PDFs (the PDF reader kept on the device)
+- ☑ Part 14a-2 (T-070): offline PDFs — the student's watermarked copy read in a saved, self-contained pdf.js page
 - Later (D-067): offline video; ConnectIPS once NCHL test credentials arrive; AI assistant (L2); live classes (L3)
 
 ## Next concrete steps

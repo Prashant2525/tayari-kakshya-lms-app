@@ -17,7 +17,7 @@ const DAY = 86_400_000;
 const near = (iso: string, expected: number) => Math.abs(Date.parse(iso) - expected) < 60_000;
 
 describe('offline lessons (S11, D-067)', () => {
-  it('downloads notes with a licence the app renews, and revokes it when access ends', async () => {
+  it('downloads notes and PDFs with a licence the app renews, and revokes it when access ends', async () => {
     const admin = await publisher(ctx);
     const seeded = await seedPublishedCourse(ctx, admin);
     const { accessToken: token } = await registerStudent(ctx, 'asha@example.com');
@@ -37,23 +37,46 @@ describe('offline lessons (S11, D-067)', () => {
     expect(near(res.body.serverTime, Date.now())).toBe(true);
     const version = res.body.version as string;
 
-    // Premium needs access, as online; videos and PDFs are not offline yet (D-067).
+    // Premium needs access, as online; videos are not offline yet (D-067).
     expect((await download(seeded.premiumNote.id)).body.error.code).toBe('CONTENT_LOCKED');
+    expect((await download(seeded.premiumPdf.id)).body.error.code).toBe('CONTENT_LOCKED');
     expect((await download(seeded.freeVideo.id)).status).toBe(403);
-    expect((await download(seeded.premiumPdf.id)).status).toBe(403);
     const grant = await call(ctx, 'POST', `/admin/users/${user.id}/entitlements`, {
       token: admin,
       body: { courseId: seeded.course.id, endsAt: null },
     });
     expect((await download(seeded.premiumNote.id)).status).toBe(200);
 
+    // A PDF: its details and licence, and the version of the offline reader the app keeps next to it.
+    res = await download(seeded.premiumPdf.id);
+    expect(res.status).toBe(200);
+    expect(res.body).toMatchObject({ id: seeded.premiumPdf.id, type: 'pdf', version: expect.any(String) });
+    expect(res.body.readerVersion).toMatch(/^[0-9a-f]{16}$/);
+    expect(near(res.body.expiresAt, Date.now() + 7 * DAY)).toBe(true);
+    const reader = await ctx.app.inject({ method: 'GET', url: '/api/v1/viewer/pdf-offline' });
+    expect(reader.statusCode).toBe(200);
+    expect(reader.headers['x-reader-version']).toBe(res.body.readerVersion);
+    // Self-contained: pdf.js and its worker inlined, nothing loaded from anywhere, nothing sent anywhere.
+    expect(reader.body).toContain("default-src 'none'");
+    expect(reader.body).toContain('globalThis.pdfjsWorker=');
+    expect(reader.body).toContain('globalThis.pdfjsLib=');
+    expect(reader.body).not.toMatch(/\ssrc=|<link|connect-src/);
+    expect(reader.body.match(/<script type="module">/g)).toHaveLength(3);
+
     // The CMS sets the days.
     await setSetting(ctx, 'offline.rules', { enabled: true, days: 3 });
-    res = await refresh([seeded.freeNote.id, seeded.premiumNote.id]);
+    res = await refresh([
+      seeded.freeNote.id,
+      seeded.premiumNote.id,
+      seeded.premiumPdf.id,
+      seeded.freeVideo.id,
+    ]);
     expect(res.status).toBe(200);
     expect(res.body.licences).toEqual([
       { id: seeded.freeNote.id, expiresAt: expect.any(String), version },
       { id: seeded.premiumNote.id, expiresAt: expect.any(String), version: expect.any(String) },
+      { id: seeded.premiumPdf.id, expiresAt: expect.any(String), version: expect.any(String) },
+      { id: seeded.freeVideo.id, expiresAt: null, version: null },
     ]);
     expect(near(res.body.licences[0].expiresAt, Date.now() + 3 * DAY)).toBe(true);
 
@@ -70,9 +93,14 @@ describe('offline lessons (S11, D-067)', () => {
       body: { reason: 'Refunded' },
     });
     expect(revoke.status).toBeLessThan(300);
-    res = await refresh([seeded.premiumNote.id, '00000000-0000-7000-8000-000000000000']);
+    res = await refresh([
+      seeded.premiumNote.id,
+      seeded.premiumPdf.id,
+      '00000000-0000-7000-8000-000000000000',
+    ]);
     expect(res.body.licences).toEqual([
       { id: seeded.premiumNote.id, expiresAt: null, version: null },
+      { id: seeded.premiumPdf.id, expiresAt: null, version: null },
       { id: '00000000-0000-7000-8000-000000000000', expiresAt: null, version: null },
     ]);
 

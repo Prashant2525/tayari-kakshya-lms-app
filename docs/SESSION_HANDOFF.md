@@ -202,6 +202,11 @@ Current task: Phase 11 part 3 (receipts + refunds) done on `feature/receipts-ref
 - Nothing partially implemented. Admin screens for Phase 6 not started.
 
 ## Exact next steps
+0w. 2026-10-12: PR #47 merged. `feature/offline-pdfs` (T-070) completes 14a. Next: the rest of
+   Phase 14 needs the owner — offline video (D-067 said later), ConnectIPS (NCHL test credentials), AI study
+   assistant (L2), live classes (L3); ask which comes next. Seed scripts for emulator checks build lessons through
+   the admin API on port 4020 (editor `e2e-editor@example.test`); to look at a protected screen, switch the
+   protection off locally and restore it before committing.
 0v. 2026-10-12: PR #46 merged. Owner asked for screen protection everywhere (D-068):
    `feature/screen-protection-all` turns it on once in the root layout (`lib/screen-protection.ts`); the per-lesson
    guard is gone. Next: **14a-2 offline PDFs** (plan in 0u). Device check note: `expo start --localhost` now listens

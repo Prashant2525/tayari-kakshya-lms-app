@@ -4,6 +4,10 @@ All notable changes to this project. Format based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Added — 2026-10-12 (Phase 14a part 2: offline PDFs)
+- App: PDF lessons can be saved for offline reading too (cloud button), with the same 7-day licence (CMS) as notes;
+  the saved copy carries your watermark. Downloads shows notes and PDFs with their own icons.
+
 ### Changed — 2026-10-12 (screen protection on every screen, D-068)
 - App: screenshots and screen recording are now blocked on every screen (free lessons and all other sections too),
   not only on premium lessons. On iPhone the app is also hidden in the app switcher.
