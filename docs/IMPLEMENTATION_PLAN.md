@@ -187,7 +187,8 @@ course reviews + moderation, discussions/doubts + moderation, admin dashboards &
 - ☑ Part 13a (T-064): progress analytics — study time measured in the app (checked by the server), practice and
   revision answers kept, accuracy by subject, weak / strong topics (CMS thresholds), recent results; My progress
   (Profile, Home card); CMS setting Progress analytics
-- ☐ Part 13b: study planner (course, exam date, minutes per day → today's plan, re-plan when behind)
+- ☑ Part 13b (T-065): study planner — course, BS exam date, minutes a day → today's plan and the coming days,
+  re-planned from today on every visit; Home card; CMS estimates
 - ☐ Part 13c: course reviews (stars + text, after some progress, staff approve; app + website)
 - ☐ Part 13d: discussions / doubts under questions and lessons (staff badge, best answer, reports, moderation)
 - ☐ Part 13e: admin dashboards (sales, students, learning, tests & questions) and CSV exports

@@ -466,6 +466,20 @@ export const SETTINGS = {
     default: { windowDays: 90, minAnswers: 5, weakBelow: 50, strongFrom: 80 },
     public: false,
   },
+  /**
+   * D-066 / T-065: study planner time estimates, used where a lesson's own length is unknown: a note, a PDF page,
+   * a video without a recorded length, a test without a time limit.
+   */
+  'planner.estimates': {
+    schema: z.object({
+      noteMinutes: z.number().int().min(1).max(240),
+      pdfMinutesPerPage: z.number().int().min(1).max(30),
+      videoMinutes: z.number().int().min(1).max(240),
+      testMinutes: z.number().int().min(1).max(600),
+    }),
+    default: { noteMinutes: 10, pdfMinutesPerPage: 2, videoMinutes: 15, testMinutes: 30 },
+    public: false,
+  },
 } as const satisfies Record<string, { schema: z.ZodType; default: unknown; public: boolean }>;
 
 export type SettingKey = keyof typeof SETTINGS;

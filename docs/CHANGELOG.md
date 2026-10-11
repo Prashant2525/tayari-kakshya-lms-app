@@ -4,6 +4,12 @@ All notable changes to this project. Format based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Added — 2026-10-11 (Phase 13b: study planner)
+- App: **Study planner** (Profile, and "Today's plan" on Home) — pick a course you have, your exam date (BS) and
+  your study time a day; its lessons and tests are spread over the days left, finished ones are ticked, and the plan
+  re-plans from today when you fall behind (with the time a day needed to catch up).
+- CMS: System settings → Study planner estimates (minutes for a note, a PDF page, a video or test of unknown length).
+
 ### Added — 2026-10-08 (Phase 13a: progress analytics)
 - App: **My progress** (Profile, and a card on Home) — study time for today, the last 7 and 30 days with a
   7-day chart and a split by videos / reading / practice / tests; lessons finished; accuracy overall and by subject;

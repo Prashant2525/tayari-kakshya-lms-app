@@ -93,6 +93,7 @@ partial indexes, generated `tsvector` columns, check constraints and triggers th
 | `bookmarks` | `user_id`, `entity_type` (question/learning_item/article), `entity_id` — unique triple |
 | `practice_answers` | ✅ (T-064) `user_id`, `question_id`, `source` (practice / revision), `outcome` (correct / partial / wrong — CHECK), `answered_at`; index (`user_id`, `answered_at`); server-scored answers for accuracy |
 | `study_time` | ✅ (T-064) PK (`user_id`, `day` — Nepal date, `activity` video / reading / practice / test), `seconds` (0–86400 — CHECK) |
+| `study_plans` | ✅ (T-065) `user_id`, `course_id` (unique together), `exam_date` (date), `minutes_per_day` (10–600 — CHECK); the days are computed, not stored |
 | `study_clocks` | ✅ (T-064) `user_id` PK, `last_report_at`: a report is never credited more than the time since the previous one |
 | `mistakes` | ✅ (T-047) PK (`user_id`, `question_id`), `status` (active / mastered / removed), `times_wrong` (≥ 1), `correct_streak`, `last_source` (test / practice), `last_wrong_at`, `last_reviewed_at`, `mastered_at` (set exactly when mastered — CHECK), `answer_visible`; `attempts.mistakes_synced_at` marks attempts already added |
 | `study_plans` / `study_plan_items` | `target_exam_node_id`, `exam_date`, generated weekly items with status |

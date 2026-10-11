@@ -95,6 +95,7 @@ export class AccountDeletionService {
         await tx.practiceAnswer.deleteMany({ where: { userId: request.userId } });
         await tx.studyTime.deleteMany({ where: { userId: request.userId } });
         await tx.studyClock.deleteMany({ where: { userId: request.userId } });
+        await tx.studyPlan.deleteMany({ where: { userId: request.userId } });
         // Notifications (D-033) and Apple-device course interest / account emails (D-061).
         await tx.pushToken.deleteMany({ where: { userId: request.userId } });
         await tx.notificationDelivery.deleteMany({ where: { userId: request.userId } });

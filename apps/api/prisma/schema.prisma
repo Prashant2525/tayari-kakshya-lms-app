@@ -109,6 +109,7 @@ model User {
   practiceAnswers     PracticeAnswer[]
   studyTime           StudyTime[]
   studyClock          StudyClock?
+  studyPlans          StudyPlan[]
   revokedCertificates Certificate[]            @relation("CertificateRevoker")
 
   @@index([kind, status])
@@ -680,6 +681,7 @@ model Course {
   progress    LearningProgress[]
   updates     CourseUpdate[]
   interests   CourseInterest[]
+  studyPlans  StudyPlan[]
 
   @@index([status, isFeatured, popularityRank])
   @@index([certificateTemplateId])
@@ -1448,6 +1450,25 @@ model StudyClock {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("study_clocks")
+}
+
+/// A student's study plan for one course (S7, D-066, T-065): the plan itself is worked out when asked for, from the
+/// student's unfinished lessons and tests, so falling behind re-plans from today. One plan per student and course.
+model StudyPlan {
+  id            String   @id @default(uuid(7)) @db.Uuid
+  userId        String   @map("user_id") @db.Uuid
+  courseId      String   @map("course_id") @db.Uuid
+  /// The exam day (AD; shown in BS).
+  examDate      DateTime @map("exam_date") @db.Date
+  minutesPerDay Int      @map("minutes_per_day")
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, courseId])
+  @@map("study_plans")
 }
 
 // ───────────── Commerce (Phase 11, D-003, D-023, D-027, D-051, D-052) ─────────────

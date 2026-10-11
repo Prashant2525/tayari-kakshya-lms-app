@@ -103,6 +103,8 @@ courses/subjects. Every write is audited.
 | GET | `/practice-questions/:id` | student | one question with the same lock rule (404 if unpublished) |
 | POST | `/me/study-time` | student | `{ activity: video \| reading \| practice \| test, seconds: 1–300 }` → `{ credited }` (never more than the time since the previous report; T-064) |
 | GET | `/me/progress` | student | study time (7 Nepal days by activity; today / 7 / 30 days), finished lessons, accuracy overall and by subject, weak / strong topics (`progress.topics`), latest released test results (T-064) |
+| GET | `/me/study-plans` | student | each plan with today's work (T-065) |
+| GET / PUT / DELETE | `/me/study-plans/:courseId` | student | the plan day by day; PUT `{ examDate, minutesPerDay: 10–600 }` (course the student has; exam after today, within 3 years) |
 | GET | `/me/bookmarks` | student | saved lessons and questions, newest first: `{ targetType, targetId, createdAt, item? \| question? }`; unpublished targets are left out |
 | PUT / DELETE | `/me/bookmarks/:type/:id` | student | `type` = `learning_item` \| `question`; save (idempotent) / remove; only published targets can be saved |
 | GET | `/search?q=` | student | `q` 2–120 chars: `{ courses, items, questions, articles }` — published courses (platform-aware prices), live lessons by title (en/ne), questions by text, live articles by title or address (T-061); no premium bodies or answers |

@@ -8,6 +8,7 @@ import { CurrentCourse } from '@/features/courses/current-course';
 import { CatalogList } from '@/features/courses/my-courses';
 import { ReadTiles } from '@/features/articles/read-tiles';
 import { BannerCarousel } from '@/features/home/banner-carousel';
+import { TodayPlanCard } from '@/features/planner/today-plan-card';
 import { ProgressLink } from '@/features/progress/progress-link';
 import { DailyChallengeCard } from '@/features/tests/daily-challenge-card';
 import { TestsLink } from '@/features/tests/tests-link';
@@ -117,6 +118,7 @@ export default function HomeScreen() {
           )}
         </Card>
         <CurrentCourse />
+        <TodayPlanCard />
         <ReadTiles />
         <DailyChallengeCard />
         <ProgressLink />

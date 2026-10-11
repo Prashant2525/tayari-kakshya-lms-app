@@ -1,6 +1,6 @@
 # Test Status
 
-Last updated: 2026-10-08 (Phase 13a: progress analytics). `pnpm test` runs unit + integration suites (needs `pnpm infra:up`);
+Last updated: 2026-10-11 (Phase 13b: study planner). `pnpm test` runs unit + integration suites (needs `pnpm infra:up`);
 `pnpm build && pnpm --filter @tk/admin e2e` and `pnpm build && pnpm --filter @tk/mobile e2e` run the browser suites
 (the student suite also needs Mailpit, part of `pnpm infra:up`).
 
@@ -9,16 +9,33 @@ Last updated: 2026-10-08 (Phase 13a: progress analytics). `pnpm test` runs unit 
 | Package | Tests | Kind |
 |---|---|---|
 | `@tk/design-tokens` | 39 | WCAG contrast for every text/background pair (light + dark), CSS generation |
-| `@tk/domain` | 58 | BS calendar, Kathmandu day boundary, fiscal year, money/VAT/discounts, access validity |
+| `@tk/domain` | 64 | BS calendar, Kathmandu day boundary, fiscal year, money/VAT/discounts, access validity |
 | `@tk/contracts` | 21 | Schema behaviour (localized text, email normalisation, mass assignment, settings defaults, rich-text validation) |
-| `@tk/api` | 290 | Integration against real PostgreSQL + Redis + S3 (SeaweedFS) through the HTTP stack; TOTP RFC 6238 vectors; RBAC, video, watermark unit |
+| `@tk/api` | 292 | Integration against real PostgreSQL + Redis + S3 (SeaweedFS) through the HTTP stack; TOTP RFC 6238 vectors; RBAC, video, watermark unit |
 | `@tk/admin` (unit) | 35 | API client (headers, refresh single-flight, retry, session loss, error mapping), BS formatting, Button `asChild` regression |
 | `@tk/admin` (E2E, Playwright) | 34 | Real browser + real API + `*_e2e` database |
 | `@tk/mobile` (unit) | 41 | Study-time meter (idle limits, videos, innermost screen, background), development picture addresses on a phone, API client (single-flight refresh, early refresh, session end, maintenance), translations complete in both languages, BS dates and Kathmandu weekday, force-update/maintenance gate, form checks, Nepali phone numbers |
-| `@tk/mobile` (E2E, Playwright, phone viewport) | 38 | Web build + real API + `*_mobile_e2e` database + Mailpit |
+| `@tk/mobile` (E2E, Playwright, phone viewport) | 40 | Web build + real API + `*_mobile_e2e` database + Mailpit |
 | `@tk/web` (unit) | 8 | Session refresh used once (concurrent / late requests share it; refused → signed out; unreachable → retried), token expiry, both languages complete, failure messages |
 | `@tk/web` (E2E, Playwright) | 9 | `next start` production build + real API + `*_web_e2e` database + Mailpit + gateway stand-in; access tokens last 60 s so every page load refreshes |
-| **Total** | **573** | |
+| **Total** | **583** | |
+
+### Added with the study planner (Phase 13b, T-065, D-066)
+- **Domain (6):** spreading work in order within the minutes a day; today's finished work kept and counted; a test
+  on its opening day without holding up the rest; what does not fit and the pace needed; nothing after the exam
+  day; month and year ends.
+- **API (2 integration tests):** only for a course the student has; exam date and minutes validated; estimates
+  (note, PDF pages, video length, test limit); course order with the test after the lessons; a finished lesson
+  ticked today; re-planned two days later and behind; a submitted test done; list with today only; other students
+  and staff; one plan per course; delete; erasure; premium lessons and tests left out for a free enrolment; a test
+  planned on its opening day; closed tests and ones opening after the exam left out. Mutation-checked (7: premium
+  without access, closed tests, tests before they open, submitted tests still left, plan without the course, any
+  exam date, erasure keeping plans — each fails a test).
+- **App E2E (2):** make a plan (course, BS date, 30 min a day), on-track message, finish a lesson from the plan →
+  ticked and "1 of 2 done today" in the plan and on Home; delete the plan. **CMS E2E** (System settings): planner
+  estimates saved.
+- Screens checked: plan, Home card; fixed: the plan's summary line wrapped badly ("30 / min").
+- E2E: a third seeded student (`E2E_STUDENT3_EMAIL`).
 
 ### Added with progress analytics (Phase 13a, T-064, D-066)
 - **API (3 integration tests):** study time per Nepal day and activity, never more than the time since the previous
