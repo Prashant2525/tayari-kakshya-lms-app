@@ -23,6 +23,7 @@ import { initMonitoring } from '@/lib/monitoring';
 import { checkoutHref, usePendingLink } from '@/lib/pending-link';
 import { listenForTaps, registerForPush } from '@/lib/push';
 import { useOffline } from '@/lib/offline';
+import { useScreenProtection } from '@/lib/screen-protection';
 import { startStudyClock, studySignal } from '@/lib/study-time';
 import { usePrefs } from '@/state/prefs';
 import { useSession } from '@/state/session';
@@ -46,6 +47,7 @@ export default function RootLayout() {
     Mukta_700Bold,
   });
   const prefsLoaded = usePrefs((s) => s.loaded);
+  useScreenProtection();
   const sessionStatus = useSession((s) => s.status);
 
   useEffect(() => {

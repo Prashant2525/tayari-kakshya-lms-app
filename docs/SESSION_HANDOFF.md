@@ -202,6 +202,12 @@ Current task: Phase 11 part 3 (receipts + refunds) done on `feature/receipts-ref
 - Nothing partially implemented. Admin screens for Phase 6 not started.
 
 ## Exact next steps
+0v. 2026-10-12: PR #46 merged. Owner asked for screen protection everywhere (D-068):
+   `feature/screen-protection-all` turns it on once in the root layout (`lib/screen-protection.ts`); the per-lesson
+   guard is gone. Next: **14a-2 offline PDFs** (plan in 0u). Device check note: `expo start --localhost` now listens
+   on `::1` only, which `adb reverse` cannot reach — start Metro with `--lan` and
+   `REACT_NATIVE_PACKAGER_HOSTNAME=10.0.2.2` and open `exp://10.0.2.2:8082` (the API on 4020 still via `adb reverse`).
+   Every app screen now screenshots black: read screens with `uiautomator dump`.
 0u. 2026-10-11: PR #45 merged. Owner chose Phase 14 order (D-067). `feature/offline-notes` (T-069). Next: **14a-2
    offline PDFs** — keep the pdf.js reader on the device (one HTML with pdf.js inlined, the worker from a Blob URL, the
    PDF bytes posted in chunks) so a saved, watermarked PDF opens without the API; same licence / refresh. Device

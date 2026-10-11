@@ -1,6 +1,6 @@
 # Test Status
 
-Last updated: 2026-10-11 (Phase 14a part 1: offline notes). `pnpm test` runs unit + integration suites (needs `pnpm infra:up`);
+Last updated: 2026-10-12 (screen protection on every screen). `pnpm test` runs unit + integration suites (needs `pnpm infra:up`);
 `pnpm build && pnpm --filter @tk/admin e2e` and `pnpm build && pnpm --filter @tk/mobile e2e` run the browser suites
 (the student suite also needs Mailpit, part of `pnpm infra:up`).
 
@@ -19,6 +19,11 @@ Last updated: 2026-10-11 (Phase 14a part 1: offline notes). `pnpm test` runs uni
 | `@tk/web` (unit) | 8 | Session refresh used once (concurrent / late requests share it; refused → signed out; unreachable → retried), token expiry, both languages complete, failure messages |
 | `@tk/web` (E2E, Playwright) | 10 | `next start` production build + real API + `*_web_e2e` database + Mailpit + gateway stand-in; access tokens last 60 s so every page load refreshes |
 | **Total** | **602** | |
+
+### Changed: screen protection on every screen (D-068)
+- **Device check (Android emulator, Expo Go, the app suite's API):** screenshots are black on the sign-in screen,
+  onboarding, Home, a **free** lesson, and Home again after going back; a screenshot of the Android home screen (the
+  control) is not. No automated test: the browser suites run the web build, where screen capture cannot be blocked.
 
 ### Added with offline notes and screen protection (Phase 14a part 1, T-069, D-067)
 - **API (1 integration test):** the app config, a note with its licence (CMS days), premium only with access, no
