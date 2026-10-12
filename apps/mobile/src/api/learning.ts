@@ -38,6 +38,14 @@ export interface CourseDetail extends CatalogCourse {
   descriptionMedia: MediaMap;
   validity: { type: string; days: number | null; endsOn: string | null };
   contentCounts: Partial<Record<'note' | 'pdf' | 'video', number>>;
+  /** Free lessons to try before buying (D-074). */
+  previewItems: Array<{
+    id: string;
+    type: ItemType;
+    title: LocalizedText;
+    durationSeconds: number | null;
+    subjectId: string;
+  }>;
   subjects: Array<{
     id: string;
     name: LocalizedText;

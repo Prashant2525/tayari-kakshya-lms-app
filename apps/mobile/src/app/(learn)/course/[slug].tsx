@@ -119,6 +119,17 @@ export default function CourseScreen() {
             </View>
           ) : null}
 
+          {c.previewItems?.length && !c.access?.entitled ? (
+            <View style={{ gap: 8 }}>
+              <Text variant="h4" role="heading">
+                {t('course.tryFree')}
+              </Text>
+              {c.previewItems.map((p) => (
+                <PreviewRow key={p.id} course={c} item={p} />
+              ))}
+            </View>
+          ) : null}
+
           <View style={{ gap: 8 }}>
             <Text variant="h4" role="heading">
               {t('course.subjects')}
@@ -221,6 +232,37 @@ function SubjectRow({
         ) : null}
       </View>
       <ChevronRight size={18} color={colors.textMuted} strokeWidth={1.75} />
+    </PressableScale>
+  );
+}
+
+/** A free lesson to try before buying (D-074): opens like any lesson, so the usual checks apply. */
+function PreviewRow({ course, item }: { course: CourseDetail; item: CourseDetail['previewItems'][number] }) {
+  const { colors } = useTheme();
+  const surface = useSurfaceStyle();
+  const { t, locale } = useT();
+  const title = localized(item.title, locale);
+  const Icon = item.type === 'video' ? PlayCircle : item.type === 'pdf' ? FileText : BookOpen;
+  return (
+    <PressableScale
+      role="link"
+      aria-label={title}
+      onPress={() =>
+        router.push({
+          pathname: '/learn/[itemId]',
+          params: { itemId: item.id, courseId: course.id, subjectId: item.subjectId, slug: course.slug },
+        })
+      }
+      style={[styles.subject, surface]}
+    >
+      <Icon size={20} color={colors.onPrimarySoft} strokeWidth={1.75} />
+      <View style={{ flex: 1 }}>
+        <Text variant="label">{title}</Text>
+        <Text variant="caption" color="textSecondary">
+          {t(item.type === 'video' ? 'item.video' : item.type === 'pdf' ? 'item.pdf' : 'item.note')}
+        </Text>
+      </View>
+      <StatusChip tone="done" label={t('live.free')} />
     </PressableScale>
   );
 }

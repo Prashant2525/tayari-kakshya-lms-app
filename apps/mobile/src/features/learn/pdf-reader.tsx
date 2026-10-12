@@ -1,12 +1,15 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { useT } from '@/i18n/use-t';
 import { env } from '@/lib/env';
 import { savedPdf } from '@/lib/offline';
 import { base64Chunks } from '@/lib/offline-rules';
 import { useSession } from '@/state/session';
+import { Button } from '@/ui/button';
+import { Dialog } from '@/ui/dialog';
 import { Banner } from '@/ui/layout';
 import { Text } from '@/ui/text';
+import { TextField } from '@/ui/text-field';
 import { WebFrame, type WebFrameHandle } from '@/ui/web-frame';
 
 type ReaderMessage =
@@ -37,6 +40,14 @@ export function PdfReader({
   const frame = useRef<WebFrameHandle>(null);
   const [error, setError] = useState(false);
   const [page, setPage] = useState<{ page: number; count: number } | null>(null);
+  const [jumping, setJumping] = useState(false);
+  const [target, setTarget] = useState('');
+  const jump = () => {
+    const n = Number.parseInt(target, 10);
+    if (page && Number.isInteger(n))
+      frame.current?.post({ type: 'goto', page: Math.min(Math.max(n, 1), page.count) });
+    setJumping(false);
+  };
   const [saved, setSaved] = useState<Saved | null>(null);
 
   useEffect(() => {
@@ -101,14 +112,35 @@ export function PdfReader({
       )}
       <View style={styles.footer}>
         {page ? (
-          <Text variant="caption" color="textSecondary" role="status">
-            {t('item.pageOf', { page: page.page, total: page.count })}
-          </Text>
+          <Pressable
+            role="button"
+            aria-label={t('item.goToPage')}
+            onPress={() => {
+              setTarget(String(page.page));
+              setJumping(true);
+            }}
+            hitSlop={8}
+          >
+            <Text variant="caption" color="link" role="status">
+              {t('item.pageOf', { page: page.page, total: page.count })} · {t('item.goToPage')}
+            </Text>
+          </Pressable>
         ) : null}
         <Text variant="caption" color="textMuted">
           {t('learn.watermark')}
         </Text>
       </View>
+      <Dialog visible={jumping} title={t('item.goToPage')} onClose={() => setJumping(false)}>
+        <TextField
+          label={t('item.pageNumber', { total: page?.count ?? 1 })}
+          value={target}
+          onChangeText={setTarget}
+          keyboardType="number-pad"
+          autoFocus
+          onSubmitEditing={jump}
+        />
+        <Button label={t('item.go')} onPress={jump} />
+      </Dialog>
     </View>
   );
 }

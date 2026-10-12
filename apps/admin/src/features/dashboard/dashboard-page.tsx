@@ -1,6 +1,22 @@
 import { useQuery } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
-import { ArrowRight, ShieldCheck, ShieldAlert, UserPlus, Users, UserX, type LucideIcon } from 'lucide-react';
+import type { Permission } from '@tk/contracts';
+import {
+  ArrowRight,
+  ChartColumn,
+  ClipboardCheck,
+  FileQuestion,
+  Library,
+  Megaphone,
+  PenLine,
+  Receipt,
+  ShieldCheck,
+  ShieldAlert,
+  UserPlus,
+  Users,
+  UserX,
+  type LucideIcon,
+} from 'lucide-react';
 import { Card, CardHeader, ErrorState, PageHeader, Skeleton } from '@/components/ui/primitives';
 import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
@@ -44,6 +60,23 @@ function Stat({
     </Card>
   );
 }
+
+/** Shortcuts shown to staff who may open them (replaces the build-phase placeholder, audit F-01). */
+const QUICK_LINKS: Array<{ to: string; label: string; icon: LucideIcon; permissions: Permission[] }> = [
+  { to: '/courses', label: 'Courses', icon: Library, permissions: ['courses:edit'] },
+  { to: '/questions', label: 'Question bank', icon: FileQuestion, permissions: ['questions:edit'] },
+  { to: '/assessments', label: 'Assessments', icon: ClipboardCheck, permissions: ['assessments:edit'] },
+  { to: '/grading', label: 'Grading', icon: PenLine, permissions: ['grading:manage'] },
+  { to: '/notices', label: 'Notices', icon: Megaphone, permissions: ['notices:edit'] },
+  { to: '/orders', label: 'Orders', icon: Receipt, permissions: ['orders:read'] },
+  { to: '/students', label: 'Students', icon: Users, permissions: ['users:read'] },
+  {
+    to: '/reports',
+    label: 'Reports',
+    icon: ChartColumn,
+    permissions: ['orders:read', 'users:read', 'courses:edit', 'assessments:edit'],
+  },
+];
 
 export function DashboardPage() {
   const { me, can } = useAuth();
@@ -117,14 +150,19 @@ export function DashboardPage() {
           </div>
         </Card>
         <Card>
-          <CardHeader
-            title="What's next"
-            description="Content, exams and commerce modules are added in the next phases."
-          />
-          <ul className="space-y-2 px-5 py-4 text-sm text-text-secondary">
-            <li>Exam categories, courses, subjects, notes and videos (Phase 6)</li>
-            <li>Question bank, quizzes and mock/weekly exams (Phase 7)</li>
-            <li>Plans, payments with eSewa and Khalti (Phase 11)</li>
+          <CardHeader title="Quick links" description="The places staff open most." />
+          <ul className="grid gap-1 px-3 py-3 sm:grid-cols-2">
+            {QUICK_LINKS.filter((l) => l.permissions.some(can)).map((l) => (
+              <li key={l.to}>
+                <Link
+                  to={l.to}
+                  className="flex items-center gap-2 rounded-sm px-2 py-2 text-sm font-medium text-text hover:bg-surface-muted"
+                >
+                  <l.icon className="size-4 text-text-muted" aria-hidden />
+                  {l.label}
+                </Link>
+              </li>
+            ))}
           </ul>
         </Card>
       </div>

@@ -17,6 +17,8 @@ interface Stored {
   readerScale: number;
   /** The course shown on Home for each user on this device (D-011 course switcher). */
   currentCourse: Record<string, string>;
+  /** The language was picked on first launch (D-074 / audit F-06); asked once per installation. */
+  languageChosen: boolean;
 }
 
 interface PrefsState extends Stored {
@@ -27,6 +29,7 @@ interface PrefsState extends Stored {
   skipOnboarding(userId: string): void;
   setReaderScale(index: number): void;
   setCurrentCourse(userId: string, courseId: string): void;
+  chooseLanguage(locale: Locale): void;
 }
 
 const KEY = 'tk.prefs';
@@ -35,10 +38,17 @@ const DEFAULT_SCALE = 1;
 /** Non-secret, per-device preferences (T-034). */
 export const usePrefs = create<PrefsState>((set, get) => {
   const save = () => {
-    const { locale, theme, onboardingSkipped, readerScale, currentCourse } = get();
+    const { locale, theme, onboardingSkipped, readerScale, currentCourse, languageChosen } = get();
     void AsyncStorage.setItem(
       KEY,
-      JSON.stringify({ locale, theme, onboardingSkipped, readerScale, currentCourse } satisfies Stored),
+      JSON.stringify({
+        locale,
+        theme,
+        onboardingSkipped,
+        readerScale,
+        currentCourse,
+        languageChosen,
+      } satisfies Stored),
     ).catch(() => undefined);
   };
   return {
@@ -48,6 +58,7 @@ export const usePrefs = create<PrefsState>((set, get) => {
     onboardingSkipped: [],
     readerScale: DEFAULT_SCALE,
     currentCourse: {},
+    languageChosen: false,
     async load() {
       const stored = await AsyncStorage.getItem(KEY)
         .then((raw) => JSON.parse(raw ?? '{}') as Partial<Stored>)
@@ -65,6 +76,10 @@ export const usePrefs = create<PrefsState>((set, get) => {
           Number.isInteger(scale) && scale >= 0 && scale < READER_SCALES.length ? scale : DEFAULT_SCALE,
         currentCourse:
           stored.currentCourse && typeof stored.currentCourse === 'object' ? stored.currentCourse : {},
+        // Installations from before the language step already have preferences: do not ask them.
+        languageChosen:
+          stored.languageChosen === true ||
+          (stored.languageChosen === undefined && Object.keys(stored).length > 0),
       });
     },
     setLocale(locale) {
@@ -82,6 +97,10 @@ export const usePrefs = create<PrefsState>((set, get) => {
     },
     setReaderScale(index) {
       set({ readerScale: Math.min(Math.max(index, 0), READER_SCALES.length - 1) });
+      save();
+    },
+    chooseLanguage(locale) {
+      set({ locale, languageChosen: true });
       save();
     },
     setCurrentCourse(userId, courseId) {

@@ -166,6 +166,9 @@ test('catalog for my exam, prices, and enrolling in a free course', async () => 
   await expect(heading('Constable Complete')).toBeVisible();
   await expect(button('Buy')).toBeVisible();
   await expect(button('Enrol for free')).toHaveCount(0);
+  // Free lessons to try before buying (D-074).
+  await expect(heading('Try for free')).toBeVisible();
+  await expect(link('Right to equality').first()).toBeVisible();
   await visible(page.getByRole('button', { name: 'Back' })).click();
 
   await link('Constable Starter').click();
@@ -203,6 +206,12 @@ test('subject outline, a note marked finished, and the PDF in the self-hosted re
   await expect(reader.locator('.page canvas').first()).toBeVisible({ timeout: 20_000 });
   await expect(reader.locator('.page')).toHaveCount(3);
   await expect(text('Page 1 of 3')).toBeVisible();
+  // Go to page (audit F-09).
+  await button(/Go to page/).click();
+  // Page 2, not the last: reaching the last page finishes the PDF, which later steps expect unfinished.
+  await visible(page.getByLabel(/Page number/)).fill('2');
+  await button('Go').click();
+  await expect(text('Page 2 of 3')).toBeVisible();
   await expect(text('PDFs carry your email and account ID on every page.')).toBeVisible();
 
   await visible(page.getByRole('button', { name: 'Back' })).click();

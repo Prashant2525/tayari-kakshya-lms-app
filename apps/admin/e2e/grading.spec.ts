@@ -83,7 +83,7 @@ test.beforeAll(async ({ browser }) => {
     shuffleOptions: false,
     resultRelease: 'manual',
     showExplanations: true,
-    leaderboardEnabled: false,
+    leaderboardEnabled: true,
     subjectiveGrading: 'instructor',
   });
   assessmentId = assessment.id;
@@ -142,7 +142,7 @@ test('grade a written answer with a comment, then release the results', async ()
 
   await page.goto(`/assessments/${assessmentId}/results`);
   await expect(page.getByRole('heading', { name: 'Results' })).toBeVisible();
-  const row = page.getByRole('row', { name: /Gita Karki/ });
+  const row = page.getByRole('row', { name: /Gita Karki/ }).first();
   await expect(row.getByText('Completed')).toBeVisible();
   await expect(row.getByText('4 / 5')).toBeVisible();
   expect(
@@ -153,6 +153,10 @@ test('grade a written answer with a comment, then release the results', async ()
   await page.getByRole('dialog').getByRole('button', { name: 'Release results' }).click();
   await expect(page.getByText('Results released')).toBeVisible();
   await expect(page.getByText('Released', { exact: true })).toBeVisible();
+  // Staff see the ranking with full names (audit F-03).
+  await expect(page.getByRole('heading', { name: 'Leaderboard' })).toBeVisible();
+  await expect(page.getByText('1 student ranked by score, then time.')).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Gita Karki' }).last()).toBeVisible();
 
   const result = await api<{
     released: boolean;

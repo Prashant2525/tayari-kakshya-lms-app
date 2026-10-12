@@ -33,7 +33,8 @@ test.beforeAll(async ({ browser, request }) => {
       slug: `${slug}-${run}`,
     });
   }
-  page = await browser.newPage();
+  // A fresh installation: no stored preferences, so the language step comes first (D-074).
+  page = await browser.newPage({ storageState: { cookies: [], origins: [] } });
 });
 test.afterAll(async () => {
   await page.close();
@@ -51,7 +52,19 @@ const role = (r: 'radio' | 'tab' | 'link' | 'checkbox' | 'alert' | 'timer', name
 
 test('sign up: validation, email code, onboarding, then Home with the BS date', async ({ request }) => {
   await page.goto('/');
+  await expect(heading('Choose your language')).toBeVisible();
+  // The chooser's own options (the sign-in screen underneath has a language switch too).
+  const choice = page.getByRole('radiogroup', { name: 'Language / भाषा' });
+  await expect(choice.getByRole('radio', { name: 'English' })).toHaveAttribute('aria-checked', 'true');
+  await choice.getByRole('radio', { name: 'नेपाली' }).click();
+  await expect(button('जारी राख्नुहोस्')).toBeVisible();
+  await choice.getByRole('radio', { name: 'English' }).click();
+  await button('Continue').click();
   await expect(heading('Welcome back')).toBeVisible();
+  // Asked once: a reload goes straight to sign-in.
+  await page.reload();
+  await expect(heading('Welcome back')).toBeVisible();
+  await expect(heading('Choose your language')).toHaveCount(0);
   await role('link', 'Create an account').click();
   await expect(heading('Create your account')).toBeVisible();
 

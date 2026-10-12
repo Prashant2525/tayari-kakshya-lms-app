@@ -4,6 +4,12 @@ All notable changes to this project. Format based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Added — 2026-10-13 (audit fixes, batch A — D-074)
+- App: choose English or नेपाली on first launch; Home shows upcoming exams and the latest notices; course pages list
+  free lessons to try ("Try for free"); the PDF reader has "Go to page".
+- CMS: assessment results show the leaderboard with full names (also before release); the dashboard's stale "What's
+  next" card is replaced by quick links.
+
 ### Added — 2026-10-13 (Phase 17)
 - `docs/PRODUCTION_READINESS_AUDIT.md`: every approved feature with status and evidence, cross-cutting checks and
   13 findings for approval.

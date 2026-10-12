@@ -130,6 +130,27 @@ export class CatalogService {
       },
       _count: { _all: true },
     });
+    // Free lessons to try before buying (D-074 / audit F-07): titles only — opening one goes through the usual checks.
+    const previews = await this.prisma.learningItem.findMany({
+      where: {
+        ...liveWhere(),
+        accessLevel: 'free',
+        topic: { ...publishedWhere, chapter: { ...publishedWhere, subjectId: { in: subjectIds } } },
+      },
+      orderBy: [
+        { topic: { chapter: { sortOrder: 'asc' } } },
+        { topic: { sortOrder: 'asc' } },
+        { sortOrder: 'asc' },
+      ],
+      take: 5,
+      select: {
+        id: true,
+        type: true,
+        title: true,
+        durationSeconds: true,
+        topic: { select: { chapter: { select: { subjectId: true } } } },
+      },
+    });
     const purchasable = await this.purchasable(platform);
     // D-061: an Apple device cannot buy here; note the interest so staff can email the website link.
     if (viewer?.sessionId && platform === 'ios' && !entitled && course.pricePaisa > 0 && isLive(course)) {
@@ -148,6 +169,13 @@ export class CatalogService {
       contentCounts: Object.fromEntries(counts.map((c) => [c.type, c._count._all])) as Partial<
         Record<'note' | 'pdf' | 'video', number>
       >,
+      previewItems: previews.map((i) => ({
+        id: i.id,
+        type: i.type,
+        title: i.title as LocalizedText,
+        durationSeconds: i.durationSeconds,
+        subjectId: i.topic.chapter.subjectId,
+      })),
       subjects: course.subjects.map((s) => ({
         id: s.subjectId,
         name: s.subject.name as LocalizedText,

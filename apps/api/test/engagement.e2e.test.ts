@@ -273,6 +273,18 @@ describe('leaderboards (D-048, D-049)', () => {
       me: null,
     });
 
+    // Staff see the ranking with full names and emails, also before release (audit F-03); students cannot use it.
+    const staffView = await call(ctx, 'GET', `/admin/assessments/${manual}/leaderboard`, { token: s.admin });
+    expect(staffView.status).toBe(200);
+    expect(staffView.body).toMatchObject({
+      released: false,
+      total: 1,
+      top: [{ rank: 1, name: 'Asha Rai', email: 'asha@example.com', attemptId: hidden.id }],
+    });
+    expect(
+      (await call(ctx, 'GET', `/admin/assessments/${manual}/leaderboard`, { token: asha.token })).status,
+    ).toBe(403);
+
     const off = await s.assessment({ leaderboardEnabled: false });
     expect((await call(ctx, 'GET', `/assessments/${off}/leaderboard`, { token: asha.token })).status).toBe(
       404,
