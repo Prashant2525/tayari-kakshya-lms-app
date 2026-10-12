@@ -10,6 +10,30 @@ const ids = 'abcdefghij';
 const options = (choices: string[]) => choices.map((c, i) => ({ id: ids[i]!, content: en(c) }));
 const explain = (text?: string) => (text ? en(text) : null);
 
+/**
+ * A fixed, scrambled order for a question's choices (Phase 16): the pack is written with the answer usually second,
+ * which students would learn. The order comes from the question's own text, so it never changes between imports.
+ */
+export function scrambledOrder(seed: string, n: number): number[] {
+  // FNV-1a hash of the seed, then a small deterministic generator (mulberry32) for Fisher–Yates.
+  let h = 0x811c9dc5;
+  for (let i = 0; i < seed.length; i++) h = Math.imul(h ^ seed.charCodeAt(i), 0x01000193);
+  let state = h >>> 0;
+  const next = () => {
+    state = (state + 0x6d2b79f5) >>> 0;
+    let t = state;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+  const order = Array.from({ length: n }, (_, i) => i);
+  for (let i = n - 1; i > 0; i--) {
+    const j = Math.floor(next() * (i + 1));
+    [order[i], order[j]] = [order[j]!, order[i]!];
+  }
+  return order;
+}
+
 /** One correct answer. `answer` is the index of the correct option. */
 export function mcq(
   stem: string,
@@ -18,13 +42,14 @@ export function mcq(
   explanation: string,
   difficulty: Difficulty = 'medium',
 ): PackQuestion {
+  const order = scrambledOrder(stem, choices.length);
   return {
     difficulty,
     content: {
       type: 'single_choice',
       stem: en(stem),
-      options: options(choices),
-      correctOptionId: ids[answer]!,
+      options: options(order.map((i) => choices[i]!)),
+      correctOptionId: ids[order.indexOf(answer)]!,
       explanation: explain(explanation),
     },
   };
@@ -38,13 +63,14 @@ export function multi(
   explanation: string,
   difficulty: Difficulty = 'medium',
 ): PackQuestion {
+  const order = scrambledOrder(stem, choices.length);
   return {
     difficulty,
     content: {
       type: 'multiple_choice',
       stem: en(stem),
-      options: options(choices),
-      correctOptionIds: answers.map((a) => ids[a]!),
+      options: options(order.map((i) => choices[i]!)),
+      correctOptionIds: answers.map((a) => ids[order.indexOf(a)]!).sort(),
       explanation: explain(explanation),
     },
   };
@@ -84,7 +110,10 @@ export function blank(
   };
 }
 
-/** Pairs in order (left → right); `extra` adds distractors on the right. The right side is shuffled by the app. */
+/**
+ * Pairs in order (left → right); `extra` adds distractors on the right. The right-hand column is stored in a scrambled
+ * order (practice shows it as stored; assessments with "shuffle options" reorder it per attempt).
+ */
 export function match(
   stem: string,
   pairs: Array<[string, string]>,
@@ -93,7 +122,11 @@ export function match(
   extra: string[] = [],
 ): PackQuestion {
   const left = pairs.map(([l], i) => ({ id: `l${i + 1}`, content: en(l) }));
-  const right = [...pairs.map(([, r]) => r), ...extra].map((r, i) => ({ id: `r${i + 1}`, content: en(r) }));
+  const rights = [...pairs.map(([, r]) => r), ...extra];
+  const order = scrambledOrder(stem, rights.length);
+  // order[k] = which written right item sits in position k; its id is r(k+1).
+  const right = order.map((w, k) => ({ id: `r${k + 1}`, content: en(rights[w]!) }));
+  const idOf = (written: number) => `r${order.indexOf(written) + 1}`;
   return {
     difficulty,
     content: {
@@ -101,7 +134,7 @@ export function match(
       stem: en(stem),
       left,
       right,
-      pairs: Object.fromEntries(pairs.map((_, i) => [`l${i + 1}`, `r${i + 1}`])),
+      pairs: Object.fromEntries(pairs.map((_, i) => [`l${i + 1}`, idOf(i)])),
       explanation: explain(explanation),
     },
   };

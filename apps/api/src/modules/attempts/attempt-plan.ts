@@ -13,7 +13,10 @@ export interface PlannedQuestion {
   marks: number;
   /** 0 when the assessment does not use negative marking. */
   negativeMarks: number;
-  /** Choice questions with shuffled options: the order the student sees. */
+  /**
+   * With shuffled options: the order the student sees — the options of a choice question, or the right-hand column
+   * of a match question (Phase 16: it used to keep its written order, often the answer order).
+   */
   optionOrder: string[] | null;
 }
 
@@ -37,10 +40,14 @@ export function shuffled<T>(items: readonly T[]): T[] {
   return out;
 }
 
-/** The order of the options for one attempt, when options are shuffled (choice questions only). */
+/** The order for one attempt when options are shuffled: choice options, or a match question's right-hand column. */
 export function optionOrderFor(content: QuestionContent, shuffle: boolean): string[] | null {
-  if (!shuffle || (content.type !== 'single_choice' && content.type !== 'multiple_choice')) return null;
-  return shuffled(content.options.map((o) => o.id));
+  if (!shuffle) return null;
+  if (content.type === 'single_choice' || content.type === 'multiple_choice') {
+    return shuffled(content.options.map((o) => o.id));
+  }
+  if (content.type === 'match') return shuffled(content.right.map((r) => r.id));
+  return null;
 }
 
 export function planQuestions(plan: AttemptPlan): PlannedQuestion[] {

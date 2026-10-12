@@ -174,6 +174,14 @@ test('catalog for my exam, prices, and enrolling in a free course', async () => 
   await expect(text('Access with no end date')).toBeVisible();
   await button('Enrol for free').click();
   await expect(text('You have access to this course.')).toBeVisible();
+
+  // The catalogue no longer offers a course the student has (Phase 16: it kept showing a price).
+  await page.goto('/courses');
+  // The first card is under "My courses" (progress); the catalogue's is the last one.
+  await expect(link('Constable Starter').last()).toContainText('You have access');
+  await expect(link('Constable Complete').last()).toContainText('Rs 3,000');
+  await page.goto(`/course/constable-free-${run}`);
+  await expect(heading('Constable Starter')).toBeVisible();
 });
 
 test('subject outline, a note marked finished, and the PDF in the self-hosted reader', async () => {

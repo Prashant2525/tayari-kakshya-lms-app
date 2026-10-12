@@ -87,6 +87,6 @@ Windows 11; PowerShell + Git Bash. Node 24, pnpm 12.8.1, Docker Desktop (WSL2). 
 - Business values are never hard-coded: new configurable rules go into the `SETTINGS` registry in `packages/contracts`.
 - Check a configuration without printing values: `pnpm --filter @tk/api cli config-check [--connect] [--env-file <path>]`.
 - Course content packs live in `tools/content-pack` (T-073) and reach the database only through the Admin API:
-  `pnpm --filter @tk/content-pack import` (env `CONTENT_API_URL`, `CONTENT_ADMIN_EMAIL`, `CONTENT_ADMIN_PASSWORD`,
+  `pnpm --filter @tk/content-pack run import` (env `CONTENT_API_URL`, `CONTENT_ADMIN_EMAIL`, `CONTENT_ADMIN_PASSWORD`,
   optional `CONTENT_ADMIN_MFA_CODE`); `pnpm --filter @tk/content-pack pdfs` writes the handouts to `out/`. Source
   PDFs in `Courses/` are local-only.

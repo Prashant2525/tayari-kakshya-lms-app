@@ -156,6 +156,7 @@ async function setup() {
   return {
     admin,
     seeded,
+    question,
     student: tokens.accessToken,
     userId: user.id,
     grant,
@@ -294,6 +295,49 @@ describe('taking an assessment', () => {
         assessment: expect.objectContaining({ id }),
       }),
     ]);
+  });
+
+  it('"shuffle options" also shuffles the right-hand column of match questions (Phase 16)', async () => {
+    const s = await setup();
+    const n = 8;
+    const matchId = await s.question(
+      {
+        type: 'match',
+        stem: doc('Match each article to its right.'),
+        // Written in answer order, as authors often do: l1 → r1, l2 → r2, …
+        left: Array.from({ length: n }, (_, i) => ({ id: `l${i + 1}`, content: doc(`Article ${i + 1}`) })),
+        right: Array.from({ length: n }, (_, i) => ({ id: `r${i + 1}`, content: doc(`Right ${i + 1}`) })),
+        pairs: Object.fromEntries(Array.from({ length: n }, (_, i) => [`l${i + 1}`, `r${i + 1}`])),
+      },
+      { marks: 8 },
+    );
+    const written = Array.from({ length: n }, (_, i) => `r${i + 1}`);
+    const rightOrder = async (shuffleOptions: boolean) => {
+      const id = await s.assessment({ shuffleOptions, title: { en: `Match ${shuffleOptions}` } }, [
+        s.fixed(matchId),
+      ]);
+      const attempt = (await start(s, id)).body;
+      const q = attempt.sections[0].questions[0].question;
+      return { attempt, order: q.right.map((r: { id: string }) => r.id) as string[] };
+    };
+
+    expect((await rightOrder(false)).order).toEqual(written);
+    // 8 items: the chance of the written order coming back by luck is 1 in 40,320.
+    const { attempt, order } = await rightOrder(true);
+    expect([...order].sort()).toEqual([...written].sort());
+    expect(order).not.toEqual(written);
+
+    // Answers are ids, so the order shown does not change the marking.
+    const pairs = Object.fromEntries(Array.from({ length: n }, (_, i) => [`l${i + 1}`, `r${i + 1}`]));
+    expect(
+      (
+        await save(s, attempt.id, [
+          { questionId: matchId, response: { type: 'match', pairs }, markedForReview: false },
+        ])
+      ).status,
+    ).toBe(200);
+    const result = (await submit(s, attempt.id)).body;
+    expect(result.summary).toMatchObject({ score: 800, correct: 1 });
   });
 
   it('creates one attempt when several starts arrive together', async () => {

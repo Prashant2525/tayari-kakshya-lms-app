@@ -551,13 +551,26 @@ export class AttemptsService {
       });
       const byQuestion = new Map(rows.map((r) => [r.questionId, r]));
       const rules = a.scoring as ScoringRulesInput;
+      // One update per (outcome, marks) pair rather than one per question: a 50-question exam used to make 50
+      // round trips while holding a database connection, and a weekly-exam burst ran out of connections (Phase 16).
+      const groups = new Map<
+        string,
+        { outcome: ReturnType<typeof scoreOne>['outcome']; awarded: number | null; ids: string[] }
+      >();
       for (const q of planned) {
         const row = byQuestion.get(q.questionId);
         if (!row) continue;
         const score = scoreOne(row.questionVersion.content as QuestionContent, row.response, q, rules);
-        await tx.attemptAnswer.update({
-          where: { attemptId_questionId: { attemptId, questionId: q.questionId } },
-          data: { outcome: score.outcome, awarded: score.outcome === 'pending' ? null : score.awarded },
+        const awarded = score.outcome === 'pending' ? null : score.awarded;
+        const key = `${score.outcome}|${awarded}`;
+        const group = groups.get(key) ?? { outcome: score.outcome, awarded, ids: [] };
+        group.ids.push(q.questionId);
+        groups.set(key, group);
+      }
+      for (const g of groups.values()) {
+        await tx.attemptAnswer.updateMany({
+          where: { attemptId, questionId: { in: g.ids } },
+          data: { outcome: g.outcome, awarded: g.awarded },
         });
       }
       await tx.attempt.update({
@@ -940,9 +953,16 @@ function scoreOne(content: QuestionContent, response: unknown, q: PlannedQuestio
 }
 
 function withOptionOrder<Q extends { type: string }>(question: Q, order: string[] | null): Q {
-  if (!order || !('options' in question)) return question;
-  const q = question as Q & { options: Array<{ id: string }> };
-  return { ...q, options: ordered(q.options, order) };
+  if (!order) return question;
+  if ('options' in question) {
+    const q = question as Q & { options: Array<{ id: string }> };
+    return { ...q, options: ordered(q.options, order) };
+  }
+  if (question.type === 'match' && 'right' in question) {
+    const q = question as Q & { right: Array<{ id: string }> };
+    return { ...q, right: ordered(q.right, order) };
+  }
+  return question;
 }
 
 /** Question count and total marks shown before starting (random sections without fixed marks: total unknown). */

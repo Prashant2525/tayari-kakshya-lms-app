@@ -142,6 +142,23 @@ describe('route security (Phase 15)', () => {
     expect(admin.filter((r) => r.permissions.length === 0).map((r) => r.route)).toEqual(STAFF_SELF_ROUTES);
   });
 
+  it('lets allowed browser origins use every method, and nobody else (Phase 16)', async () => {
+    const preflight = (origin: string, method: string) =>
+      ctx.app.inject({
+        method: 'OPTIONS',
+        url: '/api/v1/me/notification-preferences',
+        headers: { Origin: origin, 'Access-Control-Request-Method': method },
+      });
+    for (const method of ['PUT', 'PATCH', 'DELETE']) {
+      const ok = await preflight('http://localhost:5173', method);
+      expect(ok.statusCode).toBe(204);
+      expect(String(ok.headers['access-control-allow-methods'])).toContain(method);
+      expect(ok.headers['access-control-allow-origin']).toBe('http://localhost:5173');
+    }
+    const other = await preflight('https://evil.example', 'PUT');
+    expect(other.headers['access-control-allow-origin']).toBeUndefined();
+  });
+
   it('every other signed-in route is for students, except the shared account routes', () => {
     const rest = routes.filter((r) => !r.route.split(' ')[1]!.startsWith('/admin') && !r.isPublic);
     expect(rest.filter((r) => r.audiences?.join() !== 'student').map((r) => r.route)).toEqual(SHARED_ROUTES);

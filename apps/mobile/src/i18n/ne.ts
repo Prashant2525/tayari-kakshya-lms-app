@@ -117,6 +117,7 @@ export const ne: Record<MessageKey, string> = {
   'course.marks': 'पूर्णाङ्क {full} · उत्तीर्णाङ्क {pass}',
   'course.minutes': '{minutes} मिनेट',
   'course.enrol': 'निःशुल्क भर्ना हुनुहोस्',
+  'courses.owned': 'तपाईंसँग पहुँच छ',
   'course.enrolled': 'यो कोर्समा तपाईंको पहुँच छ।',
   'course.start': 'पढ्न सुरु गर्नुहोस्',
   'course.lockedTitle': 'कोर्स बन्द छ',

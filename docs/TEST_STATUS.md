@@ -1,6 +1,6 @@
 # Test Status
 
-Last updated: 2026-10-12 (configuration & deployment guide). `pnpm test` runs unit + integration suites (needs `pnpm infra:up`);
+Last updated: 2026-10-13 (Phase 16 test pass). `pnpm test` runs unit + integration suites (needs `pnpm infra:up`);
 `pnpm build && pnpm --filter @tk/admin e2e` and `pnpm build && pnpm --filter @tk/mobile e2e` run the browser suites
 (the student suite also needs Mailpit, part of `pnpm infra:up`).
 
@@ -11,15 +11,48 @@ Last updated: 2026-10-12 (configuration & deployment guide). `pnpm test` runs un
 | `@tk/design-tokens` | 39 | WCAG contrast for every text/background pair (light + dark), CSS generation |
 | `@tk/domain` | 64 | BS calendar, Kathmandu day boundary, fiscal year, money/VAT/discounts, access validity |
 | `@tk/contracts` | 21 | Schema behaviour (localized text, email normalisation, mass assignment, settings defaults, rich-text validation) |
-| `@tk/api` | 326 | Integration against real PostgreSQL + Redis + S3 (SeaweedFS) through the HTTP stack; TOTP RFC 6238 vectors; RBAC, video, watermark unit |
+| `@tk/api` | 328 | Integration against real PostgreSQL + Redis + S3 (SeaweedFS) through the HTTP stack; TOTP RFC 6238 vectors; RBAC, video, watermark unit |
 | `@tk/admin` (unit) | 35 | API client (headers, refresh single-flight, retry, session loss, error mapping), BS formatting, Button `asChild` regression |
 | `@tk/admin` (E2E, Playwright) | 38 | Real browser + real API + `*_e2e` database |
 | `@tk/mobile` (unit) | 45 | Saved PDF cut into pieces, Offline licence rules (expiry, clock set back, saved pictures), Study-time meter (idle limits, videos, innermost screen, background), development picture addresses on a phone, API client (single-flight refresh, early refresh, session end, maintenance), translations complete in both languages, BS dates and Kathmandu weekday, force-update/maintenance gate, form checks, Nepali phone numbers |
 | `@tk/mobile` (E2E, Playwright, phone viewport) | 46 | Web build + real API + `*_mobile_e2e` database + Mailpit |
-| `@tk/content-pack` | 19 | Markdown dialect → rich text; every pack payload valid against the API schemas; free first chapter; enough questions per quiz and subject test; note length; handouts render with no lost characters |
+| `@tk/content-pack` | 28 | Markdown dialect → rich text; every pack payload valid against the API schemas; free first chapter; enough questions per quiz and subject test; note length; handouts render with no lost characters |
 | `@tk/web` (unit) | 8 | Session refresh used once (concurrent / late requests share it; refused → signed out; unreachable → retried), token expiry, both languages complete, failure messages |
 | `@tk/web` (E2E, Playwright) | 10 | `next start` production build + real API + `*_web_e2e` database + Mailpit + gateway stand-in; access tokens last 60 s so every page load refreshes |
-| **Total** | **654** | |
+| **Total** | **665** | |
+
+### Phase 16 — systematic test pass (T-077)
+**Coverage map** (automated suites per playbook area): authentication (auth 21, verification 13, mfa 11, browser
+sign-up / log-in / reset), course browsing + enrolment (catalog 16, mobile learning 4, website 4), payments (payments 8,
+receipts-refunds 5, coupons 9, plans 5, referrals 6, mobile purchase 6, CMS orders / refunds), premium access (catalog,
+practice, offline, live), notes / PDFs / videos (catalog, media, learning, offline), questions (questions 10, import 4,
+practice 6, mistakes 5), quizzes / mock / weekly exams / scoring / results (attempts 14, assessments 6, grading 4,
+engagement 4, mobile exam 4 + daily 2, domain scoring unit tests), progress (progress 6 + analytics 3, planner),
+notifications (notices 5, event-notifications 6, live 2), current affairs (articles 3, website + app articles),
+Admin CRUD (content-admin 11, admin 17, CMS browser 38), RBAC + security (route-security 5, mfa, env, erasure).
+
+**Exploratory pass on the real content (dev database, demo student):** catalogue, outlines, free first chapter,
+premium lock (403, no body), premium note + watermarked PDF after a grant, chapter quiz (rules: 1 mark, no negative,
+pass 40 %, best attempt), subject test (20 random questions of 5 types, 30 min), leaderboard, search, articles,
+notices, plans, live list; app screens (Home, Courses, course, outline, note with tables, PDF reader, practice,
+tests); website sitemap — 14 pages, all 200. **Defects found and fixed:** see CHANGELOG 2026-10-13 (burst submits,
+match order, CORS methods, owned-course price, pack answer positions, importer command).
+
+**Load test (weekly-exam burst, one API process on this Windows PC, Docker PostgreSQL):**
+
+| Students at once | Errors | start p50 / p95 | save p50 | submit p50 / p95 | result p50 |
+|---|---|---|---|---|---|
+| 200 — before the fix | **100 submits (500)** | 3.2 s / 3.3 s | 0.64 s | 3.0 s / 3.3 s | 0.75 s |
+| 200 — after | 0 | 3.2 s / 3.4 s | 0.68 s | 2.5 s / 2.6 s | 1.4 s |
+| 500 — after | 0 from the API (86 connections refused by Windows before reaching it) | 6.7 s | 1.6 s | 6.0 s | 2.6 s |
+| 1 at a time (baseline) | 0 | 48 ms | 22 ms | 47 ms | 15 ms |
+
+**New tests:** API — match column shuffled under "shuffle options" and still marked by id (1); CORS preflight
+allows PUT / PATCH / DELETE for allowed origins and nothing for others (1). Content pack — scrambling keeps the
+intended answer (3) and no answer position above 40 % / match columns not in answer order (1); every objective
+question in all five courses scores full marks with its own key and not with another answer (5). App browser — a
+course the student has shows "You have access", not a price (extended). **Mutation checks: 4 of 4 caught.**
+The transaction wait / pool change is covered by the load test (manual), not by an automated test.
 
 ### Added with the configuration & deployment guide (T-076)
 - **API (7):** a complete production configuration starts; production refuses Bunny without the token key, re-used
