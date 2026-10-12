@@ -75,6 +75,30 @@ describe('MFA enforcement policy', () => {
     expect((await call(ctx, 'GET', '/admin/users', { token })).body.error.code).toBe('MFA_SETUP_REQUIRED');
   });
 
+  it('only a Super Admin can change the policy, even for staff who may change other settings (Phase 15)', async () => {
+    await createStaff(ctx, 'settings@example.com', { permissions: ['settings:read', 'settings:update'] });
+    const { token } = await staffLogin(ctx, 'settings@example.com');
+    const weaken = await call(ctx, 'PUT', '/admin/settings/auth.staffMfa', {
+      token,
+      body: { value: { requiredFor: 'none' } },
+    });
+    expect(weaken.status).toBe(403);
+    // Other settings stay open to them.
+    const other = await call(ctx, 'PUT', '/admin/settings/app.maintenance', {
+      token,
+      body: { value: { enabled: false, message: null } },
+    });
+    expect(other.status).toBe(200);
+
+    await createStaff(ctx, 'owner@example.com', { superAdmin: true });
+    const owner = await staffLogin(ctx, 'owner@example.com');
+    const changed = await call(ctx, 'PUT', '/admin/settings/auth.staffMfa', {
+      token: owner.token,
+      body: { value: { requiredFor: 'all_staff' } },
+    });
+    expect(changed.status).toBe(200);
+  });
+
   it('stores the TOTP secret encrypted', async () => {
     const staff = await createStaff(ctx, 'admin@example.com', { superAdmin: true });
     const { token } = await staffLogin(ctx, 'admin@example.com');
@@ -140,6 +164,25 @@ describe('MFA login', () => {
     });
     expect(second.status).toBe(401);
     expect(await ctx.prisma.auditLog.count({ where: { action: 'auth.mfa_recovery_code_used' } })).toBe(1);
+  });
+
+  it('allows only a few code guesses per sign-in (Phase 15)', async () => {
+    await createStaff(ctx, 'guess@example.com', { superAdmin: true });
+    const { secret } = await enrol((await staffLogin(ctx, 'guess@example.com')).token);
+    const step1 = await call(ctx, 'POST', '/admin/auth/login', {
+      body: { email: 'guess@example.com', password: PASSWORD },
+      headers: ADMIN_HEADERS,
+    });
+    const attempt = (code: string) =>
+      call(ctx, 'POST', '/admin/auth/login/mfa', {
+        body: { mfaToken: step1.body.mfaToken, code },
+        headers: ADMIN_HEADERS,
+      });
+    for (let i = 0; i < 5; i++) expect((await attempt('000000')).status).toBe(401);
+    // Even the right code is refused once this sign-in has used up its guesses.
+    const right = await attempt(codeAt(secret, 1));
+    expect(right.status).toBe(429);
+    expect(right.body.error.code).toBe('RATE_LIMITED');
   });
 
   it('rejects forged challenges', async () => {

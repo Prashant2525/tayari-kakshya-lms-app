@@ -209,6 +209,7 @@ OWASP ASVS L2-oriented: authz on every route (default-deny guard), object-level 
 prevention via explicit DTOs, rate limits (login, OTP, payments, search), brute-force lockout, upload validation, SSRF-safe
 outbound calls (fixed provider hosts), parameterized queries only, secrets via env, audit log for staff writes and all
 financial state changes, no stack traces in responses, dependency audit in CI, signed deep links not trusted for state.
+Phase 15 review, guard tests and remaining risks: `SECURITY_REVIEW.md` (T-075).
 
 ## 15. Mobile app architecture
 

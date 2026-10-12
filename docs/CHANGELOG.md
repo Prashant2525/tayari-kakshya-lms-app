@@ -4,6 +4,18 @@ All notable changes to this project. Format based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Security — 2026-10-12 (Phase 15 hardening, T-075; details in docs/SECURITY_REVIEW.md)
+- Staff sign-in: at most 5 two-factor code attempts per sign-in (codes could be guessed from many addresses).
+- The staff two-factor policy can only be changed by a Super Admin.
+- `TRUST_PROXY` takes the proxies' addresses; "trust everyone" is refused in staging and production, so per-IP
+  limits cannot be dodged with a forged `X-Forwarded-For`.
+- Deleting an account now also erases lesson progress and live-class attendance, and clears the student's text in
+  question reports.
+- Signed receipt links and payment gateway data no longer appear in request logs.
+- CI checks dependencies for known high / critical advisories; `shell-quote` updated; the website sends a basic
+  Content-Security-Policy.
+- New guard tests: every route's access rules, and account erasure covering every table with student data.
+
 ### Added — 2026-10-12 (live classes, D-072)
 - Live classes on YouTube Live or Zoom for a course, Free or Premium per class. Staff schedule them in the CMS
   (Live classes), publish them, take them live and end them (or the worker does at the start time and after the

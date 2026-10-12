@@ -50,6 +50,8 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      # Known dependency advisories (high / critical) fail the build; reviewed exceptions are in pnpm-workspace.yaml.
+      - run: pnpm audit --prod --audit-level high
       - name: Start S3-compatible storage (SeaweedFS)
         run: |
           docker run -d --name seaweedfs -p 8333:8333 -p 9333:9333             -v "$GITHUB_WORKSPACE/infra/docker/seaweedfs/s3.json:/etc/seaweedfs/s3.json:ro"             chrislusf/seaweedfs:latest server -dir=/data -s3 -s3.port=8333             -s3.config=/etc/seaweedfs/s3.json -master.volumeSizeLimitMB=256 -volume.max=0

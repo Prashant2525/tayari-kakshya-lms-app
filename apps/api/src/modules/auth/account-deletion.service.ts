@@ -97,6 +97,10 @@ export class AccountDeletionService {
         await tx.studyClock.deleteMany({ where: { userId: request.userId } });
         await tx.studyPlan.deleteMany({ where: { userId: request.userId } });
         await tx.courseReview.deleteMany({ where: { userId: request.userId } });
+        await tx.learningProgress.deleteMany({ where: { userId: request.userId } });
+        await tx.liveAttendance.deleteMany({ where: { userId: request.userId } });
+        // Question reports stay for the content team, without the student's own words.
+        await tx.questionReport.updateMany({ where: { userId: request.userId }, data: { message: null } });
         // Discussions: their posts are emptied (kept as "deleted" so others' replies keep their place).
         await tx.discussionPost.updateMany({
           where: { userId: request.userId },

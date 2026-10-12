@@ -38,6 +38,8 @@ export const SETTINGS = {
     schema: z.object({ requiredFor: z.enum(['none', 'super_admins', 'all_staff']) }),
     default: { requiredFor: 'super_admins' as const },
     public: false,
+    /** A security control over staff: only a Super Admin may change it (Phase 15). */
+    superAdminOnly: true,
   },
   /** D-032: days between a self-service deletion request and erasure (owner chose 7). */
   'account.deletionGraceDays': {
@@ -520,7 +522,10 @@ export const SETTINGS = {
     default: { reminderMinutes: 30, joinOpensMinutes: 10, endGraceMinutes: 30 },
     public: false,
   },
-} as const satisfies Record<string, { schema: z.ZodType; default: unknown; public: boolean }>;
+} as const satisfies Record<
+  string,
+  { schema: z.ZodType; default: unknown; public: boolean; superAdminOnly?: true }
+>;
 
 export type SettingKey = keyof typeof SETTINGS;
 export type SettingValue<K extends SettingKey> = z.infer<(typeof SETTINGS)[K]['schema']>;
@@ -528,4 +533,9 @@ export const SETTING_KEYS = Object.keys(SETTINGS) as SettingKey[];
 
 export function isSettingKey(value: string): value is SettingKey {
   return Object.hasOwn(SETTINGS, value);
+}
+
+/** Settings only a Super Admin may change (security controls), whatever other permissions a role has. */
+export function isSuperAdminOnlySetting(key: SettingKey): boolean {
+  return 'superAdminOnly' in SETTINGS[key] && SETTINGS[key].superAdminOnly === true;
 }

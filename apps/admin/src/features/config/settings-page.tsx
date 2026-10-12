@@ -1,4 +1,4 @@
-import { SETTINGS, type SettingKey, type SettingValue } from '@tk/contracts';
+import { isSuperAdminOnlySetting, SETTINGS, type SettingKey, type SettingValue } from '@tk/contracts';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useId, useState, type ReactNode } from 'react';
 import { toast } from 'sonner';
@@ -47,7 +47,7 @@ function SettingCard<K extends SettingKey>({
   children: (draft: SettingValue<K>, set: (next: SettingValue<K>) => void, disabled: boolean) => ReactNode;
 }) {
   const qc = useQueryClient();
-  const { can } = useAuth();
+  const { can, me } = useAuth();
   const [draft, setDraft] = useState(row.value as SettingValue<K>);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -58,7 +58,9 @@ function SettingCard<K extends SettingKey>({
     setDraft(row.value as SettingValue<K>);
   }
   const dirty = JSON.stringify(draft) !== JSON.stringify(row.value);
-  const editable = can('settings:update');
+  // Security controls (Phase 15) are for a Super Admin only; the server refuses anyone else.
+  const superAdminOnly = isSuperAdminOnlySetting(row.key);
+  const editable = can('settings:update') && (!superAdminOnly || Boolean(me?.isSuperAdmin));
   const headingId = useId();
 
   const save = async () => {
@@ -91,6 +93,9 @@ function SettingCard<K extends SettingKey>({
       />
       <div className="flex flex-col gap-4 px-5 py-4">
         {children(draft, setDraft, !editable)}
+        {superAdminOnly && !editable && can('settings:update') ? (
+          <p className="text-xs text-text-muted">Only a Super Admin can change this.</p>
+        ) : null}
         {error ? <Alert tone="danger" title={error} /> : null}
       </div>
       {editable ? (

@@ -1,6 +1,6 @@
 # Project State
 
-Current Phase: **Phase 14 advanced** — live classes (D-072) on `feature/live-classes`
+Current Phase: **Phase 15 security hardening** (T-075) on `feature/security-hardening`
 Current Milestone: content API on `feature/content-cms` → Admin CMS content screens
 Overall Status: **IN PROGRESS**
 Last updated: 2026-10-12
@@ -81,8 +81,11 @@ Last updated: 2026-10-12
 - `feature/content-pack` (D-071, T-073): five university courses and their catalogue as an importable content
   pack (`tools/content-pack`), loaded into the local dev database. Merged (PR #50).
 - `feature/live-classes` (D-072, T-074): live classes on YouTube Live or Zoom — CMS page, reminders, join window,
-  attendance, recording; Home, course page and class screen in the app. Next: the rest of Phase 14 (offline
-  video, ConnectIPS once NCHL credentials arrive, AI assistant after L2).
+  attendance, recording; Home, course page and class screen in the app. Merged (PR #51).
+- Rest of Phase 14 on hold (D-073). `feature/security-hardening` (Phase 15, T-075): review in `SECURITY_REVIEW.md`,
+  7 findings fixed (2FA guesses per sign-in, Super Admin-only 2FA policy, TRUST_PROXY addresses, erasure gaps, secrets
+  in logs, dependency audit in CI, website CSP), guard tests for route access and erasure. Next: Phase 16 (full
+  testing and bug fixing).
 - Monitoring (T-042) merged (PR #14, #15): Sentry in the API, worker, admin and app; PostHog in the app. Google web client registered for `http://localhost:8081` (checked); a real
   sign-in by the owner and Android/iOS clients remain (KI-029).
 - Phase 9 part 2 merged (PR #13): practice questions with Check answer and locked Premium answers
