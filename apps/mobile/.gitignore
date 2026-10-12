@@ -2,3 +2,5 @@
 expo-env.d.ts
 dist-e2e/
 web-build/
+google-services.json
+GoogleService-Info.plist

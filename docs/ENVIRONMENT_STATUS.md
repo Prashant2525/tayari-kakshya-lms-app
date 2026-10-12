@@ -1,6 +1,13 @@
 # Environment Status
 
-Last checked: 2026-10-02 (Phase 4). Requirements inventory: `ENVIRONMENT_REQUIREMENTS.md`.
+Last checked: 2026-10-02 (Phase 4); configuration tooling updated 2026-10-12. Full inventory and setup steps:
+`ENVIRONMENT_AND_PRODUCTION_DEPLOYMENT_GUIDE.md`; who-provides-what: `ENVIRONMENT_REQUIREMENTS.md`.
+
+**2026-10-12:** `pnpm --filter @tk/api cli config-check --connect` on this machine's development `.env`: start-up
+validation passed; PostgreSQL reachable with all 34 migrations applied, Redis, both SeaweedFS buckets, Mailpit SMTP and
+the Bunny library API key all OK; 0 errors. Templates: root `.env.example` (server), `apps/mobile/.env.example`,
+`apps/admin/.env.example`. The local `.env` still holds a few names no longer read (e.g. `ADMIN_BASE_URL`,
+`VIDEO_PROVIDER`, `POSTHOG_*`, `SENTRY_DSN_ADMIN`, `KHALTI_PUBLIC_KEY`) — harmless, may be deleted.
 
 ## Local machine
 | Item | Status |
@@ -41,6 +48,6 @@ Note: Docker Desktop is free for small businesses (<250 employees and <$10M reve
 | Cloudflare R2 | SeaweedFS (local + CI) | — | Phase 6 local / 18 |
 | Bunny Stream | — | **Provided 2026-10-02** (library 768559): in the owner's local `.env` only; API key verified (HTTP 200). Set the same values on the server in Phase 18. Tests always run with Bunny disabled. | Phase 6 |
 | YouTube Data API key (optional, metadata import) | — | — | Phase 6 |
-| Expo / EAS, FCM, APNs | EAS project ✅ (owner `prashantdhimals-team`, slug `tayari-kakshya`, id in `apps/mobile/app.config.ts`); FCM / APNs ❌ | owner | Phase 12 / 18 |
+| Expo / EAS, FCM, APNs | EAS project ✅ (owner `prashantdhimals-team`, slug `tayari-kakshya`, id in `apps/mobile/app.config.ts`); build profiles use EAS environments development / preview / production; FCM (`google-services.json` as EAS file variable `GOOGLE_SERVICES_JSON` + FCM V1 key in EAS credentials) / APNs ❌ | owner | Phase 12 / 18 |
 | Sentry, PostHog | — | — | Phase 8 |
 | VPS, domain, DNS | — | — (L4) | Phase 18 |

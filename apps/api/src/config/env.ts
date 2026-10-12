@@ -152,6 +152,30 @@ export const EnvSchema = z
         message: 'log email provider is not allowed here',
       });
     }
+    // Premium video must never fall back to unsigned links (T-031, KI-023).
+    if (prodLike && env.BUNNY_STREAM_LIBRARY_ID && !env.BUNNY_STREAM_TOKEN_KEY) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['BUNNY_STREAM_TOKEN_KEY'],
+        message: 'required when BUNNY_STREAM_LIBRARY_ID is set (without it premium videos play unsigned)',
+      });
+    }
+    // Each secret protects something different; one leaked value must not unlock the others.
+    const secrets = ['JWT_ACCESS_SECRET', 'REFRESH_TOKEN_PEPPER', 'OTP_PEPPER', 'ENCRYPTION_KEY'] as const;
+    if (prodLike && new Set(secrets.map((k) => env[k])).size !== secrets.length) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['JWT_ACCESS_SECRET'],
+        message: `${secrets.join(', ')} must all be different values`,
+      });
+    }
+    if (prodLike && !env.PUBLIC_MEDIA_BASE_URL.startsWith('https://')) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['PUBLIC_MEDIA_BASE_URL'],
+        message: 'an https address is required here (pictures would be blocked as mixed content)',
+      });
+    }
     if (prodLike && env.TRUST_PROXY === true) {
       ctx.addIssue({
         code: 'custom',

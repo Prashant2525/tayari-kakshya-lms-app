@@ -47,7 +47,9 @@ React Native student app + web Admin CMS + backend API + PostgreSQL. It is a rea
 - `docs/TECH_STACK_OPTIONS.md` — stack comparison (approved)
 - `docs/OPEN_QUESTIONS.md` — owner answers + later questions (L1–L5)
 - `docs/DECISIONS.md` — every confirmed decision (read before implementing anything)
-- `docs/ENVIRONMENT_REQUIREMENTS.md`, `.env.example` — credentials inventory
+- `docs/ENVIRONMENT_AND_PRODUCTION_DEPLOYMENT_GUIDE.md` — every variable, service setup, deployment runbook. **Update it (plus the
+  matching `.env.example`, ENVIRONMENT_REQUIREMENTS/STATUS, `config-check`) whenever configuration changes.**
+- `docs/ENVIRONMENT_REQUIREMENTS.md`, `.env.example` (server), `apps/mobile/.env.example`, `apps/admin/.env.example`
 - Reference inputs: `LokSewa_LMS_Production_Build_Playbook.pdf` (process, tracked). The UI PDF `Tayari Kakshya - LMS System.pdf`
   is **local-only / untracked** (D-041) — use `docs/PDF_UI_FEATURE_EXTRACTION.md` as the in-repo reference.
 
@@ -83,6 +85,7 @@ Windows 11; PowerShell + Git Bash. Node 24, pnpm 12.8.1, Docker Desktop (WSL2). 
 - TypeScript is pinned to 6.0 (T-016). Do not add SWC or other unsigned native binaries without checking they load on
   this machine — Windows Smart App Control blocks them (KI-011).
 - Business values are never hard-coded: new configurable rules go into the `SETTINGS` registry in `packages/contracts`.
+- Check a configuration without printing values: `pnpm --filter @tk/api cli config-check [--connect] [--env-file <path>]`.
 - Course content packs live in `tools/content-pack` (T-073) and reach the database only through the Admin API:
   `pnpm --filter @tk/content-pack import` (env `CONTENT_API_URL`, `CONTENT_ADMIN_EMAIL`, `CONTENT_ADMIN_PASSWORD`,
   optional `CONTENT_ADMIN_MFA_CODE`); `pnpm --filter @tk/content-pack pdfs` writes the handouts to `out/`. Source
