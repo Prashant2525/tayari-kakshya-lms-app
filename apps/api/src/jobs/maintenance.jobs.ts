@@ -13,6 +13,7 @@ import { NotificationsService } from '../modules/notifications/notifications.ser
 import { ExamNotificationsService } from '../modules/attempts/exam-notifications.service.js';
 import { AccountEmailsService } from '../modules/notifications/account-emails.service.js';
 import { ArticlesService } from '../modules/articles/articles.service.js';
+import { LiveService } from '../modules/live/live.service.js';
 
 export const MAINTENANCE_QUEUE = 'maintenance';
 
@@ -48,6 +49,7 @@ export async function startMaintenanceJobs(
   const exams = app.get(ExamNotificationsService);
   const accountEmails = app.get(AccountEmailsService);
   const articles = app.get(ArticlesService);
+  const live = app.get(LiveService);
   const worker = new Worker(
     MAINTENANCE_QUEUE,
     async (job) => {
@@ -68,6 +70,8 @@ export async function startMaintenanceJobs(
             articles: await articles.dispatchDue(),
             results: await exams.notifyResults(),
             reminders: await exams.sendReminders(),
+            // Live classes (D-072): reminders, going live at the start time, ending long-running ones.
+            live: await live.dispatchDue(),
             sent: await notifications.processDeliveries(),
             welcome: await accountEmails.sendWelcome(),
           };

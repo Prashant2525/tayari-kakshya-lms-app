@@ -6,6 +6,7 @@ export declare const E2E_EDITOR3_EMAIL: string;
 export declare const E2E_STUDENT_EMAIL: string;
 export declare const E2E_STUDENT2_EMAIL: string;
 export declare const E2E_STUDENT3_EMAIL: string;
+export declare const E2E_STUDENT4_EMAIL: string;
 export declare const apiDir: string;
 export declare function createE2eEnv(options: {
   name?: string;

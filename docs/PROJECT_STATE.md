@@ -1,6 +1,6 @@
 # Project State
 
-Current Phase: **Phase 14 advanced** — university content pack (D-071) on `feature/content-pack`
+Current Phase: **Phase 14 advanced** — live classes (D-072) on `feature/live-classes`
 Current Milestone: content API on `feature/content-cms` → Admin CMS content screens
 Overall Status: **IN PROGRESS**
 Last updated: 2026-10-12
@@ -79,8 +79,10 @@ Last updated: 2026-10-12
 - `feature/launch-motion` (D-069, T-071; D-070, T-072): launch intro, tab / screen / scroll motion, refreshed look,
   Profile header, status bar fix (KI-056). Merged (PR #49).
 - `feature/content-pack` (D-071, T-073): five university courses and their catalogue as an importable content
-  pack (`tools/content-pack`), loaded into the local dev database. Next: the rest of Phase 14
-  (offline video, ConnectIPS, AI assistant, live classes — each waits on an owner decision or credentials).
+  pack (`tools/content-pack`), loaded into the local dev database. Merged (PR #50).
+- `feature/live-classes` (D-072, T-074): live classes on YouTube Live or Zoom — CMS page, reminders, join window,
+  attendance, recording; Home, course page and class screen in the app. Next: the rest of Phase 14 (offline
+  video, ConnectIPS once NCHL credentials arrive, AI assistant after L2).
 - Monitoring (T-042) merged (PR #14, #15): Sentry in the API, worker, admin and app; PostHog in the app. Google web client registered for `http://localhost:8081` (checked); a real
   sign-in by the owner and Android/iOS clients remain (KI-029).
 - Phase 9 part 2 merged (PR #13): practice questions with Check answer and locked Premium answers

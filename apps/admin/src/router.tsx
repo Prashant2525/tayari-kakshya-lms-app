@@ -193,6 +193,16 @@ const routes = [
   }),
   createRoute({
     getParentRoute: () => appRoute,
+    path: '/live-classes',
+    component: lazyRouteComponent(() => import('./features/live/live-classes-page'), 'LiveClassesPage'),
+  }),
+  createRoute({
+    getParentRoute: () => appRoute,
+    path: '/live-classes/$liveClassId',
+    component: lazyRouteComponent(() => import('./features/live/live-class-page'), 'LiveClassPage'),
+  }),
+  createRoute({
+    getParentRoute: () => appRoute,
     path: '/notices',
     component: lazyRouteComponent(() => import('./features/notices/notices-page'), 'NoticesPage'),
   }),

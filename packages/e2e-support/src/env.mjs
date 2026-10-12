@@ -12,6 +12,7 @@ import {
   E2E_STUDENT_EMAIL,
   E2E_STUDENT2_EMAIL,
   E2E_STUDENT3_EMAIL,
+  E2E_STUDENT4_EMAIL,
 } from './accounts.mjs';
 import { fakeGatewayEnv } from './fake-gateway.mjs';
 
@@ -27,6 +28,7 @@ export {
   E2E_STUDENT_EMAIL,
   E2E_STUDENT2_EMAIL,
   E2E_STUDENT3_EMAIL,
+  E2E_STUDENT4_EMAIL,
 } from './accounts.mjs';
 
 export const apiDir = path.resolve(here, '../../../apps/api');
@@ -101,6 +103,7 @@ export function createE2eEnv({ name, apiPort, webOrigin, apiOrigin, redisDb, ema
     E2E_STUDENT_EMAIL,
     E2E_STUDENT2_EMAIL,
     E2E_STUDENT3_EMAIL,
+    E2E_STUDENT4_EMAIL,
     E2E_ADMIN_PASSWORD,
     ...gatewayEnv(apiPort, webOrigin, browserApi),
     // Coupon share links open the app served by this run.

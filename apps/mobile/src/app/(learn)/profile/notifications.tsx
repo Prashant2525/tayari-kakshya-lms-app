@@ -14,6 +14,7 @@ const CATEGORIES: NotificationCategory[] = [
   'notice',
   'article',
   'course_update',
+  'live_class',
   'exam_reminder',
   'result',
   'purchase',
@@ -23,6 +24,7 @@ const CATEGORIES: NotificationCategory[] = [
 const CHANNELS: Record<NotificationCategory, ReadonlyArray<'push' | 'email'>> = {
   notice: ['push', 'email'],
   course_update: ['push', 'email'],
+  live_class: ['push', 'email'],
   exam_reminder: ['push', 'email'],
   result: ['push', 'email'],
   purchase: ['push'],

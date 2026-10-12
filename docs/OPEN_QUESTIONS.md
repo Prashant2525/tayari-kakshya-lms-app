@@ -135,6 +135,8 @@ supported merchant locations (Nepal: developer ✔, merchant ✘); YouTube priva
 - **L1 (Phase 4/8):** SMS provider for phone OTP (e.g. Sparrow SMS / Aakash SMS) and email provider + sending domain.
 - **L2 (Phase 14):** AI study assistant (S13) — model provider, monthly budget cap, which features (explain answer, summarise note).
 - **L3 (Phase 14):** Live classes (S22) — provider (YouTube Live unlisted, Zoom, other) and recording policy.
+  **Answered 2026-10-12:** YouTube Live and Zoom both, managed from the CMS; Free or Premium per class; reminders
+  when scheduled, before the start and when live; the recording is a link on the class; attendance on join (D-072).
 - **L4 (Phase 18):** Specific Nepal VPS provider/specs, domain names, backup location (offsite encrypted backups outside Nepal acceptable?).
 - **L6 (Phase 6, asked 2026-10-02):** A course priced at 0 — should its *premium* items open to every signed-in
   student, or should students tap "Enrol" (creating a free entitlement, so it appears in My courses and analytics)?

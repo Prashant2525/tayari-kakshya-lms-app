@@ -8,6 +8,7 @@ import {
   Megaphone,
   MessagesSquare,
   Newspaper,
+  Radio,
   Receipt,
   type LucideIcon,
 } from 'lucide-react-native';
@@ -112,6 +113,7 @@ const ICONS: Record<NotificationCategory, LucideIcon> = {
   purchase: Receipt,
   article: Newspaper,
   discussion: MessagesSquare,
+  live_class: Radio,
 };
 
 const styles = StyleSheet.create({

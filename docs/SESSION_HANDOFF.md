@@ -202,6 +202,14 @@ Current task: Phase 11 part 3 (receipts + refunds) done on `feature/receipts-ref
 - Nothing partially implemented. Admin screens for Phase 6 not started.
 
 ## Exact next steps
+0za. 2026-10-12: PR #50 merged (main CI green). Owner chose live classes next and answered L3 (D-072): YouTube Live
+   and Zoom per class from the CMS, Free/Premium per class, reminders (scheduled, before, live), recording link,
+   attendance on join; AI assistant not now. `feature/live-classes` (T-074): `apps/api/src/modules/live`
+   (+ migrations `live_classes`, `live_notifications`), contracts `live.ts`, permission `live:manage`, setting
+   `live.rules`, notification category `live_class`; CMS `features/live`; app `api/live.ts`,
+   `features/live/live-card.tsx`, `app/(learn)/live/{index,[id]}.tsx`. The worker's notifications job runs
+   `LiveService.dispatchDue` (reminder, auto-live, auto-end). Roles need `live:manage` granted in the CMS (Super
+   Admin has it). If `apps/mobile` typecheck fails locally on `'/live'`, restart Metro (KI-057).
 0z. 2026-10-12: PR #49 merged. Owner asked for full courses from the PDFs in `Courses/` (local-only). D-071 answers
    recorded; `feature/content-pack` (T-073) adds `tools/content-pack` and imported it into the **local dev DB** (counts
    in TEST_STATUS). Import: `CONTENT_API_URL=… CONTENT_ADMIN_EMAIL=… CONTENT_ADMIN_PASSWORD=… [CONTENT_ADMIN_MFA_CODE=…]

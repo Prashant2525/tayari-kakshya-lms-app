@@ -507,6 +507,19 @@ export const SETTINGS = {
     default: { enabled: true, days: 7 },
     public: true,
   },
+  /**
+   * D-072: live classes — the reminder goes this many minutes before a class starts; students can join from
+   * `joinOpensMinutes` before the start; a class still live `endGraceMinutes` after its planned end is ended.
+   */
+  'live.rules': {
+    schema: z.object({
+      reminderMinutes: z.number().int().min(5).max(1440),
+      joinOpensMinutes: z.number().int().min(0).max(120),
+      endGraceMinutes: z.number().int().min(0).max(240),
+    }),
+    default: { reminderMinutes: 30, joinOpensMinutes: 10, endGraceMinutes: 30 },
+    public: false,
+  },
 } as const satisfies Record<string, { schema: z.ZodType; default: unknown; public: boolean }>;
 
 export type SettingKey = keyof typeof SETTINGS;

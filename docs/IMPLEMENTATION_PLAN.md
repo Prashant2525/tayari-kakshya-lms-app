@@ -205,7 +205,9 @@ AI study assistant (after L2), live classes (after L3), Apple IAP (only if decid
 - ☑ Scroll motion, status bar fix, Profile redesign (D-070, T-072)
 - ☑ University content pack: five courses with notes, PDF handouts, question bank, quizzes, subject tests,
   categories, plans, coupons, notices and articles, loaded through the Admin API (D-071, T-073)
-- Later (D-067): offline video; ConnectIPS once NCHL test credentials arrive; AI assistant (L2); live classes (L3)
+- ☑ Live classes (S22): YouTube Live and Zoom per class, Free/Premium, reminders, join window, attendance,
+  recording; CMS page; app section on Home, course page and class screen (D-072, T-074)
+- Later (D-067): offline video; ConnectIPS once NCHL test credentials arrive; AI assistant (L2)
 
 ## Next concrete steps
 1. Owner reviews and merges the `feature/admin-foundation` PR; confirm both CI jobs (`verify`, `admin-e2e`) are green.

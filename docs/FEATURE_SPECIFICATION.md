@@ -86,7 +86,7 @@ implies a hard-coded value.
 
 ### 2.11 Advanced (approved; sequenced late — see plan)
 - **AI study assistant** (S13): explain an answer, summarise a note — provider/budget pending (L2).
-- **Live classes** (S22) — provider pending (L3).
+- **Live classes** (S22) — YouTube Live and Zoom, Free or Premium per class, reminders, recording, attendance (D-072).
 
 ## 3. Academic & content model (D-010)
 

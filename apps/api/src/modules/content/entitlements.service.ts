@@ -214,9 +214,14 @@ export class EntitlementsService {
 
   /**
    * Active students with access to any of these courses now — bought, granted, joined free, or through a plan that
-   * covers it (course updates and exam reminders, D-060).
+   * covers it (course updates and exam reminders, D-060). `premiumOnly` leaves out free enrolments (D-053), for
+   * things only premium access opens (Premium live classes, D-072).
    */
-  async studentIdsWithCourses(courseIds: string[], now = new Date()): Promise<string[]> {
+  async studentIdsWithCourses(
+    courseIds: string[],
+    now = new Date(),
+    { premiumOnly = false }: { premiumOnly?: boolean } = {},
+  ): Promise<string[]> {
     if (!courseIds.length) return [];
     const student = { kind: 'student' as const, status: 'active' as const };
     const [direct, plans] = await Promise.all([
@@ -225,6 +230,7 @@ export class EntitlementsService {
           scopeType: 'course',
           courseId: { in: courseIds },
           ...activeEntitlementWhere(now),
+          ...(premiumOnly ? premiumSourceWhere : {}),
           user: student,
         },
         select: { userId: true },

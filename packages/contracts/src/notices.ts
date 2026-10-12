@@ -72,6 +72,7 @@ export const NotificationCategory = z.enum([
   'purchase',
   'article',
   'discussion',
+  'live_class',
 ]);
 export type NotificationCategory = z.infer<typeof NotificationCategory>;
 
@@ -86,6 +87,8 @@ export const NotificationPreferencesInput = z.object({
   article: Channels.default({ push: true, email: true }),
   /** Replies to the student's doubts (D-066): push and in-app only. */
   discussion: Channels.default({ push: true, email: false }),
+  /** Live classes (D-072): scheduled, starting soon, live now. Added later: older app versions do not send it. */
+  live_class: Channels.default({ push: true, email: true }),
 });
 export type NotificationPreferencesInput = z.infer<typeof NotificationPreferencesInput>;
 

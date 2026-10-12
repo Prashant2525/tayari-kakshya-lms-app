@@ -45,6 +45,7 @@ const CONTENT_PERMISSIONS = [
   'banners:manage',
   'reviews:moderate',
   'discussions:moderate',
+  'live:manage',
 ];
 
 /**
@@ -116,6 +117,7 @@ async function main(): Promise<void> {
       process.env['E2E_STUDENT_EMAIL'],
       process.env['E2E_STUDENT2_EMAIL'],
       process.env['E2E_STUDENT3_EMAIL'],
+      process.env['E2E_STUDENT4_EMAIL'],
     ]) {
       if (!studentEmail) continue;
       await prisma.user.create({
