@@ -202,6 +202,9 @@ Current task: Phase 11 part 3 (receipts + refunds) done on `feature/receipts-ref
 - Nothing partially implemented. Admin screens for Phase 6 not started.
 
 ## Exact next steps
+0ze. 2026-10-13: PR #54 merged. Phase 17 audit written (`docs/PRODUCTION_READINESS_AUDIT.md`, playbook §14.1 — audit
+   only, no application changes). Next: owner approves which findings F-01…F-13 to fix (§14.2: fix by category, test,
+   update the audit status), decides F-06 / F-07 / F-08; then Phase 18 deployment.
 0zd. 2026-10-13: PR #53 merged (main CI green). Phase 16 on `fix/phase-16-testing` (T-077): fixes listed in CHANGELOG
    2026-10-13; load test `node apps/api/scripts/load/start-api.mjs` (throw-away `tayari_kakshya_load_e2e`, port 4040)
    then `node apps/api/scripts/load/weekly-exam.mjs --students 200`. The dev database was updated with the

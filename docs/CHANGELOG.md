@@ -4,6 +4,10 @@ All notable changes to this project. Format based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Added — 2026-10-13 (Phase 17)
+- `docs/PRODUCTION_READINESS_AUDIT.md`: every approved feature with status and evidence, cross-cutting checks and
+  13 findings for approval.
+
 ### Fixed — 2026-10-13 (Phase 16 test pass, T-077)
 - Weekly exams: when many students submitted at once, about half the submits failed ("unable to start a
   transaction"). Submitting now uses far fewer database queries, the connection pool is configurable
