@@ -60,6 +60,9 @@ export async function configureApp(app: NestFastifyApplication, env: Env): Promi
     origin: (origin: string | undefined, cb: (err: Error | null, allow: boolean) => void) =>
       cb(null, origin === undefined || isAllowedOrigin(origin, env)),
     credentials: true,
+    // The CORS library allows only GET, HEAD and POST by default: saves (PUT), edits (PATCH) and deletes from an
+    // allowed origin were refused by the browser (Phase 16).
+    methods: ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE'],
     allowedHeaders: [
       'Authorization',
       'Content-Type',

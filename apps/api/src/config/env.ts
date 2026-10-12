@@ -58,6 +58,8 @@ export const EnvSchema = z
     CORS_ALLOWED_ORIGINS: csv,
 
     DATABASE_URL: z.string().min(1),
+    /** Database connections per process (API, worker). Keep API + worker below the server's max_connections. */
+    DATABASE_POOL_MAX: int(2, 200, 20),
     REDIS_URL: z.string().min(1),
 
     JWT_ACCESS_SECRET: z.string().min(32, 'JWT_ACCESS_SECRET must be at least 32 characters'),

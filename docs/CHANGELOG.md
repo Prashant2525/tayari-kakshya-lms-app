@@ -4,6 +4,23 @@ All notable changes to this project. Format based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Fixed — 2026-10-13 (Phase 16 test pass, T-077)
+- Weekly exams: when many students submitted at once, about half the submits failed ("unable to start a
+  transaction"). Submitting now uses far fewer database queries, the connection pool is configurable
+  (`DATABASE_POOL_MAX`, default 20) and a busy moment waits instead of failing — 0 errors with 200 and 500 students
+  submitting together in the load test.
+- Match questions showed their right-hand column in the written order — usually the answer order. Tests with
+  "shuffle options" now shuffle it for each student.
+- The API refused PUT / PATCH / DELETE from allowed browser origins (cross-origin settings), e.g. lesson progress in
+  the app's browser build.
+- App: the course list showed a price for courses the student already has; it now says "You have access".
+- Content pack: the correct answer was option "b" in 78 % of single-choice questions, and match columns were in
+  answer order; both are now scrambled (the importer can update questions already imported:
+  `CONTENT_UPDATE_QUESTIONS=1`). The importer command is `pnpm --filter @tk/content-pack run import`.
+
+### Added — 2026-10-13
+- Weekly-exam load test (`apps/api/scripts/load/`).
+
 ### Added — 2026-10-12 (configuration & deployment guide, T-076)
 - `docs/ENVIRONMENT_AND_PRODUCTION_DEPLOYMENT_GUIDE.md`: every environment variable (checked against the code), which
   file each app reads, service-by-service setup (database, Redis, R2, email, Google, Bunny, YouTube, push, Sentry,
@@ -49,7 +66,7 @@ All notable changes to this project. Format based on Keep a Changelog.
 - Exam categories Engineering University → B.Tech CSE → Semesters 1, 5, 6, 7; plans CSE Semester Pack and All
   Access; coupons WELCOME20 and STUDY100; four notices and three blog articles.
 - `tools/content-pack`: the content as data, PDF handout builder, and an importer that loads it through the
-  Admin API (`pnpm --filter @tk/content-pack import`).
+  Admin API (`pnpm --filter @tk/content-pack run import`).
 
 ### Fixed — 2026-10-12
 - API: a test with a random section limited to objective question types could not be published when its subject

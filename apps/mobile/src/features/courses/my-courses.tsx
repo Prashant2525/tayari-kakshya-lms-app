@@ -52,6 +52,8 @@ export function CatalogList({
 }) {
   const { t } = useT();
   const catalog = useCatalog(examNodeId, q);
+  const mine = useMyCourseList();
+  const owned = new Set((mine.data ?? []).map((c) => c.id));
   if (catalog.isPending) return <Loading />;
   if (catalog.isError) return <ErrorState error={catalog.error} onRetry={() => void catalog.refetch()} />;
   const all: CatalogCourse[] = catalog.data.pages.flatMap((p) => p.data);
@@ -63,7 +65,7 @@ export function CatalogList({
     <View style={styles.list}>
       {shown.map((c, i) => (
         <FadeInUp key={c.id} index={i}>
-          <CourseRow course={c} />
+          <CourseRow course={c} owned={owned.has(c.id)} />
         </FadeInUp>
       ))}
       {!limit && catalog.hasNextPage ? (

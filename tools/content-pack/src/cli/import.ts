@@ -38,12 +38,15 @@ import { renderHandout } from '../pdf.ts';
  * Loads the university content pack into a running API through the Admin API, as a staff member would (D-071).
  *
  *   CONTENT_API_URL=http://localhost:4000/api/v1 CONTENT_ADMIN_EMAIL=… CONTENT_ADMIN_PASSWORD=… \
- *     pnpm --filter @tk/content-pack import
+ *     pnpm --filter @tk/content-pack run import
  *
  * The account needs Super Admin (or content, course, question, assessment, commerce, notice and article rights).
  * With two-factor sign-in, set CONTENT_ADMIN_MFA_CODE or type the code when asked. Safe to run again: what was
  * created is remembered in tools/content-pack/.state/ and skipped; categories, plans, coupons and articles that
  * already exist (same key, slug or code) are reused. Everything is published.
+ *
+ * CONTENT_UPDATE_QUESTIONS=1 also rewrites questions imported earlier with the pack's current text (each becomes a new
+ * version; running and finished attempts keep theirs) — e.g. after the Phase 16 answer-order fix.
  */
 const base = process.env['CONTENT_API_URL'] ?? 'http://localhost:4000/api/v1';
 const email = process.env['CONTENT_ADMIN_EMAIL'];
@@ -55,6 +58,7 @@ if (!email || !password) {
   process.exit(1);
 }
 const api = new AdminApi(base, { email, password, mfaCode: process.env['CONTENT_ADMIN_MFA_CODE'] });
+const updateQuestions = process.env['CONTENT_UPDATE_QUESTIONS'] === '1';
 
 // ── Remembered ids, per API ──
 const stateDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../.state');
@@ -163,13 +167,19 @@ async function main() {
           (id) => api.call('PUT', `/admin/learning-items/${id}/publishing`, PUBLISHED),
         );
         for (const [n, q] of topic.questions.entries()) {
+          const key = `question:${topic.key}:${n + 1}`;
+          const body = questionBody(course, chapter, q, { subjectId, topicId });
+          const existed = Boolean(ids[key]);
           const questionId = await once(
-            `question:${topic.key}:${n + 1}`,
+            key,
             'questions',
-            () =>
-              api.call('POST', '/admin/questions', questionBody(course, chapter, q, { subjectId, topicId })),
+            () => api.call('POST', '/admin/questions', body),
             (id) => api.call('PUT', `/admin/questions/${id}/status`, PUBLISHED),
           );
+          if (existed && updateQuestions) {
+            await api.call('PUT', `/admin/questions/${questionId}`, body);
+            count('questions updated');
+          }
           if (isObjective(q)) questionIdsByChapter[chapter.key]!.push(questionId);
         }
       }
@@ -303,10 +313,13 @@ async function main() {
     );
   }
 
+  const updated = counts['questions updated'];
+  delete counts['questions updated'];
   const created = Object.entries(counts)
     .map(([what, n]) => `${n} ${what}`)
     .join(', ');
-  console.log(created ? `Done. Created ${created}.` : 'Done. Everything was already there.');
+  console.log(created ? `Done. Created ${created}.` : 'Done. Nothing new to create.');
+  if (updated) console.log(`Updated ${updated} existing questions.`);
 }
 
 main().catch((err: unknown) => {

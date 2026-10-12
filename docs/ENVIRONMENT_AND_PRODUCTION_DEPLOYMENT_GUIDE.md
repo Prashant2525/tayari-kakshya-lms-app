@@ -135,6 +135,7 @@ it. Variables marked 🔶 are **not read by the code yet**.
 | Variable | Req. | Secret? | Dev | Production | If wrong |
 |---|---|---|---|---|---|
 | `DATABASE_URL` | ✔ | 🔐 | `postgresql://tayari:…@localhost:5432/tayari_kakshya` (Docker) | `postgresql://<app user>:<strong password>@<host>:5432/<db>` — add `?sslmode=require` when the database is on another machine | API will not start; config-check `--connect` says "not reachable" or "migrations not applied" |
+| `DATABASE_POOL_MAX` | – | 🔓 | empty (= 20) | 20 per process (API + worker = 40; keep the total below PostgreSQL's `max_connections`, default 100). More API processes → more connections | Bursts queue longer; too high exhausts the database |
 | `TEST_DATABASE_URL` | dev / CI | 🔐 | `…/tayari_kakshya_test` | **Never set in production** | API tests refuse to run |
 | `REDIS_URL` | ✔ | 🔐 | `redis://localhost:6379` | `redis://redis:6379` (private network) or `rediss://:<password>@host:6379` | Rate limits / jobs fail; API errors |
 
@@ -268,7 +269,7 @@ Not implemented (optional later): error monitoring / analytics on the public web
 
 | Variable | Used by | Notes |
 |---|---|---|
-| `CONTENT_API_URL`, `CONTENT_ADMIN_EMAIL`, `CONTENT_ADMIN_PASSWORD`, `CONTENT_ADMIN_MFA_CODE` | `tools/content-pack` importer | Pass on the command line when importing; never store a production password in a file |
+| `CONTENT_API_URL`, `CONTENT_ADMIN_EMAIL`, `CONTENT_ADMIN_PASSWORD`, `CONTENT_ADMIN_MFA_CODE`, `CONTENT_UPDATE_QUESTIONS` | `tools/content-pack` importer (`pnpm --filter @tk/content-pack run import`) | Pass on the command line when importing; never store a production password in a file |
 | `TEST_DATABASE_URL`, `TEST_LOG_LEVEL`, `E2E_*`, `VITE_API_PROXY` | tests | Development and CI only |
 | GitHub Actions | CI | Uses only throw-away CI values (see `.github/workflows/ci.yml`); no production secrets in CI today 🏗️ |
 
@@ -577,6 +578,11 @@ that network's range (e.g. `172.18.0.0/16`, exact value when the compose file ex
 7. Publish a notice with push → arrives on a phone.
 8. Sentry shows the release; no new errors.
 
+**Load test before launch** (Phase 16 tool): run `apps/api/scripts/load/weekly-exam.mjs` against **staging** (never
+production) to check a weekly-exam rush — N students start, save, submit and open results at once. Locally (one API
+process, Windows): 200 at once → 0 errors, start ≈ 3 s / submit ≈ 2.5 s at the 50th percentile (≈ 50 ms each when
+alone). Size the number of API processes from the staging result.
+
 **Rollback (planned 🏗️):** every release is a tagged image; rollback = start the previous image tag. Database
 migrations only move forward — a release that changes the database is deployed only after a backup, and its
 migration is written to be compatible with the previous release where possible. If data is damaged: stop the API and
@@ -674,4 +680,5 @@ applies. The final audit (§11) is repeated in Phase 17 against the code.
 ### Change log
 | Date | Change |
 |---|---|
+| 2026-10-13 | Phase 16: `DATABASE_POOL_MAX` (database connections per process, default 20); importer option `CONTENT_UPDATE_QUESTIONS` and the correct command `pnpm --filter @tk/content-pack run import`; load test `apps/api/scripts/load/` (§9). |
 | 2026-10-12 | Version 1 (after Phase 15). Added `config-check`, website start-up check, app production-build check, `GOOGLE_SERVICES_JSON`, EAS environments per build profile, production rules for the Bunny token key / distinct secrets / https media. Split public app and CMS templates into `apps/mobile/.env.example` and `apps/admin/.env.example`; removed never-read names from the root template. |

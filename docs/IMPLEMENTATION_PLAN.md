@@ -21,7 +21,7 @@ Scope = approved decisions only (`DECISIONS.md`). Each phase ends with tests, do
 | 13 | Progress & community | see §13 | ☑ |
 | 14 | Advanced approved features | see §14 | ◐ rest on hold (D-073) |
 | 15 | Security hardening | authn/authz/IDOR/uploads/payments/rate limits/secrets review — `SECURITY_REVIEW.md` (T-075) | ☑ (on merge) |
-| 16 | Full testing + bug fixing | systematic pass; load test weekly-exam burst | ☐ |
+| 16 | Full testing + bug fixing | systematic pass; load test weekly-exam burst — TEST_STATUS "Phase 16" (T-077) | ☑ (on merge) |
 | 17 | Production audit | `PRODUCTION_READINESS_AUDIT.md` | ☐ |
 | 18 | Release | VPS deployment, monitoring, backups, store submissions, `RELEASE_READINESS.md` | ☐ |
 

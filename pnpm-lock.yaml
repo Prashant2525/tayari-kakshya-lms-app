@@ -837,6 +837,9 @@ importers:
       '@tk/config':
         specifier: workspace:*
         version: link:../../packages/config
+      '@tk/domain':
+        specifier: workspace:*
+        version: link:../../packages/domain
       '@types/node':
         specifier: 24.19.0
         version: 24.19.0

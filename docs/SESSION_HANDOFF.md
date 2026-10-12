@@ -202,6 +202,12 @@ Current task: Phase 11 part 3 (receipts + refunds) done on `feature/receipts-ref
 - Nothing partially implemented. Admin screens for Phase 6 not started.
 
 ## Exact next steps
+0zd. 2026-10-13: PR #53 merged (main CI green). Phase 16 on `fix/phase-16-testing` (T-077): fixes listed in CHANGELOG
+   2026-10-13; load test `node apps/api/scripts/load/start-api.mjs` (throw-away `tayari_kakshya_load_e2e`, port 4040)
+   then `node apps/api/scripts/load/weekly-exam.mjs --students 200`. The dev database was updated with the
+   scrambled pack questions (importer `CONTENT_UPDATE_QUESTIONS=1`; dev owner 2FA enrolled for it and reset again) and
+   the dev-only demo student was granted Operating Systems (admin_grant, note "Phase 16 exploratory testing").
+   Next: Phase 17 — production readiness audit (`PRODUCTION_READINESS_AUDIT.md`).
 0zc. 2026-10-12: Owner asked for a complete environment & production deployment guide (to be kept current every
    phase). Branch `docs/deployment-guide` (from `feature/security-hardening`; merge PR #52 first). T-076:
    `docs/ENVIRONMENT_AND_PRODUCTION_DEPLOYMENT_GUIDE.md`, `apps/api/src/config/preflight.ts` + `cli config-check`,
@@ -228,7 +234,7 @@ Current task: Phase 11 part 3 (receipts + refunds) done on `feature/receipts-ref
 0z. 2026-10-12: PR #49 merged. Owner asked for full courses from the PDFs in `Courses/` (local-only). D-071 answers
    recorded; `feature/content-pack` (T-073) adds `tools/content-pack` and imported it into the **local dev DB** (counts
    in TEST_STATUS). Import: `CONTENT_API_URL=… CONTENT_ADMIN_EMAIL=… CONTENT_ADMIN_PASSWORD=… [CONTENT_ADMIN_MFA_CODE=…]
-   pnpm --filter @tk/content-pack import` — re-runnable (ids in `tools/content-pack/.state/`, git-ignored). Staff
+   pnpm --filter @tk/content-pack run import` — re-runnable (ids in `tools/content-pack/.state/`, git-ignored). Staff
    sign-in is limited to 5 per 15 minutes per account; the importer waits out per-minute write limits itself. The dev
    owner account needs 2FA set up before it can call the Admin API: for the import it was enrolled and afterwards
    reset again (back to "enrol on first sign-in"). Dev-only student `demo-student@example.test` / `Demo student

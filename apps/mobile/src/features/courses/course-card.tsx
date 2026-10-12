@@ -8,7 +8,7 @@ import { percent, price } from '@/lib/format';
 import { initialsOf } from '@/lib/names';
 import { useSurfaceStyle } from '@/ui/layout';
 import { PressableScale } from '@/ui/motion';
-import { ProgressBar } from '@/ui/chip';
+import { ProgressBar, StatusChip } from '@/ui/chip';
 import { Text } from '@/ui/text';
 import { RatingLine } from '@/features/reviews/stars';
 
@@ -86,7 +86,7 @@ export function PricingText({ pricing }: { pricing: Pricing | null }) {
 }
 
 /** Course in a list: artwork, title, short description, price or progress. */
-export function CourseRow({ course }: { course: CatalogCourse | MyCourse }) {
+export function CourseRow({ course, owned = false }: { course: CatalogCourse | MyCourse; owned?: boolean }) {
   const surface = useSurfaceStyle();
   const { t, locale } = useT();
   const title = localized(course.title, locale);
@@ -117,6 +117,9 @@ export function CourseRow({ course }: { course: CatalogCourse | MyCourse }) {
               {t('home.percent', { percent: pct })}
             </Text>
           </View>
+        ) : owned ? (
+          // A course the student already has: never a price (it read as "buy again", Phase 16).
+          <StatusChip tone="done" label={t('courses.owned')} />
         ) : (
           <PriceText course={course} />
         )}

@@ -862,6 +862,7 @@ function AssessmentEditor({
               />
               <Toggle
                 label="Shuffle options"
+                hint="Each student sees the choices, and the right-hand column of match questions, in their own order."
                 checked={d.shuffleOptions}
                 onChange={(v) => set('shuffleOptions', v)}
               />

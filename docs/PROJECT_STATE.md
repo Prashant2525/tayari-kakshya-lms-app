@@ -1,6 +1,6 @@
 # Project State
 
-Current Phase: **Phase 15 security hardening** (T-075) on `feature/security-hardening`
+Current Phase: **Phase 16 full testing and bug fixing** (T-077) on `fix/phase-16-testing`
 Current Milestone: content API on `feature/content-cms` → Admin CMS content screens
 Overall Status: **IN PROGRESS**
 Last updated: 2026-10-12
@@ -87,7 +87,10 @@ Last updated: 2026-10-12
   in logs, dependency audit in CI, website CSP), guard tests for route access and erasure. Next: Phase 16 (full
   testing and bug fixing).
 - `docs/deployment-guide` (T-076, on top of the Phase 15 branch): configuration & production deployment guide,
-  `config-check` command, start-up / build checks, per-app `.env.example` files.
+  `config-check` command, start-up / build checks, per-app `.env.example` files. Merged (PR #52, #53).
+- `fix/phase-16-testing` (Phase 16, T-077): systematic test pass — coverage map, exploratory pass on the real
+  content, weekly-exam load test; fixed burst submit failures, match-column order, CORS methods, owned-course
+  price, content answer positions. Next: Phase 17 (production readiness audit).
 - Monitoring (T-042) merged (PR #14, #15): Sentry in the API, worker, admin and app; PostHog in the app. Google web client registered for `http://localhost:8081` (checked); a real
   sign-in by the owner and Android/iOS clients remain (KI-029).
 - Phase 9 part 2 merged (PR #13): practice questions with Check answer and locked Premium answers

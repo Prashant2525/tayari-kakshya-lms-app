@@ -118,6 +118,7 @@ export const en = {
   'course.marks': 'F.M. {full} · P.M. {pass}',
   'course.minutes': '{minutes} min',
   'course.enrol': 'Enrol for free',
+  'courses.owned': 'You have access',
   'course.enrolled': 'You have access to this course.',
   'course.start': 'Start learning',
   'course.lockedTitle': 'Course locked',
