@@ -4,6 +4,20 @@ All notable changes to this project. Format based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Added — 2026-10-12 (university content pack, D-071)
+- Five courses — Introductory Biology, Operating Systems, Software Engineering, Deep Learning Foundations and
+  Introduction to Multimedia — with 24 chapters (55 topics, about 17,000 words) of original notes, a PDF handout per
+  chapter, 256 practice questions, a quiz per chapter and a timed subject test per course; first chapter of each
+  course free.
+- Exam categories Engineering University → B.Tech CSE → Semesters 1, 5, 6, 7; plans CSE Semester Pack and All
+  Access; coupons WELCOME20 and STUDY100; four notices and three blog articles.
+- `tools/content-pack`: the content as data, PDF handout builder, and an importer that loads it through the
+  Admin API (`pnpm --filter @tk/content-pack import`).
+
+### Fixed — 2026-10-12
+- API: a test with a random section limited to objective question types could not be published when its subject
+  also had written questions (the readiness check ignored the section's type filter).
+
 ### Changed — 2026-10-12 (scroll animation, Profile, status bar, D-070)
 - App: scrolling feels alive — Courses and Notices titles hand over to a compact bar; Home and Profile headers
   drift and fade under a compact navy bar; courses and notices rise in as they appear.

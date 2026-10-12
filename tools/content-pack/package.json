@@ -1,0 +1,26 @@
+{
+  "name": "@tk/content-pack",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Course content packs (notes, question bank, tests, plans, coupons, notices, articles) and the importer that loads them through the Admin API.",
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint src",
+    "test": "vitest run",
+    "pdfs": "node src/cli/build-pdfs.ts",
+    "import": "node src/cli/import.ts"
+  },
+  "dependencies": {
+    "@tk/contracts": "workspace:*",
+    "pdf-lib": "1.17.1"
+  },
+  "devDependencies": {
+    "@tk/config": "workspace:*",
+    "@types/node": "24.19.0",
+    "eslint": "10.11.0",
+    "typescript": "6.0.3",
+    "vitest": "5.0.3",
+    "zod": "4.6.5"
+  }
+}

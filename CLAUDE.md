@@ -83,3 +83,7 @@ Windows 11; PowerShell + Git Bash. Node 24, pnpm 12.8.1, Docker Desktop (WSL2). 
 - TypeScript is pinned to 6.0 (T-016). Do not add SWC or other unsigned native binaries without checking they load on
   this machine — Windows Smart App Control blocks them (KI-011).
 - Business values are never hard-coded: new configurable rules go into the `SETTINGS` registry in `packages/contracts`.
+- Course content packs live in `tools/content-pack` (T-073) and reach the database only through the Admin API:
+  `pnpm --filter @tk/content-pack import` (env `CONTENT_API_URL`, `CONTENT_ADMIN_EMAIL`, `CONTENT_ADMIN_PASSWORD`,
+  optional `CONTENT_ADMIN_MFA_CODE`); `pnpm --filter @tk/content-pack pdfs` writes the handouts to `out/`. Source
+  PDFs in `Courses/` are local-only.

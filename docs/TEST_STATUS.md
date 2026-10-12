@@ -1,6 +1,6 @@
 # Test Status
 
-Last updated: 2026-10-12 (scroll motion and Profile). `pnpm test` runs unit + integration suites (needs `pnpm infra:up`);
+Last updated: 2026-10-12 (university content pack). `pnpm test` runs unit + integration suites (needs `pnpm infra:up`);
 `pnpm build && pnpm --filter @tk/admin e2e` and `pnpm build && pnpm --filter @tk/mobile e2e` run the browser suites
 (the student suite also needs Mailpit, part of `pnpm infra:up`).
 
@@ -16,9 +16,24 @@ Last updated: 2026-10-12 (scroll motion and Profile). `pnpm test` runs unit + in
 | `@tk/admin` (E2E, Playwright) | 36 | Real browser + real API + `*_e2e` database |
 | `@tk/mobile` (unit) | 45 | Saved PDF cut into pieces, Offline licence rules (expiry, clock set back, saved pictures), Study-time meter (idle limits, videos, innermost screen, background), development picture addresses on a phone, API client (single-flight refresh, early refresh, session end, maintenance), translations complete in both languages, BS dates and Kathmandu weekday, force-update/maintenance gate, form checks, Nepali phone numbers |
 | `@tk/mobile` (E2E, Playwright, phone viewport) | 43 | Web build + real API + `*_mobile_e2e` database + Mailpit |
+| `@tk/content-pack` | 19 | Markdown dialect → rich text; every pack payload valid against the API schemas; free first chapter; enough questions per quiz and subject test; note length; handouts render with no lost characters |
 | `@tk/web` (unit) | 8 | Session refresh used once (concurrent / late requests share it; refused → signed out; unreachable → retried), token expiry, both languages complete, failure messages |
 | `@tk/web` (E2E, Playwright) | 10 | `next start` production build + real API + `*_web_e2e` database + Mailpit + gateway stand-in; access tokens last 60 s so every page load refreshes |
-| **Total** | **605** | |
+| **Total** | **624** | |
+
+### Added with the university content pack (D-071, T-073)
+- **Unit (19):** the Markdown dialect (marks, nesting, escapes, lone markers; blocks; output accepted by the
+  rich-text validator); for each of the 5 courses — course, pricing, subject, chapter, topic, note, PDF, question,
+  quiz and subject-test bodies valid against `@tk/contracts`, first chapter free, at least 5 objective questions
+  per quiz and 20 per course, notes of at least 150 words, handouts that render with no unmappable characters;
+  categories (rank order), plans, coupons, notices and articles valid.
+- **API (1 test extended, mutation-checked):** a random section limited to objective types is not flagged for the
+  subject's written questions (fails with the old readiness check).
+- **Import into the local dev API:** 5 courses, 5 subjects, 24 chapters, 79 topics, 79 notes, 24 PDF handouts and
+  lessons, 256 questions, 24 quizzes, 5 subject tests, 6 categories and 3 category types, 2 plans, 2 coupons, 4
+  notices, 3 articles; a second run created nothing. Checked in the Admin Portal (courses, categories, question
+  bank, assessments, plans, coupons), on the website (course list and page, plans, article) and as a student: the
+  free chapter's handout downloads watermarked; a premium chapter's is refused (403).
 
 ### Changed: scroll motion, status bar, Profile (D-070, T-072)
 - Student browser suite 43/43 (Profile heading and tabs unchanged for the tests).
