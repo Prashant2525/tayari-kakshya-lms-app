@@ -197,15 +197,15 @@ product choice only you can make (rule 2: no invented business rules).
 
 | # | Finding | Severity | Proposed action |
 |---|---|---|---|
-| F-01 | CMS dashboard shows a stale developer card "What's next (Phase 6 / 7 / 11)" | M | Remove it (or replace with real shortcuts) |
+| F-01 | CMS dashboard shows a stale developer card "What's next (Phase 6 / 7 / 11)" | M | **FIXED** (D-074): replaced by permission-filtered quick links |
 | F-02 | Bunny videos must be uploaded in Bunny's dashboard, then linked by id; spec says "Bunny upload" from the CMS | L | Add upload from the CMS (Bunny's upload API) — or accept the current workflow |
-| F-03 | No leaderboard view for staff in the CMS | L | Add a leaderboard tab on assessment results |
+| F-03 | No leaderboard view for staff in the CMS | L | **FIXED**: leaderboard card on assessment results (`GET /admin/assessments/:id/leaderboard`, full names, also before release) |
 | F-04 | S23 "preview as student" + content QA checklist not built | M | Build: open any lesson / test as a student would see it, plus a checklist before publishing |
 | F-05 | No error monitoring on the public website | L | Add Sentry to the website (needs a DSN) |
-| F-06 | No language choice at first launch (follows the phone; switch in Profile) | L — needs decision | Add a language step to onboarding, or accept |
-| F-07 | Home lacks an upcoming-exams list, latest-notice strip and course-page preview list | L — needs decision | Add the strips, or accept the current Home |
-| F-08 | CMS-managed home sections and general notification campaigns not built (plan: "ask the owner") | L — needs decision | Decide whether you want them |
-| F-09 | PDF reader has no "go to page" | L | Add a page-number jump in the reader |
+| F-06 | No language choice at first launch (follows the phone; switch in Profile) | L — decided D-074 | **FIXED**: English / नेपाली chooser before sign-in, once per installation |
+| F-07 | Home lacks an upcoming-exams list, latest-notice strip and course-page preview list | L — decided D-074 | **FIXED**: Home "Upcoming exams" and "Latest notices"; course page "Try for free" (`previewItems`) |
+| F-08 | CMS-managed home sections and general notification campaigns not built (plan: "ask the owner") | L — decided D-074 | To build: Home sections editor + notification campaigns |
+| F-09 | PDF reader has no "go to page" | L | **FIXED**: "Go to page" in the reader (online and offline reader pages) |
 | F-10 | Previous-year questions cannot be browsed by authority / post / paper / year | M | Add a PYQ browser (filters on question source metadata) |
 | F-11 | Capacity: one API process is slow under a 200-at-once burst; p95 on the VPS not measured | M | Phase 18: several API processes + load test on staging |
 | F-12 | Notices cannot carry file attachments (e.g. the official PDF) | M | Allow PDF attachments on notices (media library) |

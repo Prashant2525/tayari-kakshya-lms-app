@@ -47,13 +47,17 @@ test('the Notice tab shows new notices, pinned first, and opens one', async () =
   await visible(page.getByLabel('Password', { exact: true })).fill(E2E_ADMIN_PASSWORD);
   await visible(page.getByRole('button', { name: 'Log in', exact: true })).click();
   await visible(page.getByRole('button', { name: 'Skip', exact: true })).click();
+  // Home shows the latest notices too (D-074).
+  await expect(visible(page.getByRole('heading', { name: 'Latest notices' }))).toBeVisible();
+  await expect(visible(page.getByRole('link', { name: `Exam centre list ${run}` }))).toBeVisible();
 
   const tab = visible(page.getByRole('tab', { name: /Notices, 2 new/ }));
   await expect(tab).toBeVisible();
   await tab.click();
   const cards = visible(page.getByRole('link', { name: new RegExp(run) }));
   await expect(cards.first()).toHaveAccessibleName(`Exam centre list ${run}`);
-  await expect(text(`Kharidar form open ${run}: details for candidates.`)).toBeVisible();
+  // Home shows the same notice: either copy will do.
+  await expect(text(`Kharidar form open ${run}: details for candidates.`).first()).toBeVisible();
   await expect(visible(page.getByRole('tab', { name: 'Notices', exact: true }))).toBeVisible();
 
   await visible(page.getByRole('link', { name: `Kharidar form open ${run}` })).click();

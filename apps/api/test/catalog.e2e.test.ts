@@ -72,6 +72,10 @@ describe('public catalog', () => {
     });
     expect(res.body.contentCounts).toMatchObject({ note: 2, pdf: 1, video: 1 });
     expect(res.body.access).toBeNull();
+    // Free lessons to try (D-074): titles only, in course order, never premium ones (audit F-07).
+    const previews = res.body.previewItems as Array<{ type: string; title: { en: string } }>;
+    expect(previews.map((p) => p.type).sort()).toEqual(['note', 'video']);
+    expect(JSON.stringify(previews)).not.toMatch(/noteContent|embedUrl|pdfMediaId/);
   });
 });
 

@@ -202,6 +202,11 @@ Current task: Phase 11 part 3 (receipts + refunds) done on `feature/receipts-ref
 - Nothing partially implemented. Admin screens for Phase 6 not started.
 
 ## Exact next steps
+0zf. 2026-10-13: PR #55 merged. Owner decided the audit (D-074). Batch A on `feature/audit-fixes-a`: F-01 quick links,
+   F-03 staff leaderboard, F-09 PDF go-to-page (reader `goto` message), F-06 first-launch language (`prefs.languageChosen`;
+   browser tests pre-set it in `playwright.config.ts`, app.spec starts fresh), F-07 Home strips + `previewItems`.
+   Next: batch B (F-13 email / phone / photo, F-12 notice attachments, F-10 PYQ browser), then batch C (F-04 preview as
+   student + QA checklist, F-08 Home sections editor + notification campaigns).
 0ze. 2026-10-13: PR #54 merged. Phase 17 audit written (`docs/PRODUCTION_READINESS_AUDIT.md`, playbook §14.1 — audit
    only, no application changes). Next: owner approves which findings F-01…F-13 to fix (§14.2: fix by category, test,
    update the audit status), decides F-06 / F-07 / F-08; then Phase 18 deployment.

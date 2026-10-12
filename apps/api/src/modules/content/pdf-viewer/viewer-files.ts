@@ -40,6 +40,9 @@ function send(message) {
   else if (window.parent !== window) window.parent.postMessage(message, '*');
 }
 
+// Set once a document is shown: jumps to a page (the app's "Go to page", audit F-09).
+let goTo = null;
+
 function parse(event) {
   let data = event.data;
   if (typeof data === 'string') {
@@ -107,9 +110,13 @@ async function show(pdfjs, data, page, options) {
   );
   holders.forEach((h) => { near.observe(h); current.observe(h); });
 
+  goTo = (n) => {
+    const target = Math.min(Math.max(Math.floor(Number(n)) || 1, 1), doc.numPages);
+    holders[target - 1].scrollIntoView();
+  };
   send({ type: 'loaded', pageCount: doc.numPages });
   const start = Math.min(Math.max(Number(page) || 1, 1), doc.numPages);
-  if (start > 1) holders[start - 1].scrollIntoView();
+  if (start > 1) goTo(start);
 }
 `;
 
@@ -123,9 +130,10 @@ let opened = false;
 
 function onMessage(event) {
   const data = parse(event);
-  if (!data || data.type !== 'open' || opened) return;
-  // In a browser only the embedding app may open a document; WebView messages come from the app itself.
-  if (!window.ReactNativeWebView && event.source !== window.parent) return;
+  // In a browser only the embedding app may talk to the reader; WebView messages come from the app itself.
+  if (!data || (!window.ReactNativeWebView && event.source !== window.parent)) return;
+  if (data.type === 'goto' && goTo) return goTo(data.page);
+  if (data.type !== 'open' || opened) return;
   opened = true;
   open(data).catch(() => send({ type: 'error', status: 0, code: 'RENDER_FAILED' }));
 }
@@ -177,7 +185,9 @@ function decode(base64) {
 function onMessage(event) {
   const data = parse(event);
   if (!data || !window.ReactNativeWebView) return;
-  if (data.type === 'open' && !opened) {
+  if (data.type === 'goto' && goTo) {
+    goTo(data.page);
+  } else if (data.type === 'open' && !opened) {
     opened = data;
     statusEl.textContent = '…';
   } else if (data.type === 'chunk' && opened && typeof data.data === 'string') {

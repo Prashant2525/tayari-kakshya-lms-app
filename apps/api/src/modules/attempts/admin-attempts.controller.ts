@@ -45,6 +45,12 @@ export class AdminAttemptsController {
     return this.attempts.results(id, a, q.cursor, q.limit);
   }
 
+  @Get('assessments/:id/leaderboard')
+  @RequireAnyPermission('assessments:edit', 'assessments:publish', 'grading:manage')
+  leaderboard(@Param('id', uuid()) id: string, @StaffActor() a: ContentActor) {
+    return this.attempts.leaderboard(id, a);
+  }
+
   @Get('attempts/:id')
   @RequireAnyPermission('assessments:edit', 'assessments:publish', 'grading:manage')
   attempt(@Param('id', uuid()) id: string, @StaffActor() a: ContentActor) {

@@ -10,7 +10,7 @@ test.beforeAll(async ({ browser }) => {
   await page.getByLabel('Email').fill(E2E_EDITOR_EMAIL);
   await page.getByLabel('Password', { exact: true }).fill(E2E_ADMIN_PASSWORD);
   await page.getByRole('button', { name: 'Sign in' }).click();
-  await expect(page.getByRole('link', { name: 'Question bank' })).toBeVisible();
+  await expect(nav('Question bank')).toBeVisible();
 });
 test.afterAll(async () => {
   await page.close();

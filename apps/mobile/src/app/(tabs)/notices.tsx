@@ -1,20 +1,14 @@
-import { radius } from '@tk/design-tokens';
-import { router, useFocusEffect } from 'expo-router';
-import { Megaphone, Pin } from 'lucide-react-native';
+import { useFocusEffect } from 'expo-router';
+import { Megaphone } from 'lucide-react-native';
 import { useCallback } from 'react';
 import { Animated, RefreshControl, StyleSheet, View } from 'react-native';
-import { markNoticesSeen, useNotices, type NoticeRow } from '@/api/notices';
-import { KIND_KEY } from '@/features/notices/kinds';
-import { localized } from '@/i18n/translate';
+import { markNoticesSeen, useNotices } from '@/api/notices';
+import { NoticeCard } from '@/features/notices/notice-card';
 import { useT } from '@/i18n/use-t';
-import { bsDate } from '@/lib/dates';
-import { useTheme } from '@/theme/theme';
-import { StatusChip } from '@/ui/chip';
-import { Screen, Skeleton, useSurfaceStyle } from '@/ui/layout';
-import { FadeInUp, PressableScale } from '@/ui/motion';
+import { Screen, Skeleton } from '@/ui/layout';
+import { FadeInUp } from '@/ui/motion';
 import { CompactBar, LargeTitle, useScrollMotion } from '@/ui/scroll-header';
 import { EmptyState, ErrorState } from '@/ui/states';
-import { Text } from '@/ui/text';
 
 /** Notices (D-019): official exam notices, announcements and instructor messages from the CMS; pinned ones first. */
 export default function NoticesScreen() {
@@ -65,40 +59,9 @@ export default function NoticesScreen() {
   );
 }
 
-function NoticeCard({ n }: { n: NoticeRow }) {
-  const { colors } = useTheme();
-  const surface = useSurfaceStyle();
-  const { t, locale } = useT();
-  const title = localized(n.title, locale);
-  return (
-    <PressableScale
-      role="link"
-      aria-label={title}
-      onPress={() => router.push({ pathname: '/notice/[id]', params: { id: n.id } })}
-      style={[styles.card, surface]}
-    >
-      <View style={styles.meta}>
-        <StatusChip tone={n.kind === 'official' ? 'official' : 'neutral'} label={t(KIND_KEY[n.kind])} />
-        {n.isPinned ? (
-          <Pin size={16} color={colors.textSecondary} strokeWidth={1.75} aria-label={t('notices.pinned')} />
-        ) : null}
-        <Text variant="caption" color="textMuted" style={{ marginLeft: 'auto' }}>
-          {bsDate(n.publishedAt, locale)}
-        </Text>
-      </View>
-      <Text variant="h4">{title}</Text>
-      <Text variant="bodySm" color="textSecondary" numberOfLines={3}>
-        {localized(n.summary, locale)}
-      </Text>
-    </PressableScale>
-  );
-}
-
 const styles = StyleSheet.create({
   content: { paddingTop: 20, gap: 14 },
   // The list scrolls under the compact bar with its title inside, edge to edge.
   contentList: { paddingTop: 0, paddingHorizontal: 0 },
   list: { gap: 10, paddingHorizontal: 20, paddingTop: 20, paddingBottom: 24 },
-  card: { borderWidth: 1, borderRadius: radius.lg, padding: 14, gap: 6 },
-  meta: { flexDirection: 'row', alignItems: 'center', gap: 8 },
 });

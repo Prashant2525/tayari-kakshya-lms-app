@@ -18,6 +18,7 @@ import { api, queryClient } from '@/api/client';
 import { ApiError } from '@/lib/api-client';
 import { AppGate } from '@/features/app-gate';
 import { useGuards } from '@/features/guards';
+import { LanguageChoice } from '@/features/launch/language-choice';
 import { LaunchIntro } from '@/features/launch/launch-intro';
 import { useAnalyticsIdentity, useScreenTracking } from '@/lib/analytics';
 import { initMonitoring } from '@/lib/monitoring';
@@ -96,6 +97,7 @@ function ThemedStatusBar() {
 /** Screens are grouped behind the guards from `useGuards` (features/guards.ts). */
 function RootNavigator() {
   const locale = usePrefs((s) => s.locale);
+  const languageChosen = usePrefs((s) => s.languageChosen);
   const { signedIn, mustVerify, needsOnboarding, me, targets } = useGuards();
   const { colors } = useTheme();
   useScreenTracking();
@@ -176,6 +178,7 @@ function RootNavigator() {
           <Stack.Screen name="verify" />
         </Stack.Protected>
       </Stack>
+      {!signedIn && !languageChosen ? <LanguageChoice /> : null}
       {blocking ? (
         <View style={[StyleSheet.absoluteFill, { backgroundColor: colors.bg }]}>
           {me.isError || targets.isError ? (

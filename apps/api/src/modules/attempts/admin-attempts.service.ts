@@ -15,6 +15,7 @@ import { AuditService } from '../audit/audit.service.js';
 import { splitQuestion } from '../content/practice-view.js';
 import type { ContentActor } from '../content/scope.service.js';
 import { planQuestions, type AttemptPlan } from './attempt-plan.js';
+import { EngagementService } from './engagement.service.js';
 import { cm, retotalAttempt } from './attempt-totals.js';
 
 const FINISHED = ['pending_grading', 'completed'] as const;
@@ -29,7 +30,14 @@ export class AdminAttemptsService {
     private readonly prisma: PrismaService,
     private readonly assessments: AssessmentsService,
     private readonly audit: AuditService,
+    private readonly engagement: EngagementService,
   ) {}
+
+  /** The leaderboard for staff (audit F-03), within the staff member's course scope. */
+  async leaderboard(assessmentId: string, actor: ContentActor) {
+    const a = await this.assessmentInScope(assessmentId, actor);
+    return this.engagement.staffLeaderboard(a);
+  }
 
   // ───────────── Grading queue ─────────────
 

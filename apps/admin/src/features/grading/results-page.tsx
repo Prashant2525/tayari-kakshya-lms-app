@@ -1,4 +1,4 @@
-import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link, useParams } from '@tanstack/react-router';
 import { ArrowLeft } from 'lucide-react';
 import { useState } from 'react';
@@ -9,6 +9,7 @@ import { Badge, Card, CardHeader, EmptyState, ErrorState, Spinner } from '@/comp
 import { Table, TBody, TD, TH, THead, TR } from '@/components/ui/table';
 import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
+import { formatDuration } from '@/lib/content';
 import { formatDateTimeBs, localized, plural } from '@/lib/format';
 import { ATTEMPT_STATUS_LABEL, marksText, type AssessmentResults } from '@/lib/grading';
 
@@ -36,6 +37,7 @@ export function ResultsPage() {
   const release = async () => {
     await api.post(`/admin/assessments/${assessmentId}/release-results`);
     await qc.invalidateQueries({ queryKey: ['assessment-results', assessmentId] });
+    await qc.invalidateQueries({ queryKey: ['assessment-leaderboard', assessmentId] });
     toast.success('Results released');
   };
 
@@ -178,6 +180,8 @@ export function ResultsPage() {
         </div>
       ) : null}
 
+      <LeaderboardCard assessmentId={assessmentId} />
+
       <ConfirmDialog
         open={releasing}
         onOpenChange={setReleasing}
@@ -201,6 +205,81 @@ function Stat({ label, value, hint }: { label: string; value: string; hint?: str
       <p className="text-xs font-semibold uppercase tracking-wide text-text-muted">{label}</p>
       <p className="mt-1 text-2xl font-bold text-text">{value}</p>
       {hint ? <p className="text-xs text-text-muted">{hint}</p> : null}
+    </Card>
+  );
+}
+
+interface StaffLeaderboard {
+  released: boolean;
+  total: number;
+  top: Array<{
+    rank: number;
+    userId: string;
+    name: string;
+    email: string | null;
+    attemptId: string;
+    score: number;
+    timeTakenSeconds: number;
+  }>;
+}
+
+/** The ranking with full names (audit F-03); students see it per the CMS name setting, after release. */
+function LeaderboardCard({ assessmentId }: { assessmentId: string }) {
+  const board = useQuery({
+    queryKey: ['assessment-leaderboard', assessmentId],
+    queryFn: () => api.get<StaffLeaderboard | null>(`/admin/assessments/${assessmentId}/leaderboard`),
+  });
+  if (board.isPending) return null;
+  if (board.isError) {
+    return (
+      <Card className="mt-6">
+        <ErrorState error={board.error} onRetry={() => void board.refetch()} />
+      </Card>
+    );
+  }
+  if (!board.data) return null;
+  const b = board.data;
+  return (
+    <Card className="mt-6">
+      <CardHeader
+        title="Leaderboard"
+        description={`${plural(b.total, 'student')} ranked by score, then time.${
+          b.released ? '' : ' Students do not see it until results are released.'
+        }`}
+      />
+      {b.top.length === 0 ? (
+        <EmptyState title="No finished attempts yet" description="Ranks appear once attempts are marked." />
+      ) : (
+        <Table>
+          <THead>
+            <TR>
+              <TH>Rank</TH>
+              <TH>Student</TH>
+              <TH>Score</TH>
+              <TH>Time</TH>
+            </TR>
+          </THead>
+          <TBody>
+            {b.top.map((e) => (
+              <TR key={e.userId}>
+                <TD className="tabular-nums">{e.rank}</TD>
+                <TD>
+                  <Link
+                    to="/attempts/$attemptId"
+                    params={{ attemptId: e.attemptId }}
+                    className="font-medium text-link"
+                  >
+                    {e.name}
+                  </Link>
+                  {e.email ? <p className="text-xs text-text-muted">{e.email}</p> : null}
+                </TD>
+                <TD className="tabular-nums">{marksText(e.score)}</TD>
+                <TD className="tabular-nums">{formatDuration(e.timeTakenSeconds)}</TD>
+              </TR>
+            ))}
+          </TBody>
+        </Table>
+      )}
     </Card>
   );
 }

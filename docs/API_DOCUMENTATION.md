@@ -425,6 +425,7 @@ Every module exposes `GET list` (search/filter/sort/paginate), `GET :id`, `POST`
 - Interested on iPhone (built, T-058): `GET /admin/course-interests?status=open|contacted`, `GET /admin/course-interests/:id/email` (filled-in draft), `POST /admin/course-interests/:id/contact` `{subject, body}` — `interests:manage`
 - Course updates (built, T-056): `GET|POST /admin/courses/:id/updates` — `courses:notify` (history + students with access; send `{title, message}` to them)
 - Live classes (built, T-074): `GET|POST /admin/live-classes` (`?when=&courseId=`), `GET|PUT|DELETE /admin/live-classes/:id`, `POST /admin/live-classes/:id/publish|start|end|cancel`, `PUT /admin/live-classes/:id/recording` `{recording: {provider: youtube, url} | {provider: bunny, videoId} | null}`, `GET /admin/live-classes/:id/attendance`, `GET /admin/live-classes/:id/attendance.csv` (audited export) — `live:manage`, limited to the staff member's course scope
+- Staff leaderboard (built, D-074): `GET /admin/assessments/:id/leaderboard` — `assessments:edit` / `assessments:publish` / `grading:manage` (any), course scope; full names and emails, also before release; null when the assessment has no leaderboard
 - Notices (built, T-055): `GET|POST /admin/notices`, `GET|PUT|DELETE /admin/notices/:id`, `PUT /admin/notices/:id/status` — `notices:edit`; publishing and live edits need `notices:publish`
 - `/admin/settings`, `/admin/audit-logs`, `/admin/dashboard` (KPIs), `/admin/reports/*` (exports CSV/XLSX)
 

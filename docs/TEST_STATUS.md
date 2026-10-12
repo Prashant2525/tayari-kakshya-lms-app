@@ -21,6 +21,15 @@ Last updated: 2026-10-13 (Phase 16 test pass). `pnpm test` runs unit + integrati
 | `@tk/web` (E2E, Playwright) | 10 | `next start` production build + real API + `*_web_e2e` database + Mailpit + gateway stand-in; access tokens last 60 s so every page load refreshes |
 | **Total** | **665** | |
 
+### Audit fixes, batch A (D-074)
+- API: staff leaderboard (full names, before release, students refused — extended `engagement.e2e`); course
+  `previewItems` free lessons only, titles only (extended `catalog.e2e`).
+- Browser: first-launch language step and asked once (`app.spec`; other specs start with it done via
+  `playwright.config.ts` storage), Home "Latest notices" (`notices.spec`) and "Upcoming exams" (`exam.spec`), course
+  "Try for free" (`learning.spec`), PDF "Go to page" (`learning.spec`), CMS leaderboard card (`grading.spec`).
+  Suites: CMS 38/38, app 46/46 (four selectors adjusted for the new duplicated texts).
+- Screenshots checked: language chooser (en / ne), Home with latest notices, course page with "Try for free".
+
 ### Phase 16 — systematic test pass (T-077)
 **Coverage map** (automated suites per playbook area): authentication (auth 21, verification 13, mfa 11, browser
 sign-up / log-in / reset), course browsing + enrolment (catalog 16, mobile learning 4, website 4), payments (payments 8,

@@ -19,6 +19,13 @@ export default defineConfig({
     screenshot: 'only-on-failure',
     locale: 'en-US',
     timezoneId: 'Asia/Kathmandu',
+    // The first-launch language step (D-074) is taken by app.spec.ts; other specs start with it done.
+    storageState: {
+      cookies: [],
+      origins: [
+        { origin: E2E_WEB_ORIGIN, localStorage: [{ name: 'tk.prefs', value: '{"languageChosen":true}' }] },
+      ],
+    },
   },
   projects: [{ name: 'phone', use: { ...devices['Pixel 7'] } }],
   webServer: [

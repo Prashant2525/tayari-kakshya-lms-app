@@ -268,6 +268,9 @@ test('a quiz: rules, answers, mark for review, resume after a reload, submit, re
 
 test('a weekly exam for my exam waits for the window to close before showing results', async () => {
   await page.goto('/');
+  // Home lists it under upcoming exams until it is taken (D-074).
+  await expect(visible(page.getByRole('heading', { name: 'Upcoming exams' }))).toBeVisible();
+  await expect(link(weeklyTitle).first()).toBeVisible();
   await link('Tests for your exam').click();
   await link(weeklyTitle).click();
   await expect(text(/Your time ends when the test closes/)).toBeVisible();

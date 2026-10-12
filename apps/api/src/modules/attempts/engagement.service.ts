@@ -99,6 +99,34 @@ export class EngagementService {
     };
   }
 
+  /**
+   * The ranking as staff see it (audit F-03): full names and emails, also before results are released, whatever the
+   * name setting students see. Null when the assessment has no leaderboard.
+   */
+  async staffLeaderboard(a: Assessment, limit = 200, now = new Date()) {
+    if (!a.leaderboardEnabled) return null;
+    const ranked = await this.ranked(a);
+    const shown = ranked.slice(0, limit);
+    const users = await this.prisma.user.findMany({
+      where: { id: { in: shown.map((e) => e.userId) } },
+      select: { id: true, fullName: true, email: true },
+    });
+    const byId = new Map(users.map((u) => [u.id, u]));
+    return {
+      released: resultsReleased(a, now),
+      total: ranked.length,
+      top: shown.map((e) => ({
+        rank: e.rank,
+        userId: e.userId,
+        name: byId.get(e.userId)?.fullName ?? '',
+        email: byId.get(e.userId)?.email ?? null,
+        attemptId: e.attemptId,
+        score: e.score,
+        timeTakenSeconds: e.timeTakenSeconds,
+      })),
+    };
+  }
+
   /** Rank of one attempt (only when it is the student's official, completed attempt and results are released). */
   async rankOf(a: Assessment, attemptId: string, now = new Date()) {
     if (!a.leaderboardEnabled || !resultsReleased(a, now)) return null;
