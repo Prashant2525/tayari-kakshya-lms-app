@@ -143,6 +143,71 @@ describe('practice questions', () => {
   });
 });
 
+describe('previous-year questions (D-020, D-074 / audit F-10)', () => {
+  it('browses by category (with its sub-categories), paper and year; premium answers stay locked', async () => {
+    const s = await setup();
+    const pyq = async (
+      accessLevel: 'free' | 'premium',
+      content: Record<string, unknown>,
+      sources: unknown[],
+    ) => {
+      const res = await call(ctx, 'POST', '/admin/questions', {
+        token: s.admin,
+        body: {
+          subjectId: s.seeded.subject.id,
+          topicId: s.seeded.topic.id,
+          difficulty: 'easy',
+          defaultMarks: 2,
+          accessLevel,
+          tags: [],
+          content,
+          sources,
+        },
+      });
+      if (res.status !== 201) throw new Error(JSON.stringify(res.body));
+      await call(ctx, 'PUT', `/admin/questions/${res.body.id}/status`, {
+        token: s.admin,
+        body: { status: 'published' },
+      });
+      return res.body.id as string;
+    };
+    const fromPost = await pyq(
+      'free',
+      { type: 'true_false', stem: doc('PYQ 2079 statement'), correct: true },
+      [{ examNodeId: s.seeded.post.id, yearBs: 2079 }],
+    );
+    const premium = await pyq(
+      'premium',
+      { type: 'subjective', stem: doc('PYQ 2080 essay'), modelAnswer: doc('SECRET PYQ MODEL ANSWER') },
+      [{ examNodeId: s.seeded.authority.id, yearBs: 2080 }],
+    );
+    const list = (query: string) => call(ctx, 'GET', `/pyq${query}`, { token: s.student });
+
+    const filters = await call(ctx, 'GET', '/pyq/filters', { token: s.student });
+    expect(filters.body.years).toEqual([2080, 2079]);
+    expect(filters.body.examNodes.map((n: { id: string }) => n.id).sort()).toEqual(
+      [s.seeded.authority.id, s.seeded.post.id].sort(),
+    );
+
+    // The authority includes the post under it; ordinary practice questions are not previous-year ones.
+    const all = await list(`?examNodeId=${s.seeded.authority.id}`);
+    expect(all.body.data.map((q: { id: string }) => q.id).sort()).toEqual([fromPost, premium].sort());
+    expect((await list('?yearBs=2079')).body.data.map((q: { id: string }) => q.id)).toEqual([fromPost]);
+    expect(
+      (await list(`?examNodeId=${s.seeded.post.id}`)).body.data.map((q: { id: string }) => q.id),
+    ).toEqual([fromPost]);
+
+    const locked = (await list('?yearBs=2080')).body.data[0];
+    expect(locked).toMatchObject({ id: premium, locked: true, answer: null, isPyq: true });
+    expect(JSON.stringify((await list('')).body)).not.toContain('SECRET PYQ MODEL ANSWER');
+    await call(ctx, 'POST', `/admin/users/${s.userId}/entitlements`, {
+      token: s.admin,
+      body: { courseId: s.seeded.course.id, endsAt: null },
+    });
+    expect((await list('?yearBs=2080')).body.data[0]).toMatchObject({ locked: false });
+  });
+});
+
 describe('bookmarks', () => {
   it('saves lessons and questions, lists newest first, and drops unpublished ones', async () => {
     const s = await setup();

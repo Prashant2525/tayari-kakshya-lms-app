@@ -58,6 +58,15 @@ const config: ExpoConfig = {
     'expo-localization',
     'expo-web-browser',
     'expo-notifications',
+    // Profile photo (D-074): the photo library only — no camera or microphone permission is requested.
+    [
+      'expo-image-picker',
+      {
+        photosPermission: 'Tayari Kakshya uses your photos only when you choose a profile picture.',
+        cameraPermission: false,
+        microphonePermission: false,
+      },
+    ],
     // Native crash reporting in development / store builds (T-042). Source maps are uploaded by release builds
     // with SENTRY_AUTH_TOKEN (+ SENTRY_ORG / SENTRY_PROJECT) set as EAS secrets.
     '@sentry/react-native/expo',

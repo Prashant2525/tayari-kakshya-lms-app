@@ -2,7 +2,9 @@ import { expect, test, type Page } from '@playwright/test';
 import { E2E_ADMIN_PASSWORD, E2E_STUDENT_EMAIL } from '@tk/e2e-support/accounts';
 import { E2E_WEB_ORIGIN } from './constants.mjs';
 import { pngFixture } from '@tk/e2e-support/png';
-import { apiCall, editorToken, uploadImage } from './helpers';
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
+import { apiCall, editorToken, uploadImage, uploadPdf } from './helpers';
 
 /**
  * Phase 12a: notices from the CMS appear in the Notice tab (pinned first, with a "new" badge until the tab is
@@ -18,6 +20,8 @@ test.describe.configure({ mode: 'serial' });
 test.beforeAll(async ({ browser, request }) => {
   // The seeded student (sign-up has an hourly limit per IP); published after they joined, so these count as new.
   const token = await editorToken(request);
+  // The official PDF goes with the form notice (D-074).
+  const pdf = await uploadPdf(request, token, readFileSync(path.join(__dirname, 'fixtures', 'lesson.pdf')));
   for (const [title, isPinned] of [
     [`Kharidar form open ${run}`, false],
     [`Exam centre list ${run}`, true],
@@ -29,6 +33,7 @@ test.beforeAll(async ({ browser, request }) => {
       isPinned,
       expiresAt: null,
       notify: false,
+      attachmentMediaIds: isPinned ? [] : [pdf],
     });
     await apiCall(request, token, 'PUT', `/admin/notices/${notice.id}/status`, { status: 'published' });
   }
@@ -63,6 +68,13 @@ test('the Notice tab shows new notices, pinned first, and opens one', async () =
   await visible(page.getByRole('link', { name: `Kharidar form open ${run}` })).click();
   await expect(visible(page.getByRole('heading', { name: `Kharidar form open ${run}` }))).toBeVisible();
   await expect(text('Official notice')).toBeVisible();
+  // Its attached PDF opens in the in-app reader.
+  await expect(text('Attached files')).toBeVisible();
+  await visible(page.getByRole('link', { name: 'lesson.pdf' })).click();
+  const reader = page.frameLocator('iframe[title="PDF"]');
+  await expect(reader.locator('.page canvas').first()).toBeVisible({ timeout: 20_000 });
+  await expect(text('Page 1 of 3')).toBeVisible();
+  await expect(text('PDFs carry your email and account ID on every page.')).toHaveCount(0);
 });
 
 test('notifications: a course update arrives; push / email choices are kept', async ({ request }) => {

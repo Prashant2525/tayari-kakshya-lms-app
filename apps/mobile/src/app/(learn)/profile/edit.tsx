@@ -11,6 +11,7 @@ import { ScrollView, StyleSheet, View } from 'react-native';
 import type { MeView } from '@tk/contracts';
 import { useEducationLevels } from '@/api/account';
 import { useMe, useUpdateMe } from '@/api/queries';
+import { ProfileIdentity } from '@/features/profile/profile-identity';
 import { localized } from '@/i18n/translate';
 import { useT } from '@/i18n/use-t';
 import { adIsoToBs, bsToAdIso } from '@/lib/dates';
@@ -26,7 +27,7 @@ import { TextField } from '@/ui/text-field';
 const GENDERS = ['male', 'female', 'other', 'prefer_not_to_say'] as const;
 type Gender = (typeof GENDERS)[number];
 
-/** Edit profile: name, date of birth picked in BS (stored in AD, D-009), gender and education level (CMS list). */
+/** Edit profile: photo, email / phone (own screens), name, date of birth picked in BS (stored in AD, D-009), gender and education level (CMS list). */
 export default function EditProfileScreen() {
   const { t } = useT();
   const me = useMe();
@@ -82,6 +83,7 @@ function ProfileForm({ me }: { me: MeView }) {
 
   return (
     <ScrollView contentContainerStyle={styles.form} keyboardShouldPersistTaps="handled">
+      <ProfileIdentity me={me} />
       {update.isSuccess ? <Banner tone="success" message={t('profile.saved')} /> : null}
       {update.isError ? <Banner message={t(errorMessageKey(update.error))} /> : null}
       <TextField

@@ -30,11 +30,14 @@ export function PdfReader({
   startPage,
   onPage,
   offline = false,
+  notice,
 }: {
   itemId: string;
   startPage: number;
   onPage: (page: number, pageCount: number) => void;
   offline?: boolean;
+  /** A PDF attached to a notice instead of a lesson (D-074): not watermarked, never saved offline. */
+  notice?: { noticeId: string; mediaId: string };
 }) {
   const { t } = useT();
   const frame = useRef<WebFrameHandle>(null);
@@ -75,7 +78,7 @@ export function PdfReader({
         frame.current?.post({
           type: 'open',
           token: useSession.getState().tokens?.accessToken ?? '',
-          itemId,
+          ...(notice ? notice : { itemId }),
           page: startPage,
         });
       } else if (message?.type === 'loaded') {
@@ -90,7 +93,7 @@ export function PdfReader({
         setError(true);
       }
     },
-    [itemId, startPage, onPage, offline, saved],
+    [itemId, startPage, onPage, offline, saved, notice],
   );
 
   return (
@@ -126,9 +129,11 @@ export function PdfReader({
             </Text>
           </Pressable>
         ) : null}
-        <Text variant="caption" color="textMuted">
-          {t('learn.watermark')}
-        </Text>
+        {notice ? null : (
+          <Text variant="caption" color="textMuted">
+            {t('learn.watermark')}
+          </Text>
+        )}
       </View>
       <Dialog visible={jumping} title={t('item.goToPage')} onClose={() => setJumping(false)}>
         <TextField

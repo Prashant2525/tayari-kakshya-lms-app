@@ -6,7 +6,7 @@ import {
   E2E_STUDENT3_EMAIL,
   E2E_STUDENT_EMAIL,
 } from './e2e-env.mjs';
-import { pngFixture } from './fixtures';
+import { pdfFixture, pngFixture } from './fixtures';
 
 /**
  * Phase 12 in the CMS: write a notice (bilingual title, rich text), pin it, ask for push / email, publish it; tell a
@@ -43,8 +43,20 @@ test('staff write, pin and publish a notice that is also pushed', async () => {
   await page.keyboard.type('Forms are open until the end of the month.');
   await page.getByRole('switch', { name: 'Pin to the top' }).click();
   await page.getByRole('switch', { name: 'Send as push notification and email' }).click();
+  // The official PDF goes with it (D-074): uploaded from the picker, which attaches it.
+  await page.getByRole('button', { name: 'Attach a PDF' }).click();
+  await page
+    .getByRole('dialog')
+    .getByLabel('Upload a file')
+    .setInputFiles({
+      name: `so-notice-${run}.pdf`,
+      mimeType: 'application/pdf',
+      buffer: pdfFixture('Section Officer notice'),
+    });
+  await expect(page.getByText(`so-notice-${run}.pdf`)).toBeVisible();
   await page.getByRole('button', { name: 'Create notice' }).click();
   await expect(page.getByText('Notice created')).toBeVisible();
+  await expect(page.getByText(`so-notice-${run}.pdf`)).toBeVisible();
 
   await page.getByLabel('Notice status').selectOption('published');
   await page.getByRole('button', { name: 'Update status' }).click();

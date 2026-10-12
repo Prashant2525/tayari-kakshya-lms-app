@@ -201,17 +201,19 @@ export class MediaService {
 
   private async usageCount(id: string): Promise<number> {
     const like = `%${id}%`;
-    const [items, courses, nodes, subjects, instructors, covers, banners, inNotes] = await Promise.all([
-      this.prisma.learningItem.count({ where: { pdfMediaId: id, deletedAt: null } }),
-      this.prisma.course.count({ where: { thumbnailMediaId: id, deletedAt: null } }),
-      this.prisma.examNode.count({ where: { iconMediaId: id, deletedAt: null } }),
-      this.prisma.subject.count({ where: { iconMediaId: id, deletedAt: null } }),
-      this.prisma.instructorProfile.count({ where: { photoMediaId: id } }),
-      this.prisma.article.count({ where: { coverMediaId: id, deletedAt: null } }),
-      this.prisma.banner.count({ where: { imageMediaId: id } }),
-      // Images embedded in rich text: notes, course descriptions, question passages, every question version (old
-      // versions count too — past attempts still show them), notices and articles.
-      this.prisma.$queryRaw<Array<{ n: bigint }>>`
+    const [items, noticeFiles, courses, nodes, subjects, instructors, covers, banners, inNotes] =
+      await Promise.all([
+        this.prisma.learningItem.count({ where: { pdfMediaId: id, deletedAt: null } }),
+        this.prisma.noticeAttachment.count({ where: { mediaId: id, notice: { deletedAt: null } } }),
+        this.prisma.course.count({ where: { thumbnailMediaId: id, deletedAt: null } }),
+        this.prisma.examNode.count({ where: { iconMediaId: id, deletedAt: null } }),
+        this.prisma.subject.count({ where: { iconMediaId: id, deletedAt: null } }),
+        this.prisma.instructorProfile.count({ where: { photoMediaId: id } }),
+        this.prisma.article.count({ where: { coverMediaId: id, deletedAt: null } }),
+        this.prisma.banner.count({ where: { imageMediaId: id } }),
+        // Images embedded in rich text: notes, course descriptions, question passages, every question version (old
+        // versions count too — past attempts still show them), notices and articles.
+        this.prisma.$queryRaw<Array<{ n: bigint }>>`
         SELECT (
           (SELECT COUNT(*) FROM learning_items WHERE deleted_at IS NULL AND note_content::text LIKE ${like})
           + (SELECT COUNT(*) FROM courses WHERE deleted_at IS NULL AND description::text LIKE ${like})
@@ -220,14 +222,43 @@ export class MediaService {
           + (SELECT COUNT(*) FROM notices WHERE deleted_at IS NULL AND body::text LIKE ${like})
           + (SELECT COUNT(*) FROM articles WHERE deleted_at IS NULL AND body::text LIKE ${like})
         )::bigint AS n`,
-    ]);
-    return items + courses + nodes + subjects + instructors + covers + banners + Number(inNotes[0]?.n ?? 0);
+      ]);
+    return (
+      items +
+      noticeFiles +
+      courses +
+      nodes +
+      subjects +
+      instructors +
+      covers +
+      banners +
+      Number(inNotes[0]?.n ?? 0)
+    );
   }
 
   private assertSize(buffer: Buffer, maxMb: number, label: string): void {
     if (buffer.length > maxMb * 1024 * 1024) {
       throw new AppError(413, ErrorCode.VALIDATION_FAILED, `${label} must be ${maxMb} MB or smaller`);
     }
+  }
+
+  /**
+   * A profile photo (D-074 / audit F-13): the same checks as any upload (real type from the bytes, size limit, pixel
+   * limit) and re-encoded to a 512 px square WebP, which also drops EXIF / GPS data.
+   */
+  async encodeAvatar(buffer: Buffer): Promise<Buffer> {
+    const detected = await fileTypeFromBuffer(buffer);
+    if (!detected || !IMAGE_TYPES.has(detected.mime)) {
+      throw new AppError(415, ErrorCode.VALIDATION_FAILED, 'Choose a JPEG, PNG or WebP picture');
+    }
+    this.assertSize(buffer, this.env.MEDIA_MAX_IMAGE_MB, 'Pictures');
+    const base = sharp(buffer, { limitInputPixels: MAX_IMAGE_PIXELS }).rotate();
+    try {
+      await base.metadata();
+    } catch {
+      throw new AppError(422, ErrorCode.VALIDATION_FAILED, 'The picture could not be read');
+    }
+    return base.resize({ width: 512, height: 512, fit: 'cover' }).webp({ quality: 80 }).toBuffer();
   }
 
   private findDuplicate(sha256: string, kind: 'image' | 'pdf', visibility: 'public' | 'private') {

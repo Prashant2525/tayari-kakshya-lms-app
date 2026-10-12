@@ -22,6 +22,12 @@ export function num(n: number, locale: Locale): string {
   return digits(String(n), locale);
 }
 
+/** A file size: "820 KB", "2.4 MB" (Devanagari digits for Nepali). */
+export function formatBytes(bytes: number, locale: Locale): string {
+  if (bytes < 1024 * 1024) return `${digits(String(Math.max(1, Math.round(bytes / 1024))), locale)} KB`;
+  return `${digits((bytes / (1024 * 1024)).toFixed(1), locale)} MB`;
+}
+
 /** Whole-number percentage; 0 when there is nothing to complete. */
 export function percent(done: number, total: number): number {
   return total > 0 ? Math.min(100, Math.floor((done / total) * 100)) : 0;

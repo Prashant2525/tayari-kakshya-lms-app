@@ -17,6 +17,8 @@ export const NoticeInput = z.object({
   expiresAt: z.iso.datetime().nullable(),
   /** D-060: also push to phones and email when it goes live (each student's preferences still apply). */
   notify: z.boolean(),
+  /** PDFs from the media library attached to the notice, in order (D-074 / audit F-12). */
+  attachmentMediaIds: z.array(z.uuid()).max(10).default([]),
 });
 export type NoticeInput = z.infer<typeof NoticeInput>;
 

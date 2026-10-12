@@ -207,6 +207,12 @@ AI study assistant (after L2), live classes (after L3), Apple IAP (only if decid
   categories, plans, coupons, notices and articles, loaded through the Admin API (D-071, T-073)
 - ☑ Live classes (S22): YouTube Live and Zoom per class, Free/Premium, reminders, join window, attendance,
   recording; CMS page; app section on Home, course page and class screen (D-072, T-074)
+- ☑ Audit fixes batch A (D-074): CMS quick links + staff leaderboard, first-launch language, Home upcoming exams /
+  latest notices, course "Try for free", PDF go to page
+- ☑ Audit fixes batch B (D-074): previous-year question browser, notice PDF attachments, email change, phone
+  add / change, profile photo
+- ☐ Audit fixes batch C (D-074): preview as student + content QA checklist (F-04), Home sections editor and
+  notification campaigns (F-08); then Phase 18 deployment
 - On hold (D-073): offline video; ConnectIPS once NCHL test credentials arrive; AI assistant (L2)
 
 ## Next concrete steps

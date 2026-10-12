@@ -334,6 +334,36 @@ export function usePracticeQuestions(courseId: string, subjectId: string, enable
   });
 }
 
+/** Previous-year questions (D-020, D-074): filters, then pages of questions (answers as in practice). */
+export interface PyqFilters {
+  examNodes: Array<{ id: string; name: LocalizedText }>;
+  papers: Array<{ id: string; name: LocalizedText }>;
+  years: number[];
+}
+export type PyqChoice = { examNodeId: string | null; paperId: string | null; yearBs: number | null };
+
+export function usePyqFilters() {
+  return useQuery({ queryKey: ['pyq', 'filters'], queryFn: () => api.get<PyqFilters>('/pyq/filters') });
+}
+
+export function usePyq(choice: PyqChoice) {
+  return useInfiniteQuery({
+    queryKey: ['pyq', choice],
+    queryFn: ({ pageParam }) => {
+      const params = new URLSearchParams({ limit: '20' });
+      if (choice.examNodeId) params.set('examNodeId', choice.examNodeId);
+      if (choice.paperId) params.set('paperId', choice.paperId);
+      if (choice.yearBs) params.set('yearBs', String(choice.yearBs));
+      if (pageParam) params.set('cursor', pageParam);
+      return api.get<{ data: PracticeQuestion[]; nextCursor: string | null; media: MediaMap }>(
+        `/pyq?${params}`,
+      );
+    },
+    initialPageParam: '',
+    getNextPageParam: (last) => last.nextCursor ?? undefined,
+  });
+}
+
 export function usePracticeQuestion(id: string) {
   return useQuery({
     queryKey: practiceKeys.one(id),

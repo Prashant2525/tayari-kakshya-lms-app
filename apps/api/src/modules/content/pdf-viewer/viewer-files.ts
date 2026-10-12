@@ -140,10 +140,20 @@ function onMessage(event) {
 window.addEventListener('message', onMessage);
 document.addEventListener('message', onMessage);
 
-async function open({ token, itemId, page }) {
-  if (!/^[0-9a-f-]{36}$/i.test(String(itemId))) return;
+const UUID = /^[0-9a-f-]{36}$/i;
+
+async function open({ token, itemId, noticeId, mediaId, page }) {
+  // A lesson PDF (watermarked), or a PDF attached to a notice (D-074 / audit F-12).
+  let path;
+  if (noticeId !== undefined) {
+    if (!UUID.test(String(noticeId)) || !UUID.test(String(mediaId))) return;
+    path = '../notices/' + noticeId + '/attachments/' + mediaId;
+  } else {
+    if (!UUID.test(String(itemId))) return;
+    path = '../learning-items/' + itemId + '/pdf';
+  }
   statusEl.textContent = '…';
-  const res = await fetch(new URL('../learning-items/' + itemId + '/pdf', location.href), {
+  const res = await fetch(new URL(path, location.href), {
     headers: { Authorization: 'Bearer ' + token },
     cache: 'no-store',
   });

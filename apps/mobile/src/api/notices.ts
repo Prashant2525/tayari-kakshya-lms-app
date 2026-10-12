@@ -19,6 +19,8 @@ export interface NoticeRow {
 export interface NoticeDetail extends Omit<NoticeRow, 'summary'> {
   body: { en?: RichNode; ne?: RichNode };
   media: MediaMap;
+  /** PDFs attached to the notice (D-074), opened in the in-app reader. */
+  attachments?: Array<{ id: string; name: string; sizeBytes: number }>;
 }
 
 export type NotificationLink =

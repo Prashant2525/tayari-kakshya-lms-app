@@ -19,6 +19,7 @@ import { AccountDeletionService } from './modules/auth/account-deletion.service.
 import { AdminAuthController } from './modules/auth/admin-auth.controller.js';
 import { AuthCleanupService } from './modules/auth/auth-cleanup.service.js';
 import { AuthController } from './modules/auth/auth.controller.js';
+import { ProfileService } from './modules/auth/profile.service.js';
 import { AuthService } from './modules/auth/auth.service.js';
 import { GoogleAuthLibraryVerifier, GoogleVerifier } from './modules/auth/google-verifier.js';
 import { MeController } from './modules/auth/me.controller.js';
@@ -158,6 +159,7 @@ export class InfraModule {}
     SessionService,
     OtpService,
     AuthService,
+    ProfileService,
     AccountDeletionService,
     AuthCleanupService,
     StaffService,
@@ -224,6 +226,7 @@ export class InfraModule {}
     OtpService,
     AuthService,
     AccountDeletionService,
+    ProfileService,
     AuthCleanupService,
     StaffService,
     AdminUsersService,

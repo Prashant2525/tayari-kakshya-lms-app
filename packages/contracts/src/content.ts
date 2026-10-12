@@ -123,6 +123,18 @@ export const PracticeQuery = CursorQuery.extend({
 });
 export type PracticeQuery = z.infer<typeof PracticeQuery>;
 
+/**
+ * Previous-year questions (D-020, D-074 / audit F-10), browsed by exam category (and everything under it), paper and
+ * year (BS).
+ */
+export const PyqQuery = CursorQuery.extend({
+  cursor: z.uuid().optional(),
+  examNodeId: z.uuid().optional(),
+  paperId: z.uuid().optional(),
+  yearBs: z.coerce.number().int().min(2000).max(2100).optional(),
+});
+export type PyqQuery = z.infer<typeof PyqQuery>;
+
 export const SearchQuery = z.object({ q: z.string().trim().min(2).max(120) });
 export type SearchQuery = z.infer<typeof SearchQuery>;
 
