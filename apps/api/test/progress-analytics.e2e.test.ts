@@ -347,13 +347,17 @@ describe('accuracy and weak / strong topics (S8)', () => {
       expect.objectContaining({ topicId: tenses.body.id, answered: 3, accuracy: 0 }),
     ]);
 
-    // Erasing the account removes its answers and study time.
+    // Erasing the account removes its answers, study time and lesson progress (Phase 15: progress was kept).
     await report(asha.token, { activity: 'reading', seconds: 30 });
+    await ctx.prisma.learningProgress.create({
+      data: { userId: asha.id, learningItemId: seeded.freeNote.id, completedAt: new Date() },
+    });
     await call(ctx, 'POST', '/me/deletion', { token: asha.token });
     await ctx.app.get(AccountDeletionService).processDue(new Date(Date.now() + 60 * DAY));
     expect(await ctx.prisma.practiceAnswer.count({ where: { userId: asha.id } })).toBe(0);
     expect(await ctx.prisma.studyTime.count({ where: { userId: asha.id } })).toBe(0);
     expect(await ctx.prisma.studyClock.count({ where: { userId: asha.id } })).toBe(0);
+    expect(await ctx.prisma.learningProgress.count({ where: { userId: asha.id } })).toBe(0);
   });
 
   it('refuses thresholds where the weak line is above the strong line', async () => {

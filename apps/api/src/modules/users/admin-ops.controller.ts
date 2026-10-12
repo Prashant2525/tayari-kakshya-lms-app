@@ -1,12 +1,14 @@
-import { Controller, Get, HttpCode, Param, ParseUUIDPipe, Patch, Post, Put } from '@nestjs/common';
+import { Controller, Get, HttpCode, Param, ParseUUIDPipe, Patch, Post, Put, Req } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import {
   AdminUserListQuery,
   AuditLogQuery,
   isSettingKey,
+  isSuperAdminOnlySetting,
   UpdateAdminUserInput,
   UpdateSettingInput,
 } from '@tk/contracts';
+import type { FastifyRequest } from 'fastify';
 import {
   Audiences,
   Client,
@@ -107,8 +109,12 @@ export class AdminOpsController {
     @ZodBody(UpdateSettingInput) body: UpdateSettingInput,
     @CurrentAuth() auth: AuthContext,
     @Client() client: ClientInfo,
+    @Req() req: FastifyRequest,
   ) {
     if (!isSettingKey(key)) throw Errors.notFound('Setting');
+    if (isSuperAdminOnlySetting(key) && !req.staffAccess?.isSuperAdmin) {
+      throw Errors.forbidden('Only a Super Admin can change this setting');
+    }
     return { key, value: await this.settings.update(key, body.value, auth.userId, client) };
   }
 

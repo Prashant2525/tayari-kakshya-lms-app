@@ -1,6 +1,6 @@
 # Test Status
 
-Last updated: 2026-10-12 (live classes). `pnpm test` runs unit + integration suites (needs `pnpm infra:up`);
+Last updated: 2026-10-12 (Phase 15 security hardening). `pnpm test` runs unit + integration suites (needs `pnpm infra:up`);
 `pnpm build && pnpm --filter @tk/admin e2e` and `pnpm build && pnpm --filter @tk/mobile e2e` run the browser suites
 (the student suite also needs Mailpit, part of `pnpm infra:up`).
 
@@ -11,7 +11,7 @@ Last updated: 2026-10-12 (live classes). `pnpm test` runs unit + integration sui
 | `@tk/design-tokens` | 39 | WCAG contrast for every text/background pair (light + dark), CSS generation |
 | `@tk/domain` | 64 | BS calendar, Kathmandu day boundary, fiscal year, money/VAT/discounts, access validity |
 | `@tk/contracts` | 21 | Schema behaviour (localized text, email normalisation, mass assignment, settings defaults, rich-text validation) |
-| `@tk/api` | 306 | Integration against real PostgreSQL + Redis + S3 (SeaweedFS) through the HTTP stack; TOTP RFC 6238 vectors; RBAC, video, watermark unit |
+| `@tk/api` | 319 | Integration against real PostgreSQL + Redis + S3 (SeaweedFS) through the HTTP stack; TOTP RFC 6238 vectors; RBAC, video, watermark unit |
 | `@tk/admin` (unit) | 35 | API client (headers, refresh single-flight, retry, session loss, error mapping), BS formatting, Button `asChild` regression |
 | `@tk/admin` (E2E, Playwright) | 38 | Real browser + real API + `*_e2e` database |
 | `@tk/mobile` (unit) | 45 | Saved PDF cut into pieces, Offline licence rules (expiry, clock set back, saved pictures), Study-time meter (idle limits, videos, innermost screen, background), development picture addresses on a phone, API client (single-flight refresh, early refresh, session end, maintenance), translations complete in both languages, BS dates and Kathmandu weekday, force-update/maintenance gate, form checks, Nepali phone numbers |
@@ -19,7 +19,21 @@ Last updated: 2026-10-12 (live classes). `pnpm test` runs unit + integration sui
 | `@tk/content-pack` | 19 | Markdown dialect → rich text; every pack payload valid against the API schemas; free first chapter; enough questions per quiz and subject test; note length; handouts render with no lost characters |
 | `@tk/web` (unit) | 8 | Session refresh used once (concurrent / late requests share it; refused → signed out; unreachable → retried), token expiry, both languages complete, failure messages |
 | `@tk/web` (E2E, Playwright) | 10 | `next start` production build + real API + `*_web_e2e` database + Mailpit + gateway stand-in; access tokens last 60 s so every page load refreshes |
-| **Total** | **631** | |
+| **Total** | **644** | |
+
+### Added with Phase 15 security hardening (T-075)
+- **API (13 new, 1 extended):** route inventory over all 345 routes (public list, staff-only `/admin` with
+  permissions, student-only elsewhere — 4); `TRUST_PROXY` parsing and the production refusal (4); log URL redaction
+  (2); erasure coverage over the schema (1); staff 2FA — 5 guesses per sign-in, then even the right code is refused
+  (1); the 2FA policy setting refused for a non-Super Admin with `settings:update`, allowed for a Super Admin (1);
+  erasure removes lesson progress (extended).
+- **Mutation checks (7 of 7 caught):** per-sign-in 2FA limit removed; Super Admin check removed; staff audience
+  dropped from a CMS controller; a route made public; `TRUST_PROXY=true` allowed in production; `sig` not redacted;
+  lesson progress not erased. The erasure coverage test also fails when the live-attendance line is commented out.
+- **Browser suites unchanged and passing:** CMS 38/38, student app 46/46. The CMS settings card for the 2FA policy
+  (read-only for non-Super Admins) was not screenshot-checked — no seeded non-Super-Admin account has
+  `settings:update`; the server-side refusal is tested.
+- `pnpm audit --prod --audit-level high` passes with two reviewed exceptions (SECURITY_REVIEW R-1).
 
 ### Added with live classes (D-072, T-074)
 - **API (2, `live.e2e.test.ts`):** drafts hidden from students; publishing notifies students with course access but

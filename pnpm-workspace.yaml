@@ -22,3 +22,14 @@ minimumReleaseAgeExclude:
   - bullmq@6.3.11
   - '@aws-sdk/client-s3@3.1145.0'
   - '@aws-sdk/s3-request-presigner@3.1145.0'
+overrides:
+  # Phase 15: GHSA advisory in shell-quote <1.11 (React DevTools in the app's dev tooling); same major version.
+  shell-quote: ^1.11.0
+# Phase 15 dependency audit (CI fails on high / critical). Known, reviewed and without a fixed release — remove an
+# entry as soon as a fix ships (docs/SECURITY_REVIEW.md):
+auditConfig:
+  ignoreGhsas:
+    # node-forge (Expo CLI, build machine only): RSA PKCS#1 v1.5 signature check; not used at runtime.
+    - GHSA-86w9-cpqp-85rv
+    # braces (Metro bundler, build machine only): stack exhaustion on crafted glob patterns.
+    - GHSA-vfj7-8cjw-p6xm

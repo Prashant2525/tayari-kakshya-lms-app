@@ -19,8 +19,8 @@ Scope = approved decisions only (`DECISIONS.md`). Each phase ends with tests, do
 | 11 | Commerce + website checkout | see §11 | ☑ (part 4b in PR) |
 | 12 | Communication & CMS content | see §12 | ☑ |
 | 13 | Progress & community | see §13 | ☑ |
-| 14 | Advanced approved features | see §14 | ☐ |
-| 15 | Security hardening | authn/authz/IDOR/uploads/payments/rate limits/secrets review | ☐ |
+| 14 | Advanced approved features | see §14 | ◐ rest on hold (D-073) |
+| 15 | Security hardening | authn/authz/IDOR/uploads/payments/rate limits/secrets review — `SECURITY_REVIEW.md` (T-075) | ☑ (on merge) |
 | 16 | Full testing + bug fixing | systematic pass; load test weekly-exam burst | ☐ |
 | 17 | Production audit | `PRODUCTION_READINESS_AUDIT.md` | ☐ |
 | 18 | Release | VPS deployment, monitoring, backups, store submissions, `RELEASE_READINESS.md` | ☐ |
@@ -207,7 +207,7 @@ AI study assistant (after L2), live classes (after L3), Apple IAP (only if decid
   categories, plans, coupons, notices and articles, loaded through the Admin API (D-071, T-073)
 - ☑ Live classes (S22): YouTube Live and Zoom per class, Free/Premium, reminders, join window, attendance,
   recording; CMS page; app section on Home, course page and class screen (D-072, T-074)
-- Later (D-067): offline video; ConnectIPS once NCHL test credentials arrive; AI assistant (L2)
+- On hold (D-073): offline video; ConnectIPS once NCHL test credentials arrive; AI assistant (L2)
 
 ## Next concrete steps
 1. Owner reviews and merges the `feature/admin-foundation` PR; confirm both CI jobs (`verify`, `admin-e2e`) are green.

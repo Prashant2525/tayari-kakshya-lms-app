@@ -13,6 +13,27 @@ const bool = z
   .enum(['true', 'false', '1', '0'])
   .default('false')
   .transform((v) => v === 'true' || v === '1');
+/**
+ * Which proxies may tell the API the visitor's address (X-Forwarded-For): `false`, or the proxies' addresses / CIDR
+ * ranges (`127.0.0.1,10.0.0.0/8`) — then a forged header from anyone else is ignored. `true` trusts any sender and is
+ * refused in staging and production (rate limits by IP could be dodged).
+ */
+const trustProxy = z
+  .string()
+  .default('false')
+  .transform((v) => v.trim())
+  .pipe(
+    z.union([
+      z.enum(['true', 'false', '1', '0']).transform((v) => v === 'true' || v === '1'),
+      z
+        .string()
+        .regex(
+          /^[0-9a-fA-F:.]+(\/\d{1,3})?(\s*,\s*[0-9a-fA-F:.]+(\/\d{1,3})?)*$/,
+          'a list of IP addresses or CIDR ranges',
+        )
+        .transform((v) => v.split(',').map((x) => x.trim())),
+    ]),
+  );
 const optional = z
   .string()
   .optional()
@@ -31,7 +52,7 @@ export const EnvSchema = z
     APP_ENV: z.enum(['development', 'test', 'staging', 'production']).default('development'),
     PORT: z.coerce.number().int().min(1).max(65535).default(4000),
     LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).default('info'),
-    TRUST_PROXY: bool,
+    TRUST_PROXY: trustProxy,
     /** Requests per minute per IP on routes without their own limit (all routes also keep their own limits). */
     RATE_LIMIT_DEFAULT_PER_MINUTE: z.coerce.number().int().min(60).max(100_000).default(300),
     CORS_ALLOWED_ORIGINS: csv,
@@ -129,6 +150,13 @@ export const EnvSchema = z
         code: 'custom',
         path: ['EMAIL_PROVIDER'],
         message: 'log email provider is not allowed here',
+      });
+    }
+    if (prodLike && env.TRUST_PROXY === true) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['TRUST_PROXY'],
+        message: "list the reverse proxy's and the website server's addresses instead of true",
       });
     }
     if (prodLike && env.SMS_PROVIDER === 'log') {

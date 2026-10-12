@@ -59,7 +59,11 @@ export class AdminAuthController {
   @Public()
   @Post('login/mfa')
   @HttpCode(200)
-  @RateLimit({ name: 'admin.login.mfa', limit: 10, windowSeconds: 900, by: ['ip'] })
+  @RateLimit(
+    { name: 'admin.login.mfa', limit: 10, windowSeconds: 900, by: ['ip'] },
+    // Per sign-in, so codes cannot be guessed from many addresses (each sign-in needs the password; 5 per 15 min).
+    { name: 'admin.login.mfa.token', limit: 5, windowSeconds: 900, by: ['body.mfaToken'] },
+  )
   @ApiZodBody(MfaLoginInput)
   async loginMfa(
     @ZodBody(MfaLoginInput) body: MfaLoginInput,

@@ -202,6 +202,13 @@ Current task: Phase 11 part 3 (receipts + refunds) done on `feature/receipts-ref
 - Nothing partially implemented. Admin screens for Phase 6 not started.
 
 ## Exact next steps
+0zb. 2026-10-12: PR #51 merged (main CI green). Owner put the rest of Phase 14 on hold (D-073) and asked to continue
+   with the next phases. Phase 15 on `feature/security-hardening` (T-075): `docs/SECURITY_REVIEW.md` lists findings
+   F-1…F-7 (fixed) and remaining risks R-1…R-6. New guard tests: `apps/api/test/route-security.e2e.test.ts` (update its
+   PUBLIC / SHARED / STAFF_SELF lists only on purpose) and `src/modules/auth/account-deletion.coverage.test.ts` (a new
+   table with a user column must be erased or listed as kept). CI now runs `pnpm audit --prod --audit-level high`;
+   reviewed exceptions live in `pnpm-workspace.yaml` (`auditConfig.ignoreGhsas`). `TRUST_PROXY` now takes addresses.
+   Next: Phase 16 — systematic test pass and bug fixing (playbook §11.16), including the weekly-exam load test.
 0za. 2026-10-12: PR #50 merged (main CI green). Owner chose live classes next and answered L3 (D-072): YouTube Live
    and Zoom per class from the CMS, Free/Premium per class, reminders (scheduled, before, live), recording link,
    attendance on join; AI assistant not now. `feature/live-classes` (T-074): `apps/api/src/modules/live`
