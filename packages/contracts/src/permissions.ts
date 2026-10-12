@@ -46,6 +46,7 @@ export const PERMISSIONS = {
   'discussions:moderate':
     'Answer doubts as a teacher, mark best answers, hide reported posts and stop a student posting',
   'reviews:moderate': 'Approve or reject course reviews before students and website visitors see them',
+  'live:manage': 'Schedule live classes, start and end them, add recordings and see attendance',
   'orders:read': 'View orders, payments and what the payment gateways reported',
   'orders:manage': 'Check a payment again with its gateway',
 } as const;

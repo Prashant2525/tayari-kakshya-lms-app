@@ -7,6 +7,7 @@ import { useCourse, useEnrol, type CourseDetail } from '@/api/learning';
 import { CertificateCard } from '@/features/courses/certificate-card';
 import { CourseArt, PriceText } from '@/features/courses/course-card';
 import { RichText } from '@/features/learn/rich-text';
+import { CourseLiveClasses } from '@/features/live/live-card';
 import { CourseReviews } from '@/features/reviews/course-reviews';
 import { RatingLine } from '@/features/reviews/stars';
 import { TestsLink } from '@/features/tests/tests-link';
@@ -126,6 +127,8 @@ export default function CourseScreen() {
               <SubjectRow key={s.id} course={c} subject={s} index={i} />
             ))}
           </View>
+
+          <CourseLiveClasses courseId={c.id} />
 
           <TestsLink title={t('tests.title')} courseId={c.id} />
 

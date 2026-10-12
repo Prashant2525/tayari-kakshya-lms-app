@@ -1,6 +1,6 @@
 # Test Status
 
-Last updated: 2026-10-12 (university content pack). `pnpm test` runs unit + integration suites (needs `pnpm infra:up`);
+Last updated: 2026-10-12 (live classes). `pnpm test` runs unit + integration suites (needs `pnpm infra:up`);
 `pnpm build && pnpm --filter @tk/admin e2e` and `pnpm build && pnpm --filter @tk/mobile e2e` run the browser suites
 (the student suite also needs Mailpit, part of `pnpm infra:up`).
 
@@ -11,15 +11,38 @@ Last updated: 2026-10-12 (university content pack). `pnpm test` runs unit + inte
 | `@tk/design-tokens` | 39 | WCAG contrast for every text/background pair (light + dark), CSS generation |
 | `@tk/domain` | 64 | BS calendar, Kathmandu day boundary, fiscal year, money/VAT/discounts, access validity |
 | `@tk/contracts` | 21 | Schema behaviour (localized text, email normalisation, mass assignment, settings defaults, rich-text validation) |
-| `@tk/api` | 304 | Integration against real PostgreSQL + Redis + S3 (SeaweedFS) through the HTTP stack; TOTP RFC 6238 vectors; RBAC, video, watermark unit |
+| `@tk/api` | 306 | Integration against real PostgreSQL + Redis + S3 (SeaweedFS) through the HTTP stack; TOTP RFC 6238 vectors; RBAC, video, watermark unit |
 | `@tk/admin` (unit) | 35 | API client (headers, refresh single-flight, retry, session loss, error mapping), BS formatting, Button `asChild` regression |
-| `@tk/admin` (E2E, Playwright) | 36 | Real browser + real API + `*_e2e` database |
+| `@tk/admin` (E2E, Playwright) | 38 | Real browser + real API + `*_e2e` database |
 | `@tk/mobile` (unit) | 45 | Saved PDF cut into pieces, Offline licence rules (expiry, clock set back, saved pictures), Study-time meter (idle limits, videos, innermost screen, background), development picture addresses on a phone, API client (single-flight refresh, early refresh, session end, maintenance), translations complete in both languages, BS dates and Kathmandu weekday, force-update/maintenance gate, form checks, Nepali phone numbers |
-| `@tk/mobile` (E2E, Playwright, phone viewport) | 43 | Web build + real API + `*_mobile_e2e` database + Mailpit |
+| `@tk/mobile` (E2E, Playwright, phone viewport) | 46 | Web build + real API + `*_mobile_e2e` database + Mailpit |
 | `@tk/content-pack` | 19 | Markdown dialect → rich text; every pack payload valid against the API schemas; free first chapter; enough questions per quiz and subject test; note length; handouts render with no lost characters |
 | `@tk/web` (unit) | 8 | Session refresh used once (concurrent / late requests share it; refused → signed out; unreachable → retried), token expiry, both languages complete, failure messages |
 | `@tk/web` (E2E, Playwright) | 10 | `next start` production build + real API + `*_web_e2e` database + Mailpit + gateway stand-in; access tokens last 60 s so every page load refreshes |
-| **Total** | **624** | |
+| **Total** | **631** | |
+
+### Added with live classes (D-072, T-074)
+- **API (2, `live.e2e.test.ts`):** drafts hidden from students; publishing notifies students with course access but
+  not a visitor or a student with only a free enrolment (Premium class); the link is never in a list or detail;
+  joining before the window → 409 with `opensAt` and no link; a student without access → locked; the worker sends the
+  reminder, takes the class live (notified) and ends it after its length plus grace; joining returns the
+  youtube-nocookie embed and records attendance (joins counted); attendance list and audited CSV; recording set and
+  played back; audit actions without link or passcode. Second test: a Free Zoom class with the join window changed
+  in the CMS setting, rescheduling notifies the new time, cancelling notifies and stops joining, permissions (403
+  without `live:manage`, 401 signed out), staff list filters.
+- **Mutation checks (5 of 6 caught):** join without the access check, Premium recipients not limited, join window
+  ignored, drafts visible, link in the student view — each fails the tests. Removing the "reminder already sent"
+  check is not caught by design: the reminder's notification source key also stops a second send (two independent
+  guards).
+- **Admin browser (2):** schedule a Free Zoom class (empty form refused; a YouTube link for Zoom refused by the
+  server), publish, the seeded student's early join refused without the link, Go live, the join returns the Zoom link
+  and passcode and appears in Attendance; End (form locked), add the recording, listed under Past with 1 joined.
+- **Student browser (3):** the course page lists both classes; Home shows "Live now"; the class screen plays the
+  YouTube class in the app (youtube-nocookie iframe); the Premium class is locked for a free-enrolled (seeded, fourth) student and no
+  response carries the Zoom link or passcode; Past is empty; Profile → Notifications has the Live classes switch.
+- **Screenshots** (CMS 1440 px: list, live class with attendance, scheduled Zoom class; app phone viewport: Home,
+  course page, class before and after joining with the video playing, Zoom class before its window, locked Premium
+  class, list, notification settings) — checked by eye.
 
 ### Added with the university content pack (D-071, T-073)
 - **Unit (19):** the Markdown dialect (marks, nesting, escapes, lone markers; blocks; output accepted by the

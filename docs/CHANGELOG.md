@@ -4,6 +4,16 @@ All notable changes to this project. Format based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Added — 2026-10-12 (live classes, D-072)
+- Live classes on YouTube Live or Zoom for a course, Free or Premium per class. Staff schedule them in the CMS
+  (Live classes), publish them, take them live and end them (or the worker does at the start time and after the
+  class length), add the recording and see who joined (CSV download).
+- Students are told when a class is scheduled, shortly before it starts and when it goes live (and when it moves or
+  is cancelled); Profile → Notifications has a Live classes switch.
+- App: "Live now" / "Next live class" on Home, a Live classes section on the course page, a list of upcoming and past
+  classes, and a class screen — YouTube plays inside the app, Zoom opens in the Zoom app with the passcode shown;
+  the recording plays afterwards. The link is only given to a student who may join, when they join.
+
 ### Added — 2026-10-12 (university content pack, D-071)
 - Five courses — Introductory Biology, Operating Systems, Software Engineering, Deep Learning Foundations and
   Introduction to Multimedia — with 24 chapters (55 topics, about 17,000 words) of original notes, a PDF handout per

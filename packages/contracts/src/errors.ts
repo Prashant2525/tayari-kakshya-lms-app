@@ -64,6 +64,8 @@ export const ErrorCode = {
   PAYMENT_GATEWAY_ERROR: 'PAYMENT_GATEWAY_ERROR',
   /** A course is reviewed after finishing part of it (details.requiredPercent, details.progressPercent; D-066). */
   REVIEW_NOT_ALLOWED: 'REVIEW_NOT_ALLOWED',
+  /** A live class cannot be joined now (details.opensAt; D-072): not open yet, ended or cancelled. */
+  LIVE_CLASS_CLOSED: 'LIVE_CLASS_CLOSED',
 } as const;
 export type ErrorCode = (typeof ErrorCode)[keyof typeof ErrorCode];
 

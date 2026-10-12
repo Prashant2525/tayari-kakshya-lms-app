@@ -1,6 +1,6 @@
 # Suggested Features (Approved)
 
-Status: **ALL APPROVED by owner on 2026-10-02 (Q34, D-035).** Sequencing is in `IMPLEMENTATION_PLAN.md`; S11 offline video applies to Bunny-hosted videos only (D-015); S13 AI assistant and S22 live classes need provider decisions (OPEN_QUESTIONS L2, L3).
+Status: **ALL APPROVED by owner on 2026-10-02 (Q34, D-035).** Sequencing is in `IMPLEMENTATION_PLAN.md`; S11 offline video applies to Bunny-hosted videos only (D-015); S13 AI assistant needs a provider decision (OPEN_QUESTIONS L2); S22 live classes were decided in D-072.
 Only approved rows enter `IMPLEMENTATION_PLAN.md`. Rows marked *Playbook* are already in the master prompt's student-app scope but need confirmation of depth.
 
 | # | Feature | Why it matters for Lok Sewa prep | Effort | Decision |

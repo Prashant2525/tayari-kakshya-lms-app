@@ -385,6 +385,9 @@ Changes: attempt start on a daily challenge — before its day 409 `not_open`; a
 | POST | `/me/push-tokens` `{token, platform}`, `/me/push-tokens/remove` `{token}` | Expo push token of this device |
 | GET | `/pages`, `/pages/:slug`, `/faqs`, `/contact-options` | public (T-062): published pages (last version; no refund page for iPhone), active FAQs (iPhone-hidden ones left out), active contact options |
 | GET | `/search?q=` | unified search: courses, lessons, questions and articles (live only) |
+| GET | `/live-classes?when=upcoming\|past&courseId=&cursor=&limit=` / `/live-classes/:id` | live classes (T-074) of a course, or of the student's courses; published only; never the link — `access`, `joinOpensAt`, `canJoin`, `attended`, `hasRecording` |
+| POST | `/live-classes/:id/join` | the link, only to a student who may join (Free: anyone signed in; Premium: course access) while it is open; records attendance. YouTube `{embedUrl}` (youtube-nocookie), Zoom `{joinUrl, passcode}`. Closed → 409 `LIVE_CLASS_CLOSED` `{opensAt, status}`; no access → 403 `CONTENT_LOCKED`. 60/hour |
+| GET | `/live-classes/:id/recording` | signed / privacy-enhanced playback of the recording (same access as joining) |
 
 ## 8. Commerce & payments
 | Method | Path | Notes |
@@ -421,6 +424,7 @@ Every module exposes `GET list` (search/filter/sort/paginate), `GET :id`, `POST`
 - Articles (built, T-060): `GET|POST /admin/articles`, `GET|PUT|DELETE /admin/articles/:id`, `PUT /admin/articles/:id/status`, `GET /admin/article-quizzes` — `articles:edit` (publishing and live edits `articles:publish`); `GET /admin/article-categories`, `POST /admin/article-categories`, `PUT /admin/article-categories/:id` — `articles:publish`
 - Interested on iPhone (built, T-058): `GET /admin/course-interests?status=open|contacted`, `GET /admin/course-interests/:id/email` (filled-in draft), `POST /admin/course-interests/:id/contact` `{subject, body}` — `interests:manage`
 - Course updates (built, T-056): `GET|POST /admin/courses/:id/updates` — `courses:notify` (history + students with access; send `{title, message}` to them)
+- Live classes (built, T-074): `GET|POST /admin/live-classes` (`?when=&courseId=`), `GET|PUT|DELETE /admin/live-classes/:id`, `POST /admin/live-classes/:id/publish|start|end|cancel`, `PUT /admin/live-classes/:id/recording` `{recording: {provider: youtube, url} | {provider: bunny, videoId} | null}`, `GET /admin/live-classes/:id/attendance`, `GET /admin/live-classes/:id/attendance.csv` (audited export) — `live:manage`, limited to the staff member's course scope
 - Notices (built, T-055): `GET|POST /admin/notices`, `GET|PUT|DELETE /admin/notices/:id`, `PUT /admin/notices/:id/status` — `notices:edit`; publishing and live edits need `notices:publish`
 - `/admin/settings`, `/admin/audit-logs`, `/admin/dashboard` (KPIs), `/admin/reports/*` (exports CSV/XLSX)
 

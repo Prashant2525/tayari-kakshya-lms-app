@@ -56,6 +56,8 @@ import {
   DiscussionsController,
 } from './modules/discussions/discussions.controller.js';
 import { DiscussionsService } from './modules/discussions/discussions.service.js';
+import { AdminLiveController, LiveController } from './modules/live/live.controller.js';
+import { LiveService } from './modules/live/live.service.js';
 import { AnalyticsController, ExportsController } from './modules/analytics/analytics.controller.js';
 import { AnalyticsService } from './modules/analytics/analytics.service.js';
 import { OfflineController } from './modules/content/offline.controller.js';
@@ -181,6 +183,7 @@ export class InfraModule {}
     PlannerService,
     ReviewsService,
     DiscussionsService,
+    LiveService,
     AnalyticsService,
     OfflineService,
     ExportsService,
@@ -245,6 +248,7 @@ export class InfraModule {}
     PlannerService,
     ReviewsService,
     DiscussionsService,
+    LiveService,
     AnalyticsService,
     OfflineService,
     ExportsService,
@@ -332,6 +336,8 @@ export class DomainModule {}
     AdminReviewsController,
     DiscussionsController,
     AdminDiscussionsController,
+    LiveController,
+    AdminLiveController,
     AnalyticsController,
     ExportsController,
     OfflineController,

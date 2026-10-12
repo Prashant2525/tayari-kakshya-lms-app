@@ -85,6 +85,9 @@ model User {
   pushTokens          PushToken[]
   notificationPrefs   NotificationPreference?
   courseUpdatesSent   CourseUpdate[]
+  liveClassesTaught   LiveClass[]              @relation("LiveInstructor")
+  liveClassesCreated  LiveClass[]              @relation("LiveCreator")
+  liveAttendance      LiveAttendance[]
   courseInterests     CourseInterest[]         @relation("InterestedStudent")
   interestsContacted  CourseInterest[]         @relation("InterestContactedBy")
   accountEmails       AccountEmail[]
@@ -631,7 +634,8 @@ model VideoAsset {
   createdAt       DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt       DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  items LearningItem[]
+  items          LearningItem[]
+  liveRecordings LiveClass[]
 
   @@unique([provider, providerVideoId])
   @@map("video_assets")
@@ -687,6 +691,7 @@ model Course {
   assessments Assessment[]
   progress    LearningProgress[]
   updates     CourseUpdate[]
+  liveClasses LiveClass[]
   interests   CourseInterest[]
   studyPlans  StudyPlan[]
   reviews     CourseReview[]
@@ -2049,6 +2054,7 @@ enum NotificationCategory {
   purchase
   article
   discussion
+  live_class
 }
 
 /// A student's in-app notification (D-033). `sourceKey` makes each event land once per student.
@@ -2403,4 +2409,72 @@ model Banner {
 
   @@index([active, sortOrder])
   @@map("banners")
+}
+
+// ───────────────────────────── Live classes (S22, D-072) ─────────────────────────────
+
+enum LiveProvider {
+  youtube
+  zoom
+}
+
+enum LiveStatus {
+  scheduled
+  live
+  ended
+  cancelled
+}
+
+/// A live class of a course on YouTube Live (unlisted) or Zoom. Drafts are visible to staff only; publishing tells the
+/// course's students. The join link is given only to a student who may join, when they join (D-072).
+model LiveClass {
+  id               String       @id @default(uuid(7)) @db.Uuid
+  courseId         String       @map("course_id") @db.Uuid
+  title            Json
+  description      Json?
+  provider         LiveProvider
+  joinUrl          String       @map("join_url")
+  passcode         String?
+  startsAt         DateTime     @map("starts_at") @db.Timestamptz(6)
+  durationMinutes  Int          @map("duration_minutes")
+  accessLevel      AccessLevel  @map("access_level")
+  instructorId     String?      @map("instructor_id") @db.Uuid
+  status           LiveStatus   @default(scheduled)
+  publishedAt      DateTime?    @map("published_at") @db.Timestamptz(6)
+  /// The start time the "starting soon" reminder was sent for (a new time sends a new one).
+  remindedFor      DateTime?    @map("reminded_for") @db.Timestamptz(6)
+  startedAt        DateTime?    @map("started_at") @db.Timestamptz(6)
+  endedAt          DateTime?    @map("ended_at") @db.Timestamptz(6)
+  cancelledAt      DateTime?    @map("cancelled_at") @db.Timestamptz(6)
+  recordingVideoId String?      @map("recording_video_id") @db.Uuid
+  createdById      String       @map("created_by") @db.Uuid
+  createdAt        DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime     @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt        DateTime?    @map("deleted_at") @db.Timestamptz(6)
+
+  course     Course           @relation(fields: [courseId], references: [id], onDelete: Restrict)
+  instructor User?            @relation("LiveInstructor", fields: [instructorId], references: [id], onDelete: SetNull)
+  createdBy  User             @relation("LiveCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  recording  VideoAsset?      @relation(fields: [recordingVideoId], references: [id], onDelete: SetNull)
+  attendance LiveAttendance[]
+
+  @@index([courseId, startsAt])
+  @@index([status, startsAt])
+  @@map("live_classes")
+}
+
+/// Who joined a live class (D-072): first and last join and how many times.
+model LiveAttendance {
+  liveClassId   String   @map("live_class_id") @db.Uuid
+  userId        String   @map("user_id") @db.Uuid
+  firstJoinedAt DateTime @default(now()) @map("first_joined_at") @db.Timestamptz(6)
+  lastJoinedAt  DateTime @default(now()) @map("last_joined_at") @db.Timestamptz(6)
+  joins         Int      @default(1)
+
+  liveClass LiveClass @relation(fields: [liveClassId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([liveClassId, userId])
+  @@index([userId])
+  @@map("live_attendance")
 }

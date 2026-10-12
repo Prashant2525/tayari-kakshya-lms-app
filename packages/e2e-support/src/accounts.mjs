@@ -19,3 +19,5 @@ export const E2E_STUDENT_EMAIL = 'e2e-student@example.test';
 export const E2E_STUDENT2_EMAIL = 'e2e-student-2@example.test';
 /** A third one (study planner). */
 export const E2E_STUDENT3_EMAIL = 'e2e-student-3@example.test';
+/** A fourth one (live classes). */
+export const E2E_STUDENT4_EMAIL = 'e2e-student-4@example.test';
