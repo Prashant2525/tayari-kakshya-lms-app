@@ -11,3 +11,5 @@ docs/**/*.md
 next-env.d.ts
 playwright-report
 test-results
+tools/content-pack/.state
+tools/content-pack/out

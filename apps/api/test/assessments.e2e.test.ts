@@ -163,6 +163,18 @@ describe('assessment builder', () => {
       'There are written (subjective) questions: choose self-evaluation or instructor grading',
       'Pass marks (50) are higher than the total marks (3)',
     ]);
+
+    // A pool limited to objective types does not count the subject's written questions.
+    const objectiveOnly = await structure(token, a.id, [
+      {
+        pickMode: 'random',
+        filter: { subjectId: subject, types: ['single_choice', 'multiple_choice', 'true_false'] },
+        questionCount: 2,
+      },
+    ]);
+    expect(objectiveOnly.body.readiness.problems.map((p: { message: string }) => p.message)).not.toContain(
+      'There are written (subjective) questions: choose self-evaluation or instructor grading',
+    );
   });
 
   it('validates rules: windows, result timing, daily challenges and links', async () => {

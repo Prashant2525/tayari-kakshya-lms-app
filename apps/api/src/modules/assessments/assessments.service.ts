@@ -305,7 +305,8 @@ export class AssessmentsService {
         const where = poolWhere(filter);
         const [available, subjective, agg] = await Promise.all([
           this.prisma.question.count({ where }),
-          this.prisma.question.count({ where: { ...where, type: 'subjective' } }),
+          // Both conditions: spreading `type` would replace the pool's own type filter (e.g. objective types only).
+          this.prisma.question.count({ where: { AND: [where, { type: 'subjective' }] } }),
           this.prisma.question.aggregate({
             where,
             _min: { defaultMarks: true },

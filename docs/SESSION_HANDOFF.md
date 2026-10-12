@@ -202,6 +202,15 @@ Current task: Phase 11 part 3 (receipts + refunds) done on `feature/receipts-ref
 - Nothing partially implemented. Admin screens for Phase 6 not started.
 
 ## Exact next steps
+0z. 2026-10-12: PR #49 merged. Owner asked for full courses from the PDFs in `Courses/` (local-only). D-071 answers
+   recorded; `feature/content-pack` (T-073) adds `tools/content-pack` and imported it into the **local dev DB** (counts
+   in TEST_STATUS). Import: `CONTENT_API_URL=… CONTENT_ADMIN_EMAIL=… CONTENT_ADMIN_PASSWORD=… [CONTENT_ADMIN_MFA_CODE=…]
+   pnpm --filter @tk/content-pack import` — re-runnable (ids in `tools/content-pack/.state/`, git-ignored). Staff
+   sign-in is limited to 5 per 15 minutes per account; the importer waits out per-minute write limits itself. The dev
+   owner account needs 2FA set up before it can call the Admin API: for the import it was enrolled and afterwards
+   reset again (back to "enrol on first sign-in"). Dev-only student `demo-student@example.test` / `Demo student
+   pass 1` was created to check the student view. Fixed on the way: assessment readiness ignored a random section's
+   type filter when looking for written questions.
 0y. 2026-10-12: Owner asked (on PR #49) for scroll animation, more UI polish and the invisible status bar
    (D-070): same branch, T-072 — `ui/scroll-header.tsx` (useScrollMotion, LargeTitle, CompactBar,
    useStatusBarStyle). A screen with a navy hero must call `useStatusBarStyle('light')`.
