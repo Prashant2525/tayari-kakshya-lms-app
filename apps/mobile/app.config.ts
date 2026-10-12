@@ -15,6 +15,21 @@ const iosBundleId = process.env.APP_IOS_BUNDLE_ID || APP_ID;
 const EAS_OWNER = 'prashantdhimals-team';
 const easProjectId = process.env.EAS_PROJECT_ID || 'ba6edf8d-8869-4213-97c9-99e9ddf12cdd';
 
+/**
+ * A store build without the API's public address would install fine and then fail to reach anything (the address is
+ * built into the app). EAS sets EAS_BUILD_PROFILE while building; the production profile must have an https API
+ * (EAS environment "production", see the deployment guide).
+ */
+if (
+  process.env.EAS_BUILD_PROFILE === 'production' &&
+  !/^https:\/\/[^/]+/.test(process.env.EXPO_PUBLIC_API_URL ?? '')
+) {
+  throw new Error(
+    'EXPO_PUBLIC_API_URL must be the https address of the production API for a production build ' +
+      '(eas env:set --environment production --name EXPO_PUBLIC_API_URL ...).',
+  );
+}
+
 const config: ExpoConfig = {
   name: 'Tayari Kakshya',
   owner: EAS_OWNER,
@@ -29,6 +44,9 @@ const config: ExpoConfig = {
     package: androidPackage,
     // Tokens and the device id live in the Keystore-backed secure store; never in auto backups.
     allowBackup: false,
+    // Firebase's google-services.json registers the Android app with FCM for push notifications. Its path comes from
+    // GOOGLE_SERVICES_JSON (an EAS "file" environment variable for store builds); without it, Android push is off.
+    ...(process.env.GOOGLE_SERVICES_JSON ? { googleServicesFile: process.env.GOOGLE_SERVICES_JSON } : {}),
   },
   web: { output: 'single', bundler: 'metro' },
   plugins: [

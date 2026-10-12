@@ -4,6 +4,21 @@ All notable changes to this project. Format based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Added — 2026-10-12 (configuration & deployment guide, T-076)
+- `docs/ENVIRONMENT_AND_PRODUCTION_DEPLOYMENT_GUIDE.md`: every environment variable (checked against the code), which
+  file each app reads, service-by-service setup (database, Redis, R2, email, Google, Bunny, YouTube, push, Sentry,
+  PostHog, EAS, stores, DNS), eSewa / Khalti production switch, ConnectIPS gap, dev → staging → production, the
+  deployment runbook, smoke tests, rollback and a status audit.
+- `pnpm --filter @tk/api cli config-check [--connect] [--env-file <path>]`: checks a configuration before a server is
+  started (no values printed); `--connect` also tests the database and pending migrations, Redis, storage, SMTP and
+  Bunny.
+- The API refuses to start in staging / production without the Bunny token key (when Bunny is set), with re-used
+  secrets or with an http media address; the website refuses to start in production without its addresses; a
+  production app build stops without an https API address.
+- App: Android push can use Firebase's `google-services.json` through `GOOGLE_SERVICES_JSON`; build profiles use EAS
+  environments.
+- Templates: `apps/mobile/.env.example` and `apps/admin/.env.example`; unused names removed from the root template.
+
 ### Security — 2026-10-12 (Phase 15 hardening, T-075; details in docs/SECURITY_REVIEW.md)
 - Staff sign-in: at most 5 two-factor code attempts per sign-in (codes could be guessed from many addresses).
 - The staff two-factor policy can only be changed by a Super Admin.

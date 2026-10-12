@@ -1,6 +1,6 @@
 # Test Status
 
-Last updated: 2026-10-12 (Phase 15 security hardening). `pnpm test` runs unit + integration suites (needs `pnpm infra:up`);
+Last updated: 2026-10-12 (configuration & deployment guide). `pnpm test` runs unit + integration suites (needs `pnpm infra:up`);
 `pnpm build && pnpm --filter @tk/admin e2e` and `pnpm build && pnpm --filter @tk/mobile e2e` run the browser suites
 (the student suite also needs Mailpit, part of `pnpm infra:up`).
 
@@ -11,7 +11,7 @@ Last updated: 2026-10-12 (Phase 15 security hardening). `pnpm test` runs unit + 
 | `@tk/design-tokens` | 39 | WCAG contrast for every text/background pair (light + dark), CSS generation |
 | `@tk/domain` | 64 | BS calendar, Kathmandu day boundary, fiscal year, money/VAT/discounts, access validity |
 | `@tk/contracts` | 21 | Schema behaviour (localized text, email normalisation, mass assignment, settings defaults, rich-text validation) |
-| `@tk/api` | 319 | Integration against real PostgreSQL + Redis + S3 (SeaweedFS) through the HTTP stack; TOTP RFC 6238 vectors; RBAC, video, watermark unit |
+| `@tk/api` | 326 | Integration against real PostgreSQL + Redis + S3 (SeaweedFS) through the HTTP stack; TOTP RFC 6238 vectors; RBAC, video, watermark unit |
 | `@tk/admin` (unit) | 35 | API client (headers, refresh single-flight, retry, session loss, error mapping), BS formatting, Button `asChild` regression |
 | `@tk/admin` (E2E, Playwright) | 38 | Real browser + real API + `*_e2e` database |
 | `@tk/mobile` (unit) | 45 | Saved PDF cut into pieces, Offline licence rules (expiry, clock set back, saved pictures), Study-time meter (idle limits, videos, innermost screen, background), development picture addresses on a phone, API client (single-flight refresh, early refresh, session end, maintenance), translations complete in both languages, BS dates and Kathmandu weekday, force-update/maintenance gate, form checks, Nepali phone numbers |
@@ -19,7 +19,20 @@ Last updated: 2026-10-12 (Phase 15 security hardening). `pnpm test` runs unit + 
 | `@tk/content-pack` | 19 | Markdown dialect → rich text; every pack payload valid against the API schemas; free first chapter; enough questions per quiz and subject test; note length; handouts render with no lost characters |
 | `@tk/web` (unit) | 8 | Session refresh used once (concurrent / late requests share it; refused → signed out; unreachable → retried), token expiry, both languages complete, failure messages |
 | `@tk/web` (E2E, Playwright) | 10 | `next start` production build + real API + `*_web_e2e` database + Mailpit + gateway stand-in; access tokens last 60 s so every page load refreshes |
-| **Total** | **644** | |
+| **Total** | **654** | |
+
+### Added with the configuration & deployment guide (T-076)
+- **API (7):** a complete production configuration starts; production refuses Bunny without the token key, re-used
+  secrets and an http media address; messages never contain values; `config-check` review finds nothing in a
+  complete production configuration, flags development credentials, placeholder sender, local storage, shared
+  buckets, http website / missing payment return, local CORS, and eSewa's test merchant in production; only
+  informational on a development machine.
+- **Website (3):** production settings accepted; loopback http allowed for local production tests; missing / http /
+  invalid addresses named without their values.
+- **Manual:** `config-check --connect` against the development `.env` — database (34 migrations applied), Redis,
+  buckets, Mailpit SMTP, Bunny key all OK; `expo config` with `EAS_BUILD_PROFILE=production` stops without an https
+  `EXPO_PUBLIC_API_URL` and resolves with one; `GOOGLE_SERVICES_JSON` appears as `android.googleServicesFile`.
+- Student browser suite 46/46 after the app-config change. The website build and its browser suite run in CI.
 
 ### Added with Phase 15 security hardening (T-075)
 - **API (13 new, 1 extended):** route inventory over all 345 routes (public list, staff-only `/admin` with

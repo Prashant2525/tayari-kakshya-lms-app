@@ -86,6 +86,8 @@ Last updated: 2026-10-12
   7 findings fixed (2FA guesses per sign-in, Super Admin-only 2FA policy, TRUST_PROXY addresses, erasure gaps, secrets
   in logs, dependency audit in CI, website CSP), guard tests for route access and erasure. Next: Phase 16 (full
   testing and bug fixing).
+- `docs/deployment-guide` (T-076, on top of the Phase 15 branch): configuration & production deployment guide,
+  `config-check` command, start-up / build checks, per-app `.env.example` files.
 - Monitoring (T-042) merged (PR #14, #15): Sentry in the API, worker, admin and app; PostHog in the app. Google web client registered for `http://localhost:8081` (checked); a real
   sign-in by the owner and Android/iOS clients remain (KI-029).
 - Phase 9 part 2 merged (PR #13): practice questions with Check answer and locked Premium answers

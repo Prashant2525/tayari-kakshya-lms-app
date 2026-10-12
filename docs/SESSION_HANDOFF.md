@@ -202,6 +202,14 @@ Current task: Phase 11 part 3 (receipts + refunds) done on `feature/receipts-ref
 - Nothing partially implemented. Admin screens for Phase 6 not started.
 
 ## Exact next steps
+0zc. 2026-10-12: Owner asked for a complete environment & production deployment guide (to be kept current every
+   phase). Branch `docs/deployment-guide` (from `feature/security-hardening`; merge PR #52 first). T-076:
+   `docs/ENVIRONMENT_AND_PRODUCTION_DEPLOYMENT_GUIDE.md`, `apps/api/src/config/preflight.ts` + `cli config-check`,
+   `apps/web/src/instrumentation.ts` (+ `lib/env-check.ts`), production-build guard and `GOOGLE_SERVICES_JSON` in
+   `apps/mobile/app.config.ts`, EAS environments in `eas.json`, `apps/mobile/.env.example`, `apps/admin/.env.example`.
+   **Rule from now on:** any change to variables, services, callbacks or deployment updates the guide (§13), the
+   matching `.env.example`, ENVIRONMENT_REQUIREMENTS / ENVIRONMENT_STATUS and, where it applies, config-check.
+   Next: Phase 16.
 0zb. 2026-10-12: PR #51 merged (main CI green). Owner put the rest of Phase 14 on hold (D-073) and asked to continue
    with the next phases. Phase 15 on `feature/security-hardening` (T-075): `docs/SECURITY_REVIEW.md` lists findings
    F-1…F-7 (fixed) and remaining risks R-1…R-6. New guard tests: `apps/api/test/route-security.e2e.test.ts` (update its
