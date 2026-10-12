@@ -21,6 +21,7 @@ import { ENV, type Env } from '../../config/env.js';
 import { Prisma, type User } from '../../generated/prisma/client.js';
 import { PrismaService } from '../../infra/prisma/prisma.service.js';
 import { SmsService } from '../../infra/messaging/sms.service.js';
+import { StorageService } from '../../infra/storage/storage.service.js';
 import { AuditService } from '../audit/audit.service.js';
 import { RbacService } from '../rbac/rbac.service.js';
 import { SettingsService } from '../settings/settings.service.js';
@@ -50,6 +51,7 @@ export class AuthService {
     private readonly audit: AuditService,
     private readonly mfa: MfaService,
     private readonly referrals: ReferralsService,
+    private readonly storage: StorageService,
     @Inject(ENV) private readonly env: Env,
   ) {}
 
@@ -365,6 +367,7 @@ export class AuthService {
       phone: user.phone,
       phoneVerified: Boolean(user.phoneVerifiedAt),
       hasPassword: Boolean(user.passwordHash),
+      avatarUrl: user.avatarKey ? this.storage.publicUrl(user.avatarKey) : null,
       locale: user.locale,
       dob: user.dob ? user.dob.toISOString().slice(0, 10) : null,
       gender: user.gender,

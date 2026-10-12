@@ -1,6 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 import { E2E_WEB_ORIGIN } from './constants.mjs';
-import { apiCall, editorToken, publishedNode } from './helpers';
+import { pngFixture } from '@tk/e2e-support/png';
+import { apiCall, codeFromEmail, editorToken, publishedNode } from './helpers';
 
 /**
  * §9 part 2 against the real API: practice questions (check a free answer; a premium answer stays locked and is never
@@ -81,6 +82,16 @@ test.beforeAll(async ({ browser, request }) => {
         modelAnswer: doc('SECRET MODEL ANSWER about Article 46'),
       },
     },
+    {
+      // A previous-year question (D-074).
+      accessLevel: 'free',
+      content: {
+        type: 'true_false',
+        stem: doc(`Sainya 2080 question ${run}: Nepal has seven provinces.`),
+        correct: true,
+      },
+      sources: [{ examNodeId: post, yearBs: 2080 }],
+    },
   ];
   for (const q of questions) {
     const created = await call('POST', '/admin/questions', {
@@ -159,13 +170,18 @@ test('practice: check a free answer, and a premium answer stays locked', async (
   await visible(page.getByRole('radio', { name: 'Questions' })).click();
 
   await expect(text(`Which article guarantees equality ${run}?`)).toBeVisible();
+  // The card of this question (the subject also has a previous-year question with its own button).
+  const card = visible(page.locator('div'))
+    .filter({ has: page.getByText(`Which article guarantees equality ${run}?`) })
+    .filter({ has: page.getByRole('button', { name: 'Check answer' }) })
+    .last();
   await visible(page.getByRole('radio', { name: /Article 16/ })).click();
-  await button('Check answer').click();
+  await card.getByRole('button', { name: 'Check answer' }).click();
   await expect(visible(page.getByRole('alert'))).toContainText('Not correct');
   await expect(text('Article 18 is the right to equality.')).toBeVisible();
   await button('Try again').click();
   await visible(page.getByRole('radio', { name: /Article 18/ })).click();
-  await button('Check answer').click();
+  await card.getByRole('button', { name: 'Check answer' }).click();
   await expect(visible(page.getByRole('status'))).toHaveText('Correct');
 
   await expect(text('Explain the right to constitutional remedy.')).toBeVisible();
@@ -204,7 +220,23 @@ test('search finds lessons and questions; Saved lists the bookmark', async () =>
   await expect(link(new RegExp(`Which article guarantees equality ${run}`))).toBeVisible();
 });
 
-test('edit profile, then request and cancel account deletion', async () => {
+test('previous-year questions by exam and year (D-074)', async () => {
+  await page.goto('/');
+  await link('Previous-year questions').click();
+  await expect(heading('Previous-year questions')).toBeVisible();
+  await button(/^Exam:/).click();
+  await visible(page.getByRole('dialog', { name: 'Exam' }).getByRole('option', { name: 'Sainya' })).click();
+  await button(/^Year \(BS\):/).click();
+  await visible(
+    page.getByRole('dialog', { name: 'Year (BS)' }).getByRole('option', { name: '2080' }),
+  ).click();
+  await expect(text(`Sainya 2080 question ${run}: Nepal has seven provinces.`)).toBeVisible();
+  await expect(text(`Which article guarantees equality ${run}?`)).toHaveCount(0);
+});
+
+test('edit profile, photo and email (D-074), then request and cancel account deletion', async ({
+  request,
+}) => {
   await page.goto('/profile');
   await link('Edit profile').click();
   await expect(heading('Edit profile')).toBeVisible();
@@ -217,8 +249,32 @@ test('edit profile, then request and cancel account deletion', async () => {
     .click();
   await button('Save').click();
   await expect(text('Your profile is saved.')).toBeVisible();
+
+  // Profile photo: picked from the device, stored by the API as a 512 px square.
+  const chooser = page.waitForEvent('filechooser');
+  await button('Add photo').click();
+  await (await chooser).setFiles({ name: 'me.png', mimeType: 'image/png', buffer: pngFixture(600, 400) });
+  await expect(button('Remove photo')).toBeVisible();
+  await expect(page.locator('img[src*="/avatars/"]').first()).toBeAttached();
+
+  // Email: a code goes to the new address; the account switches once it is entered.
+  const newEmail = `practice.new.${run}@example.com`;
+  await link('Change: Email').click();
+  await expect(heading('Change email')).toBeVisible();
+  await visible(page.getByLabel('New email', { exact: true })).fill(newEmail);
+  await visible(page.getByLabel('Current password', { exact: true })).fill(password);
+  const sentAt = new Date();
+  await button('Send code').click();
+  await expect(text(`We sent a code to ${newEmail}`)).toBeVisible();
+  await visible(page.getByLabel('6-digit code', { exact: true })).fill(
+    await codeFromEmail(request, newEmail, sentAt),
+  );
+  await expect(text(`Your email is now ${newEmail}. Sign in with it from now on.`)).toBeVisible();
+  await back();
+  await expect(text(newEmail)).toBeVisible();
   await back();
   await expect(text('Bishnu Kumari Thapa')).toBeVisible();
+  await expect(text(newEmail)).toBeVisible();
 
   await button('Delete account').click();
   await expect(text('Delete your account?')).toBeVisible();

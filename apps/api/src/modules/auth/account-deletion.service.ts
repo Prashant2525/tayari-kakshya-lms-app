@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import type { AuthContext, ClientInfo } from '../../common/auth/auth-context.js';
 import { Errors } from '../../common/errors/app-error.js';
 import { PrismaService } from '../../infra/prisma/prisma.service.js';
+import { StorageService } from '../../infra/storage/storage.service.js';
 import { AuditService } from '../audit/audit.service.js';
 import { SettingsService } from '../settings/settings.service.js';
 import { SessionService } from './session.service.js';
@@ -17,6 +18,7 @@ export class AccountDeletionService {
     private readonly settings: SettingsService,
     private readonly sessions: SessionService,
     private readonly audit: AuditService,
+    private readonly storage: StorageService,
   ) {}
 
   async request(auth: AuthContext, client: ClientInfo): Promise<{ scheduledFor: string }> {
@@ -81,6 +83,10 @@ export class AccountDeletionService {
       take: 100,
     });
     for (const request of due) {
+      const { avatarKey } = await this.prisma.user.findUniqueOrThrow({
+        where: { id: request.userId },
+        select: { avatarKey: true },
+      });
       await this.prisma.$transaction(async (tx) => {
         await tx.authIdentity.deleteMany({ where: { userId: request.userId } });
         await tx.authSession.deleteMany({ where: { userId: request.userId } });
@@ -132,6 +138,7 @@ export class AccountDeletionService {
             phoneVerifiedAt: null,
             passwordHash: null,
             fullName: 'Deleted user',
+            avatarKey: null,
             dob: null,
             gender: null,
             educationLevelId: null,
@@ -143,6 +150,8 @@ export class AccountDeletionService {
           tx,
         );
       });
+      // The profile photo goes too (D-074); a failure here only leaves an unreferenced picture behind.
+      if (avatarKey) await this.storage.delete('public', avatarKey).catch(() => undefined);
     }
     return due.length;
   }

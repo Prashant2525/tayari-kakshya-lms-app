@@ -1,9 +1,9 @@
 # Project State
 
-Current Phase: **Phase 17 production readiness audit** on `docs/production-readiness-audit`
+Current Phase: **Audit fixes (D-074)** — batch A `feature/audit-fixes-a` (PR #56), batch B `feature/audit-fixes-b`
 Current Milestone: content API on `feature/content-cms` → Admin CMS content screens
 Overall Status: **IN PROGRESS**
-Last updated: 2026-10-12
+Last updated: 2026-10-13
 
 ## Completed
 - Phases 0–3: discovery, PDF extraction, decisions, approved architecture.
@@ -93,6 +93,8 @@ Last updated: 2026-10-12
   price, content answer positions. Merged (PR #54).
 - Phase 17: `docs/PRODUCTION_READINESS_AUDIT.md` — not production-ready yet: no feature broken; 13 findings (F-01…F-13)
   await owner approval; deployment (Phase 18) and owner-side setups outstanding.
+- Audit fixes (D-074): batch A (F-01, F-03, F-06, F-07, F-09) in PR #56; batch B (F-10 PYQ browser, F-12 notice PDF
+  attachments, F-13 email / phone / profile photo) on `feature/audit-fixes-b`. Remaining: batch C (F-04, F-08).
 - Monitoring (T-042) merged (PR #14, #15): Sentry in the API, worker, admin and app; PostHog in the app. Google web client registered for `http://localhost:8081` (checked); a real
   sign-in by the owner and Android/iOS clients remain (KI-029).
 - Phase 9 part 2 merged (PR #13): practice questions with Check answer and locked Premium answers

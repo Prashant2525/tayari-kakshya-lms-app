@@ -206,10 +206,10 @@ product choice only you can make (rule 2: no invented business rules).
 | F-07 | Home lacks an upcoming-exams list, latest-notice strip and course-page preview list | L — decided D-074 | **FIXED**: Home "Upcoming exams" and "Latest notices"; course page "Try for free" (`previewItems`) |
 | F-08 | CMS-managed home sections and general notification campaigns not built (plan: "ask the owner") | L — decided D-074 | To build: Home sections editor + notification campaigns |
 | F-09 | PDF reader has no "go to page" | L | **FIXED**: "Go to page" in the reader (online and offline reader pages) |
-| F-10 | Previous-year questions cannot be browsed by authority / post / paper / year | M | Add a PYQ browser (filters on question source metadata) |
+| F-10 | Previous-year questions cannot be browsed by authority / post / paper / year | M | **FIXED** (D-074): app "Previous-year questions" — exam category (with everything under it), paper, year (BS); `GET /pyq`, `GET /pyq/filters`; premium answers stay locked |
 | F-11 | Capacity: one API process is slow under a 200-at-once burst; p95 on the VPS not measured | M | Phase 18: several API processes + load test on staging |
-| F-12 | Notices cannot carry file attachments (e.g. the official PDF) | M | Allow PDF attachments on notices (media library) |
-| F-13 | Students cannot change their email or phone, or upload a profile photo | M | Email change with re-verification; phone when SMS exists; optional photo upload |
+| F-12 | Notices cannot carry file attachments (e.g. the official PDF) | M | **FIXED**: up to 10 PDFs per notice from the media library; the app opens them in the PDF reader (`GET /notices/:id/attachments/:mediaId`, only while the notice is live) |
+| F-13 | Students cannot change their email or phone, or upload a profile photo | M | **FIXED**: email change (password + code to the new address; old address told), phone add / change by SMS code when the phone channel is on, profile photo (512 px WebP, erased with the account) |
 
 **Blocked on you (not code):** production eSewa / Khalti keys; email provider + domain (L1); SMS provider (L1);
 Google Android / iOS client ids; Firebase + APNs for push; Apple Developer / Google Play accounts; VPS, domain and

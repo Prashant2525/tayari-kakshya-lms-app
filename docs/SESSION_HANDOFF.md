@@ -202,6 +202,14 @@ Current task: Phase 11 part 3 (receipts + refunds) done on `feature/receipts-ref
 - Nothing partially implemented. Admin screens for Phase 6 not started.
 
 ## Exact next steps
+0zg. 2026-10-13: batch B on `feature/audit-fixes-b` (stacked on batch A, PR #56 — merge that first): F-10 PYQ browser
+   (`GET /pyq`, `/pyq/filters`; app `(learn)/pyq.tsx`, Home `PyqLink`), F-12 notice attachments (migration
+   `20261012203157_audit_fixes_b`: `notice_attachments`, `users.avatar_key`, OTP purpose `change_email`; app
+   `notice-file/[noticeId]/[mediaId]` reuses `PdfReader` with `notice`), F-13 `ProfileService` (email change, avatar)
+   + app `profile/email.tsx`, `profile/phone.tsx`, `features/profile/profile-identity.tsx`; `expo-image-picker`
+   57.0.20 added (photos only; camera / microphone permissions removed in `app.config.ts`) — needs a new
+   development build for phones. Next: batch C (F-04 preview as student + content QA checklist, F-08 Home sections
+   editor + notification campaigns), then Phase 18 deployment.
 0zf. 2026-10-13: PR #55 merged. Owner decided the audit (D-074). Batch A on `feature/audit-fixes-a`: F-01 quick links,
    F-03 staff leaderboard, F-09 PDF go-to-page (reader `goto` message), F-06 first-launch language (`prefs.languageChosen`;
    browser tests pre-set it in `playwright.config.ts`, app.spec starts fresh), F-07 Home strips + `previewItems`.

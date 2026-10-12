@@ -3,6 +3,7 @@ import type { AdminNoticeQuery, LocalizedText, NoticeInput, NoticeStatusInput } 
 import { Errors } from '../../common/errors/app-error.js';
 import { Prisma, type Notice } from '../../generated/prisma/client.js';
 import { PrismaService, type Tx } from '../../infra/prisma/prisma.service.js';
+import { StorageService } from '../../infra/storage/storage.service.js';
 import { AuditService } from '../audit/audit.service.js';
 import { mediaIdsIn } from '../content/practice-view.js';
 import { assertCanSetStatus, assertSchedule, isLive } from '../content/publishing.js';
@@ -32,6 +33,7 @@ export class NoticesService {
     private readonly audit: AuditService,
     private readonly media: MediaService,
     private readonly notifications: NotificationsService,
+    private readonly storage: StorageService,
   ) {}
 
   // ───────────── Students ─────────────
@@ -71,9 +73,51 @@ export class NoticesService {
       title: n.title as LocalizedText,
       body: n.body,
       media: await this.media.publicImageUrls([...mediaIdsIn(n.body)]),
+      attachments: await this.attachmentsOf(n.id),
       isPinned: n.isPinned,
       publishedAt: (n.publishAt ?? n.createdAt).toISOString(),
     };
+  }
+
+  /** An attached PDF, for students, while its notice is visible (D-074 / audit F-12). */
+  async attachment(noticeId: string, mediaId: string, now = new Date()) {
+    const row = await this.prisma.noticeAttachment.findFirst({
+      where: { noticeId, mediaId, notice: visibleWhere(now), media: { deletedAt: null, kind: 'pdf' } },
+      include: { media: true },
+    });
+    if (!row) throw Errors.notFound('Attachment');
+    return {
+      filename: row.media.originalName.replace(/[^\w.\- ]/g, '_').slice(0, 120) || 'notice.pdf',
+      body: await this.storage.getBuffer('private', row.media.objectKey),
+    };
+  }
+
+  private async attachmentsOf(noticeId: string) {
+    const rows = await this.prisma.noticeAttachment.findMany({
+      where: { noticeId, media: { deletedAt: null } },
+      include: { media: { select: { id: true, originalName: true, sizeBytes: true } } },
+      orderBy: { sortOrder: 'asc' },
+    });
+    return rows.map((r) => ({ id: r.media.id, name: r.media.originalName, sizeBytes: r.media.sizeBytes }));
+  }
+
+  /** Attachments must be PDFs in the media library; stored in the order given. */
+  private async setAttachments(tx: Tx, noticeId: string, mediaIds: string[]) {
+    const ids = [...new Set(mediaIds)];
+    if (ids.length) {
+      const found = await tx.mediaAsset.count({ where: { id: { in: ids }, kind: 'pdf', deletedAt: null } });
+      if (found !== ids.length) {
+        throw Errors.validation([
+          { path: 'attachmentMediaIds', message: 'Choose PDFs from the media library' },
+        ]);
+      }
+    }
+    await tx.noticeAttachment.deleteMany({ where: { noticeId } });
+    if (ids.length) {
+      await tx.noticeAttachment.createMany({
+        data: ids.map((mediaId, sortOrder) => ({ noticeId, mediaId, sortOrder })),
+      });
+    }
   }
 
   /** Notices published since the student last opened the tab (or since they joined). */
@@ -122,7 +166,7 @@ export class NoticesService {
 
   async adminDetail(id: string) {
     const n = await this.find(id);
-    return { ...this.adminView(n), body: n.body };
+    return { ...this.adminView(n), body: n.body, attachments: await this.attachmentsOf(n.id) };
   }
 
   async create(input: NoticeInput, actor: ContentActor) {
@@ -130,6 +174,7 @@ export class NoticesService {
       const row = await tx.notice.create({
         data: { ...this.data(input), createdById: actor.userId, updatedById: actor.userId },
       });
+      await this.setAttachments(tx, row.id, input.attachmentMediaIds);
       await this.log(tx, actor, 'notice.create', row.id, { kind: input.kind, title: input.title });
       return row;
     });
@@ -142,6 +187,7 @@ export class NoticesService {
     assertCanEditLive(actor, before.status, 'notices:publish');
     await this.prisma.$transaction(async (tx) => {
       await tx.notice.update({ where: { id }, data: { ...this.data(input), updatedById: actor.userId } });
+      await this.setAttachments(tx, id, input.attachmentMediaIds);
       await this.log(tx, actor, 'notice.update', id, {
         before: { title: before.title },
         after: { title: input.title },

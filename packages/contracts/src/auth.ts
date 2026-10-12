@@ -101,6 +101,17 @@ export const ChangePasswordInput = z.object({
 });
 export type ChangePasswordInput = z.infer<typeof ChangePasswordInput>;
 
+/** Changing the sign-in email (D-074 / audit F-13): a code goes to the new address; the password proves it is you. */
+export const ChangeEmailInput = z.object({
+  newEmail: Email,
+  /** Required when the account has a password (Google-only accounts have none). */
+  currentPassword: z.string().min(1).max(128).optional(),
+});
+export type ChangeEmailInput = z.infer<typeof ChangeEmailInput>;
+
+export const ConfirmEmailChangeInput = z.object({ code: OtpCode });
+export type ConfirmEmailChangeInput = z.infer<typeof ConfirmEmailChangeInput>;
+
 export const AuthTokens = z.object({
   accessToken: z.string(),
   accessTokenExpiresAt: z.iso.datetime(),
@@ -135,6 +146,8 @@ export const MeView = z.object({
   phone: z.string().nullable(),
   phoneVerified: z.boolean(),
   hasPassword: z.boolean(),
+  /** The profile photo (D-074), or null for the initials. */
+  avatarUrl: z.string().nullable(),
   locale: Locale,
   dob: z.iso.date().nullable(),
   gender: z.string().nullable(),

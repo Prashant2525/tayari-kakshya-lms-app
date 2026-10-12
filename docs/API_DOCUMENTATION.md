@@ -34,7 +34,10 @@ Authoritative shapes: OpenAPI at `/api/docs` (local) and `packages/contracts`. W
 | GET / PATCH | `/me` | any | profile + `permissions` (staff) + `deletionScheduledFor` + `analyticsId` (pseudonym for product analytics, T-042) |
 | GET | `/me/sessions` · DELETE `/me/sessions/:id` | any | |
 | POST | `/me/password` | any | change password (replaces planned `/auth/password/change`) |
-| POST | `/me/verification/send` · `/me/verification/verify` | student | `channel: email | phone` (phone requires setting + SMS provider) |
+| POST | `/me/verification/send` · `/me/verification/verify` | student | `channel: email | phone` (phone requires setting + SMS provider); also adds or changes the phone number (D-074) |
+| POST | `/me/email/change` | student | `{ newEmail, currentPassword? }` (password required when the account has one; 401 wrong, 409 `EMAIL_ALREADY_REGISTERED`, 400 same address) → 202, code to the new address (OTP purpose `change_email`); 5/hour |
+| POST | `/me/email/confirm` | student | `{ code }` → 204: email switched and verified, audit `account.email_changed` (masked), the old address is emailed |
+| PUT / DELETE | `/me/avatar` | student | multipart `file` (JPEG / PNG / WebP) → `{ avatarUrl }` (512 px WebP, public bucket, previous photo deleted; 415 not a picture; 20/hour) · remove → 204. `GET /me` returns `avatarUrl` |
 | POST / DELETE | `/me/deletion` | student | request / cancel self-service deletion |
 | POST | `/admin/auth/login` · `/admin/auth/refresh` · `/admin/auth/logout` | public/staff | requires header `X-TK-Client: admin`; refresh token in HttpOnly cookie `tk_admin_rt` |
 | GET | `/admin/permissions` | `roles:manage` | catalog |
@@ -377,7 +380,8 @@ Changes: attempt start on a daily challenge — before its day 409 `not_open`; a
 |---|---|---|
 | GET | `/articles?kind=&period=&categoryId=&featured=&cursor=` / `/articles/:slug` | public (no sign-in, T-060): live articles; detail with body, media, source, live quiz |
 | GET | `/article-categories?kind=` | public: shown categories |
-| GET | `/notices?cursor=&limit=` / `/notices/:id` | live, unexpired notices, pinned first (T-055); detail with media |
+| GET | `/notices?cursor=&limit=` / `/notices/:id` | live, unexpired notices, pinned first (T-055); detail with media and `attachments: [{ id, name, sizeBytes }]` (D-074) |
+| GET | `/notices/:id/attachments/:mediaId` | an attached PDF (private bucket, streamed by the API) while the notice is live; 404 otherwise |
 | GET / POST | `/me/notices/unseen`, `/me/notices/seen` | Notice tab badge: published since the tab was last opened |
 | GET | `/me/notifications?cursor=&limit=`, `/me/notifications/unread` | inbox (category, title, body, link, read) and unread count |
 | POST | `/me/notifications/read` `{ids}` | mark read (empty list = all) |
@@ -426,7 +430,8 @@ Every module exposes `GET list` (search/filter/sort/paginate), `GET :id`, `POST`
 - Course updates (built, T-056): `GET|POST /admin/courses/:id/updates` — `courses:notify` (history + students with access; send `{title, message}` to them)
 - Live classes (built, T-074): `GET|POST /admin/live-classes` (`?when=&courseId=`), `GET|PUT|DELETE /admin/live-classes/:id`, `POST /admin/live-classes/:id/publish|start|end|cancel`, `PUT /admin/live-classes/:id/recording` `{recording: {provider: youtube, url} | {provider: bunny, videoId} | null}`, `GET /admin/live-classes/:id/attendance`, `GET /admin/live-classes/:id/attendance.csv` (audited export) — `live:manage`, limited to the staff member's course scope
 - Staff leaderboard (built, D-074): `GET /admin/assessments/:id/leaderboard` — `assessments:edit` / `assessments:publish` / `grading:manage` (any), course scope; full names and emails, also before release; null when the assessment has no leaderboard
-- Notices (built, T-055): `GET|POST /admin/notices`, `GET|PUT|DELETE /admin/notices/:id`, `PUT /admin/notices/:id/status` — `notices:edit`; publishing and live edits need `notices:publish`
+- Notices (built, T-055): `GET|POST /admin/notices`, `GET|PUT|DELETE /admin/notices/:id`, `PUT /admin/notices/:id/status` — `notices:edit`; publishing and live edits need `notices:publish`; body `attachmentMediaIds` (≤ 10 PDFs from the media library, D-074)
+- Previous-year questions (built, D-074): `GET /pyq?examNodeId=&paperId=&yearBs=&cursor=&limit=` (student) — published PYQ questions whose source matches (exam node includes its descendants), practice shape and lock rules as `/courses/…/questions`; `GET /pyq/filters` → `{ examNodes, papers, years }` that have PYQs
 - `/admin/settings`, `/admin/audit-logs`, `/admin/dashboard` (KPIs), `/admin/reports/*` (exports CSV/XLSX)
 
 ## 10. Webhooks / provider endpoints

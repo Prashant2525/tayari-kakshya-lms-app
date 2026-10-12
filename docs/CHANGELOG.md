@@ -4,6 +4,12 @@ All notable changes to this project. Format based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Added — 2026-10-13 (audit fixes, batch B — D-074)
+- App: "Previous-year questions" from Home, filtered by exam, paper and year (BS); notices can carry PDF files that
+  open in the reader; Edit profile has a profile photo, email change (code to the new address, the old address is
+  told) and — when SMS is switched on — add / change mobile number. The photo shows on Home and Profile.
+- CMS: attach PDFs from the media library to a notice; an attached PDF cannot be deleted from the library.
+
 ### Added — 2026-10-13 (audit fixes, batch A — D-074)
 - App: choose English or नेपाली on first launch; Home shows upcoming exams and the latest notices; course pages list
   free lessons to try ("Try for free"); the PDF reader has "Go to page".

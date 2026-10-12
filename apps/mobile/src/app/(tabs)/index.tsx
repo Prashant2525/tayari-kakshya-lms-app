@@ -8,7 +8,7 @@ import { CurrentCourse } from '@/features/courses/current-course';
 import { CatalogList } from '@/features/courses/my-courses';
 import { ReadTiles } from '@/features/articles/read-tiles';
 import { BannerCarousel } from '@/features/home/banner-carousel';
-import { LatestNotices, UpcomingExams } from '@/features/home/home-strips';
+import { LatestNotices, PyqLink, UpcomingExams } from '@/features/home/home-strips';
 import { HomeLiveCard } from '@/features/live/live-card';
 import { TodayPlanCard } from '@/features/planner/today-plan-card';
 import { ProgressLink } from '@/features/progress/progress-link';
@@ -26,6 +26,7 @@ import { CompactBar, useScrollMotion, useStatusBarStyle } from '@/ui/scroll-head
 import { OfflineBanner } from '@/ui/states';
 import { Text } from '@/ui/text';
 import { useUnreadNotifications } from '@/api/notices';
+import { AvatarPhoto } from '@/features/profile/avatar-photo';
 
 /**
  * Home: greeting with today's BS date, the exam being prepared for, the current course with Continue, and courses
@@ -121,6 +122,7 @@ export default function HomeScreen() {
                 <Text variant="h4" weight={700} style={{ color: palette.white }}>
                   {initials}
                 </Text>
+                {me.data?.avatarUrl ? <AvatarPhoto url={me.data.avatarUrl} /> : null}
               </View>
               <View style={{ flex: 1 }}>
                 <Text variant="h3" weight={700} role="heading" style={{ color: palette.white }}>
@@ -211,6 +213,7 @@ export default function HomeScreen() {
               <LatestNotices />
               <ProgressLink />
               <TestsLink title={t('home.tests')} body={t('home.testsBody')} />
+              <PyqLink />
             </FadeInUp>
             <FadeInUp index={2} style={styles.group}>
               <View style={styles.sectionHead}>
@@ -242,6 +245,7 @@ export default function HomeScreen() {
               <Text variant="caption" weight={700} style={{ color: palette.white }}>
                 {initials}
               </Text>
+              {me.data?.avatarUrl ? <AvatarPhoto url={me.data.avatarUrl} /> : null}
             </View>
           }
         />
@@ -301,6 +305,7 @@ const styles = StyleSheet.create({
     backgroundColor: palette.blue600,
     borderWidth: 2,
     borderColor: 'rgba(255,255,255,0.35)',
+    overflow: 'hidden',
   },
   avatarSmall: { width: 28, height: 28, borderWidth: 1 },
   body: {

@@ -57,13 +57,16 @@ export function createApiClient(options: ApiClientOptions) {
 
   async function send(method: string, path: string, opts: RequestOptions, token: string | null) {
     const headers: Record<string, string> = { Accept: 'application/json', ...options.headers() };
-    if (opts.body !== undefined) headers['Content-Type'] = 'application/json';
+    // FormData (file uploads) sets its own multipart content type and boundary.
+    const form = typeof FormData !== 'undefined' && opts.body instanceof FormData;
+    if (opts.body !== undefined && !form) headers['Content-Type'] = 'application/json';
     if (token) headers['Authorization'] = `Bearer ${token}`;
     try {
       return await doFetch(`${options.baseUrl}${path}`, {
         method,
         headers,
-        body: opts.body === undefined ? undefined : JSON.stringify(opts.body),
+        body:
+          opts.body === undefined ? undefined : form ? (opts.body as FormData) : JSON.stringify(opts.body),
         signal: opts.signal,
       });
     } catch (cause) {

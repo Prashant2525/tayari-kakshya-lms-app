@@ -1,5 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import type { BookmarkTarget, LocalizedText, Platform, PracticeQuery, QuestionContent } from '@tk/contracts';
+import type {
+  BookmarkTarget,
+  LocalizedText,
+  Platform,
+  PracticeQuery,
+  PyqQuery,
+  QuestionContent,
+} from '@tk/contracts';
 import { Errors } from '../../common/errors/app-error.js';
 import type { Prisma } from '../../generated/prisma/client.js';
 import { PrismaService } from '../../infra/prisma/prisma.service.js';
@@ -94,6 +101,82 @@ export class PracticeService {
     if (!q) throw Errors.notFound('Question');
     const view = this.view(q, await this.entitlements.hasSubjectAccess(viewer.userId, q.subjectId));
     return { ...view, media: await this.media.publicImageUrls([...mediaIdsIn(view)]) };
+  }
+
+  // ───────────── Previous-year questions (D-020, D-074 / audit F-10) ─────────────
+
+  /** Previous-year questions by exam category (and everything under it), paper and year; answers as in practice. */
+  async pyq(viewer: Viewer, query: PyqQuery) {
+    await this.catalog.assertVerifiedForLearning(viewer);
+    const nodeIds = query.examNodeId ? await this.withDescendants(query.examNodeId) : null;
+    const rows = await this.prisma.question.findMany({
+      where: {
+        ...visibleQuestion,
+        isPyq: true,
+        sources: {
+          some: {
+            ...(nodeIds ? { examNodeId: { in: nodeIds } } : {}),
+            ...(query.paperId ? { paperId: query.paperId } : {}),
+            ...(query.yearBs ? { yearBs: query.yearBs } : {}),
+          },
+        },
+        ...(query.cursor ? { id: { gt: query.cursor } } : {}),
+      },
+      include: questionInclude,
+      orderBy: { id: 'asc' },
+      take: query.limit + 1,
+    });
+    const page = rows.slice(0, query.limit);
+    const access = new Map<string, boolean>();
+    for (const subjectId of new Set(page.map((q) => q.subjectId))) {
+      access.set(subjectId, await this.entitlements.hasSubjectAccess(viewer.userId, subjectId));
+    }
+    const views = page.map((q) => this.view(q, access.get(q.subjectId) === true));
+    return {
+      data: views,
+      nextCursor: rows.length > query.limit ? (page.at(-1)?.id ?? null) : null,
+      media: await this.media.publicImageUrls([...mediaIdsIn(views)]),
+    };
+  }
+
+  /** What can be chosen: categories, papers and years that have published previous-year questions. */
+  async pyqFilters() {
+    const sources = await this.prisma.questionSource.findMany({
+      where: { question: { ...visibleQuestion, isPyq: true } },
+      select: {
+        yearBs: true,
+        examNode: { select: { id: true, name: true, status: true, deletedAt: true } },
+        paper: { select: { id: true, name: true } },
+      },
+    });
+    const nodes = new Map<string, LocalizedText>();
+    const papers = new Map<string, LocalizedText>();
+    const years = new Set<number>();
+    for (const s of sources) {
+      if (s.examNode && !s.examNode.deletedAt && s.examNode.status === 'published')
+        nodes.set(s.examNode.id, s.examNode.name as LocalizedText);
+      if (s.paper) papers.set(s.paper.id, s.paper.name as LocalizedText);
+      if (s.yearBs) years.add(s.yearBs);
+    }
+    return {
+      examNodes: [...nodes].map(([id, name]) => ({ id, name })),
+      papers: [...papers].map(([id, name]) => ({ id, name })),
+      years: [...years].sort((a, b) => b - a),
+    };
+  }
+
+  private async withDescendants(rootId: string): Promise<string[]> {
+    const all = [rootId];
+    let frontier = [rootId];
+    while (frontier.length && all.length < 2000) {
+      const children = await this.prisma.examNode.findMany({
+        where: { parentId: { in: frontier }, deletedAt: null },
+        select: { id: true },
+      });
+      frontier = children.map((c) => c.id);
+      all.push(...frontier);
+    }
+    return all;
   }
 
   /** The student view of a question; the answer only when it is not locked (rule 5). */

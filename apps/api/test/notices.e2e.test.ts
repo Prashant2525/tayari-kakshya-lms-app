@@ -8,7 +8,9 @@ import {
   registerStudent,
   staffLogin,
   type TestContext,
+  upload,
 } from './helpers.js';
+import { pdfFixture, pngFixture } from './fixtures.js';
 
 let ctx: TestContext;
 beforeAll(async () => {
@@ -244,6 +246,70 @@ describe('notices (D-019, D-060)', () => {
     expect(
       (await ctx.prisma.notificationDelivery.findUniqueOrThrow({ where: { id: waiting.id } })).status,
     ).toBe('sent');
+  });
+});
+
+describe('notice attachments (D-074 / audit F-12)', () => {
+  it('attaches media-library PDFs; students read them while the notice is live; attached PDFs cannot be deleted', async () => {
+    await createStaff(ctx, 'media@example.com', {
+      permissions: ['notices:edit', 'notices:publish', 'media:manage'],
+    });
+    const token = (await staffLogin(ctx, 'media@example.com')).token;
+    const pdf = (
+      await upload(
+        ctx,
+        token,
+        { name: 'psc-notice.pdf', contentType: 'application/pdf', data: await pdfFixture(2) },
+        { visibility: 'private' },
+      )
+    ).body;
+    const image = (
+      await upload(
+        ctx,
+        token,
+        { name: 'logo.png', contentType: 'image/png', data: await pngFixture() },
+        { visibility: 'public' },
+      )
+    ).body;
+    const refused = await call(ctx, 'POST', '/admin/notices', {
+      token,
+      body: notice({ attachmentMediaIds: [image.id] }),
+    });
+    expect(refused.status).toBe(400);
+
+    const id = await publish(token, notice({ attachmentMediaIds: [pdf.id] }));
+    expect((await call(ctx, 'GET', `/admin/notices/${id}`, { token })).body.attachments).toEqual([
+      { id: pdf.id, name: 'psc-notice.pdf', sizeBytes: expect.any(Number) },
+    ]);
+    const student = (await registerStudent(ctx, 'reader@example.com')).accessToken;
+    const detail = await call(ctx, 'GET', `/notices/${id}`, { token: student });
+    expect(detail.body.attachments).toEqual([
+      expect.objectContaining({ id: pdf.id, name: 'psc-notice.pdf' }),
+    ]);
+    const file = await ctx.app.inject({
+      method: 'GET',
+      url: `/api/v1/notices/${id}/attachments/${pdf.id}`,
+      headers: { authorization: `Bearer ${student}` },
+    });
+    expect(file.statusCode).toBe(200);
+    expect(file.headers['content-type']).toBe('application/pdf');
+    expect(file.rawPayload.subarray(0, 5).toString()).toBe('%PDF-');
+    // Anything not attached, or a draft notice, finds nothing; a signed-out visitor is refused.
+    expect(
+      (await call(ctx, 'GET', `/notices/${id}/attachments/${image.id}`, { token: student })).status,
+    ).toBe(404);
+    expect(
+      (await ctx.app.inject({ method: 'GET', url: `/api/v1/notices/${id}/attachments/${pdf.id}` }))
+        .statusCode,
+    ).toBe(401);
+    const draft = (
+      await call(ctx, 'POST', '/admin/notices', { token, body: notice({ attachmentMediaIds: [pdf.id] }) })
+    ).body.id;
+    expect(
+      (await call(ctx, 'GET', `/notices/${draft}/attachments/${pdf.id}`, { token: student })).status,
+    ).toBe(404);
+    // Still attached: the media library keeps it.
+    expect((await call(ctx, 'DELETE', `/admin/media/${pdf.id}`, { token })).status).toBe(409);
   });
 });
 

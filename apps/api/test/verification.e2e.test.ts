@@ -1,10 +1,14 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import sharp from 'sharp';
+import { StorageService } from '../src/infra/storage/storage.service.js';
 import { AccountDeletionService } from '../src/modules/auth/account-deletion.service.js';
+import { pngFixture } from './fixtures.js';
 import {
   call,
   createTestApp,
   device,
   lastEmailCode,
+  multipart,
   PASSWORD,
   registerStudent,
   setSetting,
@@ -283,5 +287,118 @@ describe('account deletion (D-032)', () => {
 
     // The address can be used for a new account afterwards.
     await registerStudent(ctx, 'asha@example.com');
+  });
+});
+
+describe('own email and profile photo (D-074)', () => {
+  it('changes the email after a code from the new address and tells the old one', async () => {
+    const { accessToken: token } = await registerStudent(ctx);
+    await registerStudent(ctx, 'taken@example.com', device('Other'));
+
+    const wrong = await call(ctx, 'POST', '/me/email/change', {
+      token,
+      body: { newEmail: 'asha.rai@example.com', currentPassword: 'not the password' },
+    });
+    expect(wrong.status).toBe(401);
+    const taken = await call(ctx, 'POST', '/me/email/change', {
+      token,
+      body: { newEmail: 'taken@example.com', currentPassword: PASSWORD },
+    });
+    expect(taken.status).toBe(409);
+    expect(taken.body.error.code).toBe('EMAIL_ALREADY_REGISTERED');
+    const same = await call(ctx, 'POST', '/me/email/change', {
+      token,
+      body: { newEmail: 'asha@example.com', currentPassword: PASSWORD },
+    });
+    expect(same.status).toBe(400);
+    // Nothing to confirm before a code was asked for.
+    expect(
+      (await call(ctx, 'POST', '/me/email/confirm', { token, body: { code: '123456' } })).body.error.code,
+    ).toBe('OTP_INVALID');
+
+    const req = await call(ctx, 'POST', '/me/email/change', {
+      token,
+      body: { newEmail: 'asha.rai@example.com', currentPassword: PASSWORD },
+    });
+    expect(req.status).toBe(202);
+    // Until it is confirmed the account keeps its address.
+    expect((await call(ctx, 'GET', '/me', { token })).body.email).toBe('asha@example.com');
+
+    const code = lastEmailCode(ctx, 'asha.rai@example.com');
+    const confirm = await call(ctx, 'POST', '/me/email/confirm', { token, body: { code } });
+    expect(confirm.status).toBe(204);
+    const me = (await call(ctx, 'GET', '/me', { token })).body;
+    expect(me).toMatchObject({ email: 'asha.rai@example.com', emailVerified: true });
+    const notice = ctx.mail.outbox.find(
+      (m) => m.to === 'asha@example.com' && m.subject === 'Your email address was changed',
+    );
+    expect(notice?.text).toContain('as***@example.com');
+    expect(
+      await ctx.prisma.auditLog.count({ where: { action: 'account.email_changed', entityId: me.id } }),
+    ).toBe(1);
+
+    // The new address signs in; the old one no longer does.
+    expect(
+      (
+        await call(ctx, 'POST', '/auth/login', {
+          body: { email: 'asha.rai@example.com', password: PASSWORD, device: device() },
+        })
+      ).status,
+    ).toBe(200);
+    expect(
+      (
+        await call(ctx, 'POST', '/auth/login', {
+          body: { email: 'asha@example.com', password: PASSWORD, device: device() },
+        })
+      ).status,
+    ).toBe(401);
+  });
+
+  it('stores a resized profile photo, replaces and removes it, and erases it with the account', async () => {
+    const { accessToken: token } = await registerStudent(ctx);
+    const put = (file: { name: string; contentType: string; data: Buffer }) => {
+      const { payload, headers } = multipart(file);
+      return ctx.app.inject({
+        method: 'PUT',
+        url: '/api/v1/me/avatar',
+        payload,
+        headers: { ...headers, authorization: `Bearer ${token}` },
+      });
+    };
+    expect((await call(ctx, 'GET', '/me', { token })).body.avatarUrl).toBeNull();
+
+    const notImage = await put({
+      name: 'photo.png',
+      contentType: 'image/png',
+      data: Buffer.from('<html>not a picture</html>'),
+    });
+    expect(notImage.statusCode).toBe(415);
+
+    const first = await put({ name: 'me.png', contentType: 'image/png', data: await pngFixture(900, 600) });
+    expect(first.statusCode).toBe(200);
+    const firstUrl: string = JSON.parse(first.body).avatarUrl;
+    expect(firstUrl).toMatch(/avatars\/.+\.webp$/);
+    expect((await call(ctx, 'GET', '/me', { token })).body.avatarUrl).toBe(firstUrl);
+    const user = await ctx.prisma.user.findUniqueOrThrow({ where: { email: 'asha@example.com' } });
+    const storage = ctx.app.get(StorageService);
+    const stored = await sharp(await storage.getBuffer('public', user.avatarKey!)).metadata();
+    expect(stored).toMatchObject({ format: 'webp', width: 512, height: 512 });
+
+    const second = await put({ name: 'me2.png', contentType: 'image/png', data: await pngFixture(300, 300) });
+    const secondKey = (await ctx.prisma.user.findUniqueOrThrow({ where: { id: user.id } })).avatarKey!;
+    expect(JSON.parse(second.body).avatarUrl).not.toBe(firstUrl);
+    await expect(storage.getBuffer('public', user.avatarKey!)).rejects.toThrow();
+
+    expect((await call(ctx, 'DELETE', '/me/avatar', { token })).status).toBe(204);
+    expect((await call(ctx, 'GET', '/me', { token })).body.avatarUrl).toBeNull();
+    await expect(storage.getBuffer('public', secondKey)).rejects.toThrow();
+
+    // Erasure (D-032) removes the photo too.
+    await put({ name: 'me.png', contentType: 'image/png', data: await pngFixture(200, 200) });
+    const lastKey = (await ctx.prisma.user.findUniqueOrThrow({ where: { id: user.id } })).avatarKey!;
+    await call(ctx, 'POST', '/me/deletion', { token });
+    await ctx.app.get(AccountDeletionService).processDue(new Date(Date.now() + 8 * 86_400_000));
+    expect((await ctx.prisma.user.findUniqueOrThrow({ where: { id: user.id } })).avatarKey).toBeNull();
+    await expect(storage.getBuffer('public', lastKey)).rejects.toThrow();
   });
 });

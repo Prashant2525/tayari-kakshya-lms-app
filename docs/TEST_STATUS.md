@@ -21,6 +21,18 @@ Last updated: 2026-10-13 (Phase 16 test pass). `pnpm test` runs unit + integrati
 | `@tk/web` (E2E, Playwright) | 10 | `next start` production build + real API + `*_web_e2e` database + Mailpit + gateway stand-in; access tokens last 60 s so every page load refreshes |
 | **Total** | **665** | |
 
+### Audit fixes, batch B (D-074)
+- API: `practice.e2e` PYQ browser (filters, descendants, premium answer locked, filters list); `notices.e2e`
+  attachments (non-PDF refused, served only while live, attached PDF cannot be deleted); `verification.e2e` email
+  change (wrong password 401, taken 409, same 400, code to the new address, old address emailed, audit, sign-in with
+  the new address only) and profile photo (415 for non-pictures, 512 px WebP, replaced and removed objects deleted,
+  erased with the account). Verification suite 15/15.
+- Browser: app `practice.spec` PYQ by exam + year, profile photo upload and email change with the Mailpit code;
+  app `notices.spec` opens an attached PDF (no watermark); CMS `notices.spec` attaches a PDF. Practice 5/5,
+  notices 5/5 (app), CMS notices 8/8.
+- Screenshots checked: PYQ screen, notice with attached file and its PDF, Edit profile with photo + email row,
+  change-email code step, Profile hero with the photo and new email.
+
 ### Audit fixes, batch A (D-074)
 - API: staff leaderboard (full names, before release, students refused — extended `engagement.e2e`); course
   `previewItems` free lessons only, titles only (extended `catalog.e2e`).

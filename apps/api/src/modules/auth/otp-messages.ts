@@ -15,6 +15,10 @@ const COPY = {
     en: { subject: 'Your password reset code', lead: 'Your Tayari Kakshya password reset code is' },
     ne: { subject: 'पासवर्ड रिसेट कोड', lead: 'तपाईंको तयारी कक्षा पासवर्ड रिसेट कोड' },
   },
+  change_email: {
+    en: { subject: 'Confirm your new email', lead: 'Your code to confirm this email for Tayari Kakshya is' },
+    ne: { subject: 'नयाँ इमेल पुष्टि', lead: 'तयारी कक्षामा यो इमेल पुष्टि गर्ने कोड' },
+  },
 } as const;
 
 export function otpMessage(purpose: OtpPurpose, locale: 'en' | 'ne', code: string, ttlMinutes: number) {

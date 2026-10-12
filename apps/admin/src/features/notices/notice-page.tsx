@@ -1,9 +1,10 @@
 import type { PublishStatus } from '@tk/contracts';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link, useNavigate, useParams } from '@tanstack/react-router';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, FileText, Paperclip, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { MediaPickerDialog } from '@/components/content/media-picker';
 import { RichTextEditor } from '@/components/content/rich-text-editor';
 import { StatusBadge } from '@/components/content/status';
 import { Button } from '@/components/ui/button';
@@ -12,13 +13,16 @@ import { Field, Input, Select } from '@/components/ui/form';
 import { Alert, Card, CardHeader, ErrorState, Spinner, Switch } from '@/components/ui/primitives';
 import { api, errorMessage } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
-import { isoToNepalLocal, nepalLocalToIso, STATUS_LABEL, toLocalized } from '@/lib/content';
+import { formatBytes, isoToNepalLocal, nepalLocalToIso, STATUS_LABEL, toLocalized } from '@/lib/content';
 import { formatDateTimeBs } from '@/lib/format';
 import { isEmptyDoc, type JsonNode } from '@/lib/rich-doc';
 import { cn } from '@/lib/utils';
 import { NOTICE_KIND, type NoticeKindName, type NoticeRow } from './notices-page';
 
-type NoticeDetail = NoticeRow & { body: { en?: JsonNode; ne?: JsonNode } };
+type NoticeDetail = NoticeRow & {
+  body: { en?: JsonNode; ne?: JsonNode };
+  attachments: Array<{ id: string; name: string; sizeBytes: number }>;
+};
 
 /** A notice: write it (bilingual, rich text), then publish or schedule it (D-019, D-036, D-060). */
 export function NoticePage() {
@@ -69,7 +73,9 @@ function NoticeForm({ notice: n }: { notice: NoticeDetail | null }) {
     isPinned: n?.isPinned ?? false,
     expiresAt: isoToNepalLocal(n?.expiresAt ?? null),
     notify: n?.notify ?? false,
+    attachments: n?.attachments ?? [],
   });
+  const [picking, setPicking] = useState(false);
   const [lang, setLang] = useState<'en' | 'ne'>('en');
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -90,6 +96,7 @@ function NoticeForm({ notice: n }: { notice: NoticeDetail | null }) {
       isPinned: v.isPinned,
       expiresAt: v.expiresAt ? nepalLocalToIso(v.expiresAt) : null,
       notify: v.notify,
+      attachmentMediaIds: v.attachments.map((a) => a.id),
     };
     setSaving(true);
     setError(null);
@@ -203,6 +210,68 @@ function NoticeForm({ notice: n }: { notice: NoticeDetail | null }) {
               onChange={(d) => set('bodyNe', d)}
             />
           </div>
+        </div>
+        <div className="flex flex-col gap-2">
+          <p className="text-sm font-semibold text-text">Attached PDFs</p>
+          <p className="text-xs text-text-muted">
+            E.g. the official notice. Students open them in the app; up to 10, from the media library.
+          </p>
+          {v.attachments.length ? (
+            <ul className="flex flex-col gap-1">
+              {v.attachments.map((a) => (
+                <li
+                  key={a.id}
+                  className="flex items-center justify-between gap-3 rounded-sm border border-border px-3 py-2 text-sm"
+                >
+                  <span className="flex min-w-0 items-center gap-2">
+                    <FileText className="size-4 shrink-0 text-text-muted" aria-hidden />
+                    <span className="truncate">{a.name}</span>
+                    <span className="shrink-0 text-xs text-text-muted">{formatBytes(a.sizeBytes)}</span>
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    disabled={readOnly}
+                    aria-label={`Remove ${a.name}`}
+                    onClick={() =>
+                      set(
+                        'attachments',
+                        v.attachments.filter((x) => x.id !== a.id),
+                      )
+                    }
+                  >
+                    <Trash2 /> Remove
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          ) : null}
+          <div>
+            <Button
+              variant="secondary"
+              size="sm"
+              disabled={readOnly || v.attachments.length >= 10}
+              onClick={() => setPicking(true)}
+            >
+              <Paperclip /> Attach a PDF
+            </Button>
+          </div>
+          {picking ? (
+            <MediaPickerDialog
+              kind="pdf"
+              title="Attach a PDF"
+              onClose={() => setPicking(false)}
+              onSelect={(m) => {
+                if (!v.attachments.some((a) => a.id === m.id)) {
+                  set('attachments', [
+                    ...v.attachments,
+                    { id: m.id, name: m.originalName, sizeBytes: m.sizeBytes },
+                  ]);
+                }
+                setPicking(false);
+              }}
+            />
+          ) : null}
         </div>
         <Field
           label="Remove from the Notice tab after (Nepal time)"

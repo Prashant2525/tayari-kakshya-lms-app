@@ -1,6 +1,6 @@
 import { Controller, Delete, Get, HttpCode, Param, ParseEnumPipe, ParseUUIDPipe, Put } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { BookmarkTarget, type Platform, PracticeQuery, SearchQuery } from '@tk/contracts';
+import { BookmarkTarget, type Platform, PracticeQuery, PyqQuery, SearchQuery } from '@tk/contracts';
 import { Audiences, CurrentAuth, type AuthContext } from '../../common/auth/auth-context.js';
 import { RateLimit } from '../../common/security/rate-limit.js';
 import { ZodQuery } from '../../common/validation/zod.js';
@@ -26,6 +26,16 @@ export class PracticeController {
     @CurrentAuth() auth: AuthContext,
   ) {
     return this.practice.subjectQuestions(courseId, subjectId, { userId: auth.userId }, query);
+  }
+
+  @Get('pyq')
+  pyq(@ZodQuery(PyqQuery) query: PyqQuery, @CurrentAuth() auth: AuthContext) {
+    return this.practice.pyq({ userId: auth.userId }, query);
+  }
+
+  @Get('pyq/filters')
+  pyqFilters() {
+    return this.practice.pyqFilters();
   }
 
   @Get('practice-questions/:id')

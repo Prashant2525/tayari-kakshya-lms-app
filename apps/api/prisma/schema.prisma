@@ -50,6 +50,8 @@ model User {
   /// Null for Google-only accounts that never set a password.
   passwordHash        String?    @map("password_hash")
   fullName            String     @map("full_name")
+  /// The student's profile photo (D-074 / audit F-13): re-encoded WebP in the public bucket under an unguessable key.
+  avatarKey           String?    @map("avatar_key")
   locale              Locale     @default(en)
   /// When the student last opened the Notice tab (for its "new" badge).
   noticesSeenAt       DateTime?  @map("notices_seen_at") @db.Timestamptz(6)
@@ -186,6 +188,8 @@ enum OtpPurpose {
   verify_email
   verify_phone
   reset_password
+  /// A new email address being confirmed before it replaces the old one (D-074 / audit F-13).
+  change_email
 }
 
 enum OtpChannel {
@@ -385,6 +389,7 @@ model MediaAsset {
   instructorPhotos InstructorProfile[]
   articleCovers    Article[]
   bannerImages     Banner[]
+  noticeFiles      NoticeAttachment[]
 
   @@index([kind, createdAt(sort: Desc)])
   @@index([sha256])
@@ -2042,8 +2047,24 @@ model Notice {
   updatedAt   DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
   deletedAt   DateTime?     @map("deleted_at") @db.Timestamptz(6)
 
+  attachments NoticeAttachment[]
+
   @@index([status, publishAt])
   @@map("notices")
+}
+
+/// PDFs attached to a notice (D-074 / audit F-12): media-library PDFs (private), read by signed-in students.
+model NoticeAttachment {
+  noticeId  String @map("notice_id") @db.Uuid
+  mediaId   String @map("media_id") @db.Uuid
+  sortOrder Int    @default(0) @map("sort_order")
+
+  notice Notice     @relation(fields: [noticeId], references: [id], onDelete: Cascade)
+  media  MediaAsset @relation(fields: [mediaId], references: [id], onDelete: Restrict)
+
+  @@id([noticeId, mediaId])
+  @@index([mediaId])
+  @@map("notice_attachments")
 }
 
 enum NotificationCategory {

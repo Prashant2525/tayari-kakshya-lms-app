@@ -1,10 +1,16 @@
+import { radius } from '@tk/design-tokens';
 import { router } from 'expo-router';
+import { ChevronRight, History } from 'lucide-react-native';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { useAssessments, type AssessmentSummary } from '@/api/assessments';
+import { usePyqFilters } from '@/api/learning';
 import { useNotices } from '@/api/notices';
 import { NoticeCard } from '@/features/notices/notice-card';
 import { TestRow } from '@/features/tests/test-list';
 import { useT } from '@/i18n/use-t';
+import { useTheme } from '@/theme/theme';
+import { useSurfaceStyle } from '@/ui/layout';
+import { PressableScale } from '@/ui/motion';
 import { Text } from '@/ui/text';
 
 const EXAM_TYPES: ReadonlyArray<AssessmentSummary['type']> = ['weekly', 'mock', 'pyq_mock'];
@@ -67,6 +73,49 @@ export function LatestNotices() {
   );
 }
 
+/** Home: the way into previous-year questions (D-074 / audit F-10); hidden while there are none. */
+export function PyqLink() {
+  const { colors } = useTheme();
+  const surface = useSurfaceStyle();
+  const { t } = useT();
+  const filters = usePyqFilters();
+  if (!filters.data || (filters.data.years.length === 0 && filters.data.examNodes.length === 0)) return null;
+  return (
+    <PressableScale
+      role="link"
+      aria-label={t('pyq.title')}
+      onPress={() => router.push('/pyq')}
+      style={[styles.link, surface]}
+    >
+      <View style={[styles.icon, { backgroundColor: colors.primarySoft }]}>
+        <History size={22} color={colors.onPrimarySoft} strokeWidth={1.75} />
+      </View>
+      <View style={{ flex: 1 }}>
+        <Text variant="h4">{t('pyq.title')}</Text>
+        <Text variant="bodySm" color="textSecondary">
+          {t('pyq.homeBody')}
+        </Text>
+      </View>
+      <ChevronRight size={18} color={colors.textMuted} strokeWidth={1.75} />
+    </PressableScale>
+  );
+}
+
 const styles = StyleSheet.create({
   head: { flexDirection: 'row', alignItems: 'center' },
+  link: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    padding: 14,
+    borderWidth: 1,
+    borderRadius: radius.lg,
+  },
+  icon: {
+    width: 44,
+    height: 44,
+    borderRadius: radius.sm + 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 });

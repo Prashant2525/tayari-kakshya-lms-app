@@ -1,5 +1,11 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
-import type { ChangePasswordInput, LocalizedText, SessionView } from '@tk/contracts';
+import type {
+  ChangeEmailInput,
+  ChangePasswordInput,
+  LocalizedText,
+  MeView,
+  SessionView,
+} from '@tk/contracts';
 import { api, queryClient } from './client';
 import { track } from '@/lib/analytics';
 import { keys } from './queries';
@@ -34,6 +40,50 @@ export function useChangePassword() {
   return useMutation({
     mutationFn: (input: ChangePasswordInput) => api.post('/me/password', input),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: accountKeys.sessions }),
+  });
+}
+
+/** Email change (D-074): a code goes to the new address; the account switches when it is confirmed. */
+export function useRequestEmailChange() {
+  return useMutation({
+    mutationFn: (input: ChangeEmailInput) => api.post('/me/email/change', input),
+  });
+}
+
+export function useConfirmEmailChange() {
+  return useMutation({
+    mutationFn: (code: string) => api.post('/me/email/confirm', { code }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: keys.me }),
+  });
+}
+
+/** A picked picture as the app holds it: a file address on phones, a Blob on the web build. */
+export interface PickedPhoto {
+  uri: string;
+  name: string;
+  mimeType: string;
+  file?: Blob | null;
+}
+
+/** Profile photo (D-074): the server crops it to a square and keeps only the newest one. */
+export function useSetAvatar() {
+  return useMutation({
+    mutationFn: (photo: PickedPhoto) => {
+      const form = new FormData();
+      if (photo.file) form.append('file', photo.file, photo.name);
+      else form.append('file', { uri: photo.uri, name: photo.name, type: photo.mimeType } as unknown as Blob);
+      return api.put<{ avatarUrl: string }>('/me/avatar', form);
+    },
+    onSuccess: ({ avatarUrl }) =>
+      queryClient.setQueryData<MeView>(keys.me, (me) => (me ? { ...me, avatarUrl } : me)),
+  });
+}
+
+export function useRemoveAvatar() {
+  return useMutation({
+    mutationFn: () => api.delete('/me/avatar'),
+    onSuccess: () =>
+      queryClient.setQueryData<MeView>(keys.me, (me) => (me ? { ...me, avatarUrl: null } : me)),
   });
 }
 

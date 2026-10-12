@@ -35,6 +35,7 @@ import { useCancelDeletion, useRequestDeletion } from '@/api/account';
 import { usePages } from '@/api/support';
 import { appVersion } from '@/api/client';
 import { logout, useAppConfig, useMe, useTargetPosts } from '@/api/queries';
+import { AvatarPhoto } from '@/features/profile/avatar-photo';
 import { localized } from '@/i18n/translate';
 import { useT } from '@/i18n/use-t';
 import { usePrefs, type ThemePref } from '@/state/prefs';
@@ -131,6 +132,7 @@ export default function ProfileScreen() {
                   <Text variant="h3" weight={700} style={{ color: palette.white }}>
                     {initialsOf(user?.fullName ?? '')}
                   </Text>
+                  {user?.avatarUrl ? <AvatarPhoto url={user.avatarUrl} /> : null}
                 </View>
                 <View style={{ flex: 1, gap: 2 }}>
                   <Text variant="h3" weight={700} style={{ color: palette.white }}>
@@ -431,6 +433,7 @@ const styles = StyleSheet.create({
     backgroundColor: palette.blue600,
     borderWidth: 2,
     borderColor: 'rgba(255,255,255,0.35)',
+    overflow: 'hidden',
   },
   inline: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   row: {
