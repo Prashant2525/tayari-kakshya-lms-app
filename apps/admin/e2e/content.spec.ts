@@ -261,6 +261,21 @@ test('subjects: chapter → topic → bilingual note with formatting and an imag
   await page.getByRole('tab', { name: /नेपाली/ }).click();
   await expect(page.getByRole('textbox', { name: 'नोट (नेपाली)' })).toContainText('समानताको हक');
 
+  // Content QA (D-075 / audit F-04): what is still missing, and the lesson as a student sees it.
+  const checklist = page.getByRole('region', { name: 'Before publishing' });
+  await expect(checklist).toContainText('Note text in Nepali');
+  await expect(checklist.getByLabel('Done').first()).toBeVisible();
+  await page.getByRole('button', { name: 'Preview as student' }).click();
+  const preview = page.getByRole('dialog', { name: 'Preview as student' });
+  await expect(preview.getByRole('heading', { name: 'Right to equality' })).toBeVisible();
+  await expect(preview).toContainText('Article 18 guarantees equality before law.');
+  await preview.getByRole('tab', { name: 'नेपाली' }).click();
+  await expect(preview).toContainText('समानताको हक');
+  await preview.getByRole('tab', { name: 'Without access' }).click();
+  await expect(preview).toContainText('Premium lesson');
+  await expect(preview).not.toContainText('समानताको हक');
+  await page.keyboard.press('Escape');
+
   await page.getByLabel('Status', { exact: true }).selectOption('published');
   await page.getByRole('button', { name: 'Update status' }).click();
   await expect(page.getByText('Status: Published')).toBeVisible();
@@ -381,6 +396,9 @@ test('courses: create, describe, price, add subjects and exams, publish', async 
   await page.getByLabel('Course status').selectOption('published');
   await page.getByRole('button', { name: 'Update status' }).click();
   await expect(page.getByText('Status: Published')).toBeVisible();
+  const courseChecks = page.getByRole('region', { name: 'Before publishing' });
+  await expect(courseChecks).toContainText('Has a price');
+  await expect(courseChecks).toContainText('Linked to the exams it prepares for');
 
   // Saved values come back from the server after a reload.
   await page.reload();

@@ -89,7 +89,11 @@ import { BuyingGuideService } from './modules/notifications/buying-guide.service
 import { CourseInterestsController } from './modules/notifications/course-interests.controller.js';
 import { CourseInterestsService } from './modules/notifications/course-interests.service.js';
 import { CourseUpdatesController } from './modules/notifications/course-updates.controller.js';
+import { CampaignsController } from './modules/notifications/campaigns.controller.js';
 import { CourseUpdatesService } from './modules/notifications/course-updates.service.js';
+import { CampaignsService } from './modules/notifications/campaigns.service.js';
+import { QaService } from './modules/content/qa.service.js';
+import { QaController } from './modules/content/qa.controller.js';
 import { NotificationsController } from './modules/notifications/notifications.controller.js';
 import { NotificationsService } from './modules/notifications/notifications.service.js';
 import { PushClient } from './infra/messaging/push.client.js';
@@ -123,6 +127,7 @@ import { AdminAccessController } from './modules/rbac/admin-access.controller.js
 import { RbacService } from './modules/rbac/rbac.service.js';
 import { StaffService } from './modules/rbac/staff.service.js';
 import { AppConfigController } from './modules/settings/app-config.controller.js';
+import { HomeSectionsController } from './modules/settings/home-sections.controller.js';
 import { SettingsService } from './modules/settings/settings.service.js';
 import { AdminOpsController } from './modules/users/admin-ops.controller.js';
 import { AdminUsersService } from './modules/users/admin-users.service.js';
@@ -203,6 +208,8 @@ export class InfraModule {}
     NoticesService,
     ExamNotificationsService,
     CourseUpdatesService,
+    CampaignsService,
+    QaService,
     CourseInterestsService,
     AccountEmailsService,
     BuyingGuideService,
@@ -269,6 +276,8 @@ export class InfraModule {}
     NoticesService,
     ExamNotificationsService,
     CourseUpdatesService,
+    CampaignsService,
+    QaService,
     CourseInterestsService,
     AccountEmailsService,
     BuyingGuideService,
@@ -315,6 +324,7 @@ export class DomainModule {}
   controllers: [
     HealthController,
     AppConfigController,
+    HomeSectionsController,
     AuthController,
     MeController,
     AdminAuthController,
@@ -361,6 +371,8 @@ export class DomainModule {}
     AdminNoticesController,
     NotificationsController,
     CourseUpdatesController,
+    CampaignsController,
+    QaController,
     CourseInterestsController,
     ArticlesController,
     AdminArticlesController,

@@ -6,6 +6,7 @@ import { useMemo, useState, type ReactNode } from 'react';
 import { toast } from 'sonner';
 import { RichTextEditor } from '@/components/content/rich-text-editor';
 import { StatusBadge } from '@/components/content/status';
+import { AssessmentPreviewButton } from '@/components/content/qa';
 import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/ui/dialog';
 import { Field, Input, Select } from '@/components/ui/form';
@@ -894,6 +895,9 @@ function AssessmentEditor({
                 }
               />
             </Card>
+          ) : null}
+          {assessment ? (
+            <AssessmentPreviewButton assessmentId={assessment.id} version={assessment.updatedAt} />
           ) : null}
           {assessment ? (
             <PublishingCard

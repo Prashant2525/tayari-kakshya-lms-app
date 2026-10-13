@@ -10,6 +10,49 @@ const EmailText = (max: number) =>
   });
 
 /**
+ * The sections of the app's Home screen the CMS can order and hide (D-075 / audit F-08), in their default order.
+ * The search bar, banners and "preparing for" card stay at the top.
+ */
+export const HOME_SECTION_KEYS = [
+  'live',
+  'currentCourse',
+  'todayPlan',
+  'articles',
+  'dailyChallenge',
+  'upcomingExams',
+  'latestNotices',
+  'progress',
+  'tests',
+  'pyq',
+  'courses',
+] as const;
+export const HomeSectionKey = z.enum(HOME_SECTION_KEYS);
+export type HomeSectionKey = z.infer<typeof HomeSectionKey>;
+
+export const HomeSections = z.object({
+  sections: z
+    .array(z.object({ key: HomeSectionKey, visible: z.boolean() }))
+    .max(HOME_SECTION_KEYS.length)
+    .refine((list) => new Set(list.map((s) => s.key)).size === list.length, {
+      message: 'Each section can be listed once',
+    }),
+});
+export type HomeSections = z.infer<typeof HomeSections>;
+
+/**
+ * The Home sections in the order to show, visible ones only. Sections missing from the saved list (added in a later
+ * version) come after the listed ones, in their default order, shown.
+ */
+export function orderedHomeSections(value: HomeSections | null | undefined): HomeSectionKey[] {
+  const listed = value?.sections ?? [];
+  const known = new Set(listed.map((s) => s.key));
+  return [
+    ...listed.filter((s) => s.visible).map((s) => s.key),
+    ...HOME_SECTION_KEYS.filter((k) => !known.has(k)),
+  ];
+}
+
+/**
  * Typed registry of CMS-editable system settings. Each key has a schema and a default.
  * Defaults are *technical* starting points, not owner business decisions: values marked
  * "launch checklist" in docs/PROJECT_STATE.md must be set by the owner before go-live.
@@ -521,6 +564,12 @@ export const SETTINGS = {
     }),
     default: { reminderMinutes: 30, joinOpensMinutes: 10, endGraceMinutes: 30 },
     public: false,
+  },
+  /** D-075: order and visibility of the app's Home sections (edited on the CMS "Home screen" page). */
+  'home.sections': {
+    schema: HomeSections,
+    default: { sections: HOME_SECTION_KEYS.map((key) => ({ key, visible: true })) },
+    public: true,
   },
 } as const satisfies Record<
   string,

@@ -106,6 +106,18 @@ test('notifications: a course update arrives; push / email choices are kept', as
   await expect(visible(page.getByRole('link', { name: `Unread: New mock tests ${run}` }))).toBeVisible();
   await expect(text('Three full mock tests are now in the course.')).toBeVisible();
 
+  // A campaign to the course's students (D-075) lands in the same list.
+  const campaign = await apiCall(request, token, 'POST', '/admin/notification-campaigns', {
+    title: { en: `Dashain revision plan ${run}` },
+    message: { en: 'A ten-day revision plan is ready for you.' },
+    audience: { type: 'courses', courseIds: [course.id] },
+  });
+  await apiCall(request, token, 'POST', `/admin/notification-campaigns/${campaign.id}/send`, {});
+  await page.reload();
+  await expect(
+    visible(page.getByRole('link', { name: `Unread: Dashain revision plan ${run}` })),
+  ).toBeVisible();
+
   await page.goto('/profile/notifications');
   const examEmail = visible(page.getByRole('switch', { name: 'Exam reminders · Email' }));
   await expect(examEmail).toBeChecked();
@@ -122,6 +134,33 @@ test('notifications: a course update arrives; push / email choices are kept', as
   ).toBeVisible();
   await expect(page.getByRole('switch', { name: 'Payments and purchases · Email' })).toHaveCount(0);
   await expect(text('Receipts always come by email.')).toBeVisible();
+  // Campaigns have their own choice (D-075).
+  await expect(visible(page.getByRole('switch', { name: 'Announcements and offers · Email' }))).toBeChecked();
+});
+
+test('Home follows the order and visibility set in the CMS (D-075)', async ({ request }) => {
+  const token = await editorToken(request);
+  await apiCall(request, token, 'PUT', '/admin/home-sections', {
+    sections: [
+      { key: 'latestNotices', visible: true },
+      { key: 'tests', visible: false },
+    ],
+  });
+  try {
+    await page.goto('/');
+    await expect(visible(page.getByRole('heading', { name: 'Latest notices' }))).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Tests for your exam' })).toHaveCount(0);
+    // Latest notices now come before the course list.
+    const notices = await visible(page.getByRole('heading', { name: 'Latest notices' })).boundingBox();
+    const courses = await visible(
+      page.getByRole('heading', { name: /Courses for you|All courses/ }),
+    ).boundingBox();
+    expect(notices!.y).toBeLessThan(courses!.y);
+  } finally {
+    await apiCall(request, token, 'PUT', '/admin/home-sections', { sections: [] });
+  }
+  await page.goto('/');
+  await expect(visible(page.getByRole('link', { name: 'Tests for your exam' }))).toBeVisible();
 });
 
 test('articles: Home → Current affairs → a weekly digest, with its source', async ({ request }) => {

@@ -44,6 +44,8 @@ const GROUP_LABELS: Record<string, string> = {
   settings: 'System settings',
   audit: 'Audit log',
   education_levels: 'Profile options',
+  home: 'Home screen',
+  campaigns: 'Campaigns',
 };
 
 export function useRoles() {

@@ -9,6 +9,7 @@ import { CheckList } from '@/components/content/check-list';
 import { MediaField } from '@/components/content/media-picker';
 import { RichTextEditor } from '@/components/content/rich-text-editor';
 import { StatusBadge } from '@/components/content/status';
+import { ChecklistCard } from '@/components/content/qa';
 import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/ui/dialog';
 import { Field, Input, Select, Textarea } from '@/components/ui/form';
@@ -872,8 +873,9 @@ export function CoursePage() {
           ) : null}
           {active === 'updates' && can('courses:notify') ? <CourseUpdatesSection courseId={c.id} /> : null}
         </div>
-        <div>
+        <div className="flex flex-col gap-6">
           <PublishingCard key={key} course={c} />
+          <ChecklistCard url={`/admin/courses/${c.id}/checklist`} version={key} />
         </div>
       </div>
     </>

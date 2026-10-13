@@ -46,6 +46,8 @@ const CONTENT_PERMISSIONS = [
   'reviews:moderate',
   'discussions:moderate',
   'live:manage',
+  'campaigns:send',
+  'home:manage',
 ];
 
 /**

@@ -213,6 +213,24 @@ const routes = [
   }),
   createRoute({
     getParentRoute: () => appRoute,
+    path: '/campaigns',
+    component: lazyRouteComponent(() => import('./features/campaigns/campaigns-page'), 'CampaignsPage'),
+  }),
+  createRoute({
+    getParentRoute: () => appRoute,
+    path: '/campaigns/$campaignId',
+    component: lazyRouteComponent(() => import('./features/campaigns/campaign-page'), 'CampaignPage'),
+  }),
+  createRoute({
+    getParentRoute: () => appRoute,
+    path: '/home-screen',
+    component: lazyRouteComponent(
+      () => import('./features/campaigns/home-sections-page'),
+      'HomeSectionsPage',
+    ),
+  }),
+  createRoute({
+    getParentRoute: () => appRoute,
     path: '/reports',
     component: lazyRouteComponent(() => import('./features/analytics/reports-page'), 'ReportsPage'),
   }),

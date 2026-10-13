@@ -42,6 +42,8 @@ export const PERMISSIONS = {
   'articles:publish': 'Publish, schedule and archive articles (they go to the app and the website)',
   'pages:manage': 'Edit and publish the About, Terms, Privacy and Refund pages',
   'support:manage': 'Edit the FAQs and the contact options in Help & support',
+  'home:manage': "Arrange and hide the sections of the app's Home screen",
+  'campaigns:send': 'Send notification campaigns to groups of students (in-app, push and email)',
   'banners:manage': 'Add, schedule and remove the promotional banners in the app and on the website',
   'discussions:moderate':
     'Answer doubts as a teacher, mark best answers, hide reported posts and stop a student posting',

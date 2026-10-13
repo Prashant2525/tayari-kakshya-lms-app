@@ -14,6 +14,7 @@ import { ExamNotificationsService } from '../modules/attempts/exam-notifications
 import { AccountEmailsService } from '../modules/notifications/account-emails.service.js';
 import { ArticlesService } from '../modules/articles/articles.service.js';
 import { LiveService } from '../modules/live/live.service.js';
+import { CampaignsService } from '../modules/notifications/campaigns.service.js';
 
 export const MAINTENANCE_QUEUE = 'maintenance';
 
@@ -50,6 +51,7 @@ export async function startMaintenanceJobs(
   const accountEmails = app.get(AccountEmailsService);
   const articles = app.get(ArticlesService);
   const live = app.get(LiveService);
+  const campaigns = app.get(CampaignsService);
   const worker = new Worker(
     MAINTENANCE_QUEUE,
     async (job) => {
@@ -72,6 +74,8 @@ export async function startMaintenanceJobs(
             reminders: await exams.sendReminders(),
             // Live classes (D-072): reminders, going live at the start time, ending long-running ones.
             live: await live.dispatchDue(),
+            // Scheduled notification campaigns (D-075).
+            campaigns: await campaigns.dispatchDue(),
             sent: await notifications.processDeliveries(),
             welcome: await accountEmails.sendWelcome(),
           };

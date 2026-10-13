@@ -202,6 +202,12 @@ Current task: Phase 11 part 3 (receipts + refunds) done on `feature/receipts-ref
 - Nothing partially implemented. Admin screens for Phase 6 not started.
 
 ## Exact next steps
+0zh. 2026-10-13: PR #56 + #57 merged (main CI green after re-running a cancelled run). Batch C on
+   `feature/audit-fixes-c` (D-075): migration `20261013083513_audit_fixes_c` (`notification_campaigns`, category
+   `announcement`); `CampaignsService` (+ worker `campaigns: dispatchDue`), `home.sections` setting +
+   `HomeSectionsController`, `QaService` / `QaController`; permissions `campaigns:send`, `home:manage` (added to the
+   browser-test staff role in `e2e-seed.ts`); CMS pages `features/campaigns/*`, `components/content/qa.tsx`; app Home
+   renders `config.homeSections`. D-075 defaults await owner confirmation. Next: Phase 18 deployment (F-11).
 0zg. 2026-10-13: batch B on `feature/audit-fixes-b` (stacked on batch A, PR #56 — merge that first): F-10 PYQ browser
    (`GET /pyq`, `/pyq/filters`; app `(learn)/pyq.tsx`, Home `PyqLink`), F-12 notice attachments (migration
    `20261012203157_audit_fixes_b`: `notice_attachments`, `users.avatar_key`, OTP purpose `change_email`; app
