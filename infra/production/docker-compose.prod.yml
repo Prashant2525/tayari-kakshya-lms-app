@@ -86,6 +86,8 @@ services:
     environment:
       # The website talks to the API inside the private network (its pages' links still use API_PUBLIC_URL).
       API_BASE_URL: http://api:4000
+      # The shared settings file's PORT is the API's.
+      PORT: 3000
       APP_RELEASE: ${TK_RELEASE:-dev}
     depends_on:
       api: { condition: service_healthy }
