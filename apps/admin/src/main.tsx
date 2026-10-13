@@ -1,18 +1,16 @@
+import './lib/zod-config';
 import './styles/app.css';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { RouterProvider } from '@tanstack/react-router';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { Toaster } from 'sonner';
-import { z } from 'zod';
 import { ApiError } from './lib/api';
 import { AuthProvider } from './lib/auth';
 import { initMonitoring } from './lib/monitoring';
 import { initTheme } from './lib/theme';
 import { router } from './router';
 
-// The CMS's Content-Security-Policy allows no eval (Caddyfile): Zod must not even probe for it (Phase 18).
-z.config({ jitless: true });
 initMonitoring();
 initTheme();
 
