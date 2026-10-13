@@ -10,7 +10,8 @@ ARG NODE_IMAGE=node:24.21.0-bookworm-slim
 # ── Build everything the server needs (not the student app) ─────────────────────────────────────────────────────
 FROM ${NODE_IMAGE} AS build
 ENV PNPM_HOME=/pnpm PATH=/pnpm:$PATH CI=true NEXT_TELEMETRY_DISABLED=1
-RUN corepack enable
+# pnpm is fetched once here (cached), not by each image's build in parallel.
+RUN corepack enable && corepack prepare pnpm@12.8.1 --activate && pnpm --version
 WORKDIR /repo
 COPY . .
 RUN pnpm install --frozen-lockfile --filter "@tk/api..." --filter "@tk/web..." --filter "@tk/admin..."
