@@ -214,7 +214,10 @@ AI study assistant (after L2), live classes (after L3), Apple IAP (only if decid
   notification campaigns (F-08)
 - ☑ Phase 18a: production stack — images, compose, Caddy (HTTPS, CMS CSP), several API processes (F-11), deploy /
   backup / restore / rollback scripts, CI image job, `RELEASE_READINESS.md`; local rehearsal
-- ☐ Phase 18b (needs owner accounts): staging server + load test, production deploy, store builds and submission
+- ☐ Phase 18b (needs owner accounts): staging server + load test, production deploy, store builds and submission;
+  app links from the website (KI-044) once the store certificates exist
+- ☑ Phase 20 — production hardening: website nonce CSP (R-3), PDF caches (KI-022), worker JSON logs (KI-015), staff
+  invitation email (KI-013), stale known issues closed
 - ☑ **Phase 19 — configuration readiness (D-076, `CONFIGURATION_READINESS_AUDIT.md`)**: G-3 partial-configuration
   validation · G-5 client-secret guard test · G-6 exact manual steps (server, DNS, off-site backups, store
   submission) · G-7 PR template · G-1 **ConnectIPS** provider (NCHL spec; UAT check when credentials arrive) · G-2 SMS

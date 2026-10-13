@@ -7,7 +7,7 @@ import { PrismaService } from '../../infra/prisma/prisma.service.js';
 import { MailService } from '../../infra/messaging/mail.service.js';
 import { SmsService } from '../../infra/messaging/sms.service.js';
 import { TokenService } from './token.service.js';
-import { otpMessage } from './otp-messages.js';
+import { otpMessage, type OtpWording } from './otp-messages.js';
 import { BuyingGuideService } from '../notifications/buying-guide.service.js';
 
 @Injectable()
@@ -26,8 +26,10 @@ export class OtpService {
     target: string;
     userId: string | null;
     locale: 'en' | 'ne';
+    /** How the email reads (a new staff account's invitation, KI-013); the code works the same. */
+    wording?: OtpWording;
   }): Promise<void> {
-    const { purpose, channel, target, userId, locale } = params;
+    const { purpose, channel, target, userId, locale, wording } = params;
     const now = Date.now();
     const recent = await this.prisma.otpCode.findMany({
       where: { target, purpose, createdAt: { gt: new Date(now - 3_600_000) } },
@@ -65,7 +67,7 @@ export class OtpService {
       }),
     ]);
 
-    const message = otpMessage(purpose, locale, code, OTP_POLICY.ttlMinutes);
+    const message = otpMessage(purpose, locale, code, OTP_POLICY.ttlMinutes, wording);
     if (channel === 'email') {
       // D-061: the sign-up verification email also says how to get courses; other codes stay short (security).
       const body =

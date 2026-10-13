@@ -4,6 +4,13 @@ All notable changes to this project. Format based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Changed — 2026-10-13 (Phase 20 — production hardening)
+- Website: a Content-Security-Policy with a new script nonce on every page (only the site's own scripts can run).
+- API: PDFs — originals and each student's stamped copy of the day are kept in memory, so reopening a PDF is
+  instant and storage is read once per file per process.
+- Worker: structured JSON logs like the API's.
+- New staff receive an invitation email (not a "password reset" email) with their set-password code.
+
 ### Added — 2026-10-13 (SMS providers — D-076)
 - Phone verification codes by **Sparrow SMS** or **Aakash SMS**, chosen with `SMS_PROVIDER` and the account token
   (guide §4.5); `config-check --connect` checks the token; a provider failure shows "try again later".

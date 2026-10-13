@@ -1,6 +1,6 @@
 # Project State
 
-Current Phase: **Phase 19 — configuration readiness (D-076)** complete in PRs #60 (audit, validation, guards, steps), #61 (ConnectIPS, gateway checks) and the SMS-providers PR; next Phase 18b (waits on owner accounts)
+Current Phase: **Phase 20 — production hardening** on `feature/production-hardening` (Phase 19 merged, PR #60–#62); next Phase 18b (waits on owner accounts)
 Current Milestone: production stack built and rehearsed; launch waits on the owner's accounts (`RELEASE_READINESS.md`)
 Overall Status: **IN PROGRESS**
 Last updated: 2026-10-13

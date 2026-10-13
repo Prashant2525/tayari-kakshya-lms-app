@@ -211,6 +211,7 @@ export class StaffService {
       target: input.email,
       userId: staff.id,
       locale: staff.locale,
+      wording: 'staff_invite',
     });
     return { id: staff.id };
   }

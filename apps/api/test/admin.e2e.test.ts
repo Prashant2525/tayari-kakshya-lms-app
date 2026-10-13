@@ -188,6 +188,10 @@ describe('staff invitations', () => {
     });
     expect(res.status).toBe(201);
 
+    // Worded as an invitation, not a password reset (KI-013).
+    const invite = ctx.mail.outbox.find((m) => m.to === 'editor@example.com')!;
+    expect(invite.subject).toBe('Your Tayari Kakshya admin account');
+    expect(invite.text).toContain('"Set password" page');
     const code = lastEmailCode(ctx, 'editor@example.com');
     const set = await call(ctx, 'POST', '/auth/password/reset', {
       body: { email: 'editor@example.com', code, newPassword: 'editor password 1' },

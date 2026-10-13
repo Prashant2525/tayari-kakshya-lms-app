@@ -21,6 +21,14 @@ Last updated: 2026-10-13 (Phase 16 test pass). `pnpm test` runs unit + integrati
 | `@tk/web` (E2E, Playwright) | 10 | `next start` production build + real API + `*_web_e2e` database + Mailpit + gateway stand-in; access tokens last 60 s so every page load refreshes |
 | **Total** | **665** | |
 
+### Phase 20 — production hardening
+- Website: `csp.test.ts` (nonce, strict-dynamic, no eval in production, form targets, http pictures only on plain-http
+  local runs); browser `website.spec` checks the header, a different nonce per request and **no CSP violation during
+  the whole visit and checkout** (found one: local http pictures — fixed). Website browser suite 11/11.
+- API: `byte-lru.test.ts` (size limit, least recently used, one computation for simultaneous requests, failures not
+  cached); catalog / offline / notices tests with the PDF caches 23/23; staff invite wording in `admin.e2e`.
+- Worker: started against the dev stack — every line JSON with `service: "worker"`, job results structured.
+
 ### SMS providers (D-076)
 - `sms-providers.test.ts` against a local HTTP stand-in (real requests): 10-digit Nepal numbers, Sparrow token /
   sender / number / text form and credit, Aakash auth token form and credit, refused tokens are errors, provider chosen

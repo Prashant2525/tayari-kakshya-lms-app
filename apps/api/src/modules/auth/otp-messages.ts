@@ -21,8 +21,32 @@ const COPY = {
   },
 } as const;
 
-export function otpMessage(purpose: OtpPurpose, locale: 'en' | 'ne', code: string, ttlMinutes: number) {
-  const copy = COPY[purpose][locale];
+/**
+ * A new staff account's first password (KI-013): the same one-time code as a password reset, worded as an invitation
+ * — they set their password on the CMS's "Set password" page.
+ */
+const STAFF_INVITE = {
+  en: {
+    subject: 'Your Tayari Kakshya admin account',
+    lead: 'You have been given a Tayari Kakshya admin (CMS) account. To choose your password, open the CMS "Set password" page and enter this code',
+  },
+  ne: {
+    subject: 'तयारी कक्षा एडमिन खाता',
+    lead: 'तपाईंलाई तयारी कक्षा एडमिन (CMS) खाता दिइएको छ। पासवर्ड राख्न CMS को "Set password" पेज खोलेर यो कोड हाल्नुहोस्',
+  },
+} as const;
+
+export type OtpWording = 'default' | 'staff_invite';
+
+export function otpMessage(
+  purpose: OtpPurpose,
+  locale: 'en' | 'ne',
+  code: string,
+  ttlMinutes: number,
+  wording: OtpWording = 'default',
+) {
+  const copy =
+    wording === 'staff_invite' && purpose === 'reset_password' ? STAFF_INVITE[locale] : COPY[purpose][locale];
   const text =
     locale === 'ne'
       ? `${copy.lead}: ${code}। यो कोड ${toDevanagariDigits(ttlMinutes)} मिनेटसम्म मान्य छ। कसैलाई नदिनुहोस्।`
