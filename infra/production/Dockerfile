@@ -13,6 +13,8 @@ ENV CI=true NEXT_TELEMETRY_DISABLED=1
 # pnpm (the version in package.json's packageManager) is installed once here and cached. npm, not corepack: corepack's
 # download fails now and then inside the container.
 RUN npm install -g pnpm@12.8.1 && pnpm --version
+# Prisma's tools look for OpenSSL (the slim image has none).
+RUN apt-get update && apt-get install -y --no-install-recommends openssl && rm -rf /var/lib/apt/lists/*
 WORKDIR /repo
 COPY . .
 RUN pnpm install --frozen-lockfile --filter "@tk/api..." --filter "@tk/web..." --filter "@tk/admin..."
@@ -22,7 +24,8 @@ ARG VITE_APP_RELEASE=""
 # Prisma reads a database address while generating its client; none is contacted during the build (the real one
 # comes from the server environment at run time).
 RUN DATABASE_URL=postgresql://build:build@localhost:5432/build \
-    pnpm --filter "@tk/api..." --filter "@tk/web..." --filter "@tk/admin..." run build
+    pnpm --filter "@tk/api..." --filter "@tk/web..." --filter "@tk/admin..." run build && \
+    mkdir -p apps/web/public
 # The API with production dependencies only (workspace packages copied in with their built files); the sources,
 # tests and tool configs are not needed at run time.
 RUN pnpm --filter @tk/api deploy --legacy --prod /out/api && \
