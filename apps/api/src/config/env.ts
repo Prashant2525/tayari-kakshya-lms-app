@@ -1,3 +1,4 @@
+import { createPrivateKey } from 'node:crypto';
 import { z } from 'zod';
 
 const csv = z
@@ -144,6 +145,15 @@ export const EnvSchema = z
     KHALTI_ENV: gatewayMode,
     KHALTI_BASE_URL: optional,
     KHALTI_SECRET_KEY: optional,
+    // ConnectIPS (NCHL, D-076): merchant / application values from NCHL; the private key of the merchant's PFX as PEM
+    // (or the PEM file in base64). The UAT and production addresses are built in; CONNECTIPS_BASE_URL overrides them.
+    CONNECTIPS_ENV: gatewayMode,
+    CONNECTIPS_MERCHANT_ID: optional,
+    CONNECTIPS_APP_ID: optional,
+    CONNECTIPS_APP_NAME: optional,
+    CONNECTIPS_APP_PASSWORD: optional,
+    CONNECTIPS_PRIVATE_KEY: optional,
+    CONNECTIPS_BASE_URL: optional,
   })
   .superRefine((env, ctx) => {
     const prodLike = env.APP_ENV === 'production' || env.APP_ENV === 'staging';
@@ -203,6 +213,7 @@ export const EnvSchema = z
     for (const [name, mode, configured] of [
       ['ESEWA_ENV', env.ESEWA_ENV, Boolean(env.ESEWA_SECRET_KEY)],
       ['KHALTI_ENV', env.KHALTI_ENV, Boolean(env.KHALTI_SECRET_KEY)],
+      ['CONNECTIPS_ENV', env.CONNECTIPS_ENV, Boolean(env.CONNECTIPS_MERCHANT_ID)],
     ] as const) {
       if (env.APP_ENV === 'production' && configured && mode !== 'production') {
         ctx.addIssue({
@@ -214,7 +225,7 @@ export const EnvSchema = z
     }
     if (
       prodLike &&
-      (env.ESEWA_SECRET_KEY || env.KHALTI_SECRET_KEY) &&
+      (env.ESEWA_SECRET_KEY || env.KHALTI_SECRET_KEY || env.CONNECTIPS_MERCHANT_ID) &&
       !env.PAYMENT_CALLBACK_BASE_URL?.startsWith('https://')
     ) {
       ctx.addIssue({
@@ -239,6 +250,29 @@ export const EnvSchema = z
     together(['ESEWA_PRODUCT_CODE', 'ESEWA_SECRET_KEY'], 'eSewa');
     together(['SMTP_USER', 'SMTP_PASSWORD'], 'SMTP login');
     together(['BUNNY_STREAM_LIBRARY_ID', 'BUNNY_STREAM_API_KEY'], 'Bunny Stream');
+    together(
+      [
+        'CONNECTIPS_MERCHANT_ID',
+        'CONNECTIPS_APP_ID',
+        'CONNECTIPS_APP_NAME',
+        'CONNECTIPS_APP_PASSWORD',
+        'CONNECTIPS_PRIVATE_KEY',
+      ],
+      'ConnectIPS',
+    );
+    if (env.CONNECTIPS_PRIVATE_KEY) {
+      try {
+        const key = env.CONNECTIPS_PRIVATE_KEY;
+        const pem = key.includes('BEGIN') ? key : Buffer.from(key, 'base64').toString('utf8');
+        createPrivateKey(pem.replace(/\\n/g, '\n'));
+      } catch {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['CONNECTIPS_PRIVATE_KEY'],
+          message: 'is not a private key: use the PEM from the merchant PFX (guide §5.3)',
+        });
+      }
+    }
     if (env.EMAIL_PROVIDER === 'smtp' && (!env.SMTP_HOST || !env.SMTP_PORT)) {
       ctx.addIssue({ code: 'custom', path: ['SMTP_HOST'], message: 'SMTP_HOST and SMTP_PORT are required' });
     }

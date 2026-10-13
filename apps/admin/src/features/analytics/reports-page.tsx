@@ -56,7 +56,7 @@ const LABEL: Record<string, string> = {
   web: 'Website',
   khalti: 'Khalti',
   esewa: 'eSewa',
-  connectips: 'connectIPS',
+  connectips: 'ConnectIPS',
   order: 'Bought',
   admin_grant: 'Given by staff',
   coupon: 'Coupon',

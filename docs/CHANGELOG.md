@@ -4,6 +4,12 @@ All notable changes to this project. Format based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Added — 2026-10-13 (ConnectIPS and gateway checks — D-076)
+- **ConnectIPS (NCHL)** as a third payment method in the app and on the website, on / off in CMS → Payment methods:
+  signed form to NCHL, success / failure return addresses, payment confirmed with NCHL before access. Configured
+  with `CONNECTIPS_*` values only (guide §5.3); first real run in NCHL's UAT with the owner's test credentials.
+- `config-check --connect` tries the eSewa, Khalti and ConnectIPS credentials without making a payment.
+
 ### Added — 2026-10-13 (configuration readiness, part 1 — D-076)
 - `docs/CONFIGURATION_READINESS_AUDIT.md`: every integration checked against "credentials only, no code changes";
   gaps G-1…G-7 planned as Phase 19.

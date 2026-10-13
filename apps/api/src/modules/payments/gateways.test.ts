@@ -1,6 +1,15 @@
+import { createVerify, generateKeyPairSync } from 'node:crypto';
 import { describe, expect, it } from 'vitest';
 import type { GatewayHttp, HttpReply } from './gateway-http.js';
-import { EsewaGateway, esewaAmount, KhaltiGateway } from './gateways.js';
+import {
+  ConnectIpsGateway,
+  connectIpsDate,
+  connectIpsTxnId,
+  EsewaGateway,
+  esewaAmount,
+  KhaltiGateway,
+  readConnectIpsKey,
+} from './gateways.js';
 
 /**
  * eSewa's published UAT key (developer.esewa.com.np/pages/Epay, checked 2026-10-06). The page shows a trailing "(";
@@ -155,5 +164,122 @@ describe('Khalti KPG-2', () => {
       expect(v.status).toBe(expected);
     }
     await expect(khalti(fakeHttp({ status: 401, body: {} })).check('PIDX1')).rejects.toThrow();
+  });
+});
+
+describe('ConnectIPS (NCHL, D-076)', () => {
+  const { privateKey, publicKey } = generateKeyPairSync('rsa', { modulusLength: 2048 });
+  const pem = privateKey.export({ type: 'pkcs8', format: 'pem' }).toString();
+  const verify = (message: string, token: string) =>
+    createVerify('RSA-SHA256').update(message).verify(publicKey, token, 'base64');
+  const cips = (http = fakeHttp({ status: 200, body: {} })) =>
+    new ConnectIpsGateway(
+      {
+        mode: 'sandbox',
+        merchantId: '301',
+        appId: 'MER-301-APP-1',
+        appName: 'Tayari Kakshya',
+        appPassword: 'app-password',
+        privateKey: readConnectIpsKey(pem),
+        baseUrl: 'https://uat.connectips.com',
+      },
+      http,
+    );
+
+  it('reads the private key as PEM, as PEM on one line with \\n, or as base64 PEM', () => {
+    for (const value of [pem, pem.replace(/\n/g, '\\n'), Buffer.from(pem).toString('base64')]) {
+      expect(readConnectIpsKey(value).asymmetricKeyType).toBe('rsa');
+    }
+    expect(() => readConnectIpsKey('not a key')).toThrow();
+  });
+
+  it('builds the form: ids, Nepal date, paisa, and a TOKEN signed over every field', () => {
+    const now = new Date('2026-10-13T20:30:00Z'); // 14 Oct, 02:15 in Nepal
+    expect(connectIpsDate(now)).toBe('14-10-2026');
+    const txnId = connectIpsTxnId('019a1b2c-3d4e-7f00-8a1b-2c3d4e5f6a7b');
+    expect(txnId).toBe('019a1b2c3d4e7f008a1b');
+    const fields = cips().formFields({
+      txnId,
+      amountPaisa: 250_000,
+      remarks: 'Order 12',
+      particulars: 'Course',
+      now,
+    });
+    expect(fields).toMatchObject({
+      MERCHANTID: '301',
+      APPID: 'MER-301-APP-1',
+      APPNAME: 'Tayari Kakshya',
+      TXNID: txnId,
+      TXNDATE: '14-10-2026',
+      TXNCRNCY: 'NPR',
+      TXNAMT: '250000',
+      REFERENCEID: txnId,
+    });
+    const message = `MERCHANTID=301,APPID=MER-301-APP-1,APPNAME=Tayari Kakshya,TXNID=${txnId},TXNDATE=14-10-2026,TXNCRNCY=NPR,TXNAMT=250000,REFERENCEID=${txnId},REMARKS=Order 12,PARTICULARS=Course,TOKEN=TOKEN`;
+    expect(verify(message, fields.TOKEN)).toBe(true);
+    expect(verify(message.replace('250000', '25000'), fields.TOKEN)).toBe(false);
+  });
+
+  it('validates server to server with Basic auth and a signed body; only SUCCESS completes', async () => {
+    const seen: Array<{
+      url: string;
+      opts: { headers: Record<string, string>; json: Record<string, unknown> };
+    }> = [];
+    const success = cips(
+      fakeHttp(
+        { status: 200, body: { status: 'SUCCESS', referenceId: 'TX1', txnAmt: 250000 } },
+        seen as unknown[],
+      ),
+    );
+    expect(await success.check('TX1', 250_000)).toMatchObject({
+      status: 'completed',
+      amountPaisa: 250_000,
+      transactionId: 'TX1',
+    });
+    const call = seen[0]!;
+    expect(call.url).toBe('https://uat.connectips.com/connectipswebws/api/creditor/validatetxn');
+    expect(call.opts.headers['Authorization']).toBe(
+      `Basic ${Buffer.from('MER-301-APP-1:app-password').toString('base64')}`,
+    );
+    expect(call.opts.json).toMatchObject({
+      merchantId: 301,
+      appId: 'MER-301-APP-1',
+      referenceId: 'TX1',
+      txnAmt: 250000,
+    });
+    expect(
+      verify(
+        'MERCHANTID=301,APPID=MER-301-APP-1,REFERENCEID=TX1,TXNAMT=250000',
+        call.opts.json['token'] as string,
+      ),
+    ).toBe(true);
+
+    for (const body of [
+      { status: 'FAILED' },
+      { status: 'ERROR' },
+      {},
+      { status: 'SUCCESS', referenceId: 'OTHER' },
+    ]) {
+      expect((await cips(fakeHttp({ status: 200, body })).check('TX1', 250_000)).status).toBe('pending');
+    }
+    await expect(cips(fakeHttp({ status: 401, body: {} })).check('TX1', 1)).rejects.toThrow(/ConnectIPS/);
+  });
+});
+
+describe('configuration probes (D-076, G-4)', () => {
+  it('Khalti: an unknown payment (404) means the key works; 401 means it does not', async () => {
+    const khalti = (status: number) =>
+      new KhaltiGateway(
+        { mode: 'sandbox', secretKey: 'k', baseUrl: 'https://dev.khalti.com/api/v2' },
+        fakeHttp({ status, body: {} }),
+      );
+    expect((await khalti(404).probe()).ok).toBe(true);
+    expect((await khalti(401).probe()).ok).toBe(false);
+    expect((await khalti(503).probe()).ok).toBe(false);
+  });
+
+  it('eSewa: the status API answers', async () => {
+    expect((await esewa(fakeHttp({ status: 200, body: { status: 'NOT_FOUND' } })).probe()).ok).toBe(true);
+    expect((await esewa(fakeHttp({ status: 502, body: null })).probe()).ok).toBe(false);
   });
 });

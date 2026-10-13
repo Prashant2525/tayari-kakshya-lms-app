@@ -7,7 +7,7 @@ import { api, queryClient } from './client';
 
 /** Course and plan purchases (Phase 11). The server sets every amount; the app only shows them. */
 
-export type ProviderName = 'esewa' | 'khalti';
+export type ProviderName = 'esewa' | 'khalti' | 'connectips';
 
 export interface OrderView {
   id: string;

@@ -128,7 +128,7 @@ export interface Me {
 }
 
 export interface PaymentOptions {
-  providers: Array<{ provider: 'esewa' | 'khalti'; testMode: boolean }>;
+  providers: Array<{ provider: 'esewa' | 'khalti' | 'connectips'; testMode: boolean }>;
 }
 
 export interface CertificateCheck {

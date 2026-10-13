@@ -33,7 +33,7 @@ export async function quoteAction(
 export async function checkoutAction(
   item: CheckoutItem,
   couponCode: string | null,
-  provider: 'esewa' | 'khalti' | null,
+  provider: 'esewa' | 'khalti' | 'connectips' | null,
 ): Promise<{ ok: true; orderId: string; redirectUrl: string | null } | Failure> {
   try {
     const order = await api<OrderView>('/orders', {

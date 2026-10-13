@@ -239,8 +239,13 @@ export const SETTINGS = {
    * new payments through it; payments already started still settle.
    */
   'payments.providers': {
-    schema: z.object({ esewa: z.boolean(), khalti: z.boolean() }),
-    default: { esewa: true, khalti: true },
+    schema: z.object({
+      esewa: z.boolean(),
+      khalti: z.boolean(),
+      /** D-076; settings saved before it existed show it on (it is only offered when configured in .env). */
+      connectips: z.boolean().default(true),
+    }),
+    default: { esewa: true, khalti: true, connectips: true },
     public: false,
   },
   /**

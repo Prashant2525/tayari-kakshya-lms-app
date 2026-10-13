@@ -35,10 +35,12 @@ import { ReferralsService } from './referrals.service.js';
 import { purchaseMessage } from '../notifications/messages.js';
 import { NotificationsService } from '../notifications/notifications.service.js';
 import {
-  GatewayError,
-  gatewaysFromEnv,
+  type ConnectIpsGateway,
+  connectIpsTxnId,
   type EsewaGateway,
+  GatewayError,
   type GatewayName,
+  gatewaysFromEnv,
   type GatewayVerdict,
   type KhaltiGateway,
 } from './gateways.js';
@@ -126,7 +128,11 @@ const escapeHtml = (s: string) =>
 @Injectable()
 export class PaymentsService {
   private readonly logger = new Logger(PaymentsService.name);
-  private readonly gateways: { esewa: EsewaGateway | null; khalti: KhaltiGateway | null };
+  private readonly gateways: {
+    esewa: EsewaGateway | null;
+    khalti: KhaltiGateway | null;
+    connectips: ConnectIpsGateway | null;
+  };
 
   constructor(
     private readonly prisma: PrismaService,
@@ -149,7 +155,7 @@ export class PaymentsService {
   async options(platform: Platform) {
     const enabled = await this.settings.get('payments.providers');
     const canBuy = await this.channelOpen(platform);
-    const providers = (['esewa', 'khalti'] as const)
+    const providers = (['esewa', 'khalti', 'connectips'] as const)
       .filter((p) => canBuy && enabled[p] && this.gateways[p] && this.env.PAYMENT_CALLBACK_BASE_URL)
       .map((p) => ({ provider: p, testMode: this.gateways[p]!.config.mode === 'sandbox' }));
     return { providers };
@@ -459,15 +465,17 @@ export class PaymentsService {
       callbackBase,
     };
 
-    if (input.provider === 'esewa') {
-      // The student's browser posts a form we sign (the secret stays here): our page builds and sends it.
+    if (input.provider === 'esewa' || input.provider === 'connectips') {
+      // The student's browser posts a form we sign (the secret / key stays here): our page builds and sends it.
       await this.prisma.payment.update({
         where: { id: payment.id },
-        data: { providerReference: payment.id },
+        data: {
+          providerReference: input.provider === 'esewa' ? payment.id : connectIpsTxnId(payment.id),
+        },
       });
       return {
         paymentId: payment.id,
-        redirectUrl: `${callbackBase}/api/v1/payments/esewa/${payment.id}/start`,
+        redirectUrl: `${callbackBase}/api/v1/payments/${input.provider}/${payment.id}/start`,
       };
     }
     try {
@@ -490,8 +498,12 @@ export class PaymentsService {
     }
   }
 
-  /** The page that posts the signed form to eSewa (public: the browser opens it without the student's token). */
-  async esewaStartPage(
+  /**
+   * The page that posts the signed form to eSewa or ConnectIPS (public: the browser opens it without the student's
+   * token).
+   */
+  async formStartPage(
+    provider: 'esewa' | 'connectips',
     paymentId: string,
     now = new Date(),
   ): Promise<{ html: string; formAction: string } | null> {
@@ -499,29 +511,48 @@ export class PaymentsService {
       where: { id: paymentId },
       include: { order: { include: { items: true, user: true } } },
     });
-    const gateway = this.gateways.esewa;
     if (
       !payment ||
-      !gateway ||
-      payment.provider !== 'esewa' ||
+      payment.provider !== provider ||
       payment.status !== 'initiated' ||
       payment.order.status !== 'pending' ||
       payment.order.expiresAt <= now
     ) {
       return null;
     }
-    const fields = gateway.formFields({
-      paymentId: payment.id,
-      amountPaisa: payment.amountPaisa,
-      orderName: `#${payment.order.orderNo}`,
-      customer: { name: payment.order.user.fullName, email: null, phone: null },
-      callbackBase: payment.callbackBase ?? this.env.PAYMENT_CALLBACK_BASE_URL!.replace(/\/+$/, ''),
-    });
+    let formUrl: string;
+    let fields: Record<string, string>;
+    let label: string;
+    if (provider === 'esewa') {
+      const gateway = this.gateways.esewa;
+      if (!gateway) return null;
+      formUrl = gateway.config.formUrl;
+      label = 'eSewa';
+      fields = gateway.formFields({
+        paymentId: payment.id,
+        amountPaisa: payment.amountPaisa,
+        orderName: `#${payment.order.orderNo}`,
+        customer: { name: payment.order.user.fullName, email: null, phone: null },
+        callbackBase: payment.callbackBase ?? this.env.PAYMENT_CALLBACK_BASE_URL!.replace(/\/+$/, ''),
+      });
+    } else {
+      const gateway = this.gateways.connectips;
+      if (!gateway || !payment.providerReference) return null;
+      formUrl = gateway.formUrl;
+      label = 'ConnectIPS';
+      fields = gateway.formFields({
+        txnId: payment.providerReference,
+        amountPaisa: payment.amountPaisa,
+        remarks: `Order ${payment.order.orderNo}`,
+        particulars: 'Tayari Kakshya course purchase',
+        now,
+      });
+    }
     const inputs = Object.entries(fields)
       .map(([k, v]) => `<input type="hidden" name="${escapeHtml(k)}" value="${escapeHtml(v)}">`)
       .join('');
-    const html = `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>eSewa</title></head><body style="font-family:system-ui,sans-serif;text-align:center;padding:48px 16px"><form id="pay" method="POST" action="${escapeHtml(gateway.config.formUrl)}">${inputs}<p>Opening eSewa…</p><button type="submit">Continue to eSewa</button></form><script>document.getElementById('pay').submit();</script></body></html>`;
-    return { html, formAction: new URL(gateway.config.formUrl).origin };
+    const html = `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${label}</title></head><body style="font-family:system-ui,sans-serif;text-align:center;padding:48px 16px"><form id="pay" method="POST" action="${escapeHtml(formUrl)}">${inputs}<p>Opening ${label}…</p><button type="submit">Continue to ${label}</button></form><script>document.getElementById('pay').submit();</script></body></html>`;
+    return { html, formAction: new URL(formUrl).origin };
   }
 
   // ───────────── Returns from the gateways ─────────────
@@ -548,6 +579,32 @@ export class PaymentsService {
         : null;
     if (!payment || payment.provider !== 'esewa') return null;
     await this.check(payment, 'redirect', query);
+    return this.returnUrl(payment);
+  }
+
+  /**
+   * ConnectIPS sends the student back to the success or failure address registered with NCHL, with `?TXNID=…`.
+   * Neither is trusted: the payment is confirmed with NCHL's validation API. Back on the failure address with NCHL also
+   * not confirming it, the attempt is over (cancelled) — the student can try again at once.
+   */
+  async connectipsReturn(query: { txnId?: string; outcome: 'success' | 'failure' }): Promise<string | null> {
+    if (!query.txnId || !this.gateways.connectips || !/^[0-9A-Za-z]{1,20}$/.test(query.txnId)) return null;
+    const payment = await this.prisma.payment.findUnique({
+      where: { provider_providerReference: { provider: 'connectips', providerReference: query.txnId } },
+    });
+    if (!payment) {
+      await this.event(this.prisma, null, 'connectips', 'redirect', query, 'unknown_payment');
+      return null;
+    }
+    const checked = await this.check(payment, 'redirect', query);
+    if (query.outcome === 'failure' && OPEN.includes(checked.status)) {
+      await this.settle(
+        payment.id,
+        { status: 'cancelled', amountPaisa: null, transactionId: null, raw: { returned: 'failure' } },
+        'redirect',
+        query,
+      );
+    }
     return this.returnUrl(payment);
   }
 
@@ -612,14 +669,16 @@ export class PaymentsService {
 
   /** Asks the payment's gateway where it stands and settles it. */
   async check(payment: Payment, eventType: 'redirect' | 'verify' | 'reconcile' | 'staff', payload: unknown) {
-    const gateway = payment.provider === 'esewa' ? this.gateways.esewa : this.gateways.khalti;
-    if (!gateway || (payment.provider === 'khalti' && !payment.providerReference)) return payment;
+    const gateway = this.gateways[payment.provider];
+    if (!gateway || (payment.provider !== 'esewa' && !payment.providerReference)) return payment;
     let verdict: GatewayVerdict;
     try {
       verdict =
         payment.provider === 'esewa'
           ? await this.gateways.esewa!.check(payment.id, payment.amountPaisa)
-          : await this.gateways.khalti!.check(payment.providerReference!);
+          : payment.provider === 'khalti'
+            ? await this.gateways.khalti!.check(payment.providerReference!)
+            : await this.gateways.connectips!.check(payment.providerReference!, payment.amountPaisa);
     } catch (err) {
       await this.prisma.payment.update({
         where: { id: payment.id },

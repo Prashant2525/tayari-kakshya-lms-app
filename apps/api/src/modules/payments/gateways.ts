@@ -1,14 +1,14 @@
-import { createHmac, timingSafeEqual } from 'node:crypto';
+import { createHmac, createPrivateKey, createSign, timingSafeEqual, type KeyObject } from 'node:crypto';
 import type { Env } from '../../config/env.js';
 import type { GatewayHttp } from './gateway-http.js';
 
 /**
  * eSewa ePay v2 and Khalti KPG-2 (D-003), from their official documentation (checked 2026-10-06):
- * developer.esewa.com.np/pages/Epay and docs.khalti.com/khalti-epayment. Every merchant value and endpoint comes
+ * developer.esewa.com.np/pages/Epay and docs.khalti.com/khalti-epayment; ConnectIPS (D-076) below. Every merchant value and endpoint comes
  * from .env (D-051); the official endpoints for each mode are the defaults.
  */
 
-export type GatewayName = 'esewa' | 'khalti';
+export type GatewayName = 'esewa' | 'khalti' | 'connectips';
 
 /** What the gateway says about a payment, checked server to server. Only `completed` ever grants access. */
 export interface GatewayVerdict {
@@ -152,6 +152,19 @@ export class EsewaGateway {
         return { status: 'pending', amountPaisa: amount, transactionId: ref, raw: body };
     }
   }
+
+  /**
+   * Configuration check: the status API answers for this product code (eSewa checks the secret key only when a
+   * payment is made, so it cannot be tried here).
+   */
+  async probe(): Promise<{ ok: boolean; status: number }> {
+    const url = new URL(this.config.statusUrl);
+    url.searchParams.set('product_code', this.config.productCode);
+    url.searchParams.set('total_amount', '1');
+    url.searchParams.set('transaction_uuid', 'tk-config-check');
+    const reply = await this.http.request('GET', url.toString());
+    return { ok: reply.status < 500, status: reply.status };
+  }
 }
 
 // ───────────── Khalti ─────────────
@@ -228,6 +241,152 @@ export class KhaltiGateway {
         return { status: 'pending', amountPaisa: amount, transactionId: txn, raw: body };
     }
   }
+
+  /** Configuration check: the key is accepted (an unknown payment is "not found", a wrong key is 401). */
+  async probe(): Promise<{ ok: boolean; status: number }> {
+    const reply = await this.http.request('POST', `${this.config.baseUrl}/epayment/lookup/`, {
+      headers: this.headers(),
+      json: { pidx: 'tk-config-check' },
+    });
+    return { ok: reply.status !== 401 && reply.status !== 403 && reply.status < 500, status: reply.status };
+  }
+}
+
+// ───────────── ConnectIPS (NCHL) ─────────────
+
+/**
+ * NCHL connectIPS e-Payment gateway (D-076), from NCHL's merchant integration guide: the student's browser posts a
+ * form signed with the merchant's private key (SHA256withRSA over the fields, base64) to `/connectipswebgw/loginpage`;
+ * NCHL sends the student back to the success / failure addresses registered for the merchant with `?TXNID=…`; the
+ * payment is then confirmed server to server with `/connectipswebws/api/creditor/validatetxn` (Basic auth with the
+ * application id and password, body signed the same way). Amounts are in paisa. Field names and formats are to be
+ * confirmed against NCHL's current document in their UAT before going live.
+ */
+const CONNECTIPS_URLS = {
+  sandbox: 'https://uat.connectips.com',
+  production: 'https://login.connectips.com',
+} as const;
+
+export interface ConnectIpsConfig {
+  mode: 'sandbox' | 'production';
+  merchantId: string;
+  appId: string;
+  appName: string;
+  appPassword: string;
+  privateKey: KeyObject;
+  baseUrl: string;
+}
+
+/**
+ * The merchant's private key as configured: PEM text (line breaks as real newlines or `\n`), or the PEM file encoded
+ * in base64 on one line. Throws when it is not a private key.
+ */
+export function readConnectIpsKey(value: string): KeyObject {
+  const text = value.includes('BEGIN') ? value : Buffer.from(value, 'base64').toString('utf8');
+  return createPrivateKey(text.replace(/\\n/g, '\n'));
+}
+
+/** dd-MM-yyyy in Nepal time, as the gateway expects TXNDATE. */
+export function connectIpsDate(now: Date): string {
+  const nepal = new Date(now.getTime() + (5 * 60 + 45) * 60_000);
+  const dd = String(nepal.getUTCDate()).padStart(2, '0');
+  const mm = String(nepal.getUTCMonth() + 1).padStart(2, '0');
+  return `${dd}-${mm}-${nepal.getUTCFullYear()}`;
+}
+
+/** TXNID: at most 20 letters / digits; ours is the start of the payment id (time-ordered, unique per payment). */
+export function connectIpsTxnId(paymentId: string): string {
+  return paymentId.replace(/-/g, '').slice(0, 20);
+}
+
+export class ConnectIpsGateway {
+  readonly name = 'connectips' as const;
+  constructor(
+    readonly config: ConnectIpsConfig,
+    private readonly http: GatewayHttp,
+  ) {}
+
+  get formUrl(): string {
+    return `${this.config.baseUrl}/connectipswebgw/loginpage`;
+  }
+
+  /** base64(SHA256withRSA(message)) with the merchant's key — the TOKEN NCHL checks with the merchant's certificate. */
+  sign(message: string): string {
+    return createSign('RSA-SHA256').update(message).sign(this.config.privateKey, 'base64');
+  }
+
+  /** The form the student's browser posts to NCHL (signed here; the key never leaves the API). */
+  formFields(req: { txnId: string; amountPaisa: number; remarks: string; particulars: string; now: Date }) {
+    const fields = {
+      MERCHANTID: this.config.merchantId,
+      APPID: this.config.appId,
+      APPNAME: this.config.appName,
+      TXNID: req.txnId,
+      TXNDATE: connectIpsDate(req.now),
+      TXNCRNCY: 'NPR',
+      TXNAMT: String(req.amountPaisa),
+      REFERENCEID: req.txnId,
+      REMARKS: req.remarks.slice(0, 50),
+      PARTICULARS: req.particulars.slice(0, 100),
+    };
+    const message = `${Object.entries(fields)
+      .map(([k, v]) => `${k}=${v}`)
+      .join(',')},TOKEN=TOKEN`;
+    return { ...fields, TOKEN: this.sign(message) };
+  }
+
+  /** The body NCHL's validation / detail APIs take for one transaction. */
+  private validationBody(txnId: string, amountPaisa: number) {
+    const message = `MERCHANTID=${this.config.merchantId},APPID=${this.config.appId},REFERENCEID=${txnId},TXNAMT=${amountPaisa}`;
+    return {
+      merchantId: Number.isNaN(Number(this.config.merchantId))
+        ? this.config.merchantId
+        : Number(this.config.merchantId),
+      appId: this.config.appId,
+      referenceId: txnId,
+      txnAmt: amountPaisa,
+      token: this.sign(message),
+    };
+  }
+
+  private headers() {
+    return {
+      Authorization: `Basic ${Buffer.from(`${this.config.appId}:${this.config.appPassword}`).toString('base64')}`,
+    };
+  }
+
+  /**
+   * Confirms a payment with NCHL. Only `SUCCESS` for this transaction and amount completes it; anything else stays
+   * pending (the student may still be paying) until the order's time is up.
+   */
+  async check(txnId: string, amountPaisa: number): Promise<GatewayVerdict> {
+    const reply = await this.http.request(
+      'POST',
+      `${this.config.baseUrl}/connectipswebws/api/creditor/validatetxn`,
+      { headers: this.headers(), json: this.validationBody(txnId, amountPaisa) },
+    );
+    if (reply.status >= 500 || reply.status === 401 || reply.status === 403) {
+      throw new GatewayError('ConnectIPS validation failed', { status: reply.status, body: reply.body });
+    }
+    const body = (reply.body ?? {}) as Record<string, unknown>;
+    const status = String(body['status'] ?? '').toUpperCase();
+    const reported = Number(body['txnAmt']);
+    const amount = Number.isFinite(reported) && reported > 0 ? Math.round(reported) : amountPaisa;
+    if (status === 'SUCCESS' && String(body['referenceId'] ?? txnId) === txnId) {
+      return { status: 'completed', amountPaisa: amount, transactionId: txnId, raw: body };
+    }
+    return { status: 'pending', amountPaisa: null, transactionId: null, raw: body };
+  }
+
+  /** Configuration check: NCHL accepts these credentials (an unknown transaction answers, it is not refused). */
+  async probe(): Promise<{ ok: boolean; status: number }> {
+    const reply = await this.http.request(
+      'POST',
+      `${this.config.baseUrl}/connectipswebws/api/creditor/gettxndetail`,
+      { headers: this.headers(), json: this.validationBody('TKCONFIGCHECK', 100) },
+    );
+    return { ok: reply.status !== 401 && reply.status !== 403 && reply.status < 500, status: reply.status };
+  }
 }
 
 // ───────────── Configuration ─────────────
@@ -257,5 +416,24 @@ export function gatewaysFromEnv(env: Env, http: GatewayHttp) {
         http,
       )
     : null;
-  return { esewa, khalti };
+  const connectips =
+    env.CONNECTIPS_MERCHANT_ID &&
+    env.CONNECTIPS_APP_ID &&
+    env.CONNECTIPS_APP_NAME &&
+    env.CONNECTIPS_APP_PASSWORD &&
+    env.CONNECTIPS_PRIVATE_KEY
+      ? new ConnectIpsGateway(
+          {
+            mode: env.CONNECTIPS_ENV,
+            merchantId: env.CONNECTIPS_MERCHANT_ID,
+            appId: env.CONNECTIPS_APP_ID,
+            appName: env.CONNECTIPS_APP_NAME,
+            appPassword: env.CONNECTIPS_APP_PASSWORD,
+            privateKey: readConnectIpsKey(env.CONNECTIPS_PRIVATE_KEY),
+            baseUrl: (env.CONNECTIPS_BASE_URL ?? CONNECTIPS_URLS[env.CONNECTIPS_ENV]).replace(/\/+$/, ''),
+          },
+          http,
+        )
+      : null;
+  return { esewa, khalti, connectips };
 }

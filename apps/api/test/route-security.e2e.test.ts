@@ -76,6 +76,9 @@ const PUBLIC_ROUTES = [
   'GET /pages',
   'GET /pages/:slug',
   // Gateway pages and returns: the browser arrives without the student's token; signed or verified with the gateway.
+  'GET /payments/connectips/:paymentId/start',
+  'GET /payments/connectips/failure',
+  'GET /payments/connectips/success',
   'GET /payments/esewa/:paymentId/start',
   'GET /payments/esewa/return',
   'GET /payments/khalti/return',

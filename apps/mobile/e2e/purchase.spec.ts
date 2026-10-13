@@ -15,6 +15,8 @@ const courseTitle = `Kharidar Complete ${run}`;
 const planCourseTitle = `Section Officer ${run}`;
 const planName = `All Access ${run}`;
 const couponCourseTitle = `Computer Operator ${run}`;
+const cipsCourseTitle = `Nayab Subba ${run}`;
+const cipsSlug = `ns-${run}`;
 const discountCode = `FEST-${run}`.toUpperCase();
 const freeCode = `FREE-${run}`.toUpperCase();
 const doc = (text: string) => ({
@@ -136,6 +138,19 @@ test.beforeAll(async ({ browser, request }) => {
     allowOnSale: false,
     active: true,
   });
+  // A fourth course, bought with ConnectIPS (D-076).
+  const cipsCourse = await call('POST', '/admin/courses', { slug: cipsSlug, title: { en: cipsCourseTitle } });
+  await call('PUT', `/admin/courses/${cipsCourse.id}/pricing`, {
+    pricePaisa: 90_000,
+    salePricePaisa: null,
+    saleStartsAt: null,
+    saleEndsAt: null,
+    validityType: 'lifetime',
+    validityDays: null,
+    validityEndsOn: null,
+  });
+  await call('PUT', `/admin/courses/${cipsCourse.id}/subjects`, { subjects: [{ subjectId: subject.id }] });
+  await call('PUT', `/admin/courses/${cipsCourse.id}/publishing`, { status: 'published' });
   await call('POST', '/admin/coupons', couponBody(discountCode, 2000));
   await call('POST', '/admin/coupons', couponBody(freeCode, 10_000));
 
@@ -237,6 +252,23 @@ test('a plan bought with Khalti opens its courses and can then be renewed', asyn
 
   await page.goto('/purchases');
   await expect(text(`Plan: ${planName}`)).toBeVisible();
+});
+
+test('ConnectIPS (D-076): cancelled at NCHL gives no access; paid gives access', async () => {
+  await page.goto(`/course/${cipsSlug}`);
+  await button('Buy').click();
+  await visible(page.getByRole('radio', { name: 'ConnectIPS' })).click();
+  await button('Pay Rs 900').click();
+  // Our page posts the signed form to NCHL (stand-in): the student cancels there.
+  await page.getByRole('link', { name: 'Cancel payment' }).click();
+  await expect(text('Payment not completed')).toBeVisible({ timeout: 20_000 });
+
+  await button('Try again').click();
+  await visible(page.getByRole('radio', { name: 'ConnectIPS' })).click();
+  await button('Pay Rs 900').click();
+  await page.getByRole('link', { name: 'Pay with ConnectIPS' }).click();
+  await expect(text('Payment successful')).toBeVisible({ timeout: 20_000 });
+  await expect(text(`You now have access to ${cipsCourseTitle}.`)).toBeVisible();
 });
 
 test('a coupon at checkout: a wrong code is explained; the discount is the server one', async () => {

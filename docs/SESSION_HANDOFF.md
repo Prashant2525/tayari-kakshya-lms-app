@@ -202,6 +202,11 @@ Current task: Phase 11 part 3 (receipts + refunds) done on `feature/receipts-ref
 - Nothing partially implemented. Admin screens for Phase 6 not started.
 
 ## Exact next steps
+0zk. 2026-10-13: Phase 19 G-1 / G-4 on `feature/connectips` (stacked on `feature/config-readiness`, PR #60):
+   `ConnectIpsGateway` (gateways.ts), `formStartPage` / `connectipsReturn` (payments.service.ts), routes
+   `/payments/connectips/:id/start|success|failure`, `CONNECTIPS_*` settings + validation, probes in `config-check
+   --connect`; test keys are generated per run (setup-env.ts, fake-gateway.mjs) — never commit a key. Next: G-2 SMS
+   providers (Sparrow, Aakash).
 0zj. 2026-10-13: PR #59 merged (main CI green incl. docker-images). Owner requirement D-076 (zero code changes for
    configuration): audit `CONFIGURATION_READINESS_AUDIT.md`; Phase 19 on `feature/config-readiness` closes G-3, G-5,
    G-6, G-7. Next: G-1 ConnectIPS provider (NCHL e-Payment spec; PEM key from the PFX), then G-2 SMS providers

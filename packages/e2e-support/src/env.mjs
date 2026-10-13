@@ -118,7 +118,11 @@ export function createE2eEnv({ name, apiPort, webOrigin, apiOrigin, redisDb, ema
 function gatewayEnv(apiPort, webOrigin, browserApi) {
   const urls = { callbackBase: browserApi, webReturnUrl: `${webOrigin}/payment-result` };
   if (process.env.E2E_REAL_GATEWAYS === '1') {
-    if (process.env.ESEWA_ENV === 'production' || process.env.KHALTI_ENV === 'production') {
+    if (
+      process.env.ESEWA_ENV === 'production' ||
+      process.env.KHALTI_ENV === 'production' ||
+      process.env.CONNECTIPS_ENV === 'production'
+    ) {
       throw new Error('E2E_REAL_GATEWAYS is for test (sandbox) credentials only');
     }
     return {

@@ -9,7 +9,7 @@ import type { CheckoutItem, PaymentOptions, Quote } from '@/lib/types';
 import { useT } from './i18n-provider';
 import { Alert, button, Card, Chip, input } from './ui';
 
-const PROVIDER_LABEL = { esewa: 'eSewa', khalti: 'Khalti' } as const;
+const PROVIDER_LABEL = { esewa: 'eSewa', khalti: 'Khalti', connectips: 'ConnectIPS' } as const;
 /**
  * Checkout (Phase 11) on the website: every amount is the server's quote (sale, coupon D-025, VAT D-055); the
  * student picks a gateway and finishes on its page, or gets access at once when a coupon covers everything (D-056).

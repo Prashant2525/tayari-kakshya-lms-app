@@ -40,8 +40,12 @@ async function setup() {
   };
   const order = (token: string, body: unknown = { courseId: seeded.course.id }, headers = ANDROID) =>
     call(ctx, 'POST', '/orders', { token, body, headers });
-  const pay = (token: string, orderId: string, provider: 'esewa' | 'khalti', returnTo = 'app') =>
-    call(ctx, 'POST', `/orders/${orderId}/pay`, { token, body: { provider, returnTo } });
+  const pay = (
+    token: string,
+    orderId: string,
+    provider: 'esewa' | 'khalti' | 'connectips',
+    returnTo = 'app',
+  ) => call(ctx, 'POST', `/orders/${orderId}/pay`, { token, body: { provider, returnTo } });
   const khaltiReturn = (pidx: string) =>
     call(ctx, 'GET', `/payments/khalti/return?pidx=${pidx}&status=Completed&purchase_order_id=forged`);
   const view = (token: string, orderId: string) => call(ctx, 'GET', `/orders/${orderId}`, { token });
@@ -74,6 +78,7 @@ describe('buying a course (Phase 11)', () => {
       providers: [
         { provider: 'esewa', testMode: true },
         { provider: 'khalti', testMode: true },
+        { provider: 'connectips', testMode: true },
       ],
     });
 
@@ -189,6 +194,70 @@ describe('buying a course (Phase 11)', () => {
     expect((await s.premiumNote(asha.token)).status).toBe(200);
     // The page cannot be used again once paid.
     expect((await call(ctx, 'GET', `/payments/esewa/${paymentId}/start`)).status).toBe(404);
+  });
+
+  it('ConnectIPS (D-076): signed form to NCHL, both return addresses confirmed with NCHL before access', async () => {
+    const s = await setup();
+    const asha = await s.student();
+    const order = (await s.order(asha.token)).body;
+    // First attempt: the student cancels at NCHL and comes back on the failure address; NCHL does not confirm it
+    // either, so the attempt is over (cancelled) and the student can try again at once.
+    const cancelled = await s.pay(asha.token, order.id, 'connectips');
+    const cancelledTxn = (cancelled.body.paymentId as string).replace(/-/g, '').slice(0, 20);
+    const failed = await call(ctx, 'GET', `/payments/connectips/failure?TXNID=${cancelledTxn}`);
+    expect(failed.headers['location']).toBe(`tayarikakshya://payment-result?order=${order.id}`);
+    expect(
+      (await ctx.prisma.payment.findUniqueOrThrow({ where: { id: cancelled.body.paymentId } })).status,
+    ).toBe('cancelled');
+    expect((await s.view(asha.token, order.id)).body.status).toBe('pending');
+
+    const started = await s.pay(asha.token, order.id, 'connectips');
+    const paymentId = started.body.paymentId as string;
+    expect(started.body.redirectUrl).toBe(
+      `https://api.test.invalid/api/v1/payments/connectips/${paymentId}/start`,
+    );
+    const txnId = paymentId.replace(/-/g, '').slice(0, 20);
+
+    const page = await call(ctx, 'GET', `/payments/connectips/${paymentId}/start`);
+    expect(page.status).toBe(200);
+    expect(page.headers['content-security-policy']).toContain('form-action https://uat.connectips.com');
+    expect(page.body).toContain('action="https://uat.connectips.com/connectipswebgw/loginpage"');
+    expect(page.body).toContain(`name="TXNID" value="${txnId}"`);
+    expect(page.body).toContain('name="TXNAMT" value="300000"');
+    expect(page.body).toContain('name="TOKEN"');
+    expect(page.body).not.toContain('PRIVATE KEY');
+    expect(page.body).not.toContain('test-connectips-password');
+
+    // Back on a success address before NCHL confirms: nothing changes.
+    await call(ctx, 'GET', `/payments/connectips/success?TXNID=${txnId}`);
+    expect((await s.view(asha.token, order.id)).body.status).toBe('pending');
+    expect((await s.premiumNote(asha.token)).status).toBe(403);
+    // An unknown or malformed TXNID is not ours.
+    expect((await call(ctx, 'GET', '/payments/connectips/success?TXNID=NOTOURS')).status).toBe(400);
+    expect((await call(ctx, 'GET', '/payments/connectips/success?TXNID=../x')).status).toBe(400);
+
+    // Paid a different amount at NCHL: NCHL does not confirm this transaction for the order's amount.
+    ctx.gateways.connectipsPaid(txnId, 100);
+    await call(ctx, 'GET', `/payments/connectips/success?TXNID=${txnId}`);
+    expect((await s.view(asha.token, order.id)).body.status).toBe('pending');
+
+    ctx.gateways.connectipsPaid(txnId, 300_000);
+    const back = await call(ctx, 'GET', `/payments/connectips/success?TXNID=${txnId}`);
+    expect(back.status).toBe(302);
+    expect(back.headers['location']).toBe(`tayarikakshya://payment-result?order=${order.id}`);
+    expect((await s.view(asha.token, order.id)).body.status).toBe('paid');
+    expect((await s.premiumNote(asha.token)).status).toBe(200);
+    const payment = await ctx.prisma.payment.findUniqueOrThrow({ where: { id: paymentId } });
+    expect(payment).toMatchObject({
+      status: 'completed',
+      providerReference: txnId,
+      providerTransactionId: txnId,
+    });
+    // Every NCHL call carried the application's Basic auth and a valid signature (the stand-in refuses others).
+    expect(
+      ctx.gateways.calls.filter((c) => c.url.endsWith('/connectipswebws/api/creditor/validatetxn')).length,
+    ).toBeGreaterThanOrEqual(4);
+    expect((await call(ctx, 'GET', `/payments/connectips/${paymentId}/start`)).status).toBe(404);
   });
 
   it('cancelled, failed and expired attempts never grant access; the student can try again', async () => {
