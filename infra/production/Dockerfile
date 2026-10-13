@@ -9,9 +9,10 @@ ARG NODE_IMAGE=node:24.21.0-bookworm-slim
 
 # ── Build everything the server needs (not the student app) ─────────────────────────────────────────────────────
 FROM ${NODE_IMAGE} AS build
-ENV PNPM_HOME=/pnpm PATH=/pnpm:$PATH CI=true NEXT_TELEMETRY_DISABLED=1
-# pnpm is fetched once here (cached), not by each image's build in parallel.
-RUN corepack enable && corepack prepare pnpm@12.8.1 --activate && pnpm --version
+ENV CI=true NEXT_TELEMETRY_DISABLED=1
+# pnpm (the version in package.json's packageManager) is installed once here and cached. npm, not corepack: corepack's
+# download fails now and then inside the container.
+RUN npm install -g pnpm@12.8.1 && pnpm --version
 WORKDIR /repo
 COPY . .
 RUN pnpm install --frozen-lockfile --filter "@tk/api..." --filter "@tk/web..." --filter "@tk/admin..."
