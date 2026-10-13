@@ -106,8 +106,8 @@ nosniff, frame denial, referrer and permissions policies, and now a basic CSP (*
 | # | Risk | Why it remains | Plan |
 |---|---|---|---|
 | R-1 | Two high advisories in the app's build tooling: `node-forge` (GHSA-86w9-cpqp-85rv, Expo CLI) and `braces` (GHSA-vfj7-8cjw-p6xm, Metro); moderate `decode-uri-component` (expo-router deep links, a self-DoS at worst) and `uuid` via exceljs (buffer variant not used) | No fixed release / not reachable at runtime | Ignored by id in `pnpm-workspace.yaml`; remove when Expo ships fixes |
-| R-2 | Admin CMS security headers (CSP, frame-ancestors, HSTS) are not set — it is plain static files | Belong to the web server config | Phase 18: set them in the reverse proxy (Caddy) with HSTS for all hosts |
+| R-2 | Admin CMS security headers (CSP, frame-ancestors, HSTS) are not set — it is plain static files | Belong to the web server config | **Done (Phase 18)**: Caddy sends HSTS on every address and a strict CSP (own scripts only, no eval) + frame-ancestors 'none' on the CMS; checked in the local rehearsal |
 | R-3 | Website CSP does not restrict scripts | Next.js inline scripts need per-request nonces | Revisit with nonce-based CSP before launch if time allows |
-| R-4 | The database user and network exposure (Postgres / Redis only on the private network; API port only to the proxy) | Deployment | Phase 18 checklist |
+| R-4 | The database user and network exposure (Postgres / Redis only on the private network; API port only to the proxy) | Deployment | **Done (Phase 18)**: only the proxy publishes ports; PostgreSQL, Redis (password), API and website are on the private network |
 | R-5 | Staff accounts without 2FA when the policy is `super_admins` | Owner choice of policy | Owner may switch to "All staff" in Settings (Super Admin only) |
 | R-6 | Load / abuse testing of the weekly-exam burst | Phase 16 | Phase 16 load test |

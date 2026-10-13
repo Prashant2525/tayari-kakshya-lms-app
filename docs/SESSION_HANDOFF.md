@@ -202,6 +202,15 @@ Current task: Phase 11 part 3 (receipts + refunds) done on `feature/receipts-ref
 - Nothing partially implemented. Admin screens for Phase 6 not started.
 
 ## Exact next steps
+0zi. 2026-10-13: PR #58 merged (main CI green). Phase 18 on `feature/phase-18-deployment`: `infra/production/`
+   (Dockerfile targets api / migrate / web / proxy; compose with fixed network 172.30.0.0/24 → TRUST_PROXY; Caddyfile;
+   deploy / backup / restore / rollback scripts), CI `docker-images`, `RELEASE_READINESS.md`, guide §3.15 / §8.1.
+   Local rehearsal (done, stack stopped): `infra/production/.env` from `compose.env.example` with `*.localhost`
+   addresses and throw-away secrets, an app env file (APP_ENV=staging, SeaweedFS + Mailpit of the dev stack via
+   host.docker.internal, buckets created by hand); the rehearsal volumes `tayari-kakshya_*` remain in Docker Desktop
+   (`docker volume rm` them when not needed).
+   Lessons: build the shared stage once (memory), npm not corepack for pnpm in the image, the website needs PORT=3000,
+   Zod `jitless` for the CMS CSP. Next: owner accounts (RELEASE_READINESS §2) → staging + load test → production.
 0zh. 2026-10-13: PR #56 + #57 merged (main CI green after re-running a cancelled run). Batch C on
    `feature/audit-fixes-c` (D-075): migration `20261013083513_audit_fixes_c` (`notification_campaigns`, category
    `announcement`); `CampaignsService` (+ worker `campaigns: dispatchDue`), `home.sections` setting +

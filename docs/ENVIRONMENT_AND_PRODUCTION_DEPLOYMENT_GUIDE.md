@@ -89,7 +89,8 @@ hosting panel), and for app builds from **EAS environment variables**.
 | **`apps/mobile/.env`** | Expo when it builds / bundles the app | When `expo start` or a build begins | `apps/mobile/.env.example` |
 | **`apps/admin/.env`** | Vite when it builds / serves the CMS | When `vite` starts or builds | `apps/admin/.env.example` |
 | EAS environment variables (expo.dev) | App store builds (`eas build`) | During the cloud build; `eas.json` picks `development` / `preview` / `production` | — |
-| Server environment (production) | API, worker, website server in Docker | Container start | `/.env.example` 🏗️ |
+| **Server application file** (production), e.g. `/etc/tayari-kakshya/production.env`, named by `TK_APP_ENV_FILE` | API, worker, website server, migrations (Docker) | Container start | `/.env.example` ✅ |
+| **`infra/production/.env`** (on the server) | Docker Compose and the deploy / backup scripts: addresses, database and Redis passwords, API processes, CMS build values, backups | Every `deploy.sh` / `backup.sh` run | `infra/production/compose.env.example` — see [§3.15](#315-production-stack-infraproductionenv) |
 
 **Important consequences**
 - The app and the CMS **do not read the root `.env`**. Their public values belong in their own folder's `.env`.
@@ -126,7 +127,7 @@ it. Variables marked 🔶 are **not read by the code yet**.
 | `APP_ENV` | ✔ | 🔓 | `development` | `staging` / `production` — turns on the strict rules below | Wrong value = wrong rules (e.g. log-only email allowed) |
 | `PORT` | – | 🔓 | `4000` | `4000` inside the container | API listens elsewhere |
 | `LOG_LEVEL` | – | 🔓 | `info` | `info` (or `warn`) | `debug` is noisy; config-check warns |
-| `TRUST_PROXY` | P | 🔓 | `false` | The reverse proxy's and website server's addresses / CIDR ranges, e.g. `127.0.0.1,172.18.0.0/16`. `true` is **refused** | Rate limits count every visitor as the proxy (too strict) or can be fooled (with `true`) |
+| `TRUST_PROXY` | P | 🔓 | `false` | The reverse proxy's and website server's addresses / CIDR ranges. With the production stack: **`172.30.0.0/24`** (its private network). `true` is **refused** | Rate limits count every visitor as the proxy (too strict) or can be fooled (with `true`) |
 | `RATE_LIMIT_DEFAULT_PER_MINUTE` | – | 🔓 | `300` | `300` | — |
 | `CORS_ALLOWED_ORIGINS` | – | 🔓 | `http://localhost:5173,http://localhost:8081` | Only https origins that call the API from a browser on **another** address. With the recommended set-up (CMS calls `/api` on its own address, website calls from its server) it can stay empty | Browser shows "blocked by CORS" |
 
@@ -273,6 +274,25 @@ Not implemented (optional later): error monitoring / analytics on the public web
 | `TEST_DATABASE_URL`, `TEST_LOG_LEVEL`, `E2E_*`, `VITE_API_PROXY` | tests | Development and CI only |
 | GitHub Actions | CI | Uses only throw-away CI values (see `.github/workflows/ci.yml`); no production secrets in CI today 🏗️ |
 
+### 3.15 Production stack (`infra/production/.env`)
+
+Read by `docker-compose.prod.yml` and the scripts next to it — not by the programs. Template:
+`infra/production/compose.env.example`. On the server only (`chmod 600`), never in git.
+
+| Variable | Secret | What it is |
+|---|---|---|
+| `TK_APP_ENV_FILE` | — | Path of the application settings file (the `/.env.example` variables), e.g. `/etc/tayari-kakshya/production.env` |
+| `WEB_DOMAIN`, `API_DOMAIN`, `ADMIN_DOMAIN` | — | The three addresses Caddy serves and gets certificates for (§4.14) |
+| `ACME_EMAIL` | — | Let's Encrypt account / expiry notices |
+| `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD` | 🔐 password | The database the container creates; `DATABASE_URL` = `postgresql://USER:PASSWORD@postgres:5432/DB` (private network, no TLS needed) |
+| `POSTGRES_MAX_CONNECTIONS`, `POSTGRES_SHARED_BUFFERS` | — | ≥ `API_REPLICAS` × `DATABASE_POOL_MAX` + worker + 20 (default 200); memory for PostgreSQL's cache |
+| `REDIS_PASSWORD` | 🔐 | `REDIS_URL` = `redis://:PASSWORD@redis:6379` |
+| `API_REPLICAS` | — | API processes behind the proxy (audit F-11; default 2 — size from the staging load test) |
+| `VITE_SENTRY_DSN`, `VITE_APP_ENV` | public | CMS build values (`apps/admin/.env.example`); the release is set automatically |
+| `TK_RELEASE` | — | Written by `deploy.sh` / `rollback.sh`: the running release (git commit) |
+| `BACKUP_PASSPHRASE` | 🔐 | Encrypts every database backup — **keep a copy in your password manager**, backups are unreadable without it |
+| `BACKUP_DIR`, `BACKUP_RCLONE_REMOTE` | — | Where backups are kept on the server; the rclone remote for the off-site copy (L4) |
+
 ### 3.14 Removed from the templates in this version (were never read by the code)
 `ADMIN_BASE_URL`, `DATABASE_DIRECT_URL`, `VIDEO_PROVIDER`, `FIREBASE_SERVICE_ACCOUNT_JSON`, `POSTHOG_API_KEY`,
 `POSTHOG_HOST` (server), `SENTRY_DSN_ADMIN` (the CMS uses `VITE_SENTRY_DSN`), `GOOGLE_OAUTH_WEB_CLIENT_SECRET`. If your
@@ -403,7 +423,7 @@ Use *plain text / sensitive* for `EXPO_PUBLIC_*` (they end up in the app anyway)
   app shows **no prices or purchase links** (D-027); purchases happen on the website — review notes should say so.
 - Submission: `eas submit` (credentials stay in EAS).
 
-### 4.14 Domain, DNS and HTTPS 🏗️
+### 4.14 Domain, DNS and HTTPS ✅ files · 🟡 your domain
 Buy the domain (L4). Recommended addresses (any names work — keep them consistent everywhere):
 
 | Address | Points to |
@@ -414,7 +434,9 @@ Buy the domain (L4). Recommended addresses (any names work — keep them consist
 | `https://media.<your-domain>` | R2 public bucket (custom domain) |
 | `mail.<your-domain>` | Email sending (SPF/DKIM/DMARC) |
 
-The reverse proxy on the VPS (Caddy, planned) obtains HTTPS certificates automatically once DNS points at the server.
+The reverse proxy on the VPS (Caddy, `infra/production/Caddyfile`) obtains HTTPS certificates automatically once
+DNS points at the server (ports 80 and 443 open). It sends HSTS and security headers on every address and a strict
+Content-Security-Policy on the CMS (SECURITY_REVIEW R-2).
 
 ---
 
@@ -537,32 +559,62 @@ The iPhone app never sells (D-027). iPhone students buy on the website, so the w
 
 ## 8. Production deployment runbook
 
-🏗️ = the files/automation for this step are built in **Phase 18**; until then the step describes the plan.
+Phase 18 built the files and automation (`infra/production/`), rehearsed end to end on a local machine (§8.1).
 
 | # | Step | Who | Status |
 |---|---|---|---|
 | 1 | Accounts: VPS (Nepal, L4), domain, Cloudflare (R2 + DNS), email provider, Bunny ✔, Google Cloud ✔, Firebase, Expo ✔, Sentry ✔, PostHog ✔, eSewa + Khalti merchant, Apple Developer, Google Play | **You** | partly done |
-| 2 | Hosting: one VPS with Docker Compose — reverse proxy (Caddy, automatic HTTPS), API, worker, website, CMS static files, PostgreSQL, Redis (D-037) | Me (compose files) + you (server) | 🏗️ |
+| 2 | Hosting: one VPS with Docker Compose — reverse proxy (Caddy, automatic HTTPS), API, worker, website, CMS static files, PostgreSQL, Redis (D-037) | Me (compose files) + you (server) | ✅ files (`infra/production/`) · 🟡 server |
 | 3 | Domain & DNS: records of §4.14 → VPS IP; R2 custom domain; email SPF/DKIM/DMARC | **You** (I give exact records) | 🏗️ |
-| 4 | Database: PostgreSQL container, private network, strong password | Me (compose) + you (password) | 🏗️ |
+| 4 | Database: PostgreSQL container, private network, strong password | Me (compose) + you (password) | ✅ files · 🟡 password |
 | 5 | Secrets: server environment file readable only by root (or the host's secret store); password-manager copy; never in git | **You** | 🏗️ |
-| 6 | Migrations: backup → `prisma migrate deploy` (part of the deploy script) | Automated | 🏗️ |
-| 7 | API + worker: Docker image, `node dist/main.js` and `node dist/worker.js` with the same environment | Automated | 🏗️ |
-| 8 | CMS: `pnpm --filter @tk/admin build` with `apps/admin/.env` (production DSN), files served by the proxy; `/api/*` on the CMS address forwarded to the API; security headers (CSP, HSTS, frame-ancestors — SECURITY_REVIEW R-2) | Automated | 🏗️ |
+| 6 | Migrations: backup → `prisma migrate deploy` (part of the deploy script) | Automated | ✅ `deploy.sh` |
+| 7 | API + worker: Docker image, `node dist/main.js` and `node dist/worker.js` with the same environment | Automated | ✅ `infra/production/Dockerfile` |
+| 8 | CMS: built into the proxy image with the `VITE_*` values of `infra/production/.env`; files served by Caddy; `/api/*` on the CMS address forwarded to the API; security headers (CSP, HSTS, frame-ancestors — SECURITY_REVIEW R-2) | Automated | ✅ |
 | 9 | Android: EAS *production* environment variables (§3.12, §4.9), `eas build -p android --profile production`, upload to Play (internal testing first) | You run the commands (I prepare) | ready once values exist |
 | 10 | iOS: same with `-p ios`; APNs key on first build; TestFlight → review | You | ready once values exist |
 | 11 | Payments: production keys (§5), small real payments, refund | **You** + me | 🟡 |
 | 12 | Video/storage: Bunny values, R2 buckets + domain | You | ✅ code |
 | 13 | Notifications & email: SMTP verified domain; FCM + APNs | You | 🟡 |
 | 14 | HTTPS & callbacks: all addresses https; `PAYMENT_CALLBACK_BASE_URL`, `PAYMENT_RETURN_URL_WEB`, `PUBLIC_WEB_URL` | config | ✅ checked by config-check |
-| 15 | Monitoring: Sentry DSNs + `APP_RELEASE`; uptime check on `https://api.<domain>/api/v1/health/ready` and the website | You (uptime service) + config | 🏗️ uptime |
-| 16 | Backups: nightly encrypted `pg_dump`, 7 daily / 4 weekly / 6 monthly, copy off-site (L4); R2 bucket versioning or periodic copy; **restore drill** | Me (scripts) + you (off-site place) | 🏗️ |
+| 15 | Monitoring: Sentry DSNs (`APP_RELEASE` is set to the release automatically); uptime check on `https://api.<domain>/api/v1/health/ready` and the website | You (uptime service) + config | 🟡 uptime service |
+| 16 | Backups: nightly encrypted `pg_dump`, 7 daily / 4 weekly / 6 monthly, copy off-site (L4); R2 bucket versioning or periodic copy; **restore drill** | Me (scripts) + you (off-site place) | ✅ `backup.sh`, `restore.sh --drill` · 🟡 off-site remote |
 | 17 | Smoke tests (§9) | Me + you | — |
-| 18 | Rollback plan (§9) | Me | 🏗️ |
+| 18 | Rollback plan (§9) | Me | ✅ `rollback.sh` |
 | 19 | Release readiness: config-check 0 errors, CI green, owner launch checklist (business settings in the CMS, legal pages approved, prices) | Both | Phase 17 audit |
 
-The **TRUST_PROXY** value for this layout: the proxy and the website reach the API over the Docker network — set it to
-that network's range (e.g. `172.18.0.0/16`, exact value when the compose file exists).
+The **TRUST_PROXY** value for this layout: the proxy and the website reach the API over the stack's private Docker
+network, fixed in `docker-compose.prod.yml` — **`TRUST_PROXY=172.30.0.0/24`**.
+
+### 8.1 First deployment on the VPS (commands)
+
+On a fresh Ubuntu LTS server with Docker Engine + the compose plugin, `git`, `openssl` and (for the off-site copy)
+`rclone`; ports 22, 80 and 443 open; DNS of §4.14 pointing at it:
+
+```bash
+git clone https://github.com/Prashant2525/tayari-kakshya-lms-app.git /opt/tayari-kakshya
+cd /opt/tayari-kakshya
+cp infra/production/compose.env.example infra/production/.env    # fill in (§3.15); chmod 600
+install -m 600 /dev/null /etc/tayari-kakshya/production.env      # after mkdir -p /etc/tayari-kakshya
+#   fill /etc/tayari-kakshya/production.env from /.env.example (§3): APP_ENV=production, DATABASE_URL / REDIS_URL with
+#   the passwords above, TRUST_PROXY=172.30.0.0/24, https addresses, new secrets (§3.3)
+docker compose -f infra/production/docker-compose.prod.yml --env-file infra/production/.env \
+  run --rm --no-deps api node dist/cli.js config-check            # 0 errors, then again with --connect after step 1
+infra/production/deploy.sh                                        # build, migrate, start; waits for the API
+docker compose -f infra/production/docker-compose.prod.yml --env-file infra/production/.env \
+  run --rm --no-deps api node dist/cli.js create-super-admin --email you@yourdomain --name "Your Name"
+crontab -e   # 15 2 * * * /opt/tayari-kakshya/infra/production/backup.sh nightly >>/var/log/tayari-kakshya-backup.log 2>&1
+```
+
+Later releases: `git pull && infra/production/deploy.sh`. Settings changed only: `infra/production/deploy.sh --no-build`.
+Rollback: `infra/production/rollback.sh` (lists releases) → `infra/production/rollback.sh <release>`. Restore drill
+(monthly): `infra/production/restore.sh <latest .dump.enc> --drill`.
+
+**Rehearsed** (Phase 18, Docker Desktop, `*.localhost` addresses with Caddy's local certificates, APP_ENV=staging):
+build → backup → migrate (36 migrations) → 2 API processes + worker + website + proxy healthy; `config-check --connect`
+reached PostgreSQL, Redis, storage and SMTP; Super Admin created with the CLI, password set from the emailed code,
+two-factor enrolled, a picture uploaded, the CMS pages opened without Content-Security-Policy violations; website home
+over https; backup retention and a restore drill; redeploys keep the data.
 
 ---
 
@@ -583,7 +635,8 @@ production) to check a weekly-exam rush — N students start, save, submit and o
 process, Windows): 200 at once → 0 errors, start ≈ 3 s / submit ≈ 2.5 s at the 50th percentile (≈ 50 ms each when
 alone). Size the number of API processes from the staging result.
 
-**Rollback (planned 🏗️):** every release is a tagged image; rollback = start the previous image tag. Database
+**Rollback (`infra/production/rollback.sh`):** every release is a tagged image (the git commit); rollback = start an
+earlier tag. Database
 migrations only move forward — a release that changes the database is deployed only after a backup, and its
 migration is written to be compatible with the previous release where possible. If data is damaged: stop the API and
 worker, restore the last backup into a new database, point `DATABASE_URL` at it, start again, and note what was lost.
@@ -680,5 +733,6 @@ applies. The final audit (§11) is repeated in Phase 17 against the code.
 ### Change log
 | Date | Change |
 |---|---|
+| 2026-10-13 | Phase 18: production stack `infra/production/` (Dockerfile, `docker-compose.prod.yml`, Caddyfile, `deploy.sh`, `backup.sh`, `restore.sh`, `rollback.sh`); new settings file `infra/production/.env` (§3.15); `TRUST_PROXY=172.30.0.0/24`; runbook §8 statuses and first-deployment commands (§8.1); CI job `docker-images`. |
 | 2026-10-13 | Phase 16: `DATABASE_POOL_MAX` (database connections per process, default 20); importer option `CONTENT_UPDATE_QUESTIONS` and the correct command `pnpm --filter @tk/content-pack run import`; load test `apps/api/scripts/load/` (§9). |
 | 2026-10-12 | Version 1 (after Phase 15). Added `config-check`, website start-up check, app production-build check, `GOOGLE_SERVICES_JSON`, EAS environments per build profile, production rules for the Bunny token key / distinct secrets / https media. Split public app and CMS templates into `apps/mobile/.env.example` and `apps/admin/.env.example`; removed never-read names from the root template. |

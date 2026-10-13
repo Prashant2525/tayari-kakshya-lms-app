@@ -50,4 +50,4 @@ Note: Docker Desktop is free for small businesses (<250 employees and <$10M reve
 | YouTube Data API key (optional, metadata import) | — | — | Phase 6 |
 | Expo / EAS, FCM, APNs | EAS project ✅ (owner `prashantdhimals-team`, slug `tayari-kakshya`, id in `apps/mobile/app.config.ts`); build profiles use EAS environments development / preview / production; FCM (`google-services.json` as EAS file variable `GOOGLE_SERVICES_JSON` + FCM V1 key in EAS credentials) / APNs ❌ | owner | Phase 12 / 18 |
 | Sentry, PostHog | — | — | Phase 8 |
-| VPS, domain, DNS | — | — (L4) | Phase 18 |
+| VPS, domain, DNS | Production stack files built and rehearsed locally (`infra/production/`, guide §8.1) | — (L4: server, domain, off-site backup place) | Phase 18 |

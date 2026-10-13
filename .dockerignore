@@ -1,0 +1,36 @@
+# Production images are built from the repository (infra/production/Dockerfile). Keep secrets, local data and
+# build output out of the build context.
+**/node_modules
+**/dist
+**/.next
+**/.turbo
+**/.expo
+**/build
+**/coverage
+**/test-results
+**/playwright-report
+**/*.tsbuildinfo
+.git
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
+*.pem
+*.key
+*.p8
+*.p12
+*.jks
+*.keystore
+Courses
+tools/content-pack/out
+Tayari Kakshya - LMS System.pdf
+LokSewa_LMS_Production_Build_Playbook.pdf
+apps/mobile/android
+apps/mobile/ios
+apps/api/src/generated
+infra/production/backups
+
+# Documentation is not part of any image (and editing it must not invalidate the build cache).
+docs

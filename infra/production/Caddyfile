@@ -1,0 +1,84 @@
+# Reverse proxy for the production VPS (D-037, Phase 18): automatic HTTPS for three addresses, set in
+# infra/production/.env (see compose.env.example):
+#   WEB_DOMAIN    the public website            → web:3000
+#   API_DOMAIN    the API (app, payments, push)  → api:4000 (every API process, see API_REPLICAS)
+#   ADMIN_DOMAIN  the Admin CMS (static files)   → /srv/admin, and /api/* → the API (the staff sign-in cookie needs it)
+# Security headers on every address (SECURITY_REVIEW R-2): HSTS, no sniffing, no framing; the CMS also gets a strict
+# Content-Security-Policy (its own scripts only).
+
+{
+	email {$ACME_EMAIL}
+	# Local rehearsals (DOMAINS ending in .localhost) get certificates from Caddy's own authority instead.
+}
+
+(common) {
+	encode zstd gzip
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+		-X-Powered-By
+	}
+	log {
+		output stdout
+		format json
+	}
+}
+
+(api_upstream) {
+	reverse_proxy {
+		# Every running API process (docker compose deploy.replicas), found through the Docker network's DNS.
+		dynamic a {
+			name api
+			port 4000
+			refresh 10s
+		}
+		lb_policy least_conn
+		lb_try_duration 5s
+		health_uri /api/v1/health/live
+		health_interval 10s
+		# The API trusts these forwarded headers only from the proxy network (TRUST_PROXY).
+		header_up X-Forwarded-Proto {scheme}
+	}
+}
+
+{$API_DOMAIN} {
+	import common
+	request_body {
+		# Largest upload: course videos go to Bunny directly; PDFs and pictures come here (MEDIA_MAX_*_MB).
+		max_size 110MB
+	}
+	import api_upstream
+}
+
+{$WEB_DOMAIN} {
+	import common
+	reverse_proxy web:3000 {
+		header_up X-Forwarded-Proto {scheme}
+	}
+}
+
+{$ADMIN_DOMAIN} {
+	import common
+	header {
+		Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self' data:; connect-src 'self' https://*.sentry.io; media-src 'self' blob: https:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+		X-Frame-Options "DENY"
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+	}
+	handle /api/* {
+		request_body {
+			max_size 110MB
+		}
+		import api_upstream
+	}
+	handle {
+		root * /srv/admin
+		# Hashed build files never change; the page itself is always fetched fresh.
+		@assets path /assets/*
+		header @assets Cache-Control "public, max-age=31536000, immutable"
+		header /index.html Cache-Control "no-cache"
+		try_files {path} /index.html
+		file_server
+	}
+}

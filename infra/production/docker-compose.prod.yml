@@ -1,0 +1,175 @@
+# Production stack for one VPS (D-037, Phase 18). Run through infra/production/deploy.sh, which builds, backs up,
+# migrates and starts it. Two environment files, both on the server only (never in git):
+#   infra/production/.env        settings for this file: addresses, database / Redis passwords, release, replicas
+#                                (template: compose.env.example)
+#   $TK_APP_ENV_FILE             the API / worker / website settings (template: the repository's /.env.example)
+# Only the proxy publishes ports (80, 443). PostgreSQL, Redis, the API and the website are reachable on the private
+# network only (SECURITY_REVIEW R-4).
+
+name: tayari-kakshya
+
+# Every image is built from the same stage with the same arguments, so it is built once and the rest comes from the
+# cache (deploy.sh builds the migrate image first).
+x-build-args: &build-args
+  VITE_SENTRY_DSN: ${VITE_SENTRY_DSN:-}
+  VITE_APP_ENV: ${VITE_APP_ENV:-production}
+  VITE_APP_RELEASE: ${TK_RELEASE:-dev}
+
+x-app: &app
+  env_file:
+    - ${TK_APP_ENV_FILE:?set TK_APP_ENV_FILE in infra/production/.env}
+  restart: unless-stopped
+  networks: [backend]
+  logging:
+    driver: json-file
+    options: { max-size: '20m', max-file: '5' }
+
+services:
+  proxy:
+    build:
+      context: ../..
+      dockerfile: infra/production/Dockerfile
+      target: proxy
+      args: *build-args
+    image: tayari-kakshya/proxy:${TK_RELEASE:-dev}
+    restart: unless-stopped
+    ports:
+      - '80:80'
+      - '443:443'
+      - '443:443/udp'
+    environment:
+      ACME_EMAIL: ${ACME_EMAIL:?}
+      WEB_DOMAIN: ${WEB_DOMAIN:?}
+      API_DOMAIN: ${API_DOMAIN:?}
+      ADMIN_DOMAIN: ${ADMIN_DOMAIN:?}
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      api: { condition: service_healthy }
+      web: { condition: service_healthy }
+    networks: [backend]
+    logging:
+      driver: json-file
+      options: { max-size: '20m', max-file: '5' }
+
+  api:
+    <<: *app
+    build:
+      context: ../..
+      dockerfile: infra/production/Dockerfile
+      target: api
+      args: *build-args
+    image: tayari-kakshya/api:${TK_RELEASE:-dev}
+    environment:
+      APP_RELEASE: ${TK_RELEASE:-dev}
+    deploy:
+      # Several API processes share the load (audit F-11); size it from the staging load test.
+      replicas: ${API_REPLICAS:-2}
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+
+  worker:
+    <<: *app
+    image: tayari-kakshya/api:${TK_RELEASE:-dev}
+    command: ['node', 'dist/worker.js']
+    environment:
+      APP_RELEASE: ${TK_RELEASE:-dev}
+    healthcheck:
+      disable: true
+    depends_on:
+      api: { condition: service_healthy }
+
+  web:
+    <<: *app
+    build:
+      context: ../..
+      dockerfile: infra/production/Dockerfile
+      target: web
+      args: *build-args
+    image: tayari-kakshya/web:${TK_RELEASE:-dev}
+    environment:
+      # The website talks to the API inside the private network (its pages' links still use API_PUBLIC_URL).
+      API_BASE_URL: http://api:4000
+      # The shared settings file's PORT is the API's.
+      PORT: 3000
+      APP_RELEASE: ${TK_RELEASE:-dev}
+    depends_on:
+      api: { condition: service_healthy }
+
+  # `docker compose run --rm migrate` — `prisma migrate deploy`; deploy.sh runs it after a backup.
+  migrate:
+    <<: *app
+    build:
+      context: ../..
+      dockerfile: infra/production/Dockerfile
+      target: migrate
+      args: *build-args
+    image: tayari-kakshya/migrate:${TK_RELEASE:-dev}
+    restart: 'no'
+    profiles: [tools]
+    depends_on:
+      postgres: { condition: service_healthy }
+
+  postgres:
+    image: postgres:17.11-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-tayari_kakshya}
+      POSTGRES_USER: ${POSTGRES_USER:-tayari_kakshya}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?}
+    # Room for every API process's pool (DATABASE_POOL_MAX each) plus the worker and maintenance.
+    command:
+      [
+        'postgres',
+        '-c',
+        'max_connections=${POSTGRES_MAX_CONNECTIONS:-200}',
+        '-c',
+        'shared_buffers=${POSTGRES_SHARED_BUFFERS:-256MB}',
+      ]
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks: [backend]
+
+  redis:
+    image: redis:7.4.11-alpine
+    restart: unless-stopped
+    command:
+      [
+        'redis-server',
+        '--appendonly',
+        'yes',
+        '--requirepass',
+        '${REDIS_PASSWORD:?}',
+        '--maxmemory-policy',
+        'noeviction',
+      ]
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ['CMD-SHELL', 'redis-cli -a "$$REDIS_PASSWORD" --no-auth-warning ping | grep -q PONG']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?}
+    networks: [backend]
+
+networks:
+  backend:
+    ipam:
+      config:
+        # Fixed so the API's TRUST_PROXY can name it exactly: TRUST_PROXY=172.30.0.0/24
+        - subnet: 172.30.0.0/24
+
+volumes:
+  pgdata:
+  redisdata:
+  caddy_data:
+  caddy_config:
