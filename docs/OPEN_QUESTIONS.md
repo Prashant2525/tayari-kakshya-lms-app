@@ -133,6 +133,8 @@ supported merchant locations (Nepal: developer ✔, merchant ✘); YouTube priva
 ## Later questions (not blocking now — will be asked when the phase starts)
 
 - **L1 (Phase 4/8):** SMS provider for phone OTP (e.g. Sparrow SMS / Aakash SMS) and email provider + sending domain.
+  **Update 2026-10-13 (D-076):** both Sparrow and Aakash are built — the choice is now a setting (guide §4.5); any
+  SMTP provider works for email (§4.4). Still the owner's: which accounts to open.
 - **L2 (Phase 14):** AI study assistant (S13) — model provider, monthly budget cap, which features (explain answer, summarise note).
 - **L3 (Phase 14):** Live classes (S22) — provider (YouTube Live unlisted, Zoom, other) and recording policy.
   **Answered 2026-10-12:** YouTube Live and Zoom both, managed from the CMS; Free or Premium per class; reminders

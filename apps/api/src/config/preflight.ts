@@ -4,6 +4,7 @@ import nodemailer from 'nodemailer';
 import { Redis } from 'ioredis';
 import pg from 'pg';
 import type { Env } from './env.js';
+import { smsProviderFromEnv } from '../infra/messaging/sms-providers.js';
 import { GatewayHttp } from '../modules/payments/gateway-http.js';
 import { gatewaysFromEnv } from '../modules/payments/gateways.js';
 
@@ -65,11 +66,13 @@ export function reviewConfig(env: Env): Finding[] {
   if (live && env.EMAIL_PROVIDER === 'smtp' && !env.SMTP_USER)
     add('warn', 'Email', 'SMTP_USER is empty — most providers need a login');
   add(
-    'info',
+    env.SMS_PROVIDER === 'sparrow' || env.SMS_PROVIDER === 'aakash' ? 'ok' : 'info',
     'SMS',
     env.SMS_PROVIDER === 'disabled'
-      ? 'off (phone OTP not available; L1 pending)'
-      : `SMS_PROVIDER=${env.SMS_PROVIDER}`,
+      ? 'off (phone verification not available until an SMS provider is set, guide §4.5)'
+      : env.SMS_PROVIDER === 'log'
+        ? 'log provider (development only: messages are not sent)'
+        : `${env.SMS_PROVIDER === 'sparrow' ? 'Sparrow SMS' : 'Aakash SMS'} configured`,
   );
 
   // Storage
@@ -239,6 +242,11 @@ export function connectionChecks(env: Env, migrationsDir: string): Check[] {
         return 'server accepted the connection and login (no email sent)';
       },
     });
+  }
+  // SMS (D-076, G-2): the provider accepts the token (no message is sent).
+  const sms = smsProviderFromEnv(env);
+  if (sms) {
+    checks.push({ name: 'SMS', run: () => sms.credit() });
   }
   // Payment gateways (D-076, G-4): the credentials are tried without making a payment.
   const gateways = gatewaysFromEnv(env, new GatewayHttp());

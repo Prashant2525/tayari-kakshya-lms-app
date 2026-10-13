@@ -33,7 +33,7 @@ Legend: 🔐 secret · 🔓 non-secret config · Phase = when it is first needed
 |---|---|---|---|---|
 | `GOOGLE_OAUTH_WEB_CLIENT_ID`, `GOOGLE_OAUTH_ANDROID_CLIENT_ID`, `GOOGLE_OAUTH_IOS_CLIENT_ID` | 🔓 | 8 | owner's Google Cloud project | Android requires SHA-1 of signing key |
 | `EMAIL_PROVIDER`, `EMAIL_FROM`, `SMTP_HOST/PORT/SECURE/USER/PASSWORD` | 🔐 | 4 | owner | verified sending domain (SPF/DKIM/DMARC) |
-| `SMS_PROVIDER` (✅ `disabled`/`log`); `SMS_API_KEY`, `SMS_SENDER_ID` (🔶 planned, not read yet) | 🔐 | when phone verification is enabled (D-029, L1) | owner | Nepal providers e.g. Sparrow SMS, Aakash SMS — sender ID/template approval required |
+| `SMS_PROVIDER` (✅ `disabled` / `log` / `sparrow` / `aakash`), `SMS_API_KEY`, `SMS_SENDER_ID` (Sparrow), `SMS_BASE_URL` (override) — ✅ built (D-076) | 🔐 | when phone verification is enabled (D-029, L1) | owner | Nepal providers e.g. Sparrow SMS, Aakash SMS — sender ID/template approval required |
 
 ## 3. Payments (Phase 11 — re-verify official docs before coding)
 

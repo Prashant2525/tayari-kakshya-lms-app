@@ -40,7 +40,7 @@ Note: Docker Desktop is free for small businesses (<250 employees and <$10M reve
 |---|---|---|---|
 | PostgreSQL / Redis | local Docker | Nepal VPS (L4) | Phase 4 / 18 |
 | Email provider | Mailpit (local) | — (L1) | Phase 4 local, real by Phase 12 |
-| SMS provider | — (L1) | — | when phone OTP is enabled |
+| SMS provider | Sparrow SMS and Aakash SMS built (D-076) — choose one | — (L1: account, sender identity) | when phone OTP is enabled |
 | Google OAuth client IDs | — | — | Phase 8 |
 | eSewa | public UAT values (developer.esewa.com.np) | — (owner has merchant account) | Phase 11 |
 | Khalti | — (test-admin.khalti.com merchant) | — (owner has merchant account) | Phase 11 |
