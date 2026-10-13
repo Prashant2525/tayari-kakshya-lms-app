@@ -4,6 +4,10 @@ All notable changes to this project. Format based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Added — 2026-10-13 (SMS providers — D-076)
+- Phone verification codes by **Sparrow SMS** or **Aakash SMS**, chosen with `SMS_PROVIDER` and the account token
+  (guide §4.5); `config-check --connect` checks the token; a provider failure shows "try again later".
+
 ### Added — 2026-10-13 (ConnectIPS and gateway checks — D-076)
 - **ConnectIPS (NCHL)** as a third payment method in the app and on the website, on / off in CMS → Payment methods:
   signed form to NCHL, success / failure return addresses, payment confirmed with NCHL before access. Configured

@@ -48,3 +48,17 @@ describe('half-configured services (D-076, G-3)', () => {
     expect(() => env({ SMTP_USER: 'apikey', SMTP_PASSWORD: 'secret' })).not.toThrow();
   });
 });
+
+describe('SMS providers (D-076, G-2)', () => {
+  it('need the account token, and Sparrow its approved sender', () => {
+    expect(() => env({ SMS_PROVIDER: 'aakash', SMS_API_KEY: '' })).toThrow(
+      /SMS_API_KEY: required with SMS_PROVIDER=aakash/,
+    );
+    expect(() => env({ SMS_PROVIDER: 'sparrow', SMS_API_KEY: 't', SMS_SENDER_ID: '' })).toThrow(
+      /SMS_SENDER_ID: required with SMS_PROVIDER=sparrow/,
+    );
+    expect(() =>
+      env({ SMS_PROVIDER: 'sparrow', SMS_API_KEY: 't', SMS_SENDER_ID: 'TayariKaksha' }),
+    ).not.toThrow();
+  });
+});

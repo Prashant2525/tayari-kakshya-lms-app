@@ -184,8 +184,10 @@ Setup: §4.4. Provider not chosen yet (OPEN_QUESTIONS L1).
 
 | Variable | Status | Notes |
 |---|---|---|
-| `SMS_PROVIDER` | ✅ | `disabled` (production today) or `log` (development only). Phone verification is off until a provider is chosen. |
-| `SMS_API_KEY`, `SMS_SENDER_ID` | 🔶 | Planned names (L1, e.g. Sparrow SMS / Aakash SMS — sender ID approval needed). Not read yet. |
+| `SMS_PROVIDER` | ✅ | `disabled` (no phone codes), `sparrow` (Sparrow SMS) or `aakash` (Aakash SMS); `log` is development only and refused in staging / production |
+| `SMS_API_KEY` | ✅ 🔐 | the provider account's token — required with `sparrow` / `aakash` |
+| `SMS_SENDER_ID` | ✅ | Sparrow only: the sender identity Sparrow approved for you |
+| `SMS_BASE_URL` | ✅ | empty (the provider's own address); an override for tests / a proxy |
 
 ### 3.7 Payments — see [§5](#5-payments) for the full walkthrough
 
@@ -359,9 +361,30 @@ project needs from it.
    confirm the code email arrives (also check the spam folder).
 - Development: Mailpit catches all mail at http://localhost:8025.
 
-### 4.5 SMS 🔶
-Not implemented. When a Nepal SMS provider is chosen (L1) the integration will be built and this section completed
-(sender ID / template approval usually takes days — start early).
+### 4.5 SMS ✅ code · 🟡 your provider account (L1)
+Built for **Sparrow SMS** and **Aakash SMS** (D-076) — choose one; switching is a settings change. Phone verification
+(sign-up / adding a mobile number) stays off until a provider is set **and** the phone channel is switched on in the CMS.
+
+**Sparrow SMS** (sparrowsms.com — official API docs: docs.sparrowsms.com)
+1. Create an account and buy credit.
+2. Apply for a **sender identity** (e.g. `TayariKaksha`) — Sparrow forwards it for approval; it can take days, start
+   early. Until approved Sparrow may send with a default identity only.
+3. Copy your **token** from the dashboard (*Developer / API*).
+4. Settings: `SMS_PROVIDER=sparrow`, `SMS_API_KEY=<token>`, `SMS_SENDER_ID=<approved identity>`, `SMS_BASE_URL` empty.
+
+**Aakash SMS** (aakashsms.com)
+1. Create an account, buy credit; ask Aakash to activate API access and any sender name / template they require.
+2. Copy the **auth token** from the dashboard (*API*).
+3. Settings: `SMS_PROVIDER=aakash`, `SMS_API_KEY=<auth token>`, `SMS_BASE_URL` empty (`SMS_SENDER_ID` not used).
+
+**Then, for either:**
+1. `config-check` → "Sparrow SMS configured" / "Aakash SMS configured"; `config-check --connect` → "token accepted,
+   N credits" (no message is sent).
+2. CMS → Settings → Verification channels → turn on **Phone** (and decide whether verification is required).
+3. Test: in the app, Profile → Edit profile → Add mobile number → the code arrives by SMS → enter it.
+4. Messages go to 10-digit Nepal mobile numbers (98…, 97…, 96…); a provider error shows the student "try again later"
+   and is logged without the token. Endpoints follow each provider's published API; if their current document differs
+   on the first test send, report it and it will be adjusted.
 
 ### 4.6 Google sign-in ✅ code · 🟡 ids
 All three ids come from **one** Google Cloud project (https://console.cloud.google.com).
@@ -846,6 +869,7 @@ applies. The final audit (§11) is repeated in Phase 17 against the code.
 ### Change log
 | Date | Change |
 |---|---|
+| 2026-10-13 | SMS providers built (D-076): `SMS_PROVIDER` gains `sparrow` / `aakash`; `SMS_API_KEY`, `SMS_SENDER_ID` (now read), `SMS_BASE_URL`; `config-check --connect` checks the token (§4.5). |
 | 2026-10-13 | ConnectIPS built (D-076): `CONNECTIPS_ENV`, `CONNECTIPS_MERCHANT_ID`, `CONNECTIPS_APP_ID`, `CONNECTIPS_APP_NAME`, `CONNECTIPS_APP_PASSWORD`, `CONNECTIPS_PRIVATE_KEY` (PEM / base64 PEM; replaces the draft `CONNECTIPS_PFX_*`), `CONNECTIPS_BASE_URL`; registered return addresses `/api/v1/payments/connectips/success` and `/failure` (§5.3). |
 | 2026-10-13 | Configuration readiness (D-076): start-up validation refuses half-configured eSewa, SMTP login and Bunny; server preparation (§8.0), off-site backups with rclone (§8.0), exact DNS records (§4.14), first store submissions (§4.13); PR template configuration checklist; `CONFIGURATION_READINESS_AUDIT.md`. |
 | 2026-10-13 | Phase 18: production stack `infra/production/` (Dockerfile, `docker-compose.prod.yml`, Caddyfile, `deploy.sh`, `backup.sh`, `restore.sh`, `rollback.sh`); new settings file `infra/production/.env` (§3.15); `TRUST_PROXY=172.30.0.0/24`; runbook §8 statuses and first-deployment commands (§8.1); CI job `docker-images`. |

@@ -21,6 +21,12 @@ Last updated: 2026-10-13 (Phase 16 test pass). `pnpm test` runs unit + integrati
 | `@tk/web` (E2E, Playwright) | 10 | `next start` production build + real API + `*_web_e2e` database + Mailpit + gateway stand-in; access tokens last 60 s so every page load refreshes |
 | **Total** | **665** | |
 
+### SMS providers (D-076)
+- `sms-providers.test.ts` against a local HTTP stand-in (real requests): 10-digit Nepal numbers, Sparrow token /
+  sender / number / text form and credit, Aakash auth token form and credit, refused tokens are errors, provider chosen
+  by `SMS_PROVIDER`; `sms.service.test.ts` (disabled refuses, log keeps, unreachable provider → plain 503);
+  `env.test.ts` (token and Sparrow sender required).
+
 ### ConnectIPS and gateway checks (D-076)
 - API: `gateways.test.ts` (key formats, form fields and TOKEN verified with the public key, Nepal-date TXNDATE,
   validatetxn Basic auth + signed body, only SUCCESS completes; Khalti / eSewa probes); `payments.e2e` ConnectIPS:

@@ -202,6 +202,10 @@ Current task: Phase 11 part 3 (receipts + refunds) done on `feature/receipts-ref
 - Nothing partially implemented. Admin screens for Phase 6 not started.
 
 ## Exact next steps
+0zl. 2026-10-13: Phase 19 G-2 on `feature/sms-providers` (stacked on #61, which is stacked on #60):
+   `infra/messaging/sms-providers.ts` (Sparrow, Aakash), `SmsService` sends through it; `SMS_*` settings + validation;
+   SMS token check in `config-check --connect`. With G-1…G-7 done, Phase 19 is complete: next is Phase 18b (owner
+   accounts → staging + load test → production → store builds).
 0zk. 2026-10-13: Phase 19 G-1 / G-4 on `feature/connectips` (stacked on `feature/config-readiness`, PR #60):
    `ConnectIpsGateway` (gateways.ts), `formStartPage` / `connectipsReturn` (payments.service.ts), routes
    `/payments/connectips/:id/start|success|failure`, `CONNECTIPS_*` settings + validation, probes in `config-check

@@ -66,7 +66,7 @@ Updated as each gap closes.
 | Gap | Status |
 |---|---|
 | G-1 | ✅ built and tested against a signature-checking stand-in (API + app browser test); first real run in NCHL UAT when the owner has test credentials (guide §5.3) |
-| G-2 | ☐ |
+| G-2 | ✅ Sparrow SMS and Aakash SMS by `SMS_PROVIDER`; validation, token check in `config-check --connect`, tests against an HTTP stand-in (guide §4.5) |
 | G-3 | ✅ start-up validation (`env.ts`), tests in `env.test.ts` |
 | G-4 | ✅ `config-check --connect` tries Khalti, eSewa and ConnectIPS credentials without paying (checked against the real eSewa / Khalti sandboxes, a wrong Khalti key is reported) |
 | G-5 | ✅ `env-usage.test.ts` in the app, CMS and website (checked by planting a violation) |

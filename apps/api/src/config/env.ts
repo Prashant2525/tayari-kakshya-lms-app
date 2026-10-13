@@ -79,7 +79,13 @@ export const EnvSchema = z
     SMTP_PASSWORD: optional,
     SMTP_SECURE: bool,
 
-    SMS_PROVIDER: z.enum(['disabled', 'log']).default('disabled'),
+    SMS_PROVIDER: z.enum(['disabled', 'log', 'sparrow', 'aakash']).default('disabled'),
+    /** Sparrow SMS token / Aakash SMS auth token (D-076). */
+    SMS_API_KEY: optional,
+    /** Sparrow SMS: the sender identity approved for the account. */
+    SMS_SENDER_ID: optional,
+    /** Override of the provider's address (tests / a proxy); empty = the provider's own. */
+    SMS_BASE_URL: optional,
 
     // Object storage (S3-compatible: Cloudflare R2 in production, SeaweedFS locally — T-020).
     S3_ENDPOINT: z.string().min(1),
@@ -250,6 +256,20 @@ export const EnvSchema = z
     together(['ESEWA_PRODUCT_CODE', 'ESEWA_SECRET_KEY'], 'eSewa');
     together(['SMTP_USER', 'SMTP_PASSWORD'], 'SMTP login');
     together(['BUNNY_STREAM_LIBRARY_ID', 'BUNNY_STREAM_API_KEY'], 'Bunny Stream');
+    if ((env.SMS_PROVIDER === 'sparrow' || env.SMS_PROVIDER === 'aakash') && !env.SMS_API_KEY) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['SMS_API_KEY'],
+        message: `required with SMS_PROVIDER=${env.SMS_PROVIDER} (the provider account's token)`,
+      });
+    }
+    if (env.SMS_PROVIDER === 'sparrow' && !env.SMS_SENDER_ID) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['SMS_SENDER_ID'],
+        message: 'required with SMS_PROVIDER=sparrow (the sender identity Sparrow approved)',
+      });
+    }
     together(
       [
         'CONNECTIPS_MERCHANT_ID',
