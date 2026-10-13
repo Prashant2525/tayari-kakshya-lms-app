@@ -41,6 +41,9 @@ tmp/
 # --- Large design reference (local-only, D-041) ---
 Tayari Kakshya - LMS System.pdf
 
+# --- Production server state (infra/production) ---
+infra/production/releases.log
+
 # --- Generated code ---
 apps/api/src/generated/
 test-results/
