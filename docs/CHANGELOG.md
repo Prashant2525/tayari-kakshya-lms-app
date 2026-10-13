@@ -4,6 +4,14 @@ All notable changes to this project. Format based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Added — 2026-10-13 (configuration readiness, part 1 — D-076)
+- `docs/CONFIGURATION_READINESS_AUDIT.md`: every integration checked against "credentials only, no code changes";
+  gaps G-1…G-7 planned as Phase 19.
+- The API refuses to start with a half-configured eSewa, SMTP login or Bunny Stream and names the missing value.
+- Tests that fail if the app, CMS or website ever reads a non-public setting.
+- Guide: server preparation, off-site backups with rclone, exact DNS records, first Play / App Store submissions;
+  pull-request template with a configuration checklist.
+
 ### Added — 2026-10-13 (Phase 18 — production stack)
 - `infra/production/`: production Docker images (API + worker, website, CMS inside the Caddy proxy, migrations), a
   one-server Docker Compose stack with automatic HTTPS, security headers and a strict CMS Content-Security-Policy,

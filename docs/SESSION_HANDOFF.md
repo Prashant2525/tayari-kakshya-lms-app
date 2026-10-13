@@ -202,6 +202,10 @@ Current task: Phase 11 part 3 (receipts + refunds) done on `feature/receipts-ref
 - Nothing partially implemented. Admin screens for Phase 6 not started.
 
 ## Exact next steps
+0zj. 2026-10-13: PR #59 merged (main CI green incl. docker-images). Owner requirement D-076 (zero code changes for
+   configuration): audit `CONFIGURATION_READINESS_AUDIT.md`; Phase 19 on `feature/config-readiness` closes G-3, G-5,
+   G-6, G-7. Next: G-1 ConnectIPS provider (NCHL e-Payment spec; PEM key from the PFX), then G-2 SMS providers
+   (Sparrow, Aakash), then G-4 credential checks in `config-check --connect`.
 0zi. 2026-10-13: PR #58 merged (main CI green). Phase 18 on `feature/phase-18-deployment`: `infra/production/`
    (Dockerfile targets api / migrate / web / proxy; compose with fixed network 172.30.0.0/24 → TRUST_PROXY; Caddyfile;
    deploy / backup / restore / rollback scripts), CI `docker-images`, `RELEASE_READINESS.md`, guide §3.15 / §8.1.

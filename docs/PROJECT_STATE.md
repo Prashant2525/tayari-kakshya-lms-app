@@ -1,6 +1,6 @@
 # Project State
 
-Current Phase: **Phase 18 — release / deployment** on `feature/phase-18-deployment` (audit fixes A–C merged, PR #56–#58)
+Current Phase: **Phase 19 — configuration readiness (D-076)**; Phase 18a merged (PR #59), 18b waits on owner accounts
 Current Milestone: production stack built and rehearsed; launch waits on the owner's accounts (`RELEASE_READINESS.md`)
 Overall Status: **IN PROGRESS**
 Last updated: 2026-10-13

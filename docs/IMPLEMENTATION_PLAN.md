@@ -215,6 +215,10 @@ AI study assistant (after L2), live classes (after L3), Apple IAP (only if decid
 - ☑ Phase 18a: production stack — images, compose, Caddy (HTTPS, CMS CSP), several API processes (F-11), deploy /
   backup / restore / rollback scripts, CI image job, `RELEASE_READINESS.md`; local rehearsal
 - ☐ Phase 18b (needs owner accounts): staging server + load test, production deploy, store builds and submission
+- ☐ **Phase 19 — configuration readiness (D-076, `CONFIGURATION_READINESS_AUDIT.md`)**: G-3 partial-configuration
+  validation · G-5 client-secret guard test · G-6 exact manual steps (server, DNS, off-site backups, store
+  submission) · G-7 PR template · G-1 **ConnectIPS** provider (NCHL spec; UAT check when credentials arrive) · G-2 SMS
+  providers (Sparrow, Aakash) · G-4 credential checks in `config-check --connect`
 - On hold (D-073): offline video; ConnectIPS once NCHL test credentials arrive; AI assistant (L2)
 
 ## Next concrete steps

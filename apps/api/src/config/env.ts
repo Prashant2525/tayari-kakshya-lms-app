@@ -223,6 +223,22 @@ export const EnvSchema = z
         message: 'an https address is required when a payment gateway is configured',
       });
     }
+    // A service given only part of its values would silently stay off (or fail later): name the missing part now
+    // (D-076, configuration readiness G-3).
+    const together = (names: ReadonlyArray<keyof typeof env>, what: string) => {
+      const set = names.filter((n) => Boolean(env[n]));
+      if (set.length > 0 && set.length < names.length) {
+        const missing = names.filter((n) => !env[n]);
+        ctx.addIssue({
+          code: 'custom',
+          path: [missing[0] as string],
+          message: `${what} is half configured: ${set.join(', ')} set but ${missing.join(', ')} empty (set all or none)`,
+        });
+      }
+    };
+    together(['ESEWA_PRODUCT_CODE', 'ESEWA_SECRET_KEY'], 'eSewa');
+    together(['SMTP_USER', 'SMTP_PASSWORD'], 'SMTP login');
+    together(['BUNNY_STREAM_LIBRARY_ID', 'BUNNY_STREAM_API_KEY'], 'Bunny Stream');
     if (env.EMAIL_PROVIDER === 'smtp' && (!env.SMTP_HOST || !env.SMTP_PORT)) {
       ctx.addIssue({ code: 'custom', path: ['SMTP_HOST'], message: 'SMTP_HOST and SMTP_PORT are required' });
     }

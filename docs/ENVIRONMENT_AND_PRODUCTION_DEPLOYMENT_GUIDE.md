@@ -423,6 +423,33 @@ Use *plain text / sensitive* for `EXPO_PUBLIC_*` (they end up in the app anyway)
   app shows **no prices or purchase links** (D-027); purchases happen on the website — review notes should say so.
 - Submission: `eas submit` (credentials stay in EAS).
 
+**Google Play — first release, step by step**
+1. Play Console → *Create app*: name "Tayari Kakshya", default language, *App*, *Free* (the app sells nothing on
+   iPhone and Android uses the website / gateways — not Google Play billing).
+2. *Set up your app* tasks: privacy policy URL `https://<your-domain>/pages/privacy`; *App access* → "All or some
+   functionality is restricted" → give a test student's email + password; *Ads* → No; content rating questionnaire;
+   target audience (13+ or as you decide); *Data safety*: collected — name, email, phone (optional), purchase history,
+   app activity (analytics, PostHog), crash logs (Sentry); encrypted in transit; users can delete their account in
+   the app (Profile → Delete account).
+3. `eas build -p android --profile production` (needs the EAS *production* variables, §3.12).
+4. **The first upload is manual** (Google rule): download the `.aab` from expo.dev → Play Console → *Testing → Internal
+   testing → Create new release* → upload → add testers' emails → roll out.
+5. For later releases with `eas submit -p android`: Google Cloud → IAM → *Service accounts* → create one, key (JSON) →
+   Play Console → *Users and permissions* → invite the service account's email with *Release manager* rights →
+   `eas credentials` → Android → *Google Service Account* → upload the key (then delete the downloaded file).
+6. Promote internal → closed / open testing → production when the smoke tests (§9) pass.
+
+**App Store — first release, step by step**
+1. Apple Developer Program membership (organisation needs a D-U-N-S number).
+2. `eas build -p ios --profile production` → sign in with the Apple ID when asked; EAS registers the bundle id
+   `com.tayarikakshya.app`, creates the certificates and (answer yes) the push key.
+3. App Store Connect → *My Apps → +* → New App with that bundle id.
+4. `eas submit -p ios --latest` → let EAS create an App Store Connect API key when asked.
+5. TestFlight → add internal testers → test on an iPhone (KI-054).
+6. App information: privacy policy URL, *App Privacy* (same data as Google's data safety), screenshots, a test
+   account, and review notes: "Courses are bought on our website; the iPhone app shows no prices and no purchase
+   links (guideline 3.1.3(b) multiplatform)". Submit for review.
+
 ### 4.14 Domain, DNS and HTTPS ✅ files · 🟡 your domain
 Buy the domain (L4). Recommended addresses (any names work — keep them consistent everywhere):
 
@@ -433,6 +460,22 @@ Buy the domain (L4). Recommended addresses (any names work — keep them consist
 | `https://admin.<your-domain>` | CMS (its `/api/*` forwarded to the API) |
 | `https://media.<your-domain>` | R2 public bucket (custom domain) |
 | `mail.<your-domain>` | Email sending (SPF/DKIM/DMARC) |
+
+**DNS records to create** at your DNS provider (replace `203.0.113.10` with the VPS's IPv4 address; add matching
+`AAAA` records only if the VPS has IPv6):
+
+| Type | Name | Value | Note |
+|---|---|---|---|
+| A | `@` | `203.0.113.10` | website (`WEB_DOMAIN`) |
+| A | `api` | `203.0.113.10` | API (`API_DOMAIN`) |
+| A | `admin` | `203.0.113.10` | CMS (`ADMIN_DOMAIN`) |
+| CNAME | `media` | set by Cloudflare when you connect the R2 custom domain (§4.3) | pictures |
+| TXT / CNAME | as your email provider lists | SPF, DKIM | email (§4.4) |
+| TXT | `_dmarc` | `v=DMARC1; p=quarantine; rua=mailto:dmarc@<your-domain>` | email |
+| CAA (optional) | `@` | `0 issue "letsencrypt.org"` | only Let's Encrypt may issue certificates |
+
+With Cloudflare DNS, set the three A records to **DNS only** (grey cloud) so Caddy can obtain and renew its
+certificates. Check before deploying: `dig +short api.<your-domain>` shows the VPS address.
 
 The reverse proxy on the VPS (Caddy, `infra/production/Caddyfile`) obtains HTTPS certificates automatically once
 DNS points at the server (ports 80 and 443 open). It sends HSTS and security headers on every address and a strict
@@ -586,23 +629,60 @@ Phase 18 built the files and automation (`infra/production/`), rehearsed end to 
 The **TRUST_PROXY** value for this layout: the proxy and the website reach the API over the stack's private Docker
 network, fixed in `docker-compose.prod.yml` — **`TRUST_PROXY=172.30.0.0/24`**.
 
+### 8.0 Preparing the server (once)
+
+Ubuntu 24.04 LTS, at least 4 GB RAM and 40 GB disk; you can log in as root (or a sudo user) over SSH.
+
+```bash
+apt update && apt -y upgrade
+curl -fsSL https://get.docker.com | sh                 # Docker Engine + compose plugin (Docker's official script)
+apt -y install git openssl rclone
+ufw allow OpenSSH && ufw allow 80/tcp && ufw allow 443/tcp && ufw allow 443/udp && ufw --force enable
+# The image build needs memory: add swap on a 4 GB server.
+fallocate -l 4G /swapfile && chmod 600 /swapfile && mkswap /swapfile && swapon /swapfile
+echo '/swapfile none swap sw 0 0' >> /etc/fstab
+mkdir -p /etc/tayari-kakshya && chmod 700 /etc/tayari-kakshya
+docker version && docker compose version                # both print versions
+```
+
+**Off-site backups with Cloudflare R2** (L4: if backups must stay in Nepal, use any S3-compatible or SFTP storage
+there instead — rclone supports both):
+1. Cloudflare → R2 → *Create bucket* `tayari-kakshya-backups` (private; not the media buckets).
+2. R2 → *Manage API tokens* → *Create API token* → permission *Object Read & Write*, restricted to that bucket → copy
+   the *Access Key ID* and *Secret Access Key* (shown once).
+3. On the server (the values go into `/root/.config/rclone/rclone.conf`, readable by root only):
+   ```bash
+   rclone config create r2-backups s3 provider=Cloudflare access_key_id=<ACCESS_KEY_ID> \
+     secret_access_key=<SECRET_ACCESS_KEY> endpoint=https://<ACCOUNT_ID>.r2.cloudflarestorage.com acl=private
+   chmod 600 /root/.config/rclone/rclone.conf
+   ```
+4. `infra/production/.env`: `BACKUP_RCLONE_REMOTE=r2-backups:tayari-kakshya-backups/db`.
+5. After the first deployment: `infra/production/backup.sh nightly` → `rclone ls r2-backups:tayari-kakshya-backups/db`
+   lists the file. The off-site copy mirrors the server's retention (7 daily, 4 weekly, 6 monthly, 5 pre-deploy).
+6. To restore from off-site: `rclone copy r2-backups:tayari-kakshya-backups/db/daily/<file> /root/` →
+   `infra/production/restore.sh /root/<file>`.
+
 ### 8.1 First deployment on the VPS (commands)
 
-On a fresh Ubuntu LTS server with Docker Engine + the compose plugin, `git`, `openssl` and (for the off-site copy)
-`rclone`; ports 22, 80 and 443 open; DNS of §4.14 pointing at it:
+On the server prepared in §8.0 (Docker Engine + the compose plugin, `git`, `openssl`, `rclone`)
+with ports 22, 80 and 443 open and the DNS of §4.14 pointing at it:
 
 ```bash
 git clone https://github.com/Prashant2525/tayari-kakshya-lms-app.git /opt/tayari-kakshya
 cd /opt/tayari-kakshya
 cp infra/production/compose.env.example infra/production/.env    # fill in (§3.15); chmod 600
-install -m 600 /dev/null /etc/tayari-kakshya/production.env      # after mkdir -p /etc/tayari-kakshya
+install -m 600 /dev/null /etc/tayari-kakshya/production.env      # the folder exists since §8.0
 #   fill /etc/tayari-kakshya/production.env from /.env.example (§3): APP_ENV=production, DATABASE_URL / REDIS_URL with
 #   the passwords above, TRUST_PROXY=172.30.0.0/24, https addresses, new secrets (§3.3)
-docker compose -f infra/production/docker-compose.prod.yml --env-file infra/production/.env \
-  run --rm --no-deps api node dist/cli.js config-check            # 0 errors, then again with --connect after step 1
-infra/production/deploy.sh                                        # build, migrate, start; waits for the API
-docker compose -f infra/production/docker-compose.prod.yml --env-file infra/production/.env \
-  run --rm --no-deps api node dist/cli.js create-super-admin --email you@yourdomain --name "Your Name"
+export TK_RELEASE=$(git rev-parse --short=12 HEAD)
+C="docker compose -f infra/production/docker-compose.prod.yml --env-file infra/production/.env"
+$C --profile tools build migrate && $C build api                  # the images (≈ 10 min the first time)
+$C run --rm --no-deps api node dist/cli.js config-check           # fix the settings until it reports 0 errors
+$C up -d --wait postgres redis
+$C run --rm --no-deps api node dist/cli.js config-check --connect # database, Redis, storage, email reachable
+infra/production/deploy.sh                                        # back up, migrate, start; waits for the API
+$C run --rm --no-deps api node dist/cli.js create-super-admin --email you@yourdomain --name "Your Name"
+#   then https://admin.<your-domain>/set-password with the emailed code, sign in, enrol two-factor
 crontab -e   # 15 2 * * * /opt/tayari-kakshya/infra/production/backup.sh nightly >>/var/log/tayari-kakshya-backup.log 2>&1
 ```
 
@@ -733,6 +813,7 @@ applies. The final audit (§11) is repeated in Phase 17 against the code.
 ### Change log
 | Date | Change |
 |---|---|
+| 2026-10-13 | Configuration readiness (D-076): start-up validation refuses half-configured eSewa, SMTP login and Bunny; server preparation (§8.0), off-site backups with rclone (§8.0), exact DNS records (§4.14), first store submissions (§4.13); PR template configuration checklist; `CONFIGURATION_READINESS_AUDIT.md`. |
 | 2026-10-13 | Phase 18: production stack `infra/production/` (Dockerfile, `docker-compose.prod.yml`, Caddyfile, `deploy.sh`, `backup.sh`, `restore.sh`, `rollback.sh`); new settings file `infra/production/.env` (§3.15); `TRUST_PROXY=172.30.0.0/24`; runbook §8 statuses and first-deployment commands (§8.1); CI job `docker-images`. |
 | 2026-10-13 | Phase 16: `DATABASE_POOL_MAX` (database connections per process, default 20); importer option `CONTENT_UPDATE_QUESTIONS` and the correct command `pnpm --filter @tk/content-pack run import`; load test `apps/api/scripts/load/` (§9). |
 | 2026-10-12 | Version 1 (after Phase 15). Added `config-check`, website start-up check, app production-build check, `GOOGLE_SERVICES_JSON`, EAS environments per build profile, production rules for the Bunny token key / distinct secrets / https media. Split public app and CMS templates into `apps/mobile/.env.example` and `apps/admin/.env.example`; removed never-read names from the root template. |
