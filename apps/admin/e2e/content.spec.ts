@@ -467,3 +467,49 @@ test('student access: grant with the course validity, then revoke with a reason'
   await expect(access).toContainText('Revoked');
   await expect(access).toContainText('revoked: Refunded');
 });
+
+test('drag to reorder chapters; the order is saved (KI-024)', async () => {
+  await page.getByRole('link', { name: 'Subjects', exact: true }).click();
+  await page.getByRole('link', { name: 'General Knowledge' }).first().click();
+  await page.getByRole('button', { name: 'Add chapter' }).click();
+  const dialog = page.getByRole('dialog');
+  await dialog.getByLabel('Number').fill('2');
+  await dialog.getByLabel('Title (English)').fill('Geography of Nepal');
+  await dialog.getByRole('button', { name: 'Save' }).click();
+  await expect(page.getByText('Chapter added')).toBeVisible();
+
+  const chapters = page.getByRole('heading', { level: 2 });
+  await expect(chapters).toHaveText([/Constitution of Nepal/, /Geography of Nepal/]);
+  await page
+    .getByRole('heading', { name: /Geography of Nepal/ })
+    .dragTo(page.getByRole('heading', { name: /Constitution of Nepal/ }));
+  await expect(page.getByText('Order saved')).toBeVisible();
+  await page.reload();
+  await expect(page.getByRole('heading', { level: 2 })).toHaveText([
+    /Geography of Nepal/,
+    /Constitution of Nepal/,
+  ]);
+});
+
+test('Ctrl K: jump to a page or find a course (DESIGN_SYSTEM §9)', async () => {
+  await page.keyboard.press('Control+k');
+  const search = page.getByRole('combobox', { name: 'Search or jump to' });
+  await expect(search).toBeFocused();
+  await search.fill('exam cat');
+  await expect(page.getByRole('option', { name: /Exam categories/ })).toHaveAttribute(
+    'aria-selected',
+    'true',
+  );
+  await page.keyboard.press('Enter');
+  await expect(page).toHaveURL(/\/categories$/);
+
+  await page.keyboard.press('Control+k');
+  await search.fill('Kharidar');
+  await page.getByRole('option', { name: /Kharidar Complete Course/ }).click();
+  await expect(page.getByRole('heading', { name: 'Kharidar Complete Course' })).toBeVisible();
+  // Staff administration is not offered to the content team.
+  await page.keyboard.press('Control+k');
+  await search.fill('roles');
+  await expect(page.getByText('Nothing found.')).toBeVisible();
+  await page.keyboard.press('Escape');
+});

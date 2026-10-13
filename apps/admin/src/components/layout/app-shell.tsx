@@ -51,6 +51,7 @@ import { useAuth } from '@/lib/auth';
 import { useTheme } from '@/lib/theme';
 import { cn } from '@/lib/utils';
 import { Button } from '../ui/button';
+import { CommandPalette } from './command-palette';
 import { Alert, Avatar, Spinner } from '../ui/primitives';
 
 interface NavItem {
@@ -319,7 +320,9 @@ export function AppShell() {
           >
             {menuOpen ? <X /> : <Menu />}
           </Button>
-          <div className="flex-1" />
+          <div className="flex flex-1 justify-center">
+            {me.mfaSetupRequired ? null : <CommandPalette groups={NAV} />}
+          </div>
           <UserMenu />
         </header>
         <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-8">

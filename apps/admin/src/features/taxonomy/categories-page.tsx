@@ -28,6 +28,7 @@ import { slugify, toLocalized, type ExamNode } from '@/lib/content';
 import { childTypesOf, useNodeTypes } from '@/lib/node-types';
 import { localized, plural } from '@/lib/format';
 import { cn } from '@/lib/utils';
+import { DragHandle, dragRowClass, useDragReorder } from '@/lib/drag-reorder';
 
 const menuItem =
   'flex cursor-pointer select-none items-center gap-2 rounded-sm px-2.5 py-2 text-sm text-text outline-none data-[highlighted]:bg-surface-muted data-[disabled]:pointer-events-none data-[disabled]:opacity-50';
@@ -291,6 +292,7 @@ export function CategoriesPage() {
   const [editing, setEditing] = useState<{ node: ExamNode | null; parent: ExamNode | null } | null>(null);
   const [deleting, setDeleting] = useState<ExamNode | null>(null);
   const [busy, setBusy] = useState(false);
+  const bind = useDragReorder();
   const tree = useMemo(() => buildTree(nodes.data ?? []), [nodes.data]);
 
   const run = async (fn: () => Promise<unknown>, success: string) => {
@@ -333,8 +335,21 @@ export function CategoriesPage() {
                 'flex items-center gap-2 py-2 pr-3',
                 depth > 0 ? 'pl-3' : 'pl-1',
                 n.deletedAt && 'opacity-60',
+                dragRowClass,
+              )}
+              {...bind(
+                `nodes-${n.parentId ?? 'root'}`,
+                live.map((s) => s.id),
+                n.id,
+                (ids) =>
+                  void run(
+                    () => api.put('/admin/exam-nodes/order', { parentId: n.parentId ?? null, ids }),
+                    'Order saved',
+                  ),
+                !n.deletedAt && !busy,
               )}
             >
+              {!n.deletedAt && live.length > 1 ? <DragHandle /> : null}
               <Button
                 variant="ghost"
                 size="icon"

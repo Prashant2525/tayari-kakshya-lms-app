@@ -20,6 +20,8 @@ import {
   Switch,
 } from '@/components/ui/primitives';
 import { api, errorMessage } from '@/lib/api';
+import { DragHandle, dragRowClass, useDragReorder } from '@/lib/drag-reorder';
+import { cn } from '@/lib/utils';
 
 interface Level {
   id: string;
@@ -113,6 +115,17 @@ export function EducationLevelsPage() {
   const [editing, setEditing] = useState<Level | 'new' | null>(null);
   const [deleting, setDeleting] = useState<Level | null>(null);
   const [moving, setMoving] = useState(false);
+  const bind = useDragReorder();
+  const saveOrder = async (ids: string[]) => {
+    setMoving(true);
+    try {
+      qc.setQueryData(['education-levels'], await api.put<Level[]>('/admin/education-levels/order', { ids }));
+    } catch (err) {
+      toast.error(errorMessage(err));
+    } finally {
+      setMoving(false);
+    }
+  };
 
   const move = async (index: number, delta: -1 | 1) => {
     if (!levels.data) return;
@@ -159,7 +172,18 @@ export function EducationLevelsPage() {
         ) : (
           <ol className="divide-y divide-border">
             {levels.data.map((level, index) => (
-              <li key={level.id} className="flex items-center gap-3 px-5 py-3">
+              <li
+                key={level.id}
+                className={cn('flex items-center gap-3 px-5 py-3', dragRowClass)}
+                {...bind(
+                  'levels',
+                  levels.data.map((l) => l.id),
+                  level.id,
+                  (ids) => void saveOrder(ids),
+                  !moving,
+                )}
+              >
+                <DragHandle />
                 <div className="flex flex-col">
                   <Button
                     variant="ghost"

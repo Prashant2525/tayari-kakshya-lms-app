@@ -21,6 +21,12 @@ Last updated: 2026-10-13 (Phase 16 test pass). `pnpm test` runs unit + integrati
 | `@tk/web` (E2E, Playwright) | 10 | `next start` production build + real API + `*_web_e2e` database + Mailpit + gateway stand-in; access tokens last 60 s so every page load refreshes |
 | **Total** | **665** | |
 
+### Phase 21 — CMS polish
+- `drag-reorder.test.ts` (move logic); CMS browser `content.spec`: drag a chapter above another → "Order saved" → kept
+  after reload; Ctrl K → "exam cat" → Enter opens Exam categories, a course found by name, staff-only pages not
+  offered to the content team. Content suite 12/12. Screenshots checked: outline with grips, palette results.
+- Bundle: first-load JS measured from `index.html` — 719 KB (222 KB gzip); Sentry's 88 KB now lazy.
+
 ### Phase 20 — production hardening
 - Website: `csp.test.ts` (nonce, strict-dynamic, no eval in production, form targets, http pictures only on plain-http
   local runs); browser `website.spec` checks the header, a different nonce per request and **no CSP violation during

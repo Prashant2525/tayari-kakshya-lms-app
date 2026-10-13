@@ -6,6 +6,8 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Alert, Card, CardHeader, ErrorState, PageHeader, Spinner, Switch } from '@/components/ui/primitives';
 import { api, errorMessage } from '@/lib/api';
+import { DragHandle, dragRowClass, useDragReorder } from '@/lib/drag-reorder';
+import { cn } from '@/lib/utils';
 
 /** What each Home section is, in the words staff see in the app. */
 const SECTION: Record<HomeSectionKey, { label: string; hint: string }> = {
@@ -61,6 +63,7 @@ export function HomeSectionsPage() {
 function SectionsEditor({ initial }: { initial: HomeSections['sections'] }) {
   const qc = useQueryClient();
   const [sections, setSections] = useState(initial);
+  const bind = useDragReorder();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const dirty = JSON.stringify(sections) !== JSON.stringify(initial);
@@ -99,7 +102,17 @@ function SectionsEditor({ initial }: { initial: HomeSections['sections'] }) {
         {sections.map((s, i) => {
           const info = SECTION[s.key];
           return (
-            <li key={s.key} className="flex items-center gap-3 px-5 py-3">
+            <li
+              key={s.key}
+              className={cn('flex items-center gap-3 px-5 py-3', dragRowClass)}
+              {...bind(
+                'home-sections',
+                sections.map((x) => x.key),
+                s.key,
+                (keys) => setSections(keys.map((k) => sections.find((x) => x.key === k)!)),
+              )}
+            >
+              <DragHandle />
               <span className="w-6 text-sm tabular-nums text-text-muted">{i + 1}</span>
               <div className="min-w-0 flex-1">
                 <p
