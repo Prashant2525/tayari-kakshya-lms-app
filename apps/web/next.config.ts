@@ -18,12 +18,7 @@ const config: NextConfig = {
           { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
           { key: 'X-Frame-Options', value: 'DENY' },
           { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
-          // Phase 15: no plugins, no <base> rewriting, never framed. Scripts are not restricted here (Next.js inline
-          // scripts would need nonces); the HttpOnly cookies keep tokens away from scripts in any case.
-          {
-            key: 'Content-Security-Policy',
-            value: "base-uri 'self'; object-src 'none'; frame-ancestors 'none'",
-          },
+          // The Content-Security-Policy (with a nonce per page, R-3) is set by src/proxy.ts.
         ],
       },
     ];

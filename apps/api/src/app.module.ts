@@ -5,7 +5,7 @@ import { AuthGuard, MaintenanceGuard, PermissionsGuard } from './common/auth/gua
 import { HttpExceptionFilter } from './common/errors/http-exception.filter.js';
 import { FieldEncryption } from './common/security/field-encryption.js';
 import { RateLimitGuard } from './common/security/rate-limit.js';
-import { redactUrl } from './common/security/log-redaction.js';
+import { pinoParams } from './common/logging/pino.js';
 import { ENV, loadEnv, type Env } from './config/env.js';
 import { MailService } from './infra/messaging/mail.service.js';
 import { SmsService } from './infra/messaging/sms.service.js';
@@ -298,28 +298,7 @@ export class DomainModule {}
   imports: [
     InfraModule,
     DomainModule,
-    LoggerModule.forRootAsync({
-      inject: [ENV],
-      useFactory: (env: Env) => ({
-        pinoHttp: {
-          level: env.LOG_LEVEL,
-          genReqId: (req) => String(req.headers['x-request-id'] ?? ''),
-          redact: {
-            paths: ['req.headers.authorization', 'req.headers.cookie', 'res.headers["set-cookie"]'],
-            remove: true,
-          },
-          // Signed receipt links, gateway payloads and the like stay out of the logs (Phase 15).
-          serializers: {
-            req: (req: { url?: string }) => (req.url ? { ...req, url: redactUrl(req.url) } : req),
-          },
-          customProps: () => ({ service: 'api' }),
-          transport:
-            env.NODE_ENV === 'development'
-              ? { target: 'pino-pretty', options: { singleLine: true } }
-              : undefined,
-        },
-      }),
-    }),
+    LoggerModule.forRootAsync({ inject: [ENV], useFactory: (env: Env) => pinoParams(env, 'api') }),
   ],
   controllers: [
     HealthController,
@@ -394,3 +373,13 @@ export class DomainModule {}
   ],
 })
 export class AppModule {}
+
+/** The background worker (worker.ts): the domain services and the same structured logging as the API (KI-015). */
+@Module({
+  imports: [
+    InfraModule,
+    DomainModule,
+    LoggerModule.forRootAsync({ inject: [ENV], useFactory: (env: Env) => pinoParams(env, 'worker') }),
+  ],
+})
+export class WorkerModule {}

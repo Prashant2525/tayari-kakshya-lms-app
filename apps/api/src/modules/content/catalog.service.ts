@@ -18,9 +18,14 @@ import { courseProgress } from './course-progress.js';
 import { EntitlementsService, isFreeEnrollable } from './entitlements.service.js';
 import { isLive, liveWhere, publishedWhere } from './publishing.js';
 import { watermarkPdf } from './pdf-watermark.js';
+import { ByteLru } from '../../common/cache/byte-lru.js';
 import { VideoService } from './video.service.js';
 import { CourseInterestsService } from '../notifications/course-interests.service.js';
 import { ReviewsService } from '../reviews/reviews.service.js';
+
+/** Per API process (KI-022): originals by storage key, and each student's stamped copy of the day. */
+const originalPdfs = new ByteLru(96 * 1024 * 1024);
+const stampedPdfs = new ByteLru(64 * 1024 * 1024);
 
 const num = (d: Prisma.Decimal | null) => (d === null ? null : Number(d));
 const locked = () => new AppError(403, ErrorCode.CONTENT_LOCKED, 'This content is part of a premium course');
@@ -331,9 +336,19 @@ export class CatalogService {
     if (wantsDownload && !item.downloadable) {
       throw new AppError(403, ErrorCode.FORBIDDEN, 'This PDF can be read in the app but not downloaded');
     }
-    const original = await this.storage.getBuffer('private', item.pdf.objectKey);
+    const objectKey = item.pdf.objectKey;
     const label = `Licensed to ${user.email ?? user.phone ?? 'student'} - ID ${user.id.slice(0, 8)} - ${new Date().toISOString().slice(0, 10)} - Tayari Kakshya`;
-    const body = await watermarkPdf(original, label);
+    // KI-022: a student's copy is the same all day (the stamp has the date), so reopening it is served from memory;
+    // the original (its storage key never changes) is fetched once per process.
+    const body = await stampedPdfs.getOrLoad(
+      `${objectKey}
+${label}`,
+      async () =>
+        watermarkPdf(
+          await originalPdfs.getOrLoad(objectKey, () => this.storage.getBuffer('private', objectKey)),
+          label,
+        ),
+    );
     const filename = `${((item.title as LocalizedText).en ?? 'notes').replace(/[^\w.\- ]/g, '_').slice(0, 80)}.pdf`;
     return { body, filename, disposition: wantsDownload ? 'attachment' : 'inline' };
   }

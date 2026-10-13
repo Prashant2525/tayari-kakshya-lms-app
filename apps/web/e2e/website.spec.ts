@@ -13,6 +13,7 @@ const code = `WEB-${run}`.toUpperCase();
 const email = `web.${run}@example.com`;
 const password = 'buys on the web';
 let page: Page;
+const violations: string[] = [];
 test.describe.configure({ mode: 'serial' });
 
 test.beforeAll(async ({ browser, request }) => {
@@ -58,6 +59,15 @@ test.beforeAll(async ({ browser, request }) => {
     active: true,
   });
   page = await browser.newPage();
+  // R-3: every Content-Security-Policy violation during the whole visit is collected and must stay empty.
+  await page.addInitScript(() =>
+    document.addEventListener('securitypolicyviolation', (e) =>
+      console.error(`CSP violation: ${e.violatedDirective} ${e.blockedURI}`),
+    ),
+  );
+  page.on('console', (m) => {
+    if (m.type() === 'error' && m.text().startsWith('CSP violation')) violations.push(m.text());
+  });
 });
 test.afterAll(async () => {
   await page.close();
@@ -144,4 +154,15 @@ test('anyone can check a certificate number', async () => {
   await page.getByLabel('Certificate number').fill('ZZZZ-ZZZZ-ZZZZ');
   await page.getByRole('button', { name: 'Check' }).click();
   await expect(page.getByText('No certificate has this number.')).toBeVisible();
+});
+
+test('pages carry a per-request script nonce; nothing was blocked during the visit (R-3)', async () => {
+  const first = await page.goto('/');
+  const second = await page.goto('/courses');
+  const csp = (r: typeof first) => r!.headers()['content-security-policy'] ?? '';
+  expect(csp(first)).toMatch(/script-src 'self' 'nonce-[A-Za-z0-9+/=]+' 'strict-dynamic'/);
+  expect(csp(first)).not.toContain('unsafe-eval');
+  expect(csp(first).match(/nonce-([^']+)/)![1]).not.toBe(csp(second).match(/nonce-([^']+)/)![1]);
+  expect(await page.locator('script[nonce]').count()).toBeGreaterThan(0);
+  expect(violations).toEqual([]);
 });

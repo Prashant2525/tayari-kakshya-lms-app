@@ -133,6 +133,7 @@ async function createSuperAdmin(args: string[]): Promise<void> {
         target: email.data,
         userId: user.id,
         locale: user.locale,
+        wording: 'staff_invite',
       });
       console.log(`Super Admin ready: ${email.data}. A password-setup code was emailed (valid 10 minutes).`);
       console.log('Set the password with POST /api/v1/auth/password/reset { email, code, newPassword }.');
