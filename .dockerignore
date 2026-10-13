@@ -31,3 +31,6 @@ apps/mobile/android
 apps/mobile/ios
 apps/api/src/generated
 infra/production/backups
+
+# Documentation is not part of any image (and editing it must not invalidate the build cache).
+docs

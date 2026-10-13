@@ -23,7 +23,7 @@ Scope = approved decisions only (`DECISIONS.md`). Each phase ends with tests, do
 | 15 | Security hardening | authn/authz/IDOR/uploads/payments/rate limits/secrets review — `SECURITY_REVIEW.md` (T-075) | ☑ (on merge) |
 | 16 | Full testing + bug fixing | systematic pass; load test weekly-exam burst — TEST_STATUS "Phase 16" (T-077) | ☑ (on merge) |
 | 17 | Production audit | `PRODUCTION_READINESS_AUDIT.md` — audit done 2026-10-13; findings F-01…F-13 await owner approval | ◐ |
-| 18 | Release | VPS deployment, monitoring, backups, store submissions, `RELEASE_READINESS.md` | ☐ |
+| 18 | Release | VPS deployment, monitoring, backups, store submissions, `RELEASE_READINESS.md` | ◐ stack built + rehearsed; waits on owner accounts |
 
 ## Phase details
 
@@ -212,7 +212,9 @@ AI study assistant (after L2), live classes (after L3), Apple IAP (only if decid
   add / change, profile photo
 - ☑ Audit fixes batch C (D-074 / D-075): preview as student + content QA checklist (F-04), Home sections editor and
   notification campaigns (F-08)
-- ☐ Phase 18: deployment (playbook §15) — F-11 production setup
+- ☑ Phase 18a: production stack — images, compose, Caddy (HTTPS, CMS CSP), several API processes (F-11), deploy /
+  backup / restore / rollback scripts, CI image job, `RELEASE_READINESS.md`; local rehearsal
+- ☐ Phase 18b (needs owner accounts): staging server + load test, production deploy, store builds and submission
 - On hold (D-073): offline video; ConnectIPS once NCHL test credentials arrive; AI assistant (L2)
 
 ## Next concrete steps

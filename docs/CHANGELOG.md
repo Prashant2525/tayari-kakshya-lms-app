@@ -4,6 +4,16 @@ All notable changes to this project. Format based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Added — 2026-10-13 (Phase 18 — production stack)
+- `infra/production/`: production Docker images (API + worker, website, CMS inside the Caddy proxy, migrations), a
+  one-server Docker Compose stack with automatic HTTPS, security headers and a strict CMS Content-Security-Policy,
+  several API processes, PostgreSQL and Redis on a private network; `deploy.sh` (backup → migrate → start → wait),
+  `rollback.sh`, `backup.sh` (encrypted, 7 / 4 / 6 retention, off-site copy), `restore.sh` (with a drill mode).
+- CI job `docker-images`; `docs/RELEASE_READINESS.md`; deployment guide §3.15 and §8.1.
+
+### Fixed — 2026-10-13 (Phase 18)
+- CMS: no Content-Security-Policy violation from Zod's eval probe (`jitless`).
+
 ### Added — 2026-10-13 (audit fixes, batch C — D-075)
 - CMS "Campaigns": message all students, the students of chosen courses or those preparing for chosen exams — in the
   app's notifications, with push and email as chosen; link to a course, article or notice; send now or schedule;

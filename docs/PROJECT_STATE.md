@@ -1,7 +1,7 @@
 # Project State
 
-Current Phase: **Audit fixes (D-074 / D-075)** — batches A and B merged (PR #56, #57); batch C `feature/audit-fixes-c`
-Current Milestone: content API on `feature/content-cms` → Admin CMS content screens
+Current Phase: **Phase 18 — release / deployment** on `feature/phase-18-deployment` (audit fixes A–C merged, PR #56–#58)
+Current Milestone: production stack built and rehearsed; launch waits on the owner's accounts (`RELEASE_READINESS.md`)
 Overall Status: **IN PROGRESS**
 Last updated: 2026-10-13
 
@@ -96,7 +96,11 @@ Last updated: 2026-10-13
 - Audit fixes (D-074): batch A (F-01, F-03, F-06, F-07, F-09) in PR #56; batch B (F-10 PYQ browser, F-12 notice PDF
   attachments, F-13 email / phone / profile photo) merged (PR #57). Batch C (F-04 content QA, F-08 Home screen
   editor + notification campaigns, D-075) on `feature/audit-fixes-c`. All approved audit findings are then fixed;
-  F-11 (production setup) is Phase 18.
+  F-11 (production setup) is Phase 18. Merged (PR #58).
+- Phase 18 (`feature/phase-18-deployment`): production images, compose stack (Caddy + HTTPS + CMS CSP, API ×
+  `API_REPLICAS`, worker, website, PostgreSQL, Redis), deploy / backup / restore / rollback scripts, CI image job,
+  `RELEASE_READINESS.md`; rehearsed end to end locally (guide §8.1). Remaining: owner accounts, staging + load test,
+  store builds.
 - Monitoring (T-042) merged (PR #14, #15): Sentry in the API, worker, admin and app; PostHog in the app. Google web client registered for `http://localhost:8081` (checked); a real
   sign-in by the owner and Android/iOS clients remain (KI-029).
 - Phase 9 part 2 merged (PR #13): practice questions with Check answer and locked Premium answers
