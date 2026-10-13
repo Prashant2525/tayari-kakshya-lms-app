@@ -106,6 +106,18 @@ test('quiz: scoring must be chosen, questions added from the bank, published onl
   await expect(page.getByText('Ready to publish')).toBeVisible();
   await expect(page.getByText('2 questions · 5 marks')).toBeVisible(); // 3 (override) + 2 (default)
 
+  // Preview as student (D-075 / audit F-04): the questions in order with their marks, no answers.
+  await page.getByRole('button', { name: 'Preview as student' }).click();
+  const preview = page.getByRole('dialog', { name: 'Preview as student' });
+  await expect(preview.getByRole('heading', { name: 'Civics warm-up' })).toBeVisible();
+  await expect(preview).toContainText('10 minutes · 5 marks');
+  await expect(preview.getByRole('article', { name: 'Question 1' })).toContainText(
+    'Nepal has seven provinces.',
+  );
+  await expect(preview.getByRole('article', { name: 'Question 1' })).toContainText('3 marks');
+  await expect(preview.getByRole('article', { name: 'Question 2' })).toContainText('True · False');
+  await page.keyboard.press('Escape');
+
   await page.getByLabel('Assessment status').selectOption('published');
   await page.getByRole('button', { name: 'Update status' }).click();
   await expect(page.getByText('Status: Published')).toBeVisible();

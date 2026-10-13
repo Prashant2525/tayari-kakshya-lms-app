@@ -45,6 +45,51 @@ const PlainText = (max: number) =>
 export const CourseUpdateInput = z.object({ title: PlainText(120), message: PlainText(1000) });
 export type CourseUpdateInput = z.infer<typeof CourseUpdateInput>;
 
+/** D-075: who a notification campaign goes to — every active student, those with access to courses, or those preparing for exams. */
+export const CampaignAudience = z.discriminatedUnion('type', [
+  z.object({ type: z.literal('all') }),
+  z.object({ type: z.literal('courses'), courseIds: z.array(z.uuid()).min(1).max(50) }),
+  /** Students whose "preparing for" choice is one of these exam categories or anything under them. */
+  z.object({ type: z.literal('exam_nodes'), examNodeIds: z.array(z.uuid()).min(1).max(50) }),
+]);
+export type CampaignAudience = z.infer<typeof CampaignAudience>;
+
+/** Where tapping a campaign leads (a published course, article or notice), or nowhere. */
+export const CampaignLink = z.object({ type: z.enum(['course', 'article', 'notice']), id: z.uuid() });
+export type CampaignLink = z.infer<typeof CampaignLink>;
+
+/**
+ * D-075 / audit F-08: a notification campaign. In-app always; push and email as chosen — each student's
+ * "Announcements" choices still apply. `excludeIos` leaves out students who use the iPhone app (messages about
+ * buying, D-027).
+ */
+export const CampaignInput = z.object({
+  title: PlainText(120),
+  message: PlainText(1000),
+  audience: CampaignAudience,
+  link: CampaignLink.nullable().default(null),
+  push: z.boolean().default(true),
+  email: z.boolean().default(false),
+  excludeIos: z.boolean().default(false),
+});
+export type CampaignInput = z.infer<typeof CampaignInput>;
+
+/** Send now (no `sendAt`) or schedule for a later time. */
+export const CampaignSendInput = z.object({ sendAt: z.iso.datetime().nullable().default(null) });
+export type CampaignSendInput = z.infer<typeof CampaignSendInput>;
+
+export const CampaignAudienceInput = z.object({
+  audience: CampaignAudience,
+  excludeIos: z.boolean().default(false),
+});
+export type CampaignAudienceInput = z.infer<typeof CampaignAudienceInput>;
+
+export const CampaignStatus = z.enum(['draft', 'scheduled', 'sending', 'sent', 'cancelled']);
+export type CampaignStatus = z.infer<typeof CampaignStatus>;
+
+export const CampaignQuery = CursorQuery.extend({ status: CampaignStatus.optional() });
+export type CampaignQuery = z.infer<typeof CampaignQuery>;
+
 /** D-061: students on Apple devices who opened courses they cannot buy in the app. */
 export const CourseInterestQuery = CursorQuery.extend({
   status: z.enum(['open', 'contacted']).optional(),
@@ -75,6 +120,7 @@ export const NotificationCategory = z.enum([
   'article',
   'discussion',
   'live_class',
+  'announcement',
 ]);
 export type NotificationCategory = z.infer<typeof NotificationCategory>;
 
@@ -91,6 +137,8 @@ export const NotificationPreferencesInput = z.object({
   discussion: Channels.default({ push: true, email: false }),
   /** Live classes (D-072): scheduled, starting soon, live now. Added later: older app versions do not send it. */
   live_class: Channels.default({ push: true, email: true }),
+  /** Announcements and offers from the team (D-075 campaigns). Added later: older app versions do not send it. */
+  announcement: Channels.default({ push: true, email: true }),
 });
 export type NotificationPreferencesInput = z.infer<typeof NotificationPreferencesInput>;
 

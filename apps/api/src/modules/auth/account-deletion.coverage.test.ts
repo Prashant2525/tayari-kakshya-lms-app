@@ -25,6 +25,7 @@ const KEPT: Record<string, string> = {
   QuestionImport: 'staff only',
   AttemptAnswer: 'graded by staff (the student’s answers go with their attempts)',
   CourseUpdate: 'sent by staff',
+  NotificationCampaign: 'written and sent by staff',
   LiveClass: 'taught / created by staff',
 };
 

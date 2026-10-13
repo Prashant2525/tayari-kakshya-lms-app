@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import { MediaField } from '@/components/content/media-picker';
 import { RichTextEditor } from '@/components/content/rich-text-editor';
 import { StatusBadge } from '@/components/content/status';
+import { ChecklistCard, ItemPreviewButton } from '@/components/content/qa';
 import { Button } from '@/components/ui/button';
 import { Field, Input, Select } from '@/components/ui/form';
 import { Alert, Card, CardHeader, ErrorState, Spinner, Switch } from '@/components/ui/primitives';
@@ -532,6 +533,10 @@ function ItemEditor({
               </Field>
             </div>
           </Card>
+          {item ? <ItemPreviewButton item={item} /> : null}
+          {item ? (
+            <ChecklistCard url={`/admin/learning-items/${item.id}/checklist`} version={item.updatedAt} />
+          ) : null}
           {item ? (
             <PublishingCard
               key={`${item.status}-${item.publishAt}`}

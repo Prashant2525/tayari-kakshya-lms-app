@@ -788,6 +788,7 @@ export const en = {
     'Saved lessons open without internet for {days} days at a time; the app renews them whenever you are online. They are deleted when you sign out.',
   'offline.notHere': 'Downloads are available in the Android and iPhone app.',
   'notifSettings.live_class': 'Live classes',
+  'notifSettings.announcement': 'Announcements and offers',
   'live.title': 'Live classes',
   'live.seeAll': 'See all',
   'live.homeNow': 'Live now',

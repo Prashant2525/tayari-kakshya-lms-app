@@ -465,3 +465,54 @@ test('a reported doubt is answered, its answer marked best, then hidden; the stu
   });
   expect(again.status()).toBe(403);
 });
+
+test("staff write a campaign for a course's students, see who it reaches and send it (D-075)", async () => {
+  await nav('Campaigns').click();
+  await expect(page.getByRole('heading', { name: 'Campaigns', level: 1 })).toBeVisible();
+  await page.getByRole('link', { name: 'New campaign' }).click();
+  await page.getByRole('button', { name: 'Save draft' }).click();
+  await expect(page.getByText('Enter the title in English, Nepali or both')).toBeVisible();
+  await page.getByLabel('Title (English)').fill(`Mock series ${run}`);
+  await page.getByLabel('Message (English)').fill('Five full mock tests are now in your course.');
+  await page.getByLabel('Audience').selectOption('courses');
+  await page.getByRole('checkbox', { name: `Nayab Subba ${run}` }).check();
+  // The seeded student was given the course in the previous test.
+  await expect(page.getByText('1 student match now.')).toBeVisible();
+  await page.getByRole('switch', { name: 'Email' }).click();
+  await expect(page.getByRole('region', { name: 'Preview' })).toContainText(`Mock series ${run}`);
+  await page.getByRole('button', { name: 'Save draft' }).click();
+  await expect(page.getByText('Campaign saved as a draft')).toBeVisible();
+
+  await page.getByRole('button', { name: 'Send now' }).click();
+  await page
+    .getByRole('dialog', { name: 'Send this campaign now?' })
+    .getByRole('button', { name: 'Send now' })
+    .click();
+  await expect(page.getByText('Sent to 1 student')).toBeVisible();
+  await expect(page.getByText('This campaign is no longer editable; it is kept as a record.')).toBeVisible();
+
+  await page.getByRole('main').getByRole('link', { name: 'Campaigns' }).click();
+  const row = page.getByRole('row', { name: new RegExp(`Mock series ${run}`) });
+  await expect(row).toContainText('1 course');
+  await expect(row).toContainText('In-app, push, email');
+  await expect(row).toContainText('Sent');
+});
+
+test('staff reorder and hide sections of the app Home screen (D-075)', async () => {
+  await nav('Home screen').click();
+  await expect(page.getByRole('heading', { name: 'Home screen', level: 1 })).toBeVisible();
+  const list = page.getByRole('list', { name: 'Home sections' });
+  await expect(list.getByRole('listitem').first()).toContainText('Live classes');
+  await page.getByRole('button', { name: 'Move Upcoming exams up' }).click();
+  await page.getByRole('switch', { name: 'Show Previous-year questions' }).click();
+  await page.getByRole('button', { name: 'Save', exact: true }).click();
+  await expect(page.getByText('Home screen saved')).toBeVisible();
+  await page.reload();
+  const items = page.getByRole('list', { name: 'Home sections' }).getByRole('listitem');
+  await expect(items.nth(4)).toContainText('Upcoming exams');
+  await expect(page.getByRole('switch', { name: 'Show Previous-year questions' })).not.toBeChecked();
+  // Back to the default so other runs start the same.
+  await page.getByRole('button', { name: 'Default order' }).click();
+  await page.getByRole('button', { name: 'Save', exact: true }).click();
+  await expect(page.getByText('Home screen saved')).toBeVisible();
+});

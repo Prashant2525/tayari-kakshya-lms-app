@@ -3,7 +3,9 @@ import { router } from 'expo-router';
 import { Bell, Search } from 'lucide-react-native';
 import { Animated, Pressable, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useMe, useTargetPosts } from '@/api/queries';
+import { HOME_SECTION_KEYS, type HomeSectionKey } from '@tk/contracts';
+import { Fragment, type ReactNode } from 'react';
+import { useAppConfig, useMe, useTargetPosts } from '@/api/queries';
 import { CurrentCourse } from '@/features/courses/current-course';
 import { CatalogList } from '@/features/courses/my-courses';
 import { ReadTiles } from '@/features/articles/read-tiles';
@@ -44,6 +46,54 @@ export default function HomeScreen() {
   // The navy hero sits under the status bar: light icons, in both themes.
   useStatusBarStyle('light');
   const initials = initialsOf(me.data?.fullName ?? '');
+  // D-075: the CMS orders and hides the Home sections; an older server sends nothing (default order).
+  const config = useAppConfig();
+  const sections: readonly HomeSectionKey[] = config.data?.homeSections ?? HOME_SECTION_KEYS;
+  const section = (key: HomeSectionKey): ReactNode => {
+    switch (key) {
+      case 'live':
+        return <HomeLiveCard />;
+      case 'currentCourse':
+        return <CurrentCourse />;
+      case 'todayPlan':
+        return <TodayPlanCard />;
+      case 'articles':
+        return <ReadTiles />;
+      case 'dailyChallenge':
+        return <DailyChallengeCard />;
+      case 'upcomingExams':
+        return <UpcomingExams />;
+      case 'latestNotices':
+        return <LatestNotices />;
+      case 'progress':
+        return <ProgressLink />;
+      case 'tests':
+        return <TestsLink title={t('home.tests')} body={t('home.testsBody')} />;
+      case 'pyq':
+        return <PyqLink />;
+      case 'courses':
+        return (
+          <>
+            <View style={styles.sectionHead}>
+              <Text variant="h3" role="heading" style={{ flex: 1 }}>
+                {target ? t('home.forYou') : t('courses.all')}
+              </Text>
+              <Pressable
+                role="link"
+                onPress={() => router.navigate('/courses')}
+                style={styles.seeAll}
+                hitSlop={8}
+              >
+                <Text variant="label" color="link">
+                  {t('home.seeAll')}
+                </Text>
+              </Pressable>
+            </View>
+            <CatalogList examNodeId={target?.id ?? null} q="" limit={5} />
+          </>
+        );
+    }
+  };
 
   return (
     <View style={[styles.fill, { backgroundColor: colors.bg }]}>
@@ -204,34 +254,9 @@ export default function HomeScreen() {
               </Card>
             </FadeInUp>
             <FadeInUp index={1} style={styles.group}>
-              <HomeLiveCard />
-              <CurrentCourse />
-              <TodayPlanCard />
-              <ReadTiles />
-              <DailyChallengeCard />
-              <UpcomingExams />
-              <LatestNotices />
-              <ProgressLink />
-              <TestsLink title={t('home.tests')} body={t('home.testsBody')} />
-              <PyqLink />
-            </FadeInUp>
-            <FadeInUp index={2} style={styles.group}>
-              <View style={styles.sectionHead}>
-                <Text variant="h3" role="heading" style={{ flex: 1 }}>
-                  {target ? t('home.forYou') : t('courses.all')}
-                </Text>
-                <Pressable
-                  role="link"
-                  onPress={() => router.navigate('/courses')}
-                  style={styles.seeAll}
-                  hitSlop={8}
-                >
-                  <Text variant="label" color="link">
-                    {t('home.seeAll')}
-                  </Text>
-                </Pressable>
-              </View>
-              <CatalogList examNodeId={target?.id ?? null} q="" limit={5} />
+              {sections.map((key) => (
+                <Fragment key={key}>{section(key)}</Fragment>
+              ))}
             </FadeInUp>
           </View>
         </Animated.ScrollView>

@@ -784,6 +784,7 @@ export const ne: Record<MessageKey, string> = {
     'राखिएका पाठ एक पटकमा {days} दिनसम्म इन्टरनेट बिना खुल्छन्; इन्टरनेट हुँदा एपले नवीकरण गर्छ। साइन आउट गर्दा मेटिन्छन्।',
   'offline.notHere': 'डाउनलोड Android र iPhone एपमा उपलब्ध छ।',
   'notifSettings.live_class': 'प्रत्यक्ष कक्षा',
+  'notifSettings.announcement': 'घोषणा र अफर',
   'live.title': 'प्रत्यक्ष कक्षा',
   'live.seeAll': 'सबै हेर्नुहोस्',
   'live.homeNow': 'अहिले प्रत्यक्ष',

@@ -1,5 +1,6 @@
 import { Controller, Get } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
+import { orderedHomeSections } from '@tk/contracts';
 import { Public } from '../../common/auth/auth-context.js';
 import { SettingsService } from './settings.service.js';
 
@@ -21,6 +22,7 @@ export class AppConfigController {
       questionTypes,
       referrals,
       offline,
+      homeSections,
     ] = await Promise.all([
       this.settings.get('app.maintenance'),
       this.settings.get('app.minVersions'),
@@ -30,6 +32,7 @@ export class AppConfigController {
       this.settings.get('questions.types'),
       this.settings.get('referrals.rules'),
       this.settings.get('offline.rules'),
+      this.settings.get('home.sections'),
     ]);
     return {
       maintenance,
@@ -47,6 +50,8 @@ export class AppConfigController {
       /** Display names the CMS set for question types (apps fall back to their own wording). */
       questionTypeLabels: questionTypes.labels,
       enabledQuestionTypes: questionTypes.enabled,
+      /** D-075: the app's Home sections to show, in order (hidden ones left out). */
+      homeSections: orderedHomeSections(homeSections),
     };
   }
 }

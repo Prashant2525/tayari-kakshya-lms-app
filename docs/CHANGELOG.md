@@ -4,6 +4,14 @@ All notable changes to this project. Format based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Added — 2026-10-13 (audit fixes, batch C — D-075)
+- CMS "Campaigns": message all students, the students of chosen courses or those preparing for chosen exams — in the
+  app's notifications, with push and email as chosen; link to a course, article or notice; send now or schedule;
+  leave out iPhone app users for messages about buying. Students can turn "Announcements and offers" off.
+- CMS "Home screen": order and hide the sections of the app's Home.
+- CMS content QA: a "Before publishing" checklist on lessons and courses, and "Preview as student" for lessons (with
+  and without access, English / Nepali) and tests (questions with marks, no answers).
+
 ### Added — 2026-10-13 (audit fixes, batch B — D-074)
 - App: "Previous-year questions" from Home, filtered by exam, paper and year (BS); notices can carry PDF files that
   open in the reader; Edit profile has a profile photo, email change (code to the new address, the old address is

@@ -87,6 +87,7 @@ model User {
   pushTokens          PushToken[]
   notificationPrefs   NotificationPreference?
   courseUpdatesSent   CourseUpdate[]
+  campaignsCreated    NotificationCampaign[]
   liveClassesTaught   LiveClass[]              @relation("LiveInstructor")
   liveClassesCreated  LiveClass[]              @relation("LiveCreator")
   liveAttendance      LiveAttendance[]
@@ -2076,6 +2077,8 @@ enum NotificationCategory {
   article
   discussion
   live_class
+  /// Notification campaigns from the CMS (D-075).
+  announcement
 }
 
 /// A student's in-app notification (D-033). `sourceKey` makes each event land once per student.
@@ -2195,6 +2198,45 @@ model CourseUpdate {
 
   @@index([courseId, createdAt(sort: Desc)])
   @@map("course_updates")
+}
+
+enum CampaignStatus {
+  draft
+  scheduled
+  sending
+  sent
+  cancelled
+}
+
+/// Notification campaigns (D-075 / audit F-08): a message from staff to a group of students — in-app always, push and
+/// email as chosen (each student's "Announcements" choices apply). Sent and cancelled ones are kept as a record.
+model NotificationCampaign {
+  id          String         @id @default(uuid(7)) @db.Uuid
+  title       Json
+  message     Json
+  /// {"type":"all"} | {"type":"courses","courseIds":[…]} | {"type":"exam_nodes","examNodeIds":[…]}
+  audience    Json
+  /// Where tapping it leads: {"type":"course"|"article"|"notice","id":…} or null.
+  link        Json?
+  push        Boolean        @default(true)
+  email       Boolean        @default(false)
+  /// Leave out students who use the iPhone app (a message about buying, D-027).
+  excludeIos  Boolean        @default(false) @map("exclude_ios")
+  status      CampaignStatus @default(draft)
+  sendAt      DateTime?      @map("send_at") @db.Timestamptz(6)
+  sentAt      DateTime?      @map("sent_at") @db.Timestamptz(6)
+  recipients  Int            @default(0)
+  createdById String         @map("created_by") @db.Uuid
+  updatedById String?        @map("updated_by") @db.Uuid
+  createdAt   DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime       @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt   DateTime?      @map("deleted_at") @db.Timestamptz(6)
+
+  createdBy User @relation(fields: [createdById], references: [id], onDelete: Restrict)
+
+  @@index([status, sendAt])
+  @@index([createdAt(sort: Desc)])
+  @@map("notification_campaigns")
 }
 
 /// D-061: a student on an Apple device opened a paid course they cannot buy in the app (no button: recorded when the

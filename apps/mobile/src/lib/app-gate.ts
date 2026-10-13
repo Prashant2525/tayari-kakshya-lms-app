@@ -1,4 +1,4 @@
-import type { LocalizedText } from '@tk/contracts';
+import type { HomeSectionKey, LocalizedText } from '@tk/contracts';
 
 /** The public part of `GET /app/config` this app uses. */
 export interface AppConfig {
@@ -17,6 +17,8 @@ export interface AppConfig {
   offline?: { enabled: boolean; days: number };
   questionTypeLabels: Record<string, LocalizedText>;
   enabledQuestionTypes: string[];
+  /** D-075: Home sections to show, in order (older servers do not send it). */
+  homeSections?: HomeSectionKey[];
 }
 
 /** -1, 0 or 1 comparing two `major.minor.patch` versions (missing parts count as 0). */

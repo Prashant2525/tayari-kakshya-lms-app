@@ -21,6 +21,21 @@ Last updated: 2026-10-13 (Phase 16 test pass). `pnpm test` runs unit + integrati
 | `@tk/web` (E2E, Playwright) | 10 | `next start` production build + real API + `*_web_e2e` database + Mailpit + gateway stand-in; access tokens last 60 s so every page load refreshes |
 | **Total** | **665** | |
 
+### Audit fixes, batch C (D-075)
+- API: `event-notifications.e2e` campaigns (audience counts for courses / exam categories with descendants / all /
+  all but iPhone users, bad link 400, send now, inbox + push only by default, sent ones locked 409, scheduled send by
+  the worker once, the student's "Announcements" email choice, cancel, delete drafts, `campaigns:send` required) and
+  Home sections (order, hidden left out, unlisted follow, duplicates 400, `home:manage` required, audited); `qa.e2e`
+  lesson / course checklists (incl. unpublished path, staff scope 403) and test preview without answers. API
+  336/336; full `format:check`, `lint`, `typecheck`, `test` green.
+- Browser: CMS 40/40 (new: campaign written, counted and sent; Home screen reorder / hide; lesson checklist and
+  preview with / without access in both languages; course checklist; test preview) — one run had a Playwright
+  worker crash (Windows exit 0xC0000409) in `certificates.spec`, which passed on re-run; earlier, one
+  `ECONNRESET` from the test web server failed a discussions step once, also fine on re-run. App 48/48 (new: Home
+  follows the CMS order, a campaign arrives, "Announcements and offers" choice).
+- Screenshots checked: campaign editor and sent campaign, Home screen editor, lesson checklist, lesson preview
+  (Nepali), test preview.
+
 ### Audit fixes, batch B (D-074)
 - API: `practice.e2e` PYQ browser (filters, descendants, premium answer locked, filters list); `notices.e2e`
   attachments (non-PDF refused, served only while live, attached PDF cannot be deleted); `verification.e2e` email

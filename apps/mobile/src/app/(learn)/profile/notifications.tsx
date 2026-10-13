@@ -19,6 +19,7 @@ const CATEGORIES: NotificationCategory[] = [
   'result',
   'purchase',
   'discussion',
+  'announcement',
 ];
 /** Purchases have no email choice: the receipt email always goes (D-057), and it is the purchase email. */
 const CHANNELS: Record<NotificationCategory, ReadonlyArray<'push' | 'email'>> = {
@@ -31,6 +32,8 @@ const CHANNELS: Record<NotificationCategory, ReadonlyArray<'push' | 'email'>> = 
   article: ['push', 'email'],
   /** Replies to the student's questions are never emailed. */
   discussion: ['push'],
+  /** Campaigns from the team (D-075). */
+  announcement: ['push', 'email'],
 };
 
 /** Profile → Notifications (D-033): what to hear about by push and by email. The in-app list always shows everything. */

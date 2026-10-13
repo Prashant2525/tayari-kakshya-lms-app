@@ -179,8 +179,7 @@ banners & home sections, FAQs, contact options, static pages with **draft legal 
 - ☑ Part 12d-1 (T-062, D-064): static pages (DRAFT legal texts with versions, D-038), FAQs, contact options — CMS,
   app (Profile → Help & support, pages) and website (/help, legal pages, footer, sign-up links)
 - ☑ Part 12d-2 (T-063): banners on the app Home and the website home page (D-064)
-- Not built (not requested): general notification campaigns (notices with push / email and course updates cover
-  broadcasts) and configurable home sections (Home order is fixed). Ask the owner if wanted.
+- Built later on owner request (D-074 / D-075): notification campaigns and the CMS Home screen editor.
 
 **§13 Progress & community** (D-066) — progress analytics (accuracy, weak/strong topics, study time), study planner,
 course reviews + moderation, discussions/doubts + moderation, admin dashboards & exports.
@@ -211,8 +210,9 @@ AI study assistant (after L2), live classes (after L3), Apple IAP (only if decid
   latest notices, course "Try for free", PDF go to page
 - ☑ Audit fixes batch B (D-074): previous-year question browser, notice PDF attachments, email change, phone
   add / change, profile photo
-- ☐ Audit fixes batch C (D-074): preview as student + content QA checklist (F-04), Home sections editor and
-  notification campaigns (F-08); then Phase 18 deployment
+- ☑ Audit fixes batch C (D-074 / D-075): preview as student + content QA checklist (F-04), Home sections editor and
+  notification campaigns (F-08)
+- ☐ Phase 18: deployment (playbook §15) — F-11 production setup
 - On hold (D-073): offline video; ConnectIPS once NCHL test credentials arrive; AI assistant (L2)
 
 ## Next concrete steps

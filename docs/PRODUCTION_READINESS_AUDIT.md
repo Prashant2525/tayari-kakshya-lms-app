@@ -45,7 +45,7 @@ No feature was found **BROKEN**.
 | Live now / next live class | COMPLETE | `features/live/live-card.tsx`, `mobile/e2e/live.spec.ts` |
 | Upcoming exams, latest notices, progress snapshot on Home | PARTIAL | Links to Tests and Progress; notices are in their own tab — Home shows **no upcoming-exam list or latest-notice strip** (spec 2.2) — F-07 |
 | CMS banners / carousel | COMPLETE | `features/home/banner-carousel.tsx`, `banners.e2e`, `notices.spec.ts` (banner opens its article) |
-| CMS-managed home sections (order / visibility) | MISSING | No model or endpoint; IMPLEMENTATION_PLAN §12 records "not built — ask the owner" — F-08 |
+| CMS-managed home sections (order / visibility) | COMPLETE (D-075) | `home.sections` setting, `/admin/home-sections`, `/app/config.homeSections`; `event-notifications.e2e`, CMS + app browser tests — F-08 fixed |
 | Courses for my exam | COMPLETE | `CatalogList` on Home, `learning.spec.ts` |
 
 ### 1.3 Catalogue & course
@@ -152,8 +152,8 @@ No feature was found **BROKEN**.
 | Leaderboards (staff view) | PARTIAL | Students see them; **no leaderboard view in the CMS** (results list only) — F-03 |
 | Certificates (templates, rules, issued, revoke) | COMPLETE | `certificates.spec.ts` |
 | Articles (current affairs / Gorkhapatra / news / blog), notices | COMPLETE | `notices.spec.ts` |
-| Notification campaigns & templates | PARTIAL | Broadcasts via notices (push / email) and course updates; email texts editable in Settings; **no general campaign tool** — IMPLEMENTATION_PLAN "ask the owner" — F-08 |
-| Banners | COMPLETE · home sections MISSING | `banners.e2e`; home sections — F-08 |
+| Notification campaigns & templates | COMPLETE (D-075) | `/admin/notification-campaigns`; audiences, schedule, iPhone exclusion, "Announcements" choice; `event-notifications.e2e`, CMS + app browser tests — F-08 fixed |
+| Banners | COMPLETE | `banners.e2e`; home sections since D-075 |
 | Plans, coupons & sales, referrals, orders, payments reconciliation, refunds, invoices | COMPLETE | `plans.spec.ts`, `coupons.spec.ts`, `orders.spec.ts`, `refunds.spec.ts`, reconcile job + `POST /admin/payments/:id/check` |
 | Reviews and discussions moderation | COMPLETE | `reviews.e2e`, `discussions.e2e` |
 | FAQ, static pages, contact options, interested-on-iPhone | COMPLETE | `support.e2e`, `notices.spec.ts` |
@@ -161,7 +161,7 @@ No feature was found **BROKEN**.
 | App settings (verification, device limit, purchase channels, force update, maintenance, tax, invoices, …) | COMPLETE | `/settings`, `SETTINGS` registry |
 | Audit log | COMPLETE | `/audit-log`, audit records on every staff write |
 | Workflow draft → in_review → published (+ scheduled, archived) | COMPLETE | status workflow tests across content, questions, notices, articles |
-| Preview as student + content QA checklist (S23) | MISSING | Approved (S23) but not built — F-04 |
+| Preview as student + content QA checklist (S23) | COMPLETE (D-075) | `qa.e2e`, CMS `content.spec` / `assessments.spec` — F-04 fixed |
 
 ## 3. Public website
 | Feature | Status | Evidence |
@@ -200,11 +200,11 @@ product choice only you can make (rule 2: no invented business rules).
 | F-01 | CMS dashboard shows a stale developer card "What's next (Phase 6 / 7 / 11)" | M | **FIXED** (D-074): replaced by permission-filtered quick links |
 | F-02 | Bunny videos must be uploaded in Bunny's dashboard, then linked by id; spec says "Bunny upload" from the CMS | L | Add upload from the CMS (Bunny's upload API) — or accept the current workflow |
 | F-03 | No leaderboard view for staff in the CMS | L | **FIXED**: leaderboard card on assessment results (`GET /admin/assessments/:id/leaderboard`, full names, also before release) |
-| F-04 | S23 "preview as student" + content QA checklist not built | M | Build: open any lesson / test as a student would see it, plus a checklist before publishing |
+| F-04 | S23 "preview as student" + content QA checklist not built | M | **FIXED** (D-075): "Before publishing" checklist on lessons and courses; "Preview as student" for lessons and tests |
 | F-05 | No error monitoring on the public website | L | Add Sentry to the website (needs a DSN) |
 | F-06 | No language choice at first launch (follows the phone; switch in Profile) | L — decided D-074 | **FIXED**: English / नेपाली chooser before sign-in, once per installation |
 | F-07 | Home lacks an upcoming-exams list, latest-notice strip and course-page preview list | L — decided D-074 | **FIXED**: Home "Upcoming exams" and "Latest notices"; course page "Try for free" (`previewItems`) |
-| F-08 | CMS-managed home sections and general notification campaigns not built (plan: "ask the owner") | L — decided D-074 | To build: Home sections editor + notification campaigns |
+| F-08 | CMS-managed home sections and general notification campaigns not built (plan: "ask the owner") | L — decided D-074 | **FIXED** (D-075): CMS "Home screen" (order / hide sections) and "Campaigns" (audience, push / email, link, send now or schedule) |
 | F-09 | PDF reader has no "go to page" | L | **FIXED**: "Go to page" in the reader (online and offline reader pages) |
 | F-10 | Previous-year questions cannot be browsed by authority / post / paper / year | M | **FIXED** (D-074): app "Previous-year questions" — exam category (with everything under it), paper, year (BS); `GET /pyq`, `GET /pyq/filters`; premium answers stay locked |
 | F-11 | Capacity: one API process is slow under a 200-at-once burst; p95 on the VPS not measured | M | Phase 18: several API processes + load test on staging |

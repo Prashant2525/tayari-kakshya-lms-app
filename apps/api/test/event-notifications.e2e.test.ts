@@ -1,10 +1,13 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { HOME_SECTION_KEYS } from '@tk/contracts';
 import { ExamNotificationsService } from '../src/modules/attempts/exam-notifications.service.js';
+import { CampaignsService } from '../src/modules/notifications/campaigns.service.js';
 import { ALL_CONTENT_PERMISSIONS, seedPublishedCourse } from './content-helpers.js';
 import {
   call,
   createStaff,
   createTestApp,
+  device,
   registerStudent,
   setSetting,
   staffLogin,
@@ -436,5 +439,168 @@ describe('course updates (D-060)', () => {
     const editor = (await staffLogin(ctx, 'editor@example.com')).token;
     expect((await call(ctx, 'POST', url, { token: editor, body: update })).status).toBe(403);
     expect((await call(ctx, 'GET', url, { token: asha.token })).status).toBe(403);
+  });
+});
+
+describe('notification campaigns (D-075)', () => {
+  it('staff write, count, send, schedule and cancel campaigns; each audience and choice applies', async () => {
+    const s = await setup();
+    await createStaff(ctx, 'campaigns@example.com', { permissions: ['campaigns:send'] });
+    const staff = (await staffLogin(ctx, 'campaigns@example.com')).token;
+    const asha = await s.student('asha@example.com');
+    await s.grant(asha.id);
+    const bina = await s.student('bina@example.com');
+    await call(ctx, 'PUT', '/me/target-posts', {
+      token: bina.token,
+      body: { examNodeIds: [s.seeded.post.id] },
+    });
+    await registerStudent(ctx, 'chet@example.com', { ...device('iPhone'), platform: 'ios' });
+    const chetId = (await ctx.prisma.user.findUniqueOrThrow({ where: { email: 'chet@example.com' } })).id;
+    const url = '/admin/notification-campaigns';
+    const count = async (audience: unknown, excludeIos = false) =>
+      (await call(ctx, 'POST', `${url}/audience`, { token: staff, body: { audience, excludeIos } })).body
+        .recipients;
+
+    // Audiences: course access, an exam category with everything under it, everyone, everyone but iPhone users.
+    expect(await count({ type: 'courses', courseIds: [s.seeded.course.id] })).toBe(1);
+    expect(await count({ type: 'exam_nodes', examNodeIds: [s.seeded.authority.id] })).toBe(1);
+    expect(await count({ type: 'all' })).toBe(3);
+    expect(await count({ type: 'all' }, true)).toBe(2);
+
+    const course = {
+      title: { en: 'New mock series', ne: 'नयाँ मक सिरिज' },
+      message: { en: 'Five full mocks are now in your course.' },
+      audience: { type: 'courses', courseIds: [s.seeded.course.id] },
+      link: { type: 'course', id: s.seeded.course.id },
+    };
+    const badLink = await call(ctx, 'POST', url, {
+      token: staff,
+      body: { ...course, link: { type: 'article', id: s.seeded.course.id } },
+    });
+    expect(badLink.status).toBe(400);
+    const draft = await call(ctx, 'POST', url, { token: staff, body: course });
+    expect(draft.status).toBe(201);
+    expect(draft.body).toMatchObject({ status: 'draft', push: true, email: false, recipients: 0 });
+
+    const sent = await call(ctx, 'POST', `${url}/${draft.body.id}/send`, { token: staff, body: {} });
+    expect(sent.status).toBe(200);
+    expect(sent.body).toMatchObject({ status: 'sent', recipients: 1 });
+    expect(await s.inbox(asha.token)).toEqual([
+      expect.objectContaining({
+        category: 'announcement',
+        title: course.title,
+        link: { type: 'course', slug: 'sainey-likhit' },
+      }),
+    ]);
+    expect(await s.inbox(bina.token)).toEqual([]);
+    expect((await s.deliveries(asha.id)).map((d) => d.channel)).toEqual(['push']);
+    // A sent campaign is a record: it cannot change, be sent again or be deleted.
+    expect((await call(ctx, 'PUT', `${url}/${draft.body.id}`, { token: staff, body: course })).status).toBe(
+      409,
+    );
+    expect((await call(ctx, 'POST', `${url}/${draft.body.id}/send`, { token: staff, body: {} })).status).toBe(
+      409,
+    );
+    expect((await call(ctx, 'DELETE', `${url}/${draft.body.id}`, { token: staff })).status).toBe(409);
+
+    // Scheduled for everyone but iPhone users, with email; Bina turned announcement emails off.
+    await call(ctx, 'PUT', '/me/notification-preferences', {
+      token: bina.token,
+      body: {
+        notice: { push: true, email: true },
+        course_update: { push: true, email: true },
+        exam_reminder: { push: true, email: true },
+        result: { push: true, email: true },
+        purchase: { push: true, email: true },
+        announcement: { push: true, email: false },
+      },
+    });
+    const offer = await call(ctx, 'POST', url, {
+      token: staff,
+      body: {
+        title: { en: 'Dashain offer' },
+        message: { en: 'Plans are cheaper this week.' },
+        audience: { type: 'all' },
+        email: true,
+        excludeIos: true,
+      },
+    });
+    const at = new Date(Date.now() + 3600_000).toISOString();
+    const scheduled = await call(ctx, 'POST', `${url}/${offer.body.id}/send`, {
+      token: staff,
+      body: { sendAt: at },
+    });
+    expect(scheduled.body).toMatchObject({ status: 'scheduled', sendAt: at });
+    const campaigns = ctx.app.get(CampaignsService);
+    expect(await campaigns.dispatchDue(new Date())).toBe(0);
+    expect(await campaigns.dispatchDue(new Date(Date.now() + 2 * 3600_000))).toBe(1);
+    expect(await campaigns.dispatchDue(new Date(Date.now() + 3 * 3600_000))).toBe(0);
+    expect((await call(ctx, 'GET', `${url}/${offer.body.id}`, { token: staff })).body).toMatchObject({
+      status: 'sent',
+      recipients: 2,
+    });
+    expect((await s.inbox(bina.token)).map((n: { title: unknown }) => n.title)).toEqual([
+      { en: 'Dashain offer' },
+    ]);
+    expect((await s.deliveries(bina.id)).map((d) => d.channel)).toEqual(['push']);
+    expect((await s.deliveries(asha.id)).map((d) => d.channel).sort()).toEqual(['email', 'push', 'push']);
+    expect(await ctx.prisma.notification.count({ where: { userId: chetId } })).toBe(0);
+
+    // A scheduled campaign can be cancelled; a draft deleted.
+    const later = await call(ctx, 'POST', url, { token: staff, body: course });
+    await call(ctx, 'POST', `${url}/${later.body.id}/send`, { token: staff, body: { sendAt: at } });
+    expect((await call(ctx, 'POST', `${url}/${later.body.id}/cancel`, { token: staff })).body.status).toBe(
+      'cancelled',
+    );
+    expect(await campaigns.dispatchDue(new Date(Date.now() + 2 * 3600_000))).toBe(0);
+    const spare = await call(ctx, 'POST', url, { token: staff, body: course });
+    expect((await call(ctx, 'DELETE', `${url}/${spare.body.id}`, { token: staff })).status).toBe(204);
+    expect((await call(ctx, 'GET', `${url}/${spare.body.id}`, { token: staff })).status).toBe(404);
+
+    const list = (await call(ctx, 'GET', url, { token: staff })).body.data;
+    expect(list.map((c: { status: string }) => c.status)).toEqual(['cancelled', 'sent', 'sent']);
+    expect(await ctx.prisma.auditLog.count({ where: { action: 'campaign.sent' } })).toBe(2);
+
+    // Sending to students needs its own permission.
+    expect((await call(ctx, 'GET', url, { token: s.admin })).status).toBe(403);
+    expect((await call(ctx, 'GET', url, { token: asha.token })).status).toBe(403);
+  });
+});
+
+describe('Home sections (D-075)', () => {
+  it('staff order and hide the app Home sections; the app config follows', async () => {
+    await createStaff(ctx, 'home@example.com', { permissions: ['home:manage'] });
+    const staff = (await staffLogin(ctx, 'home@example.com')).token;
+    const current = await call(ctx, 'GET', '/admin/home-sections', { token: staff });
+    expect(current.body.sections).toHaveLength(HOME_SECTION_KEYS.length);
+    expect((await call(ctx, 'GET', '/app/config')).body.homeSections).toEqual([...HOME_SECTION_KEYS]);
+
+    const sections = [
+      { key: 'upcomingExams', visible: true },
+      { key: 'courses', visible: true },
+      { key: 'pyq', visible: false },
+    ];
+    expect(
+      (await call(ctx, 'PUT', '/admin/home-sections', { token: staff, body: { sections } })).status,
+    ).toBe(200);
+    const shown = (await call(ctx, 'GET', '/app/config')).body.homeSections;
+    // Listed first in their order, hidden ones left out, the rest after in the default order.
+    expect(shown.slice(0, 2)).toEqual(['upcomingExams', 'courses']);
+    expect(shown).not.toContain('pyq');
+    expect(shown).toHaveLength(HOME_SECTION_KEYS.length - 1);
+
+    const twice = await call(ctx, 'PUT', '/admin/home-sections', {
+      token: staff,
+      body: { sections: [...sections, { key: 'courses', visible: false }] },
+    });
+    expect(twice.status).toBe(400);
+    await createStaff(ctx, 'other@example.com', { permissions: ['banners:manage'] });
+    const other = (await staffLogin(ctx, 'other@example.com')).token;
+    expect(
+      (await call(ctx, 'PUT', '/admin/home-sections', { token: other, body: { sections } })).status,
+    ).toBe(403);
+    expect(
+      await ctx.prisma.auditLog.count({ where: { action: 'settings.update', entityId: 'home.sections' } }),
+    ).toBe(1);
   });
 });

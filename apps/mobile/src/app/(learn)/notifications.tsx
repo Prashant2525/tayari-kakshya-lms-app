@@ -9,6 +9,7 @@ import {
   MessagesSquare,
   Newspaper,
   Radio,
+  Sparkles,
   Receipt,
   type LucideIcon,
 } from 'lucide-react-native';
@@ -114,6 +115,7 @@ const ICONS: Record<NotificationCategory, LucideIcon> = {
   article: Newspaper,
   discussion: MessagesSquare,
   live_class: Radio,
+  announcement: Sparkles,
 };
 
 const styles = StyleSheet.create({

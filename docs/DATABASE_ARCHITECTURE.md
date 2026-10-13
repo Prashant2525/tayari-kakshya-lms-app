@@ -144,9 +144,9 @@ partial indexes, generated `tsvector` columns, check constraints and triggers th
 | `account_emails` | `user_id` + `kind` UNIQUE (`welcome`), `status` (pending/sent/skipped/failed, CHECK sent ⇔ `sent_at`), `attempts`, `attempt_at` — the worker's queue; removed on erasure |
 | `course_updates` | `course_id`, `title` / `message` localized plain text, `recipients`, `sent_by`, `created_at` — kept as a record (never deleted), index `(course_id, created_at desc)` |
 | `notification_templates` | `key` unique, localized subject/body per channel |
-| `notification_campaigns` | CMS broadcasts: audience, channels, schedule, status, stats |
+| `notification_campaigns` | CMS campaigns (D-075): `title` / `message` localized plain text, `audience` jsonb (`all` / `courses` + ids / `exam_nodes` + ids, CHECK type), `link` jsonb (course / article / notice id) null, `push`, `email`, `exclude_ios`, `status` (draft/scheduled/sending/sent/cancelled), `send_at`, `sent_at` (CHECK set exactly when sent), `recipients` (CHECK ≥ 0), `created_by` → users, `updated_by`, `deleted_at` (CHECK only drafts / cancelled) — indexes (status, send_at), (created_at desc). Notification category `announcement` |
 | `banners` | `title` localized, `image_media_id`, `link_type` (none/course/plan/article/page/url) + `link_value`, `placement` (app/website/both), `starts_at`, `ends_at`, `sort_order`, `active`, `hide_on_ios` — CHECK ends after starts, link value only with a link, https URLs (T-063) |
-| `home_sections` | `type` (featured_courses/category_row/continue/daily_challenge/articles/custom), `config` jsonb, `sort_order`, `visible` |
+| ~~`home_sections`~~ | Not a table: the order / visibility of the app's Home sections is the `home.sections` setting (D-075) |
 | `static_pages` | `slug` PK (about/terms/privacy/refund), working-copy `title` / `body` localized rich, `updated_by` — created from the DRAFT texts on first use (D-038) |
 | `static_page_versions` | `slug` + `version` UNIQUE, `title`, `body`, `published_at`, `published_by` — immutable (trigger refuses UPDATE / DELETE): what readers saw |
 | `faqs` | `question`, `answer` localized plain text, `sort_order`, `active`, `hide_on_ios` (answers that mention buying, D-027) |

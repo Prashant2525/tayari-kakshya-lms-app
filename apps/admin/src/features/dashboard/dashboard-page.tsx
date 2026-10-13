@@ -16,6 +16,7 @@ import {
   Users,
   UserX,
   type LucideIcon,
+  Send,
 } from 'lucide-react';
 import { Card, CardHeader, ErrorState, PageHeader, Skeleton } from '@/components/ui/primitives';
 import { api } from '@/lib/api';
@@ -68,6 +69,7 @@ const QUICK_LINKS: Array<{ to: string; label: string; icon: LucideIcon; permissi
   { to: '/assessments', label: 'Assessments', icon: ClipboardCheck, permissions: ['assessments:edit'] },
   { to: '/grading', label: 'Grading', icon: PenLine, permissions: ['grading:manage'] },
   { to: '/notices', label: 'Notices', icon: Megaphone, permissions: ['notices:edit'] },
+  { to: '/campaigns', label: 'Campaigns', icon: Send, permissions: ['campaigns:send'] },
   { to: '/orders', label: 'Orders', icon: Receipt, permissions: ['orders:read'] },
   { to: '/students', label: 'Students', icon: Users, permissions: ['users:read'] },
   {
