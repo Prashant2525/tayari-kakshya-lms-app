@@ -264,3 +264,25 @@ jobs:
             apps/web/playwright-report
             apps/web/test-results
           retention-days: 7
+
+  # Phase 18: the production images build, the compose file is valid, and the API image starts its code.
+  docker-images:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build the production images (API + worker, website, proxy with the CMS)
+        run: |
+          for target in api web proxy migrate; do
+            docker build -f infra/production/Dockerfile --target "$target" -t "tayari-kakshya/$target:ci" .
+          done
+      - name: The compose file is valid with the template's settings
+        run: |
+          sed -e 's|^TK_APP_ENV_FILE=.*|TK_APP_ENV_FILE=/dev/null|' -e 's|^\([A-Z_]*\)=$|\1=ci|' \
+            infra/production/compose.env.example > /tmp/compose.env
+          TK_RELEASE=ci docker compose -f infra/production/docker-compose.prod.yml --env-file /tmp/compose.env config --quiet
+      - name: The API image loads its code and dependencies
+        run: |
+          docker run --rm tayari-kakshya/api:ci node -e "Promise.all([import('sharp'), import('argon2'), import('@tk/contracts')]).then(() => console.log('ok'))"
+          usage="$(docker run --rm tayari-kakshya/api:ci node dist/cli.js 2>&1 || true)"
+          grep -q 'create-super-admin' <<<"$usage"

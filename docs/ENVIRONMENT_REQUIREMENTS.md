@@ -19,7 +19,8 @@ Legend: 🔐 secret · 🔓 non-secret config · Phase = when it is first needed
 | `NODE_ENV`, `APP_ENV` | 🔓 | 4 | me | `development` / `staging` / `production` |
 | `API_BASE_URL`, `API_PUBLIC_URL`, `PUBLIC_WEB_URL` | 🔓 | 4 | owner (domains, Q36) | |
 | `CORS_ALLOWED_ORIGINS` | 🔓 | 4 | me | admin + web origins only |
-| `DATABASE_URL` | 🔐 | 4 | owner/hosting (local: me) | PostgreSQL 17, `sslmode=require` in prod |
+| `DATABASE_URL` | 🔐 | 4 | owner/hosting (local: me) | PostgreSQL 17; production stack: `postgres:5432` on the private network (no TLS needed); a managed database elsewhere: `sslmode=require` |
+| Production stack (`infra/production/.env`): `TK_APP_ENV_FILE`, `WEB_DOMAIN`, `API_DOMAIN`, `ADMIN_DOMAIN`, `ACME_EMAIL`, `POSTGRES_*`, `REDIS_PASSWORD`, `API_REPLICAS`, `VITE_SENTRY_DSN`, `VITE_APP_ENV`, `TK_RELEASE`, `BACKUP_PASSPHRASE`, `BACKUP_DIR`, `BACKUP_RCLONE_REMOTE` | 🔐 (passwords, passphrase) | 18 | owner (server) | Template `infra/production/compose.env.example`; guide §3.15 |
 | `DATABASE_POOL_MAX` | 🔓 | 16 | me | connections per process (default 20) |
 | `REDIS_URL` | 🔐 | 4 | hosting (local: me) | rate limits, cache, BullMQ |
 | `JWT_ACCESS_SECRET` | 🔐 | 4 | generated per env | never reused across envs |

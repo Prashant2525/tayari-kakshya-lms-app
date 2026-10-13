@@ -8,6 +8,13 @@
 
 name: tayari-kakshya
 
+# Every image is built from the same stage with the same arguments, so it is built once and the rest comes from the
+# cache (deploy.sh builds the migrate image first).
+x-build-args: &build-args
+  VITE_SENTRY_DSN: ${VITE_SENTRY_DSN:-}
+  VITE_APP_ENV: ${VITE_APP_ENV:-production}
+  VITE_APP_RELEASE: ${TK_RELEASE:-dev}
+
 x-app: &app
   env_file:
     - ${TK_APP_ENV_FILE:?set TK_APP_ENV_FILE in infra/production/.env}
@@ -23,10 +30,7 @@ services:
       context: ../..
       dockerfile: infra/production/Dockerfile
       target: proxy
-      args:
-        VITE_SENTRY_DSN: ${VITE_SENTRY_DSN:-}
-        VITE_APP_ENV: ${VITE_APP_ENV:-production}
-        VITE_APP_RELEASE: ${TK_RELEASE:-dev}
+      args: *build-args
     image: tayari-kakshya/proxy:${TK_RELEASE:-dev}
     restart: unless-stopped
     ports:
@@ -55,6 +59,7 @@ services:
       context: ../..
       dockerfile: infra/production/Dockerfile
       target: api
+      args: *build-args
     image: tayari-kakshya/api:${TK_RELEASE:-dev}
     environment:
       APP_RELEASE: ${TK_RELEASE:-dev}
@@ -82,6 +87,7 @@ services:
       context: ../..
       dockerfile: infra/production/Dockerfile
       target: web
+      args: *build-args
     image: tayari-kakshya/web:${TK_RELEASE:-dev}
     environment:
       # The website talks to the API inside the private network (its pages' links still use API_PUBLIC_URL).
@@ -99,6 +105,7 @@ services:
       context: ../..
       dockerfile: infra/production/Dockerfile
       target: migrate
+      args: *build-args
     image: tayari-kakshya/migrate:${TK_RELEASE:-dev}
     restart: 'no'
     profiles: [tools]

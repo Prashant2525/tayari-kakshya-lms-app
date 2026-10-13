@@ -30,7 +30,10 @@ compose() { docker compose -f "$here/docker-compose.prod.yml" --env-file "$envfi
 
 echo "==> Release $release"
 if $build; then
-  compose --profile tools build --pull
+  # The four images share one heavy build stage. Build it once first (the migrate image is that stage), so the others
+  # come from the cache instead of four builds running at the same time (too much memory on a small server).
+  compose --profile tools build --pull migrate
+  compose build api web proxy
 fi
 
 echo "==> Database and Redis"
