@@ -21,6 +21,22 @@ Last updated: 2026-10-13 (Phase 16 test pass). `pnpm test` runs unit + integrati
 | `@tk/web` (E2E, Playwright) | 10 | `next start` production build + real API + `*_web_e2e` database + Mailpit + gateway stand-in; access tokens last 60 s so every page load refreshes |
 | **Total** | **665** | |
 
+### Phase 18 — production stack rehearsal (local, Docker Desktop)
+- `deploy.sh` end to end with `*.localhost` addresses (Caddy local certificates), APP_ENV=staging, throw-away
+  secrets: images built, pre-deploy backup, `prisma migrate deploy` (36 migrations), 2 API processes + worker +
+  website + proxy healthy, API ready over https. `config-check --connect` in the API container: PostgreSQL, Redis,
+  storage and SMTP reachable.
+- Browser smoke (Playwright through the proxy) 12/12: HTTPS + HSTS on the three addresses, CMS CSP, Super Admin from
+  the CLI → password from the emailed code → two-factor → dashboard, picture upload, Courses / Campaigns / Home
+  screen / Settings without CSP violations, website home without console errors.
+- Backups: retention (newest 5 pre-deploy kept), nightly dump, `restore.sh --drill` into a new database and dropped;
+  `rollback.sh` to an earlier release and back; data kept across every redeploy and a Docker restart (containers came
+  back by themselves).
+- Found and fixed during the rehearsal: the website took the API's PORT; empty backup folders stopped the script;
+  corepack's download failing inside the image (npm now); four parallel builds of the shared stage exhausting
+  memory (built once now; docs left out of the build context); Zod's eval probe breaking the CMS CSP (`jitless`).
+- CI: new job `docker-images` (build all targets, validate compose with the template, API image loads its code).
+
 ### Audit fixes, batch C (D-075)
 - API: `event-notifications.e2e` campaigns (audience counts for courses / exam categories with descendants / all /
   all but iPhone users, bad link 400, send now, inbox + push only by default, sent ones locked 409, scheduled send by
