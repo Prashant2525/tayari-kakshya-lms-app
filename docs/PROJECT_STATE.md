@@ -1,6 +1,6 @@
 # Project State
 
-Current Phase: **Phase 20 — production hardening** on `feature/production-hardening` (Phase 19 merged, PR #60–#62); next Phase 18b (waits on owner accounts)
+Current Phase: **Phase 21 — CMS polish** on `feature/cms-polish` (Phase 20 merged, PR #63); next Phase 18b (waits on owner accounts)
 Current Milestone: production stack built and rehearsed; launch waits on the owner's accounts (`RELEASE_READINESS.md`)
 Overall Status: **IN PROGRESS**
 Last updated: 2026-10-13

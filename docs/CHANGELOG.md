@@ -4,6 +4,11 @@ All notable changes to this project. Format based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Added — 2026-10-13 (Phase 21 — CMS polish)
+- CMS: drag to reorder chapters, topics, lessons, exam categories, education levels and Home sections; Ctrl K / ⌘K
+  command palette (go to a page, create a notice / article / campaign, find a course or a student).
+- CMS loads faster: Sentry only when configured and after the first screen; libraries cached across releases.
+
 ### Changed — 2026-10-13 (Phase 20 — production hardening)
 - Website: a Content-Security-Policy with a new script nonce on every page (only the site's own scripts can run).
 - API: PDFs — originals and each student's stamped copy of the day are kept in memory, so reopening a PDF is

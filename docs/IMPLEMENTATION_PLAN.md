@@ -216,6 +216,7 @@ AI study assistant (after L2), live classes (after L3), Apple IAP (only if decid
   backup / restore / rollback scripts, CI image job, `RELEASE_READINESS.md`; local rehearsal
 - ☐ Phase 18b (needs owner accounts): staging server + load test, production deploy, store builds and submission;
   app links from the website (KI-044) once the store certificates exist
+- ☑ Phase 21 — CMS polish: drag-to-reorder (spec) and the Ctrl K palette (design system), faster first load (KI-018)
 - ☑ Phase 20 — production hardening: website nonce CSP (R-3), PDF caches (KI-022), worker JSON logs (KI-015), staff
   invitation email (KI-013), stale known issues closed
 - ☑ **Phase 19 — configuration readiness (D-076, `CONFIGURATION_READINESS_AUDIT.md`)**: G-3 partial-configuration

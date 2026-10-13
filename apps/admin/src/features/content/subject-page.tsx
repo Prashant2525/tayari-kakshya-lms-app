@@ -40,6 +40,7 @@ import {
 } from '@/lib/content';
 import { localized, plural } from '@/lib/format';
 import { cn } from '@/lib/utils';
+import { DragHandle, dragRowClass, useDragReorder } from '@/lib/drag-reorder';
 import { SubjectDialog } from './subject-dialog';
 
 type Level = 'chapter' | 'topic';
@@ -210,6 +211,7 @@ export function SubjectPage() {
   } | null>(null);
   const [deleting, setDeleting] = useState<{ path: string; label: string } | null>(null);
   const [busy, setBusy] = useState(false);
+  const bind = useDragReorder();
 
   const run = async (fn: () => Promise<unknown>, success: string) => {
     setBusy(true);
@@ -225,6 +227,8 @@ export function SubjectPage() {
     }
   };
   const statusOptions = STRUCTURAL.filter((s) => canPublish || s === 'draft' || s === 'in_review');
+  const saveOrder = (path: string) => (next: string[]) =>
+    void run(() => api.put(path, { ids: next }), 'Order saved');
   const reorder = (path: string, ids: string[], index: number, delta: -1 | 1) => {
     const next = [...ids];
     const target = index + delta;
@@ -281,7 +285,18 @@ export function SubjectPage() {
     const Icon = ITEM_ICON[item.type];
     const ids = topic.items.map((i) => i.id);
     return (
-      <li key={item.id} className="flex items-start gap-3 py-2 pl-2 pr-1 sm:items-center">
+      <li
+        key={item.id}
+        className={cn('flex items-start gap-3 py-2 pl-2 pr-1 sm:items-center', dragRowClass)}
+        {...bind(
+          `items-${topic.id}`,
+          ids,
+          item.id,
+          saveOrder(`/admin/topics/${topic.id}/items/order`),
+          !busy,
+        )}
+      >
+        {ids.length > 1 ? <DragHandle className="mt-2 sm:mt-0" /> : null}
         <span className="grid size-8 shrink-0 place-items-center rounded-sm bg-surface-muted text-text-secondary">
           <Icon className="size-4" aria-label={ITEM_TYPE_LABEL[item.type]} />
         </span>
@@ -337,8 +352,19 @@ export function SubjectPage() {
   };
 
   const topicBlock = (topic: TopicNode, chapter: ChapterNode, index: number) => (
-    <li key={topic.id} className="rounded-sm border border-border">
+    <li
+      key={topic.id}
+      className={cn('rounded-sm border border-border', dragRowClass)}
+      {...bind(
+        `topics-${chapter.id}`,
+        chapter.topics.map((t) => t.id),
+        topic.id,
+        saveOrder(`/admin/chapters/${chapter.id}/topics/order`),
+        !busy,
+      )}
+    >
       <div className="flex items-center gap-3 border-b border-border bg-surface-muted/40 px-3 py-2">
+        {chapter.topics.length > 1 ? <DragHandle /> : null}
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-semibold text-text">
             {topic.numberLabel ? <span className="mr-1.5 text-text-muted">{topic.numberLabel}</span> : null}
@@ -473,9 +499,20 @@ export function SubjectPage() {
       ) : (
         <ol className="flex flex-col gap-4">
           {subject.chapters.map((chapter, ci) => (
-            <li key={chapter.id}>
+            <li
+              key={chapter.id}
+              className={cn('rounded-lg', dragRowClass)}
+              {...bind(
+                'chapters',
+                chapterIds,
+                chapter.id,
+                saveOrder(`/admin/subjects/${subject.id}/chapters/order`),
+                !busy,
+              )}
+            >
               <Card>
                 <div className="flex items-center gap-3 border-b border-border px-5 py-3">
+                  {chapterIds.length > 1 ? <DragHandle /> : null}
                   <div className="min-w-0 flex-1">
                     <h2 className="truncate text-[17px] font-semibold text-text">
                       {chapter.numberLabel ? (

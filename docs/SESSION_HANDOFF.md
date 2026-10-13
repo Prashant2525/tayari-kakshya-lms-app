@@ -202,6 +202,11 @@ Current task: Phase 11 part 3 (receipts + refunds) done on `feature/receipts-ref
 - Nothing partially implemented. Admin screens for Phase 6 not started.
 
 ## Exact next steps
+0zn. 2026-10-13: PR #63 merged (main CI green). Phase 21 on `feature/cms-polish`: `lib/drag-reorder.tsx`
+   (`useDragReorder` → `bind(scope, ids, id, onReorder)`, used in subject outline, categories, education levels,
+   Home sections), `components/layout/command-palette.tsx` (in the header; gets the nav list from app-shell), lazy
+   Sentry (`lib/sentry-client.ts`) and vendor chunks in `vite.config.ts`. Next: Phase 18b when the owner's accounts
+   arrive.
 0zm. 2026-10-13: PR #60–#62 merged (main CI green). Phase 20 on `feature/production-hardening`: website nonce CSP
    (`apps/web/src/proxy.ts`, `src/lib/csp.ts`; the old CSP header left `next.config.ts`), `ByteLru` PDF caches in
    `catalog.service.ts`, `WorkerModule` + `common/logging/pino.ts` (worker JSON logs), staff invite wording
