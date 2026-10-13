@@ -38,8 +38,8 @@ size="$(wc -c <"$target")"
 echo "$(date -u +%FT%TZ) backup $kind → $target ($size bytes)"
 
 if [ "$kind" = nightly ]; then
-  [ "$(date -u +%u)" = 7 ] && cp "$target" "$dir/weekly/"
-  [ "$(date -u +%d)" = 01 ] && cp "$target" "$dir/monthly/"
+  if [ "$(date -u +%u)" = 7 ]; then cp "$target" "$dir/weekly/"; fi
+  if [ "$(date -u +%d)" = 01 ]; then cp "$target" "$dir/monthly/"; fi
 fi
 
 # Retention: newest N of each kind.
@@ -47,8 +47,7 @@ prune() {
   local files
   files="$(ls -1t "$1"/*.dump.enc 2>/dev/null || true)"
   [ -n "$files" ] || return 0
-  printf '%s
-' "$files" | tail -n +"$(($2 + 1))" | xargs -r rm -f
+  printf '%s\n' "$files" | tail -n +"$(($2 + 1))" | xargs -r rm -f
 }
 prune "$dir/daily" 7
 prune "$dir/weekly" 4
