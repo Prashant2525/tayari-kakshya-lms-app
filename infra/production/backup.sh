@@ -43,7 +43,13 @@ if [ "$kind" = nightly ]; then
 fi
 
 # Retention: newest N of each kind.
-prune() { ls -1t "$1"/*.dump.enc 2>/dev/null | tail -n +"$(($2 + 1))" | xargs -r rm -f; }
+prune() {
+  local files
+  files="$(ls -1t "$1"/*.dump.enc 2>/dev/null || true)"
+  [ -n "$files" ] || return 0
+  printf '%s
+' "$files" | tail -n +"$(($2 + 1))" | xargs -r rm -f
+}
 prune "$dir/daily" 7
 prune "$dir/weekly" 4
 prune "$dir/monthly" 6
