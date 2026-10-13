@@ -109,8 +109,41 @@ export class PaymentsController {
   @Public()
   @Get('payments/esewa/:paymentId/start')
   @RateLimit({ name: 'payments.esewa.start', limit: 60, windowSeconds: 3600, by: ['ip'] })
-  async esewaStart(@Param('paymentId', uuid()) paymentId: string, @Res() reply: FastifyReply) {
-    const page = await this.payments.esewaStartPage(paymentId);
+  esewaStart(@Param('paymentId', uuid()) paymentId: string, @Res() reply: FastifyReply) {
+    return this.formStart('esewa', paymentId, reply);
+  }
+
+  /** ConnectIPS (D-076): the same signed-form page, posted to NCHL. */
+  @Public()
+  @Get('payments/connectips/:paymentId/start')
+  @RateLimit({ name: 'payments.connectips.start', limit: 60, windowSeconds: 3600, by: ['ip'] })
+  connectipsStart(@Param('paymentId', uuid()) paymentId: string, @Res() reply: FastifyReply) {
+    return this.formStart('connectips', paymentId, reply);
+  }
+
+  /** The success and failure addresses registered with NCHL (both confirm with NCHL before anything changes). */
+  @Public()
+  @Get('payments/connectips/success')
+  @RateLimit({ name: 'payments.return', limit: 120, windowSeconds: 3600, by: ['ip'] })
+  async connectipsSuccess(@Query() query: Record<string, string>, @Res() reply: FastifyReply) {
+    const next = await this.payments
+      .connectipsReturn({ txnId: query['TXNID'] ?? query['txnId'], outcome: 'success' })
+      .catch(() => null);
+    this.redirect(reply, next);
+  }
+
+  @Public()
+  @Get('payments/connectips/failure')
+  @RateLimit({ name: 'payments.return', limit: 120, windowSeconds: 3600, by: ['ip'] })
+  async connectipsFailure(@Query() query: Record<string, string>, @Res() reply: FastifyReply) {
+    const next = await this.payments
+      .connectipsReturn({ txnId: query['TXNID'] ?? query['txnId'], outcome: 'failure' })
+      .catch(() => null);
+    this.redirect(reply, next);
+  }
+
+  private async formStart(provider: 'esewa' | 'connectips', paymentId: string, reply: FastifyReply) {
+    const page = await this.payments.formStartPage(provider, paymentId);
     if (!page) {
       void reply.status(404).type('text/html; charset=utf-8').send(LOST_PAGE);
       return;
@@ -120,7 +153,7 @@ export class PaymentsController {
         'Content-Security-Policy',
         [
           "default-src 'none'",
-          // Only the one-line script that sends the form (its hash), and the form only to eSewa.
+          // Only the one-line script that sends the form (its hash), and the form only to the gateway.
           "script-src 'sha256-cXN4kc0BnyUGmltBTHDFqlgGIBTcF/hDhdn58LICFNQ='",
           `form-action ${page.formAction}`,
           "base-uri 'none'",

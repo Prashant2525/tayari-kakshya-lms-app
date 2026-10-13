@@ -159,6 +159,8 @@ Students: released results include `graderComment` on written answers.
 | GET | `/payments/esewa/:paymentId/start` | public | HTML page posting the signed form to eSewa (CSP: one script hash, `form-action` eSewa only); 404 once used / closed |
 | GET | `/payments/esewa/return?data=` / `?payment=` | public | signature-checked, confirmed with eSewa's status API → 302 to the allow-listed return address with `?order=` (400 page for unknown / forged) |
 | GET | `/payments/khalti/return?pidx=` | public | looked up with Khalti → 302 as above |
+| GET | `/payments/connectips/:paymentId/start` | public | page that posts the RSA-signed form to NCHL (CSP: only that script, form only to NCHL); 404 once settled (D-076) |
+| GET | `/payments/connectips/success?TXNID=` · `/payments/connectips/failure?TXNID=` | public | the addresses registered with NCHL; confirmed with NCHL's `validatetxn` → 302 as above; on the failure address an unconfirmed attempt is cancelled |
 | GET | `/admin/orders?q=&status=&provider=&attention=true&cursor=&limit=` | `orders:read` | `q` = order number (`#123`), student name or email; `attention` = duplicate or amount mismatch |
 | GET | `/admin/orders/:id` | `orders:read` | items (with validity bought), access given, payments with every gateway event |
 | POST | `/admin/payments/:id/check` | `orders:manage` | asks the gateway again and settles; audited `payment.check` |

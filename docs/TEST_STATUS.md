@@ -21,6 +21,16 @@ Last updated: 2026-10-13 (Phase 16 test pass). `pnpm test` runs unit + integrati
 | `@tk/web` (E2E, Playwright) | 10 | `next start` production build + real API + `*_web_e2e` database + Mailpit + gateway stand-in; access tokens last 60 s so every page load refreshes |
 | **Total** | **665** | |
 
+### ConnectIPS and gateway checks (D-076)
+- API: `gateways.test.ts` (key formats, form fields and TOKEN verified with the public key, Nepal-date TXNDATE,
+  validatetxn Basic auth + signed body, only SUCCESS completes; Khalti / eSewa probes); `payments.e2e` ConnectIPS:
+  failure address → attempt cancelled, success address before confirmation → pending, unknown / malformed TXNID
+  refused, a different amount not confirmed, confirmed → paid with access, start page gone after payment; checkout
+  options list ConnectIPS. Payments 9/9, gateways 10/10.
+- App browser `purchase.spec`: ConnectIPS cancelled at the (signature-checking) stand-in → "Payment not completed",
+  then paid → access. Purchase 7/7.
+- `config-check --connect` against the real eSewa UAT and Khalti sandbox: both ok; a wrong Khalti key → 401 reported.
+
 ### Phase 18 — production stack rehearsal (local, Docker Desktop)
 - `deploy.sh` end to end with `*.localhost` addresses (Caddy local certificates), APP_ENV=staging, throw-away
   secrets: images built, pre-deploy backup, `prisma migrate deploy` (36 migrations), 2 API processes + worker +

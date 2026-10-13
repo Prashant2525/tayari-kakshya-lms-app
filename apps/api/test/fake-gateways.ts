@@ -1,4 +1,4 @@
-import { createHmac } from 'node:crypto';
+import { createHmac, createPublicKey, createVerify } from 'node:crypto';
 import type { HttpReply } from '../src/modules/payments/gateway-http.js';
 
 /** The test gateway credentials (setup-env.ts): never real keys. */
@@ -17,6 +17,8 @@ export class FakeGateways {
   >();
   /** eSewa payments by transaction_uuid (amounts in rupees, as eSewa reports them). */
   readonly esewa = new Map<string, { status: string; total_amount: number; ref_id: string | null }>();
+  /** ConnectIPS transactions the student completed (TXNID → amount in paisa). */
+  readonly connectips = new Map<string, number>();
   down = false;
   private seq = 0;
 
@@ -24,6 +26,7 @@ export class FakeGateways {
     this.calls.length = 0;
     this.khalti.clear();
     this.esewa.clear();
+    this.connectips.clear();
     this.down = false;
   }
 
@@ -65,10 +68,47 @@ export class FakeGateways {
     return Buffer.from(JSON.stringify(payload)).toString('base64');
   }
 
-  async request(method: string, url: string, opts: { json?: unknown } = {}): Promise<HttpReply> {
+  /** The student completes a ConnectIPS payment. */
+  connectipsPaid(txnId: string, amountPaisa: number) {
+    this.connectips.set(txnId, amountPaisa);
+  }
+
+  /** NCHL's checks: Basic auth with the application id / password, and the token signed with the merchant key. */
+  private connectipsAuthorised(headers: Record<string, string>, body: Record<string, unknown>): boolean {
+    const basic = `Basic ${Buffer.from(`${process.env['CONNECTIPS_APP_ID']}:${process.env['CONNECTIPS_APP_PASSWORD']}`).toString('base64')}`;
+    if (headers['Authorization'] !== basic) return false;
+    const message = `MERCHANTID=${String(body['merchantId'])},APPID=${String(body['appId'])},REFERENCEID=${String(body['referenceId'])},TXNAMT=${String(body['txnAmt'])}`;
+    return createVerify('RSA-SHA256')
+      .update(message)
+      .verify(createPublicKey(process.env['CONNECTIPS_PRIVATE_KEY']!), String(body['token']), 'base64');
+  }
+
+  async request(
+    method: string,
+    url: string,
+    opts: { json?: unknown; headers?: Record<string, string> } = {},
+  ): Promise<HttpReply> {
     this.calls.push({ method, url, json: opts.json });
     if (this.down) throw new Error('connect ECONNREFUSED (fake gateway down)');
     const u = new URL(url);
+    if (u.pathname.endsWith('/creditor/validatetxn') || u.pathname.endsWith('/creditor/gettxndetail')) {
+      const body = (opts.json ?? {}) as Record<string, unknown>;
+      if (!this.connectipsAuthorised(opts.headers ?? {}, body)) return { status: 401, body: null };
+      const paid = this.connectips.get(String(body['referenceId']));
+      const ok = paid !== undefined && paid === Number(body['txnAmt']);
+      return {
+        status: 200,
+        body: {
+          merchantId: body['merchantId'],
+          appId: body['appId'],
+          referenceId: body['referenceId'],
+          txnAmt: String(body['txnAmt']),
+          token: null,
+          status: ok ? 'SUCCESS' : 'FAILED',
+          statusDesc: ok ? 'TRANSACTION SUCCESSFUL' : 'TRANSACTION NOT FOUND',
+        },
+      };
+    }
     if (u.pathname.endsWith('/epayment/initiate/')) {
       const body = opts.json as { amount: number };
       const pidx = `pidx-${++this.seq}`;

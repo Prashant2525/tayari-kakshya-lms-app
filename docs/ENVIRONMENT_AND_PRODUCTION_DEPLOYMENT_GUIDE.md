@@ -202,7 +202,14 @@ Setup: §4.4. Provider not chosen yet (OPEN_QUESTIONS L1).
 | `KHALTI_ENV` | – | 🔓 | `sandbox` | `production` |
 | `KHALTI_SECRET_KEY` | for Khalti | 🔐 | test key from test-admin.khalti.com | live secret key from admin.khalti.com |
 | `KHALTI_BASE_URL` | – | 🔓 | empty (follows `KHALTI_ENV`) | empty |
-| `CONNECTIPS_*` | 🔶 | 🔐 | — | Not implemented; see §5.3 |
+| `CONNECTIPS_ENV` | – | 🔓 | `sandbox` (NCHL UAT `https://uat.connectips.com`) | `production` (`https://login.connectips.com`; sandbox refused) |
+| `CONNECTIPS_MERCHANT_ID`, `CONNECTIPS_APP_ID`, `CONNECTIPS_APP_NAME` | for ConnectIPS | 🔓 | NCHL UAT values | NCHL production values |
+| `CONNECTIPS_APP_PASSWORD` | for ConnectIPS | 🔐 | NCHL UAT application password | production password |
+| `CONNECTIPS_PRIVATE_KEY` | for ConnectIPS | 🔐 | private key of NCHL's UAT PFX, as PEM / base64 PEM (§5.3) | of the production PFX |
+| `CONNECTIPS_BASE_URL` | – | 🔓 | empty (follows `CONNECTIPS_ENV`) | empty |
+
+The five ConnectIPS values go together: with only some of them the API refuses to start and names the missing one;
+a key that is not a private key is refused too.
 
 A gateway is offered only when its keys are set **and** it is switched on in CMS → Settings → Payment methods.
 
@@ -520,11 +527,37 @@ to production is **only configuration** — no code change.
   3. The API sends `return_url` (`/api/v1/payments/khalti/return`) and `website_url` with each payment.
   4. CMS → Settings → Payment methods: Khalti on. Test with a small real payment.
 
-### 5.3 ConnectIPS (NCHL) 🔶 — **implementation gap**
-Not implemented. Adding credentials will **not** make it work. Needed before it can be built (D-067 / D-073 — on hold):
-NCHL merchant **test** credentials (merchant id, app id, app name, app password) and the **PFX certificate** +
-passphrase used to sign requests; then production credentials after NCHL's approval. The draft variable names are
-commented in `.env.example`. When built, this section will be completed and config-check extended.
+### 5.3 ConnectIPS (NCHL) ✅ code · 🟡 your NCHL credentials
+Built (D-076) from NCHL's connectIPS e-Payment merchant integration guide: the student's browser posts a form signed
+with your merchant key (SHA256withRSA) to NCHL's login page; NCHL sends the student back to your registered success /
+failure address with `?TXNID=…`; the API then confirms the payment with NCHL's `validatetxn` API (Basic auth + signed
+body) before giving access. Tested against a stand-in that checks the signatures; **the first real check is in NCHL's
+UAT with your test credentials** — report anything NCHL's current document does differently and it will be adjusted.
+
+1. **Become a ConnectIPS merchant** through your bank (NCHL onboards merchants via a member bank): ask for
+   *connectIPS e-Payment gateway* merchant integration. NCHL gives you, for **UAT** first: *Merchant ID*, *App ID*,
+   *App Name*, *App password*, and a **PFX certificate file** (e.g. `CREDITOR.pfx`) with its password.
+2. **Register these two addresses with NCHL** (they are fixed per merchant, not sent with each payment):
+   - success: `https://api.<your-domain>/api/v1/payments/connectips/success`
+   - failure: `https://api.<your-domain>/api/v1/payments/connectips/failure`
+   (for UAT, your staging API address with the same paths).
+3. **Turn the PFX into the key the API reads** (on your computer or the server; keep the files private and delete them
+   afterwards):
+   ```bash
+   openssl pkcs12 -in CREDITOR.pfx -nocerts -nodes -out connectips-key.pem   # asks for the PFX password
+   base64 -w0 connectips-key.pem > connectips-key.b64                       # one line, for the settings file
+   ```
+   (OpenSSL 3 may need `-legacy` after `pkcs12` for older PFX files.)
+4. **Settings** (server environment): `CONNECTIPS_ENV=sandbox` for UAT (`production` for live),
+   `CONNECTIPS_MERCHANT_ID`, `CONNECTIPS_APP_ID`, `CONNECTIPS_APP_NAME`, `CONNECTIPS_APP_PASSWORD`,
+   `CONNECTIPS_PRIVATE_KEY=<contents of connectips-key.b64>`, `CONNECTIPS_BASE_URL` empty,
+   `PAYMENT_CALLBACK_BASE_URL=https://api.<your-domain>`.
+5. **Check**: `config-check` shows "ConnectIPS configured (sandbox)"; `config-check --connect` confirms NCHL accepts
+   the app id / password / key (G-4). CMS → Settings → Payment methods: ConnectIPS on.
+6. **UAT test**: buy a course choosing ConnectIPS → NCHL's UAT page → pay with the test bank account NCHL gives you →
+   back in the app / website, the order is paid. Also cancel once → "Payment not completed".
+7. **Production**: after NCHL approves the UAT run, repeat steps 2–5 with the production values and
+   `CONNECTIPS_ENV=production`; make a small real payment and refund it in NCHL's merchant portal (D-057).
 
 ### 5.4 iPhone
 The iPhone app never sells (D-027). iPhone students buy on the website, so the website's payment return
@@ -736,7 +769,7 @@ Three layers, none of which prints a value:
    ```
    pnpm --filter @tk/api build          # once, so the command exists
    pnpm --filter @tk/api cli config-check                  # settings only (works offline)
-   pnpm --filter @tk/api cli config-check --connect        # + database, migrations, Redis, buckets, SMTP, Bunny
+   pnpm --filter @tk/api cli config-check --connect        # + database, migrations, Redis, buckets, SMTP, Bunny, gateways
    pnpm --filter @tk/api cli config-check --env-file /path/to/production.env   # check a file without using it
    ```
    It runs the start-up validation, then a review that is **strict when `APP_ENV` is staging or production** (errors
@@ -751,7 +784,7 @@ Three layers, none of which prints a value:
 | Check | Runs locally | Needs the service |
 |---|---|---|
 | Start-up validation, `config-check` | ✔ | — |
-| `config-check --connect` | ✔ (against your local or a reachable server) | database, Redis, storage, SMTP, Bunny API |
+| `config-check --connect` | ✔ (against your local or a reachable server) | database, Redis, storage, SMTP, Bunny API; payment gateways without paying — Khalti key accepted, eSewa status API answers, ConnectIPS app id / password / key accepted by NCHL |
 | Gateways (eSewa / Khalti) | — | a sandbox / small real payment (no safe automatic check) |
 | Google sign-in, push | — | a real app build on a phone |
 | Sentry | `cli monitoring-test` | Sentry |
@@ -813,6 +846,7 @@ applies. The final audit (§11) is repeated in Phase 17 against the code.
 ### Change log
 | Date | Change |
 |---|---|
+| 2026-10-13 | ConnectIPS built (D-076): `CONNECTIPS_ENV`, `CONNECTIPS_MERCHANT_ID`, `CONNECTIPS_APP_ID`, `CONNECTIPS_APP_NAME`, `CONNECTIPS_APP_PASSWORD`, `CONNECTIPS_PRIVATE_KEY` (PEM / base64 PEM; replaces the draft `CONNECTIPS_PFX_*`), `CONNECTIPS_BASE_URL`; registered return addresses `/api/v1/payments/connectips/success` and `/failure` (§5.3). |
 | 2026-10-13 | Configuration readiness (D-076): start-up validation refuses half-configured eSewa, SMTP login and Bunny; server preparation (§8.0), off-site backups with rclone (§8.0), exact DNS records (§4.14), first store submissions (§4.13); PR template configuration checklist; `CONFIGURATION_READINESS_AUDIT.md`. |
 | 2026-10-13 | Phase 18: production stack `infra/production/` (Dockerfile, `docker-compose.prod.yml`, Caddyfile, `deploy.sh`, `backup.sh`, `restore.sh`, `rollback.sh`); new settings file `infra/production/.env` (§3.15); `TRUST_PROXY=172.30.0.0/24`; runbook §8 statuses and first-deployment commands (§8.1); CI job `docker-images`. |
 | 2026-10-13 | Phase 16: `DATABASE_POOL_MAX` (database connections per process, default 20); importer option `CONTENT_UPDATE_QUESTIONS` and the correct command `pnpm --filter @tk/content-pack run import`; load test `apps/api/scripts/load/` (§9). |

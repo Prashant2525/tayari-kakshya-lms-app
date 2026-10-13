@@ -65,10 +65,10 @@ Updated as each gap closes.
 
 | Gap | Status |
 |---|---|
-| G-1 | ☐ |
+| G-1 | ✅ built and tested against a signature-checking stand-in (API + app browser test); first real run in NCHL UAT when the owner has test credentials (guide §5.3) |
 | G-2 | ☐ |
 | G-3 | ✅ start-up validation (`env.ts`), tests in `env.test.ts` |
-| G-4 | ☐ |
+| G-4 | ✅ `config-check --connect` tries Khalti, eSewa and ConnectIPS credentials without paying (checked against the real eSewa / Khalti sandboxes, a wrong Khalti key is reported) |
 | G-5 | ✅ `env-usage.test.ts` in the app, CMS and website (checked by planting a violation) |
 | G-6 | ✅ guide §8.0 (server, firewall, swap, off-site backups), §4.14 (DNS records), §4.13 (store submissions) |
 | G-7 | ✅ `.github/pull_request_template.md` |

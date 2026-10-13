@@ -4,6 +4,8 @@ import nodemailer from 'nodemailer';
 import { Redis } from 'ioredis';
 import pg from 'pg';
 import type { Env } from './env.js';
+import { GatewayHttp } from '../modules/payments/gateway-http.js';
+import { gatewaysFromEnv } from '../modules/payments/gateways.js';
 
 /**
  * Configuration preflight (deployment guide §10): what an environment's settings mean before the API is started on
@@ -113,6 +115,7 @@ export function reviewConfig(env: Env): Finding[] {
   const gateways = [
     ['eSewa', env.ESEWA_SECRET_KEY && env.ESEWA_PRODUCT_CODE, env.ESEWA_ENV],
     ['Khalti', env.KHALTI_SECRET_KEY, env.KHALTI_ENV],
+    ['ConnectIPS', env.CONNECTIPS_MERCHANT_ID, env.CONNECTIPS_ENV],
   ] as const;
   for (const [name, configured, mode] of gateways) {
     if (!configured) add(should, 'Payments', `${name} not configured`);
@@ -126,7 +129,6 @@ export function reviewConfig(env: Env): Finding[] {
     if (live && !isHttps(env.PAYMENT_RETURN_URL_WEB))
       add('error', 'Payments', 'PAYMENT_RETURN_URL_WEB must be the website’s https payment-result page');
   }
-  add('info', 'Payments', 'ConnectIPS: not implemented yet (waiting for NCHL test credentials)');
 
   // Public addresses
   if (live && !isHttps(env.PUBLIC_WEB_URL))
@@ -235,6 +237,31 @@ export function connectionChecks(env: Env, migrationsDir: string): Check[] {
         await transport.verify();
         transport.close();
         return 'server accepted the connection and login (no email sent)';
+      },
+    });
+  }
+  // Payment gateways (D-076, G-4): the credentials are tried without making a payment.
+  const gateways = gatewaysFromEnv(env, new GatewayHttp());
+  const probes = [
+    [
+      'eSewa',
+      gateways.esewa,
+      'status API answered for this product code (the secret key is checked at payment)',
+    ],
+    ['Khalti', gateways.khalti, 'secret key accepted'],
+    ['ConnectIPS', gateways.connectips, 'app id, password and key accepted by NCHL'],
+  ] as const;
+  for (const [name, gateway, success] of probes) {
+    if (!gateway) continue;
+    checks.push({
+      name,
+      run: async () => {
+        const result = await gateway.probe();
+        if (!result.ok)
+          throw new Error(
+            `${gateway.config.mode} gateway answered ${result.status} — check the ${name} credentials and mode`,
+          );
+        return `${success} (${gateway.config.mode})`;
       },
     });
   }

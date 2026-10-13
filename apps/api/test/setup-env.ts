@@ -1,5 +1,5 @@
 import { config } from 'dotenv';
-import { randomBytes } from 'node:crypto';
+import { generateKeyPairSync, randomBytes } from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -57,6 +57,16 @@ Object.assign(process.env, {
   KHALTI_ENV: 'sandbox',
   KHALTI_SECRET_KEY: 'test-khalti-key',
   KHALTI_BASE_URL: '',
+  // ConnectIPS: a key pair made for this test run (never a committed key); fake-gateways.ts checks its signatures.
+  CONNECTIPS_ENV: 'sandbox',
+  CONNECTIPS_MERCHANT_ID: '301',
+  CONNECTIPS_APP_ID: 'MER-301-APP-1',
+  CONNECTIPS_APP_NAME: 'Tayari Kakshya',
+  CONNECTIPS_APP_PASSWORD: 'test-connectips-password',
+  CONNECTIPS_PRIVATE_KEY: generateKeyPairSync('rsa', { modulusLength: 2048 })
+    .privateKey.export({ type: 'pkcs8', format: 'pem' })
+    .toString(),
+  CONNECTIPS_BASE_URL: '',
   PAYMENT_CALLBACK_BASE_URL: 'https://api.test.invalid',
   PAYMENT_RETURN_URL_APP: 'tayarikakshya://payment-result',
   PAYMENT_RETURN_URL_WEB: 'https://web.test.invalid/payment-result',

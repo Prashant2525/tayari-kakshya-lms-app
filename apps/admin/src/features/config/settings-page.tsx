@@ -1167,6 +1167,12 @@ export function SettingsPage() {
                 disabled={disabled}
                 onChange={(v) => set({ ...d, khalti: v })}
               />
+              <ToggleRow
+                label="ConnectIPS"
+                checked={d.connectips}
+                disabled={disabled}
+                onChange={(v) => set({ ...d, connectips: v })}
+              />
             </>
           )}
         </SettingCard>

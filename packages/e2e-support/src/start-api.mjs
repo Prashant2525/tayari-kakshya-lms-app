@@ -24,7 +24,7 @@ export async function startE2eApi(env) {
   execFileSync(process.execPath, [path.join(apiDir, 'dist/scripts/e2e-seed.js')], { env, stdio: 'inherit' });
 
   // The payment gateway stand-in (unless the run uses the real test gateways).
-  const gateway = env.E2E_GATEWAY_PORT ? startFakeGateway(Number(env.E2E_GATEWAY_PORT)) : null;
+  const gateway = env.E2E_GATEWAY_PORT ? startFakeGateway(Number(env.E2E_GATEWAY_PORT), env) : null;
   const child = spawn(process.execPath, [path.join(apiDir, 'dist/main.js')], { env, stdio: 'inherit' });
   const stop = () => {
     child.kill();

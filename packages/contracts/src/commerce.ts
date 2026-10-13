@@ -3,7 +3,7 @@ import { CursorQuery, LocalizedText } from './common.js';
 import { CoursePricingInput, Slug, StatusChangeInput } from './content.js';
 
 /** Orders and payments (Phase 11: D-003, D-023, D-027, D-051, D-052). */
-export const PaymentProviderName = z.enum(['esewa', 'khalti']);
+export const PaymentProviderName = z.enum(['esewa', 'khalti', 'connectips']);
 export type PaymentProviderName = z.infer<typeof PaymentProviderName>;
 
 /** Coupon codes: letters, numbers and dashes; matched without regard to case (stored upper-case). */

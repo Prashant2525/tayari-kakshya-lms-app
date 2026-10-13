@@ -28,7 +28,11 @@ import { BackButton, Banner, Card, Screen, Skeleton } from '@/ui/layout';
 import { Text } from '@/ui/text';
 import { TextField } from '@/ui/text-field';
 
-const PROVIDER_LABEL: Record<ProviderName, string> = { esewa: 'eSewa', khalti: 'Khalti' };
+const PROVIDER_LABEL: Record<ProviderName, string> = {
+  esewa: 'eSewa',
+  khalti: 'Khalti',
+  connectips: 'ConnectIPS',
+};
 
 const COUPON_REASON: Record<string, MessageKey> = {
   not_found: 'coupon.not_found',

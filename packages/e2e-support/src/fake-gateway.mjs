@@ -1,7 +1,8 @@
-// Stand-in for eSewa ePay v2 and Khalti KPG-2 in browser E2E runs (test-only; never used by the product). It speaks
-// the same endpoints the API calls — Khalti initiate/lookup, eSewa form/status — and shows a small payment page with
-// Pay and Cancel, redirecting back with correctly signed data, so the whole checkout runs without real gateways.
-import { createHmac } from 'node:crypto';
+// Stand-in for eSewa ePay v2, Khalti KPG-2 and ConnectIPS in browser E2E runs (test-only; never used by the product).
+// It speaks the same endpoints the API calls — Khalti initiate/lookup, eSewa form/status, ConnectIPS login page /
+// validatetxn — and shows a small payment page with Pay and Cancel, redirecting back the way each gateway does, so the
+// whole checkout runs without real gateways.
+import { createHmac, createPublicKey, createVerify, generateKeyPairSync } from 'node:crypto';
 import http from 'node:http';
 
 export const E2E_ESEWA_SECRET = 'e2e-esewa-secret';
@@ -17,10 +18,18 @@ const readBody = (req) =>
     req.on('end', () => resolve(data));
   });
 
-/** @param {number} port */
-export function startFakeGateway(port) {
+/**
+ * @param {number} port
+ * @param {NodeJS.ProcessEnv} env the API's settings (ConnectIPS key and application, where NCHL sends students back)
+ */
+export function startFakeGateway(port, env = {}) {
   const khalti = new Map();
   const esewa = new Map();
+  const connectips = new Map();
+  const cipsKey = env.CONNECTIPS_PRIVATE_KEY ? createPublicKey(env.CONNECTIPS_PRIVATE_KEY) : null;
+  const cipsSigned = (message, token) =>
+    Boolean(cipsKey) && createVerify('RSA-SHA256').update(message).verify(cipsKey, String(token), 'base64');
+  const cipsBasic = `Basic ${Buffer.from(`${env.CONNECTIPS_APP_ID}:${env.CONNECTIPS_APP_PASSWORD}`).toString('base64')}`;
   let seq = 0;
   const base = `http://localhost:${port}`;
 
@@ -77,6 +86,64 @@ export function startFakeGateway(port) {
         amount: String(p.amount),
       }).toString();
       return send(302, 'text/plain', '', { Location: back.toString() });
+    }
+
+    // ── ConnectIPS ──
+    if (req.method === 'POST' && url.pathname === '/connectips/connectipswebgw/loginpage') {
+      const f = Object.fromEntries(new URLSearchParams(await readBody(req)));
+      const order = [
+        'MERCHANTID',
+        'APPID',
+        'APPNAME',
+        'TXNID',
+        'TXNDATE',
+        'TXNCRNCY',
+        'TXNAMT',
+        'REFERENCEID',
+      ];
+      const message = `${[...order, 'REMARKS', 'PARTICULARS'].map((k) => `${k}=${f[k] ?? ''}`).join(',')},TOKEN=TOKEN`;
+      if (!cipsSigned(message, f.TOKEN)) return send(400, 'text/html', page('ConnectIPS', 'Invalid token'));
+      connectips.set(f.TXNID, { amount: Number(f.TXNAMT), status: 'pending' });
+      return send(
+        200,
+        'text/html',
+        page(
+          'ConnectIPS test payment',
+          `<h1>ConnectIPS (E2E stand-in)</h1><p>Rs ${Number(f.TXNAMT) / 100}</p><p><a href="/connectips/confirm?txn=${f.TXNID}&action=pay">Pay with ConnectIPS</a></p><p><a href="/connectips/confirm?txn=${f.TXNID}&action=cancel">Cancel payment</a></p>`,
+        ),
+      );
+    }
+    if (req.method === 'GET' && url.pathname === '/connectips/confirm') {
+      const txn = url.searchParams.get('txn');
+      const t = connectips.get(txn);
+      if (!t) return send(404, 'text/html', page('ConnectIPS', 'Unknown payment'));
+      const paid = url.searchParams.get('action') === 'pay';
+      t.status = paid ? 'SUCCESS' : 'FAILED';
+      // The success / failure addresses NCHL keeps for the merchant.
+      return send(302, 'text/plain', '', {
+        Location: `${env.PAYMENT_CALLBACK_BASE_URL}/api/v1/payments/connectips/${paid ? 'success' : 'failure'}?TXNID=${txn}`,
+      });
+    }
+    if (
+      req.method === 'POST' &&
+      (url.pathname === '/connectips/connectipswebws/api/creditor/validatetxn' ||
+        url.pathname === '/connectips/connectipswebws/api/creditor/gettxndetail')
+    ) {
+      if (req.headers.authorization !== cipsBasic) return json(401, { error: 'Unauthorized' });
+      const b = JSON.parse(await readBody(req));
+      const message = `MERCHANTID=${b.merchantId},APPID=${b.appId},REFERENCEID=${b.referenceId},TXNAMT=${b.txnAmt}`;
+      if (!cipsSigned(message, b.token)) return json(401, { error: 'Invalid token' });
+      const t = connectips.get(b.referenceId);
+      const ok = t && t.status === 'SUCCESS' && t.amount === Number(b.txnAmt);
+      return json(200, {
+        merchantId: b.merchantId,
+        appId: b.appId,
+        referenceId: b.referenceId,
+        txnAmt: String(b.txnAmt),
+        token: null,
+        status: ok ? 'SUCCESS' : 'FAILED',
+        statusDesc: ok ? 'TRANSACTION SUCCESSFUL' : 'TRANSACTION FAILED',
+      });
     }
 
     // ── eSewa ──
@@ -153,6 +220,16 @@ export function fakeGatewayEnv(port, { callbackBase, webReturnUrl }) {
     KHALTI_ENV: 'sandbox',
     KHALTI_SECRET_KEY: E2E_KHALTI_KEY,
     KHALTI_BASE_URL: `${base}/khalti/api/v2`,
+    // ConnectIPS: a key pair made for this run (never a committed key); the stand-in checks the API's signatures.
+    CONNECTIPS_ENV: 'sandbox',
+    CONNECTIPS_MERCHANT_ID: '301',
+    CONNECTIPS_APP_ID: 'MER-301-APP-1',
+    CONNECTIPS_APP_NAME: 'Tayari Kakshya',
+    CONNECTIPS_APP_PASSWORD: 'e2e-connectips-password',
+    CONNECTIPS_PRIVATE_KEY: generateKeyPairSync('rsa', { modulusLength: 2048 })
+      .privateKey.export({ type: 'pkcs8', format: 'pem' })
+      .toString(),
+    CONNECTIPS_BASE_URL: `${base}/connectips`,
     PAYMENT_CALLBACK_BASE_URL: callbackBase,
     PAYMENT_RETURN_URL_WEB: webReturnUrl,
     PAYMENT_RETURN_URL_APP: 'tayarikakshya://payment-result',
